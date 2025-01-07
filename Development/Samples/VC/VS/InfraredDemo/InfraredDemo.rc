@@ -1,0 +1,501 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#include ""res\\InfraredDemo.rc2""  // 非 Microsoft Visual C++ 编辑的资源\r\n"
+    "#include ""l.CHS\\afxres.rc""      // 标准组件\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\InfraredDemo.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 InfraredDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "InfraredDemo，1.0 版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_InfraredDemo_DIALOG DIALOGEX 0, 0, 550, 361
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "MvCamera_SDK_InfraredDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "初始化",IDC_INIT_STATIC,407,14,123,71
+    PUSHBUTTON      "查找设备",IDC_ENUM_BUTTON,411,26,112,14
+    PUSHBUTTON      "打开设备",IDC_OPEN_BUTTON,411,46,53,14
+    PUSHBUTTON      "关闭设备",IDC_CLOSE_BUTTON,470,46,53,14
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,12,27,364,313
+    GROUPBOX        "参数",IDC_PARAMETER_STATIC,407,228,122,118
+    PUSHBUTTON      "开始采集",IDC_START_GRABBING_BUTTON,411,67,53,14
+    PUSHBUTTON      "停止采集",IDC_STOP_GRABBING_BUTTON,470,67,53,14
+    EDITTEXT        IDC_TRANSMISSIVITY_EDIT,468,238,52,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TARGET_DIS_EDIT,468,278,52,14,ES_AUTOHSCROLL
+    LTEXT           "大气透过率",IDC_TRANSMISSIVITY_STATIC,414,241,46,8
+    LTEXT           "测量范围",IDC_MEASURERANGE_STATIC,414,261,41,8
+    LTEXT           "目标距离",IDC_TARGET_DIS_STATIC,414,281,46,8
+    COMBOBOX        IDC_DEVICE_COMBO,12,11,364,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "发射率",IDC_EMISSIVITY_STATIC,414,300,46,8
+    EDITTEXT        IDC_EMISSIVITY_EDIT,468,299,52,14,ES_AUTOHSCROLL
+    GROUPBOX        "区域设置",IDC_REGION_STATIC,407,87,122,132
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,454,102,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "像素格式",IDC_PIXELFORMAT_STATIC,419,104,30,8
+    LTEXT           "显示来源",IDC_DISPLAYSOURCE_STATIC,419,118,30,8
+    COMBOBOX        IDC_DISPLAYSOURCE_COMBO,454,116,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "温度条",IDC_LEGEND_STATIC,419,150,22,8
+    CONTROL         "",IDC_LEGEND_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,454,152,16,10
+    LTEXT           "区域选择",IDC_REGIONSELECT_STATIC,419,181,28,8
+    COMBOBOX        IDC_REGIONSELECT_COMBO,454,178,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "区域设置",IDC_REGIONSETTING_BUTTON,414,198,53,14
+    PUSHBUTTON      "告警设置",IDC_WARNING_BUTTON,471,197,53,14
+    PUSHBUTTON      "获取参数",IDC_GETPARAMETER_BUTTON,415,320,53,14
+    PUSHBUTTON      "设置参数",IDC_SETPARAMETER_BUTTON,471,320,53,14
+    COMBOBOX        IDC_MEASURERANGE_COMBO,465,260,60,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "专家模式",IDC_EXPORTMODE_STATIC,419,165,28,8
+    CONTROL         "",IDC_EXPORTMODE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,454,164,16,10
+    LTEXT           "伪彩模式",IDC_PALETTEMODE_STATIC,419,134,28,8
+    COMBOBOX        IDC_PALETTEMODE_COMBO,454,133,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_REGIONSET_DIALOG DIALOGEX 0, 0, 380, 207
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "区域设置"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "当前区域：",IDC_SET_CURRENT_STATIC,125,15,41,8
+    LTEXT           "",IDC_SET_REGION_STATIC,175,15,54,8
+    LTEXT           "是否生效",IDC_SET_ENABLE_STATIC,21,59,33,8
+    CONTROL         "",IDC_SET_ENBLE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,59,16,10
+    LTEXT           "显示最高温度",IDC_SET_MAX_STATIC,21,75,49,8
+    LTEXT           "显示最低温度",IDC_SET_MIN_STATIC,21,91,49,8
+    LTEXT           "显示平均温度",IDC_SET_AVG_STATIC,21,106,49,8
+    CONTROL         "",IDC_SET_MAX_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,74,16,10
+    CONTROL         "",IDC_SET_MIN_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,90,16,10
+    CONTROL         "",IDC_SET_AVG_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,106,16,10
+    PUSHBUTTON      "设置参数",IDC_SET_SETPARAM_BUTTON,21,35,50,14
+    PUSHBUTTON      "设置点信息",IDC_SET_SETPOINT_BUTTON,217,34,50,14
+    LTEXT           "点个数",IDC_SET_POINT_STATIC,217,60,25,8
+    EDITTEXT        IDC_SET_POINTNUM_EDIT,260,58,68,14,ES_AUTOHSCROLL
+    LTEXT           "第n点",IDC_SET_POINTINDEX_STATIC,217,78,25,8
+    COMBOBOX        IDC_SET_POINTINFRX_COMBO,260,76,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "点X",IDC_SET_POINTX_STATIC,217,97,13,8
+    LTEXT           "点Y",IDC_SET_POINTY_STATIC,217,114,13,8
+    EDITTEXT        IDC_SET_POINTX_EDIT,260,92,68,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SET_POINTY_EDIT,260,110,68,14,ES_AUTOHSCROLL
+    LTEXT           "圆心X",IDC_SET_CENTERX_STATIC,217,133,21,8
+    EDITTEXT        IDC_SET_CENTERX_EDIT,259,130,68,14,ES_AUTOHSCROLL
+    LTEXT           "圆心Y",IDC_SET_CENTERX_STATIC2,217,152,21,8
+    EDITTEXT        IDC_SET_CENTERY_EDIT,260,148,68,14,ES_AUTOHSCROLL
+    LTEXT           "半径",IDC_SET_RADIUS_STATIC,217,170,17,8
+    EDITTEXT        IDC_SET_RADIUS_EDIT,260,168,68,14,ES_AUTOHSCROLL
+    LTEXT           "反射使能",IDC_SET_REFLECTENABLE_STATIC,21,121,33,8
+    CONTROL         "",IDC_SET_REFLECT_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,120,16,10
+    LTEXT           "反射率",IDC_SET_REFLECTANCE_STATIC,21,137,25,8
+    EDITTEXT        IDC_SET_REFLECTANCE_EDIT,79,133,68,14,ES_AUTOHSCROLL
+    LTEXT           "目标距离",IDC_SET_TARGETDIST_STATIC,21,154,33,8
+    EDITTEXT        IDC_SET_TARGETDIST_EDIT,79,150,68,14,ES_AUTOHSCROLL
+    LTEXT           "发射率",IDC_SET_EMISSIVITY_STATIC,21,171,25,8
+    EDITTEXT        IDC_SET_EMISSIVITY_EDIT,79,170,68,14,ES_AUTOHSCROLL
+END
+
+IDD_ALARM_DIALOG DIALOGEX 0, 0, 220, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "告警设置"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,105,162,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,163,162,50,14
+    LTEXT           "当前区域：",IDC_ALARM_CURRENT_STATIC,73,15,41,8
+    LTEXT           "",IDC_ALARM_REGION_STATIC,119,15,54,8
+    LTEXT           "是否启用",IDC_ALARM_ENABLE_STATIC,21,38,33,8
+    CONTROL         "",IDC_ALARM_ENBLE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,39,16,10
+    LTEXT           "参考值",IDC_ALRAM_REFERENCE_STATIC,21,100,25,8
+    EDITTEXT        IDC_ALRAM_REFERENCE_EDIT,79,97,84,14,ES_AUTOHSCROLL
+    LTEXT           "报警源",IDC_ALARM_SOURCE_STATIC,21,56,25,8
+    COMBOBOX        IDC_ALARM_SOURCE_COMBO,79,54,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "报警条件",IDC_ALARM_CONDITION_STATIC,21,76,38,11
+    COMBOBOX        IDC_ALARM_CONDITION_COMBO,79,76,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "恢复阈值",IDC_ALARM_ABS_STATIC,21,121,33,8
+    EDITTEXT        IDC_ALARM_ABS_EDIT,79,118,84,14,ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080403a8"
+        BEGIN
+            VALUE "CompanyName", "TODO: <公司名>"
+            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "InfraredDemo.exe"
+            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "OriginalFilename", "InfraredDemo.exe"
+            VALUE "ProductName", "TODO: <产品名>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 936
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_InfraredDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 543
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 354
+    END
+
+    IDD_REGIONSET_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 373
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 200
+    END
+
+    IDD_ALARM_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 213
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "关于 InfraredDemo(&A)..."
+END
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Neutral) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About InfraredDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "InfraredDemo,V1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_InfraredDemo_DIALOG DIALOGEX 0, 0, 550, 361
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "MvCamera_SDK_InfraredDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Initialization",IDC_INIT_STATIC,407,14,123,71
+    PUSHBUTTON      "Search Device",IDC_ENUM_BUTTON,411,26,112,14
+    PUSHBUTTON      "Open Device",IDC_OPEN_BUTTON,411,46,53,14
+    PUSHBUTTON      "Close Device",IDC_CLOSE_BUTTON,470,46,53,14
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,12,27,364,313
+    GROUPBOX        "Parameter",IDC_PARAMETER_STATIC,407,228,122,118
+    PUSHBUTTON      "Start",IDC_START_GRABBING_BUTTON,411,67,53,14
+    PUSHBUTTON      "Stop",IDC_STOP_GRABBING_BUTTON,470,67,53,14
+    EDITTEXT        IDC_TRANSMISSIVITY_EDIT,468,238,52,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TARGET_DIS_EDIT,468,278,52,14,ES_AUTOHSCROLL
+    LTEXT           "Transmissivity",IDC_TRANSMISSIVITY_STATIC,414,241,46,8
+    LTEXT           "MeasureRange",IDC_MEASURERANGE_STATIC,414,261,48,8
+    LTEXT           "TargetDist",IDC_TARGET_DIS_STATIC,414,281,46,8
+    COMBOBOX        IDC_DEVICE_COMBO,12,11,364,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Emissivity",IDC_EMISSIVITY_STATIC,414,300,46,8
+    EDITTEXT        IDC_EMISSIVITY_EDIT,468,299,52,14,ES_AUTOHSCROLL
+    GROUPBOX        "RegionSetting",IDC_REGION_STATIC,407,87,122,132
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,459,102,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "PixelFormat",IDC_PIXELFORMAT_STATIC,414,104,42,8
+    LTEXT           "DisplaySource",IDC_DISPLAYSOURCE_STATIC,414,118,42,8
+    COMBOBOX        IDC_DISPLAYSOURCE_COMBO,459,116,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Legend",IDC_LEGEND_STATIC,414,150,42,8
+    CONTROL         "",IDC_LEGEND_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,459,152,16,10
+    LTEXT           "RegionSelect",IDC_REGIONSELECT_STATIC,414,181,42,8
+    COMBOBOX        IDC_REGIONSELECT_COMBO,459,178,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "RegionSetting",IDC_REGIONSETTING_BUTTON,414,198,53,14
+    PUSHBUTTON      "WarnningSetting",IDC_WARNING_BUTTON,471,197,53,14
+    PUSHBUTTON      "Get Parameter",IDC_GETPARAMETER_BUTTON,415,320,53,14
+    PUSHBUTTON      "Set Parameter",IDC_SETPARAMETER_BUTTON,471,320,53,14
+    COMBOBOX        IDC_MEASURERANGE_COMBO,465,260,60,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "ExportMode",IDC_EXPORTMODE_STATIC,414,165,42,8
+    CONTROL         "",IDC_EXPORTMODE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,459,164,16,10
+    LTEXT           "PalettesMode",IDC_PALETTEMODE_STATIC,414,134,42,8
+    COMBOBOX        IDC_PALETTEMODE_COMBO,459,133,69,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_REGIONSET_DIALOG DIALOGEX 0, 0, 380, 207
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "区域设置"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Current Region:",IDC_SET_CURRENT_STATIC,116,14,61,8
+    LTEXT           "",IDC_SET_REGION_STATIC,186,15,54,8
+    LTEXT           "Enable",IDC_SET_ENABLE_STATIC,21,59,60,8
+    CONTROL         "",IDC_SET_ENBLE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,59,16,10
+    LTEXT           "Max Temp Enable",IDC_SET_MAX_STATIC,21,75,60,10
+    LTEXT           "Min Temp Enable",IDC_SET_MIN_STATIC,21,91,60,8
+    LTEXT           "Avg Temp Enable",IDC_SET_AVG_STATIC,21,106,60,8
+    CONTROL         "",IDC_SET_MAX_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,74,16,10
+    CONTROL         "",IDC_SET_MIN_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,90,16,10
+    CONTROL         "",IDC_SET_AVG_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,106,16,10
+    PUSHBUTTON      "Set Parameter",IDC_SET_SETPARAM_BUTTON,21,35,60,17
+    PUSHBUTTON      "Set Point Parameter",IDC_SET_SETPOINT_BUTTON,217,34,92,17
+    LTEXT           "Point Count",IDC_SET_POINT_STATIC,217,60,50,8
+    EDITTEXT        IDC_SET_POINTNUM_EDIT,270,58,68,14,ES_AUTOHSCROLL
+    LTEXT           "Point Index",IDC_SET_POINTINDEX_STATIC,217,78,50,8
+    COMBOBOX        IDC_SET_POINTINFRX_COMBO,270,76,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Point X",IDC_SET_POINTX_STATIC,217,97,50,8
+    LTEXT           "Point Y",IDC_SET_POINTY_STATIC,217,114,50,8
+    EDITTEXT        IDC_SET_POINTX_EDIT,270,92,68,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_SET_POINTY_EDIT,270,110,68,14,ES_AUTOHSCROLL
+    LTEXT           "Center X",IDC_SET_CENTERX_STATIC,217,133,50,8
+    EDITTEXT        IDC_SET_CENTERX_EDIT,270,130,68,14,ES_AUTOHSCROLL
+    LTEXT           "Center Y",IDC_SET_CENTERX_STATIC2,217,152,50,8
+    EDITTEXT        IDC_SET_CENTERY_EDIT,270,148,68,14,ES_AUTOHSCROLL
+    LTEXT           "Radius",IDC_SET_RADIUS_STATIC,217,170,50,8
+    EDITTEXT        IDC_SET_RADIUS_EDIT,270,168,68,14,ES_AUTOHSCROLL
+    LTEXT           "Relectance Enable",IDC_SET_REFLECTENABLE_STATIC,21,121,60,8
+    CONTROL         "",IDC_SET_REFLECT_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,85,120,16,10
+    LTEXT           "Relectance",IDC_SET_REFLECTANCE_STATIC,21,137,60,8
+    EDITTEXT        IDC_SET_REFLECTANCE_EDIT,85,133,68,14,ES_AUTOHSCROLL
+    LTEXT           "Target Distance",IDC_SET_TARGETDIST_STATIC,21,154,60,8
+    EDITTEXT        IDC_SET_TARGETDIST_EDIT,85,150,68,14,ES_AUTOHSCROLL
+    LTEXT           "Emissivity",IDC_SET_EMISSIVITY_STATIC,21,171,60,8
+    EDITTEXT        IDC_SET_EMISSIVITY_EDIT,85,170,68,14,ES_AUTOHSCROLL
+END
+
+IDD_ALARM_DIALOG DIALOGEX 0, 0, 220, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "告警设置"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,105,162,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,163,162,50,14
+    LTEXT           "Current Region:",IDC_ALARM_CURRENT_STATIC,73,15,67,8
+    LTEXT           "",IDC_ALARM_REGION_STATIC,119,15,54,8
+    LTEXT           "Enable",IDC_ALARM_ENABLE_STATIC,21,38,67,8
+    CONTROL         "",IDC_ALARM_ENBLE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,95,39,16,10
+    LTEXT           "Reference Value",IDC_ALRAM_REFERENCE_STATIC,21,100,67,8
+    EDITTEXT        IDC_ALRAM_REFERENCE_EDIT,95,97,84,14,ES_AUTOHSCROLL
+    LTEXT           "Rule Source",IDC_ALARM_SOURCE_STATIC,21,56,67,8
+    COMBOBOX        IDC_ALARM_SOURCE_COMBO,95,54,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Rule Condition",IDC_ALARM_CONDITION_STATIC,21,76,67,11
+    COMBOBOX        IDC_ALARM_CONDITION_COMBO,95,76,84,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Recovery ABS Value",IDC_ALARM_ABS_STATIC,21,121,67,10
+    EDITTEXT        IDC_ALARM_ABS_EDIT,95,118,84,14,ES_AUTOHSCROLL
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_InfraredDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 543
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 354
+    END
+
+    IDD_REGIONSET_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 373
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 200
+    END
+
+    IDD_ALARM_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 213
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "About InfraredDemo(&A)..."
+END
+
+#endif    // English (Neutral) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+#include "res\InfraredDemo.rc2"  // 非 Microsoft Visual C++ 编辑的资源
+#include "l.CHS\afxres.rc"      // 标准组件
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

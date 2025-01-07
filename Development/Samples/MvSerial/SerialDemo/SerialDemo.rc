@@ -1,0 +1,483 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 中文(中华人民共和国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\SerialDemo.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\SerialDemo.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SERIALDEMO_DIALOG DIALOGEX 0, 0, 407, 227
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "MvSerialCtrl Demo"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "枚举相机",IDC_BUTTON_ENUM,95,27,159,14
+    COMBOBOX        IDC_COMBO_Port,96,13,159,89,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "COM",IDC_STATIC_COM,26,14,16,10,NOT WS_GROUP,WS_EX_RIGHT
+    LISTBOX         IDC_LIST_InfoBox,7,147,400,64,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Clear",IDC_BUTTON_ClearInfo,357,111,50,14,WS_GROUP
+    PUSHBUTTON      "关闭串口",IDC_BUTTON_Close,340,12,61,14,WS_GROUP
+    PUSHBUTTON      "打开串口",IDC_BUTTON_Open,270,13,68,14,WS_GROUP
+    RTEXT           "Width",IDC_STATIC,14,62,20,8
+    EDITTEXT        IDC_EDIT_WIDTH,36,59,40,14,ES_AUTOHSCROLL
+    LTEXT           "Height",IDC_STATIC,14,78,22,8
+    PUSHBUTTON      "设置参数",IDC_BUTTON_SET_PARAM,340,28,61,14,WS_GROUP
+    PUSHBUTTON      "获取参数",IDC_BUTTON_GET_PARAM,270,28,69,14,WS_GROUP
+    PUSHBUTTON      "Write",IDC_BUTTON_Write,202,111,54,14,WS_GROUP
+    COMBOBOX        IDC_COMBO_NODE_TYPE,147,95,109,42,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_KEY_NAME,42,94,73,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Read",IDC_BUTTON_Read,146,111,52,14,WS_GROUP
+    RTEXT           "KeyName",IDC_STATIC,7,97,34,13
+    EDITTEXT        IDC_EDIT_KEY_VALUE,41,110,73,14,ES_AUTOHSCROLL | WS_GROUP
+    RTEXT           "Type",IDC_STATIC,124,98,17,8
+    COMBOBOX        IDC_COMBO_ENUM_BAUDRATE,46,27,45,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Value",IDC_STATIC,20,113,18,8,0,WS_EX_RIGHT
+    LTEXT           "Baudrate",IDC_STATIC,14,28,30,8,NOT WS_GROUP
+    GROUPBOX        "枚举",IDC_STATIC,7,0,252,47,WS_GROUP
+    GROUPBOX        "相机操作",IDC_STATIC,263,0,140,91
+    GROUPBOX        "常用参数",IDC_STATIC,7,47,251,44
+    COMBOBOX        IDC_COMBO_ENUM_COM_NAME,45,12,45,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "FrameRate",IDC_STATIC,79,62,36,8
+    EDITTEXT        IDC_EDIT_HEIGHT,36,76,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_FRAME_RATE,116,60,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "修改波特率",IDC_BUTTON_SETUP,342,46,59,14,WS_GROUP
+    COMBOBOX        IDC_COMBO_SETUP_BAUDRATE,271,47,67,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_SEND,7,130,250,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Read",IDC_BUTTON_Send,263,129,45,14,WS_GROUP
+    PUSHBUTTON      "Write",IDC_BUTTON_Send2,329,130,45,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_SERIALDEMO_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        BOTTOMMARGIN, 211
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_SERIALDEMO_DIALOG DLGINIT
+BEGIN
+    IDC_COMBO_NODE_TYPE, 0x403, 17, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x495f, 0x544e, "\000" 
+    IDC_COMBO_NODE_TYPE, 0x403, 19, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x465f, 0x4f4c, 0x5441, 
+"\000" 
+    IDC_COMBO_NODE_TYPE, 0x403, 18, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x425f, 0x4f4f, 0x004c, 
+
+    IDC_COMBO_NODE_TYPE, 0x403, 20, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x535f, 0x5254, 0x4e49, 
+0x0047, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 5, 0
+0x3639, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3431, 0x3034, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3931, 0x3032, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3833, 0x3034, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3635, 0x3030, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3735, 0x3036, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3131, 0x3235, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3231, 0x3038, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3532, 0x3036, 0x3030, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 8, 0
+0x4f43, 0x304d, 0x322d, 0x0030, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x314d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x324d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x334d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x344d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x354d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x364d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x374d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x384d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x394d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0030, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0031, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0032, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0033, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0034, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0035, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0036, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0037, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0038, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0039, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x324d, 0x0030, 
+    IDC_COMBO_SETUP_BAUDRATE, 0x403, 5, 0
+0x3639, 0x3030, "\000" 
+    IDC_COMBO_SETUP_BAUDRATE, 0x403, 7, 0
+0x3131, 0x3235, 0x3030, "\000" 
+    0
+END
+
+#endif    // 中文(中华人民共和国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 英语(美国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About SerialDemo"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "SerialDemo, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2015",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_SERIALDEMO_DIALOG DIALOGEX 0, 0, 407, 227
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "MvSerialCtrl Demo"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Search Device",IDC_BUTTON_ENUM,95,27,159,14
+    COMBOBOX        IDC_COMBO_Port,96,13,159,89,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "COM",IDC_STATIC_COM,26,14,16,10,NOT WS_GROUP,WS_EX_RIGHT
+    LISTBOX         IDC_LIST_InfoBox,7,147,400,64,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Clear",IDC_BUTTON_ClearInfo,357,111,50,14,WS_GROUP
+    PUSHBUTTON      "Close Port",IDC_BUTTON_Close,340,12,61,14,WS_GROUP
+    PUSHBUTTON      "Open Port",IDC_BUTTON_Open,270,13,68,14,WS_GROUP
+    RTEXT           "Width",IDC_STATIC,14,62,20,8
+    EDITTEXT        IDC_EDIT_WIDTH,36,59,40,14,ES_AUTOHSCROLL
+    LTEXT           "Height",IDC_STATIC,14,78,22,8
+    PUSHBUTTON      "Set Param",IDC_BUTTON_SET_PARAM,340,28,61,14,WS_GROUP
+    PUSHBUTTON      "Get Param",IDC_BUTTON_GET_PARAM,270,28,69,14,WS_GROUP
+    PUSHBUTTON      "Write",IDC_BUTTON_Write,202,111,54,14,WS_GROUP
+    COMBOBOX        IDC_COMBO_NODE_TYPE,147,95,109,42,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_KEY_NAME,42,94,73,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Read",IDC_BUTTON_Read,146,111,52,14,WS_GROUP
+    RTEXT           "KeyName",IDC_STATIC,7,97,34,13
+    EDITTEXT        IDC_EDIT_KEY_VALUE,41,110,73,14,ES_AUTOHSCROLL | WS_GROUP
+    RTEXT           "Type",IDC_STATIC,124,98,17,8
+    COMBOBOX        IDC_COMBO_ENUM_BAUDRATE,46,27,45,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Value",IDC_STATIC,20,113,18,8,0,WS_EX_RIGHT
+    LTEXT           "Baudrate",IDC_STATIC,14,28,30,8,NOT WS_GROUP
+    GROUPBOX        "Enum",IDC_STATIC,7,0,252,47,WS_GROUP
+    GROUPBOX        "Camera Operation",IDC_STATIC,263,0,140,91
+    GROUPBOX        "Normal Param",IDC_STATIC,7,47,251,44
+    COMBOBOX        IDC_COMBO_ENUM_COM_NAME,45,12,45,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "FrameRate",IDC_STATIC,79,62,36,8
+    EDITTEXT        IDC_EDIT_HEIGHT,36,76,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_FRAME_RATE,116,60,40,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "Modify Baudrate",IDC_BUTTON_SETUP,342,46,59,14,WS_GROUP
+    COMBOBOX        IDC_COMBO_SETUP_BAUDRATE,271,47,67,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_SEND,7,130,250,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Read",IDC_BUTTON_Send,263,129,45,14,WS_GROUP
+    PUSHBUTTON      "Write",IDC_BUTTON_Send2,329,130,45,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_SERIALDEMO_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        BOTTOMMARGIN, 211
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_SERIALDEMO_DIALOG DLGINIT
+BEGIN
+    IDC_COMBO_NODE_TYPE, 0x403, 17, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x495f, 0x544e, "\000" 
+    IDC_COMBO_NODE_TYPE, 0x403, 19, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x465f, 0x4f4c, 0x5441, 
+"\000" 
+    IDC_COMBO_NODE_TYPE, 0x403, 18, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x425f, 0x4f4f, 0x004c, 
+
+    IDC_COMBO_NODE_TYPE, 0x403, 20, 0
+0x564d, 0x4e5f, 0x444f, 0x5f45, 0x5954, 0x4550, 0x535f, 0x5254, 0x4e49, 
+0x0047, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 5, 0
+0x3834, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 5, 0
+0x3639, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3431, 0x3034, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3931, 0x3032, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3833, 0x3034, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3635, 0x3030, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 6, 0
+0x3735, 0x3036, 0x0030, 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3131, 0x3235, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3231, 0x3038, 0x3030, "\000" 
+    IDC_COMBO_ENUM_BAUDRATE, 0x403, 7, 0
+0x3532, 0x3036, 0x3030, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 8, 0
+0x4f43, 0x304d, 0x322d, 0x0030, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x314d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x324d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x334d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x344d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x354d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x364d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x374d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x384d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 5, 0
+0x4f43, 0x394d, "\000" 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0030, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0031, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0032, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0033, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0034, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0035, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0036, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0037, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0038, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x314d, 0x0039, 
+    IDC_COMBO_ENUM_COM_NAME, 0x403, 6, 0
+0x4f43, 0x324d, 0x0030, 
+    IDC_COMBO_SETUP_BAUDRATE, 0x403, 5, 0
+0x3639, 0x3030, "\000" 
+    IDC_COMBO_SETUP_BAUDRATE, 0x403, 7, 0
+0x3131, 0x3235, 0x3030, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "SerialDemo.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "SerialDemo.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About SerialDemo..."
+END
+
+#endif    // 英语(美国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\SerialDemo.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

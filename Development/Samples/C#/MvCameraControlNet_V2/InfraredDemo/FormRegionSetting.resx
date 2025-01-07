@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="label13.Size" type="System.Drawing.Size, System.Drawing">
+    <value>35, 12</value>
+  </data>
+  <data name="&gt;&gt;teSetPointX.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="label15.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label11.Text" xml:space="preserve">
+    <value>第n点</value>
+  </data>
+  <data name="label1.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="label16.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.ZOrder" xml:space="preserve">
+    <value>32</value>
+  </data>
+  <data name="teSetPointY.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="label11.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="teSetReflectance.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 224</value>
+  </data>
+  <data name="label12.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;cbSetReflectCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="lbSetMinCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="&gt;&gt;lbSetEmissivity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label16.TabIndex" type="System.Int32, mscorlib">
+    <value>38</value>
+  </data>
+  <data name="&gt;&gt;lbSetAvgCheck.Name" xml:space="preserve">
+    <value>lbSetAvgCheck</value>
+  </data>
+  <data name="cbSetAvgCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 168</value>
+  </data>
+  <data name="cbSetMaxCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="&gt;&gt;label13.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetEmissivity.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="cbSetMinCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterY.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetEnableCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAvgCheck.ZOrder" xml:space="preserve">
+    <value>24</value>
+  </data>
+  <data name="label16.Text" xml:space="preserve">
+    <value>点Y</value>
+  </data>
+  <data name="cbSetPointInfrx.TabIndex" type="System.Int32, mscorlib">
+    <value>29</value>
+  </data>
+  <data name="label14.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 252</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterY.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="lbSetAvgCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 168</value>
+  </data>
+  <data name="&gt;&gt;label1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label12.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="lbSetMaxCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="teSetCenterY.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="teSetCenterY.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 245</value>
+  </data>
+  <data name="lbSetEnableCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="teSetTargetDistance.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 251</value>
+  </data>
+  <data name="&gt;&gt;cbSetMinCheck.ZOrder" xml:space="preserve">
+    <value>25</value>
+  </data>
+  <data name="&gt;&gt;cbSetAvgCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetTargetDistance.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="bnSetParam.Size" type="System.Drawing.Size, System.Drawing">
+    <value>88, 23</value>
+  </data>
+  <data name="&gt;&gt;cbSetMinCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterY.Name" xml:space="preserve">
+    <value>teSetCenterY</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetEmissivity.Name" xml:space="preserve">
+    <value>teSetEmissivity</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>636, 343</value>
+  </data>
+  <data name="&gt;&gt;lbSetEmissivity.Name" xml:space="preserve">
+    <value>lbSetEmissivity</value>
+  </data>
+  <data name="lbSetAvgCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>15</value>
+  </data>
+  <data name="&gt;&gt;teSetPointNum.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetEnableCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label13.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;cbSetEnableCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetMinCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>FormRegionSetting</value>
+  </data>
+  <data name="&gt;&gt;teSetRadius.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="bnSetParam.Location" type="System.Drawing.Point, System.Drawing">
+    <value>25, 44</value>
+  </data>
+  <data name="&gt;&gt;teSetPointX.Name" xml:space="preserve">
+    <value>teSetPointX</value>
+  </data>
+  <data name="teSetReflectance.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="&gt;&gt;label1.ZOrder" xml:space="preserve">
+    <value>33</value>
+  </data>
+  <data name="&gt;&gt;cbSetReflectCheck.ZOrder" xml:space="preserve">
+    <value>21</value>
+  </data>
+  <data name="&gt;&gt;label1.Name" xml:space="preserve">
+    <value>label1</value>
+  </data>
+  <data name="&gt;&gt;teSetRadius.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;lbSetMaxCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="teSetRadius.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 278</value>
+  </data>
+  <data name="label12.Size" type="System.Drawing.Size, System.Drawing">
+    <value>23, 12</value>
+  </data>
+  <data name="&gt;&gt;cbSetPointInfrx.Name" xml:space="preserve">
+    <value>cbSetPointInfrx</value>
+  </data>
+  <data name="&gt;&gt;teSetPointY.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetTargetDistance.Name" xml:space="preserve">
+    <value>lbSetTargetDistance</value>
+  </data>
+  <data name="&gt;&gt;bnSetPoint.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label11.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
+  </data>
+  <data name="&gt;&gt;bnSetPoint.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;teSetPointY.Name" xml:space="preserve">
+    <value>teSetPointY</value>
+  </data>
+  <data name="&gt;&gt;teSetPointY.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="teSetPointY.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 176</value>
+  </data>
+  <data name="cbSetMaxCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 117</value>
+  </data>
+  <data name="&gt;&gt;label11.Name" xml:space="preserve">
+    <value>label11</value>
+  </data>
+  <data name="lbSetMaxCheck.Text" xml:space="preserve">
+    <value>显示最高温度</value>
+  </data>
+  <data name="label9.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 89</value>
+  </data>
+  <data name="bnSetPoint.TabIndex" type="System.Int32, mscorlib">
+    <value>25</value>
+  </data>
+  <data name="&gt;&gt;lbSetMinCheck.ZOrder" xml:space="preserve">
+    <value>26</value>
+  </data>
+  <data name="bnSetPoint.Text" xml:space="preserve">
+    <value>设置点信息</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="bnSetPoint.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="&gt;&gt;teSetRadius.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cbSetAvgCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="&gt;&gt;teSetReflectance.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="lbSetReflectCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="&gt;&gt;teSetReflectance.ZOrder" xml:space="preserve">
+    <value>19</value>
+  </data>
+  <data name="&gt;&gt;label15.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;label16.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetEnableCheck.ZOrder" xml:space="preserve">
+    <value>29</value>
+  </data>
+  <data name="&gt;&gt;cbSetMaxCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetTargetDistance.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="teSetCenterX.TabIndex" type="System.Int32, mscorlib">
+    <value>33</value>
+  </data>
+  <data name="&gt;&gt;cbSetMinCheck.Name" xml:space="preserve">
+    <value>cbSetMinCheck</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectance.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetEnableCheck.ZOrder" xml:space="preserve">
+    <value>30</value>
+  </data>
+  <data name="&gt;&gt;bnSetPoint.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="teSetReflectance.TabIndex" type="System.Int32, mscorlib">
+    <value>20</value>
+  </data>
+  <data name="label12.Text" xml:space="preserve">
+    <value>点X</value>
+  </data>
+  <data name="lbSetReflectance.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 227</value>
+  </data>
+  <data name="lbCurrentRegion.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="bnSetPoint.Location" type="System.Drawing.Point, System.Drawing">
+    <value>338, 44</value>
+  </data>
+  <data name="lbSetEnableCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 91</value>
+  </data>
+  <data name="lbSetAvgCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="&gt;&gt;label9.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="&gt;&gt;label13.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetReflectCheck.Name" xml:space="preserve">
+    <value>cbSetReflectCheck</value>
+  </data>
+  <data name="lbCurrentRegion.Location" type="System.Drawing.Point, System.Drawing">
+    <value>279, 13</value>
+  </data>
+  <data name="label15.Size" type="System.Drawing.Size, System.Drawing">
+    <value>29, 12</value>
+  </data>
+  <data name="&gt;&gt;lbSetMinCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="lbCurrentRegion.Text" xml:space="preserve">
+    <value>            </value>
+  </data>
+  <data name="&gt;&gt;lbSetEnableCheck.Name" xml:space="preserve">
+    <value>lbSetEnableCheck</value>
+  </data>
+  <data name="cbSetMaxCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>208, 13</value>
+  </data>
+  <data name="lbSetMinCheck.Text" xml:space="preserve">
+    <value>显示最低温度</value>
+  </data>
+  <data name="bnSetParam.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="cbSetEnableCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 89</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterX.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>FormRegionSetting</value>
+  </data>
+  <data name="lbSetEmissivity.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 281</value>
+  </data>
+  <data name="teSetEmissivity.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 278</value>
+  </data>
+  <data name="teSetRadius.TabIndex" type="System.Int32, mscorlib">
+    <value>37</value>
+  </data>
+  <data name="&gt;&gt;cbSetEnableCheck.Name" xml:space="preserve">
+    <value>cbSetEnableCheck</value>
+  </data>
+  <data name="&gt;&gt;label9.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cbSetAvgCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="&gt;&gt;lbSetTargetDistance.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="teSetPointX.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 143</value>
+  </data>
+  <data name="lbSetReflectance.Text" xml:space="preserve">
+    <value>反射率</value>
+  </data>
+  <data name="&gt;&gt;cbSetMaxCheck.ZOrder" xml:space="preserve">
+    <value>27</value>
+  </data>
+  <data name="lbSetMinCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="&gt;&gt;teSetReflectance.Name" xml:space="preserve">
+    <value>teSetReflectance</value>
+  </data>
+  <data name="teSetCenterY.TabIndex" type="System.Int32, mscorlib">
+    <value>35</value>
+  </data>
+  <data name="lbSetReflectCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="cbSetReflectCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>18</value>
+  </data>
+  <data name="lbSetMinCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;cbSetPointInfrx.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="lbSetAvgCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;label16.Name" xml:space="preserve">
+    <value>label16</value>
+  </data>
+  <data name="&gt;&gt;teSetTargetDistance.Name" xml:space="preserve">
+    <value>teSetTargetDistance</value>
+  </data>
+  <data name="lbSetReflectCheck.Text" xml:space="preserve">
+    <value>反射使能</value>
+  </data>
+  <data name="lbSetEmissivity.Text" xml:space="preserve">
+    <value>发射率</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="teSetPointY.TabIndex" type="System.Int32, mscorlib">
+    <value>39</value>
+  </data>
+  <data name="teSetPointNum.TabIndex" type="System.Int32, mscorlib">
+    <value>27</value>
+  </data>
+  <data name="label9.TabIndex" type="System.Int32, mscorlib">
+    <value>26</value>
+  </data>
+  <data name="&gt;&gt;label9.Name" xml:space="preserve">
+    <value>label9</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectance.Name" xml:space="preserve">
+    <value>lbSetReflectance</value>
+  </data>
+  <data name="&gt;&gt;label13.Name" xml:space="preserve">
+    <value>label13</value>
+  </data>
+  <data name="&gt;&gt;label14.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetPointY.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="bnSetPoint.Size" type="System.Drawing.Size, System.Drawing">
+    <value>88, 23</value>
+  </data>
+  <data name="lbSetEnableCheck.Text" xml:space="preserve">
+    <value>是否生效</value>
+  </data>
+  <data name="label12.TabIndex" type="System.Int32, mscorlib">
+    <value>30</value>
+  </data>
+  <data name="lbSetEmissivity.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbCurrentRegion.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label9.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;lbSetTargetDistance.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="label15.TabIndex" type="System.Int32, mscorlib">
+    <value>36</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectCheck.Name" xml:space="preserve">
+    <value>lbSetReflectCheck</value>
+  </data>
+  <data name="&gt;&gt;lbSetMinCheck.Name" xml:space="preserve">
+    <value>lbSetMinCheck</value>
+  </data>
+  <data name="&gt;&gt;cbSetReflectCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="lbSetMaxCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;teSetPointNum.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="teSetEmissivity.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="label1.Text" xml:space="preserve">
+    <value>当前区域：</value>
+  </data>
+  <data name="lbSetEmissivity.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterX.Name" xml:space="preserve">
+    <value>teSetCenterX</value>
+  </data>
+  <data name="lbSetReflectance.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="&gt;&gt;cbSetPointInfrx.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label12.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label11.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;label15.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="label9.Text" xml:space="preserve">
+    <value>点个数</value>
+  </data>
+  <data name="&gt;&gt;label9.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="bnSetParam.Text" xml:space="preserve">
+    <value>设置参数</value>
+  </data>
+  <data name="&gt;&gt;label12.Name" xml:space="preserve">
+    <value>label12</value>
+  </data>
+  <data name="label13.Text" xml:space="preserve">
+    <value>圆心X</value>
+  </data>
+  <data name="&gt;&gt;lbSetAvgCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cbSetPointInfrx.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="teSetPointNum.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 82</value>
+  </data>
+  <data name="lbCurrentRegion.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="cbSetReflectCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectance.ZOrder" xml:space="preserve">
+    <value>20</value>
+  </data>
+  <data name="&gt;&gt;teSetTargetDistance.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="&gt;&gt;label12.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label14.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;cbSetAvgCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetReflectance.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label11.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 117</value>
+  </data>
+  <data name="cbSetReflectCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;bnSetPoint.Name" xml:space="preserve">
+    <value>bnSetPoint</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectCheck.ZOrder" xml:space="preserve">
+    <value>22</value>
+  </data>
+  <data name="teSetTargetDistance.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="lbSetTargetDistance.TabIndex" type="System.Int32, mscorlib">
+    <value>21</value>
+  </data>
+  <data name="&gt;&gt;teSetPointX.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Name" xml:space="preserve">
+    <value>lbCurrentRegion</value>
+  </data>
+  <data name="cbSetMinCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetMaxCheck.Name" xml:space="preserve">
+    <value>lbSetMaxCheck</value>
+  </data>
+  <data name="&gt;&gt;bnSetParam.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetAvgCheck.ZOrder" xml:space="preserve">
+    <value>23</value>
+  </data>
+  <data name="label13.TabIndex" type="System.Int32, mscorlib">
+    <value>32</value>
+  </data>
+  <data name="lbSetReflectCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 193</value>
+  </data>
+  <data name="label11.TabIndex" type="System.Int32, mscorlib">
+    <value>28</value>
+  </data>
+  <data name="&gt;&gt;cbSetEnableCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="label14.TabIndex" type="System.Int32, mscorlib">
+    <value>34</value>
+  </data>
+  <data name="lbSetReflectance.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterY.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="lbSetEnableCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="teSetCenterX.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="lbSetEnableCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectance.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label14.Text" xml:space="preserve">
+    <value>圆心Y</value>
+  </data>
+  <data name="lbSetReflectCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cbSetPointInfrx.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 114</value>
+  </data>
+  <data name="&gt;&gt;cbSetAvgCheck.Name" xml:space="preserve">
+    <value>cbSetAvgCheck</value>
+  </data>
+  <data name="lbSetTargetDistance.Text" xml:space="preserve">
+    <value>目标距离</value>
+  </data>
+  <data name="label16.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 183</value>
+  </data>
+  <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="lbSetTargetDistance.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label13.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetEmissivity.TabIndex" type="System.Int32, mscorlib">
+    <value>23</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterX.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetEmissivity.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="teSetRadius.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="cbSetEnableCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="lbSetMaxCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label12.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 150</value>
+  </data>
+  <data name="label14.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="teSetTargetDistance.TabIndex" type="System.Int32, mscorlib">
+    <value>22</value>
+  </data>
+  <data name="&gt;&gt;lbSetReflectCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;bnSetParam.ZOrder" xml:space="preserve">
+    <value>31</value>
+  </data>
+  <data name="&gt;&gt;lbSetMaxCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetMaxCheck.Name" xml:space="preserve">
+    <value>cbSetMaxCheck</value>
+  </data>
+  <data name="label15.Text" xml:space="preserve">
+    <value>半径</value>
+  </data>
+  <data name="cbSetMaxCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="cbSetMinCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="teSetPointNum.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="lbSetMinCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 143</value>
+  </data>
+  <data name="cbSetEnableCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="&gt;&gt;label14.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetEmissivity.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="cbSetEnableCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;bnSetParam.Name" xml:space="preserve">
+    <value>bnSetParam</value>
+  </data>
+  <data name="&gt;&gt;lbSetMaxCheck.ZOrder" xml:space="preserve">
+    <value>28</value>
+  </data>
+  <data name="cbSetReflectCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 193</value>
+  </data>
+  <data name="teSetPointX.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 21</value>
+  </data>
+  <data name="&gt;&gt;cbSetMaxCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetCenterX.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label15.Name" xml:space="preserve">
+    <value>label15</value>
+  </data>
+  <data name="label11.Size" type="System.Drawing.Size, System.Drawing">
+    <value>35, 12</value>
+  </data>
+  <data name="lbSetReflectance.TabIndex" type="System.Int32, mscorlib">
+    <value>19</value>
+  </data>
+  <data name="teSetPointX.TabIndex" type="System.Int32, mscorlib">
+    <value>31</value>
+  </data>
+  <data name="lbSetAvgCheck.Text" xml:space="preserve">
+    <value>显示平均温度</value>
+  </data>
+  <data name="&gt;&gt;teSetPointNum.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;label14.Name" xml:space="preserve">
+    <value>label14</value>
+  </data>
+  <data name="cbSetPointInfrx.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 20</value>
+  </data>
+  <data name="label14.Size" type="System.Drawing.Size, System.Drawing">
+    <value>35, 12</value>
+  </data>
+  <data name="&gt;&gt;label11.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetEmissivity.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="&gt;&gt;label15.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="lbSetTargetDistance.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 254</value>
+  </data>
+  <data name="lbSetMaxCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 117</value>
+  </data>
+  <data name="bnSetParam.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="label13.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 216</value>
+  </data>
+  <data name="label15.Location" type="System.Drawing.Point, System.Drawing">
+    <value>339, 285</value>
+  </data>
+  <data name="&gt;&gt;lbSetAvgCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label16.Size" type="System.Drawing.Size, System.Drawing">
+    <value>23, 12</value>
+  </data>
+  <data name="&gt;&gt;cbSetMinCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetEmissivity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label16.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="lbSetTargetDistance.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="cbSetMinCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>106, 143</value>
+  </data>
+  <data name="&gt;&gt;lbSetTargetDistance.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetRadius.Name" xml:space="preserve">
+    <value>teSetRadius</value>
+  </data>
+  <data name="&gt;&gt;teSetPointX.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="teSetEmissivity.TabIndex" type="System.Int32, mscorlib">
+    <value>24</value>
+  </data>
+  <data name="&gt;&gt;bnSetParam.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="teSetCenterX.Location" type="System.Drawing.Point, System.Drawing">
+    <value>395, 209</value>
+  </data>
+  <data name="&gt;&gt;label16.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="label1.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;teSetPointNum.Name" xml:space="preserve">
+    <value>teSetPointNum</value>
+  </data>
+  <data name="cbSetAvgCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="$this.Language" type="System.Globalization.CultureInfo, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>en</value>
+  </metadata>
+</root>

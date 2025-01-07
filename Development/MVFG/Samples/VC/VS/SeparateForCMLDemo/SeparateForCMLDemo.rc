@@ -1,0 +1,331 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#include ""res\\SeparateForCMLDemo.rc2""  // 非 Microsoft Visual C++ 编辑的资源\r\n"
+    "#include ""l.CHS\\afxres.rc""      // 标准组件\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\SeparateForCMLDemo.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 SeparateForCMLDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "SeparateForCMLDemo，1.0 版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_SeparateForCMLDemo_DIALOG DIALOGEX 0, 0, 459, 281
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "SeparateForCMLDemo 示例程序"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "设备",IDC_INIT_STATIC,330,73,117,54
+    PUSHBUTTON      "打开设备",IDC_OPEN_BUTTON,333,104,52,14
+    PUSHBUTTON      "关闭设备",IDC_CLOSE_BUTTON,392,104,49,14
+    GROUPBOX        "图像采集",IDC_IMAGE_GRABBING_STATIC,330,132,117,141
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,14,45,311,224
+    PUSHBUTTON      "开始采集",IDC_START_GRABBING_BUTTON,335,250,51,12
+    PUSHBUTTON      "停止采集",IDC_STOP_GRABBING_BUTTON,394,251,49,12
+    COMBOBOX        IDC_IF_COMBO,50,14,275,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DEVICE_COMBO,50,29,275,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "枚举Interface",IDC_ENUM_IF_BUTTON,345,27,89,14
+    CTEXT           "Interface:",IDC_STATIC,17,18,31,8
+    CTEXT           "Device:",IDC_STATIC,17,32,30,8
+    PUSHBUTTON      "枚举设备",IDC_ENUM_DEV_BUTTON,344,84,89,14
+    GROUPBOX        "采集卡",IDC_INIT_STATIC2,331,15,117,55
+    PUSHBUTTON      "打开采集卡",IDC_OPEN_IF_BUTTON,336,47,52,14
+    PUSHBUTTON      "关闭采集卡",IDC_CLOSE_IF_BUTTON,392,47,52,14
+    RTEXT           "Width:",IDC_STATIC,337,146,50,12
+    RTEXT           "Height:",IDC_STATIC,337,159,50,12
+    RTEXT           "PixelFormat:",IDC_STATIC,337,172,50,12
+    RTEXT           "PixelSize:",IDC_STATIC,337,185,50,12
+    RTEXT           "TapGeometry:",IDC_STATIC,337,198,50,12
+    CONTROL         "ClConfiguration:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,338,214,50,12
+    EDITTEXT        IDC_EDIT_WIDTH,394,144,48,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_HEIGHT,394,158,48,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO_PIXELFORMAT,394,172,48,77,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PIXELSIZE,394,186,48,63,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_TAPGEOMETRY,394,200,48,49,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_CLCONFIGURATION,394,214,48,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080403a8"
+        BEGIN
+            VALUE "CompanyName", "TODO: <公司名>"
+            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "SeparateForCMLDemo.exe"
+            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "OriginalFilename", "SeparateForCMLDemo.exe"
+            VALUE "ProductName", "TODO: <产品名>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 936
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_SeparateForCMLDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 452
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 274
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "关于 SeparateForCMLDemo(&A)..."
+END
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Neutral) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About SeparateForCMLDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "SeparateForCMLDemo,V1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_SeparateForCMLDemo_DIALOG DIALOGEX 0, 0, 459, 281
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "SeparateForCMLDemo"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Device",IDC_INIT_STATIC,330,73,117,54
+    PUSHBUTTON      "Open Device",IDC_OPEN_BUTTON,333,104,52,14
+    PUSHBUTTON      "Close Device",IDC_CLOSE_BUTTON,392,104,49,14
+    GROUPBOX        "Image Acquisition",IDC_IMAGE_GRABBING_STATIC,330,132,117,141
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,14,45,311,224
+    PUSHBUTTON      "Start",IDC_START_GRABBING_BUTTON,335,250,51,12
+    PUSHBUTTON      "Stop",IDC_STOP_GRABBING_BUTTON,394,251,49,12
+    COMBOBOX        IDC_IF_COMBO,50,14,275,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DEVICE_COMBO,50,29,275,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Enum Interface",IDC_ENUM_IF_BUTTON,345,27,89,14
+    CTEXT           "Interface:",IDC_STATIC,17,18,31,8
+    CTEXT           "Device:",IDC_STATIC,17,32,30,8
+    PUSHBUTTON      "Enum Device",IDC_ENUM_DEV_BUTTON,344,84,89,14
+    GROUPBOX        "Interface",IDC_INIT_STATIC2,331,15,117,55
+    PUSHBUTTON      "Open Interface",IDC_OPEN_IF_BUTTON,336,47,52,14
+    PUSHBUTTON      "Close Interface",IDC_CLOSE_IF_BUTTON,392,47,52,14
+    RTEXT           "Width:",IDC_STATIC,337,146,50,12
+    RTEXT           "Height:",IDC_STATIC,337,159,50,12
+    RTEXT           "PixelFormat:",IDC_STATIC,337,172,50,12
+    RTEXT           "PixelSize:",IDC_STATIC,337,185,50,12
+    RTEXT           "TapGeometry:",IDC_STATIC,337,198,50,12
+    CONTROL         "ClConfiguration:",IDC_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,338,214,50,12
+    EDITTEXT        IDC_EDIT_WIDTH,394,144,48,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_HEIGHT,394,158,48,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO_PIXELFORMAT,394,172,48,74,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PIXELSIZE,394,186,48,63,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_TAPGEOMETRY,394,200,48,50,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_CLCONFIGURATION,394,214,48,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_SeparateForCMLDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 452
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 274
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "About SeparateForCMLDemo(&A)..."
+END
+
+#endif    // English (Neutral) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+#include "res\SeparateForCMLDemo.rc2"  // 非 Microsoft Visual C++ 编辑的资源
+#include "l.CHS\afxres.rc"      // 标准组件
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

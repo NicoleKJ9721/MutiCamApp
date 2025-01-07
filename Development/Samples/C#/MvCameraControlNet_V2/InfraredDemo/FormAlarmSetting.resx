@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="lbCurrentRegion.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="lbCurrentRegion.Location" type="System.Drawing.Point, System.Drawing">
+    <value>136, 20</value>
+  </data>
+  <data name="lbCurrentRegion.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="lbCurrentRegion.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="lbCurrentRegion.Text" xml:space="preserve">
+    <value>            </value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Name" xml:space="preserve">
+    <value>lbCurrentRegion</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbCurrentRegion.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="label1.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>65, 20</value>
+  </data>
+  <data name="label1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="label1.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="label1.Text" xml:space="preserve">
+    <value>当前区域：</value>
+  </data>
+  <data name="&gt;&gt;label1.Name" xml:space="preserve">
+    <value>label1</value>
+  </data>
+  <data name="&gt;&gt;label1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label1.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="cbSetAlarmEnableCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cbSetAlarmEnableCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>104, 58</value>
+  </data>
+  <data name="cbSetAlarmEnableCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>15, 14</value>
+  </data>
+  <data name="cbSetAlarmEnableCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmEnableCheck.Name" xml:space="preserve">
+    <value>cbSetAlarmEnableCheck</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmEnableCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmEnableCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmEnableCheck.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="lbSetAlarmEnableCheck.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetAlarmEnableCheck.Location" type="System.Drawing.Point, System.Drawing">
+    <value>21, 60</value>
+  </data>
+  <data name="lbSetAlarmEnableCheck.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="lbSetAlarmEnableCheck.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="lbSetAlarmEnableCheck.Text" xml:space="preserve">
+    <value>是否启用</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmEnableCheck.Name" xml:space="preserve">
+    <value>lbSetAlarmEnableCheck</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmEnableCheck.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmEnableCheck.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmEnableCheck.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="cbSetAlarmSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>80, 89</value>
+  </data>
+  <data name="cbSetAlarmSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 20</value>
+  </data>
+  <data name="cbSetAlarmSource.TabIndex" type="System.Int32, mscorlib">
+    <value>31</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmSource.Name" xml:space="preserve">
+    <value>cbSetAlarmSource</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmSource.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmSource.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="lbSetAlarmSource.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetAlarmSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>21, 92</value>
+  </data>
+  <data name="lbSetAlarmSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="lbSetAlarmSource.TabIndex" type="System.Int32, mscorlib">
+    <value>30</value>
+  </data>
+  <data name="lbSetAlarmSource.Text" xml:space="preserve">
+    <value>报警源</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmSource.Name" xml:space="preserve">
+    <value>lbSetAlarmSource</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmSource.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmSource.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="cbSetAlarmCondition.Location" type="System.Drawing.Point, System.Drawing">
+    <value>80, 125</value>
+  </data>
+  <data name="cbSetAlarmCondition.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 20</value>
+  </data>
+  <data name="cbSetAlarmCondition.TabIndex" type="System.Int32, mscorlib">
+    <value>33</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmCondition.Name" xml:space="preserve">
+    <value>cbSetAlarmCondition</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmCondition.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmCondition.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cbSetAlarmCondition.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="lbSetAlarmCondition.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetAlarmCondition.Location" type="System.Drawing.Point, System.Drawing">
+    <value>21, 128</value>
+  </data>
+  <data name="lbSetAlarmCondition.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="lbSetAlarmCondition.TabIndex" type="System.Int32, mscorlib">
+    <value>32</value>
+  </data>
+  <data name="lbSetAlarmCondition.Text" xml:space="preserve">
+    <value>报警条件</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmCondition.Name" xml:space="preserve">
+    <value>lbSetAlarmCondition</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmCondition.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmCondition.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmCondition.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="teSetAlarmAbs.Location" type="System.Drawing.Point, System.Drawing">
+    <value>80, 204</value>
+  </data>
+  <data name="teSetAlarmAbs.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 21</value>
+  </data>
+  <data name="teSetAlarmAbs.TabIndex" type="System.Int32, mscorlib">
+    <value>37</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmAbs.Name" xml:space="preserve">
+    <value>teSetAlarmAbs</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmAbs.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmAbs.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmAbs.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="lbSetAlarmAbs.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetAlarmAbs.Location" type="System.Drawing.Point, System.Drawing">
+    <value>21, 207</value>
+  </data>
+  <data name="lbSetAlarmAbs.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="lbSetAlarmAbs.TabIndex" type="System.Int32, mscorlib">
+    <value>36</value>
+  </data>
+  <data name="lbSetAlarmAbs.Text" xml:space="preserve">
+    <value>恢复阈值</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmAbs.Name" xml:space="preserve">
+    <value>lbSetAlarmAbs</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmAbs.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmAbs.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmAbs.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="teSetAlarmReference.Location" type="System.Drawing.Point, System.Drawing">
+    <value>80, 166</value>
+  </data>
+  <data name="teSetAlarmReference.Size" type="System.Drawing.Size, System.Drawing">
+    <value>202, 21</value>
+  </data>
+  <data name="teSetAlarmReference.TabIndex" type="System.Int32, mscorlib">
+    <value>35</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmReference.Name" xml:space="preserve">
+    <value>teSetAlarmReference</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmReference.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmReference.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;teSetAlarmReference.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="lbSetAlarmReference.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lbSetAlarmReference.Location" type="System.Drawing.Point, System.Drawing">
+    <value>21, 169</value>
+  </data>
+  <data name="lbSetAlarmReference.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="lbSetAlarmReference.TabIndex" type="System.Int32, mscorlib">
+    <value>34</value>
+  </data>
+  <data name="lbSetAlarmReference.Text" xml:space="preserve">
+    <value>参考值</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmReference.Name" xml:space="preserve">
+    <value>lbSetAlarmReference</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmReference.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmReference.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;lbSetAlarmReference.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="bnOK.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="bnOK.Location" type="System.Drawing.Point, System.Drawing">
+    <value>127, 248</value>
+  </data>
+  <data name="bnOK.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 23</value>
+  </data>
+  <data name="bnOK.TabIndex" type="System.Int32, mscorlib">
+    <value>38</value>
+  </data>
+  <data name="bnOK.Text" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="&gt;&gt;bnOK.Name" xml:space="preserve">
+    <value>bnOK</value>
+  </data>
+  <data name="&gt;&gt;bnOK.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;bnOK.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;bnOK.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="bnCancel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="bnCancel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>219, 248</value>
+  </data>
+  <data name="bnCancel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>63, 23</value>
+  </data>
+  <data name="bnCancel.TabIndex" type="System.Int32, mscorlib">
+    <value>39</value>
+  </data>
+  <data name="bnCancel.Text" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="&gt;&gt;bnCancel.Name" xml:space="preserve">
+    <value>bnCancel</value>
+  </data>
+  <data name="&gt;&gt;bnCancel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;bnCancel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;bnCancel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <metadata name="$this.Language" type="System.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>en</value>
+  </metadata>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>299, 281</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>FormAlarmSetting</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>FormAlarmSetting</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

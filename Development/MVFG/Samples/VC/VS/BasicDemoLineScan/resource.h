@@ -1,0 +1,125 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by BasicDemoLineScan.rc
+//
+#define IDM_ABOUTBOX                    0x0010
+#define IDD_ABOUTBOX                    100
+#define IDS_ABOUTBOX                    101
+#define IDD_BasicDemoLineScan_DIALOG    102
+#define IDR_MAINFRAME                   128
+#define IDC_ENUM_BUTTON                 1000
+#define IDC_OPEN_BUTTON                 1001
+#define IDC_CLOSE_BUTTON                1002
+#define IDC_CONTINUS_MODE_RADIO         1003
+#define IDC_TRIGGER_MODE_RADIO          1004
+#define IDC_START_GRABBING_BUTTON       1005
+#define IDC_STOP_GRABBING_BUTTON        1006
+#define IDC_SOFTWARE_ONCE_BUTTON        1007
+#define IDC_SOFTWARE_TRIGGER_CHECK      1008
+#define IDC_SAVE_BMP_BUTTON             1009
+#define IDC_OPEN_IF_BUTTON              1009
+#define IDC_SAVE_JPG_BUTTON             1010
+#define IDC_CLOSE_IF_BUTTON             1010
+#define IDC_EXPOSURE_EDIT               1011
+#define IDC_BMP_SAVE_BUTTON             1011
+#define IDC_GAIN_EDIT                   1012
+#define IDC_JPEG_SAVE_BUTTON            1012
+#define IDC_FRAME_RATE_EDIT             1013
+#define IDC_GET_PARAMETER_BUTTON        1014
+#define IDC_SET_PARAMETER_BUTTON        1015
+#define IDC_TIFF_SAVE_BUTTON            1015
+#define IDC_COMBO1                      1016
+#define IDC_DEVICE_COMBO                1016
+#define IDC_INIT_STATIC                 1017
+#define IDC_IMAGE_GRABBING_STATIC       1018
+#define IDC_SAVE_IMAGE_STATIC           1019
+#define IDC_IF_COMBO                    1019
+#define IDC_PARAMETER_STATIC            1020
+#define IDC_INIT_STATIC3                1020
+#define IDC_BMP_SAVE_BUTTON3            1020
+#define IDC_PNG_SAVE_BUTTON             1020
+#define IDC_EXPOSURE_STATIC             1021
+#define IDC_INIT_STATIC2                1021
+#define IDC_GAIN_STATIC                 1022
+#define IDC_FRAME_RATE_STATIC           1023
+#define IDC_DIGITAL_GAIN_STATIC         1023
+#define IDC_DISPLAY_STATIC              1024
+#define IDC_SAVE_TIFF_BUTTON            1025
+#define IDC_LOAD_CTI_BUTTON             1025
+#define IDC_BUTTON1                     1026
+#define IDC_SAVE_IMAGE_BUTTON           1026
+#define IDC_SAVE_JPG_BUTTON2            1027
+#define IDC_SAVE_PNG_BUTTON             1027
+#define IDC_ENUM_IF_BUTTON              1027
+#define IDC_ENUM_DEV_BUTTON             1028
+#define IDC_IF_VERSION_EDIT             1031
+#define IDC_PIXELFORMAT_COMBO           1032
+#define IDC_IMAGE_COMPRESSION_MODE_COMBO 1033
+#define IDC_TRIGGER_SELECTOR_COMBO      1033
+#define IDC_PREAMPGAIN_COMBO            1034
+#define IDC_TRIGGER_SOURCE_COMBO        1034
+#define IDC_EXPOSUACRE_EDIT             1035
+#define IDC_TRIGGER_MODE_COMB           1035
+#define IDC_DIGITAL_SHIFT_EDIT          1036
+#define IDC_TRIGGER_ACTIVATION_COMBO    1036
+#define IDC_ACQUISITION_LINE_RATE_EDIT  1037
+#define IDC_TRIGGER_SELECTOR_COMBO2     1037
+#define IDC_SCAN_MODE_COMBO             1037
+#define IDC_ACQUISITION_LINE_RATE_ENABLE_CHECK 1038
+#define IDC_RESULTING_LINE_RATE_EDIT    1039
+#define IDC_PIXEL_FORMAT_STATIC         1041
+#define IDC_HB_MODE_STATIC              1042
+#define IDC_LINE_FREQUENCY_SETTING_VALUE_STATIC 1043
+#define IDC_ACTUAL_LINE_FREQUENCY_STATIC 1044
+#define IDC_PARAM_STATIC                1045
+#define IDC_EPS_STATIC                  1046
+#define IDC_CAMERA_PARAM_STATIC         1046
+#define IDC_SET_PARAM_BUTTON            1047
+#define IDC_PICTURE_STORAGE_STATIC      1048
+#define IDC_DIGITAL_GAIN_EDIT           1049
+#define IDC_GET_PARAM_BUTTON            1050
+#define IDC_CAMERA_TYPE_STATIC          1051
+#define IDC_CAMERA_TYPE_COMBO           1052
+#define IDC_IMAGE_HEIGHT_STATIC         1053
+#define IDC_IMAGE_HEIGHT_EDIT           1054
+#define IDC_ENCODER_SELECTOR_STATIC     1055
+#define IDC_ENCODER_SELECTOR_COMBO      1056
+#define IDC_ENCODER_SOURCE_A_STATIC     1057
+#define IDC_ENCODER_SOURCE_A_COMBO      1058
+#define IDC_ENCODER_SOURCE_B_STATIC     1059
+#define IDC_ENCODER_SOURCE_B_COMBO      1060
+#define IDC_ENCODER_TRIGGER_MODE_STATIC 1061
+#define IDC_ENCODER_TRIGGER_MODE_COMBO  1062
+#define IDC_LINE_SELECTOR_STATIC        1063
+#define IDC_LINE_SELECTOR_COMBO         1064
+#define IDC_LINE_MODE_STATIC            1065
+#define IDC_LINE_MODE_COMBO             1066
+#define IDC_LINE_INPUT_POLARITY_STATIC  1067
+#define IDC_LINE_INPUT_POLARITY_COMBO   1068
+#define IDC_CC_Selector_STATIC          1069
+#define IDC_CC_SELECTOR_COMBO           1070
+#define IDC_CC_SOURCE_STATIC            1071
+#define IDC_CC_SOURCE_COMBO             1072
+#define IDC_WIDTH_STATIC                1073
+#define IDC_WIDTH_EDIT                  1074
+#define IDC_HEIGHT_STATIC               1075
+#define IDC_HEIGHT_EDIT                 1076
+#define IDC_IF_PARAM_STATIC             1077
+#define IDC_PIXELFORMAT_STATIC          1079
+#define IDC_TRIGGER_SELECTOR_STATIC     1081
+#define IDC_TRIGGER_SOURCE_STATIC       1082
+#define IDC_TRIGGER_MODE_STATIC         1083
+#define IDC_TRIGGER_ACTIVATION_STATIC   1084
+#define IDC_TRIGGER_ACTIVATION_STATIC2  1085
+#define IDC_SCAN_MODE_STATIC            1085
+
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        129
+#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_CONTROL_VALUE         1078
+#define _APS_NEXT_SYMED_VALUE           101
+#endif
+#endif

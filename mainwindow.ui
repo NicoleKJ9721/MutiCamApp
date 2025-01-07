@@ -1,0 +1,2180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>靶装配对接测量软件</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tabMian">
+       <attribute name="title">
+        <string>主界面</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>垂直视图</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbVerticalView">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>左侧视图</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_11">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbLeftView">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>对向视图</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbFrontView">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string>测量</string>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QGroupBox" name="groupBox_5">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="title">
+                <string>网格</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>网格密度</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QComboBox" name="cbGridDens"/>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btnCancelGrids">
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>取消网格</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBox_16">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="title">
+                <string>自动测量</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QPushButton" name="btnLineDet">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>直线查找</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnCircleDet">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>圆查找</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnCan1StepDet">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>取消上步结果</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>绘画</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QPushButton" name="btnDrawLine">
+                <property name="text">
+                 <string>线段</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawStraight">
+                <property name="text">
+                 <string>直线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawCircle">
+                <property name="text">
+                 <string>画圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawParallel">
+                <property name="text">
+                 <string>平行线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearDrawings">
+                <property name="text">
+                 <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QPushButton" name="btnMeasureLines">
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLine2Circle">
+                <property name="text">
+                 <string>线与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureCircles">
+                <property name="text">
+                 <string>圆与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearMeasurements">
+                <property name="text">
+                 <string>清空测量</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_8">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>运行</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <widget class="QPushButton" name="btnStartMeasure">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>15</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(0, 170, 0);</string>
+                </property>
+                <property name="text">
+                 <string>开始测量</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnStopMeasure">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>15</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color: rgb(170, 0, 0);</string>
+                </property>
+                <property name="text">
+                 <string>停止测量</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabVerticalView">
+       <attribute name="title">
+        <string>垂直视图</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_10">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>网格</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>选择网格密度</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbGridDens_Ver">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCancelGrids_Ver">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消网格</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_15">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>自动测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnLineDet_Ver">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCircleDet_Ver">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCan1StepDet_Ver">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消上步结果</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_12">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>绘画</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnDrawLine_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线段</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawStraight_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawCircle_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>画圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawParallel_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>平行线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearDrawings_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_13">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLines_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLine2Circle_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureCircles_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearMeasurements_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空测量</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbVerticalView_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabLeftView">
+       <attribute name="title">
+        <string>左侧视图</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_14">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_13">
+           <item>
+            <widget class="QGroupBox" name="groupBox_26">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>网格</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15">
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>选择网格密度</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbGridDens_Left">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCancelGrids_Left">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消网格</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_27">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>自动测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_18">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnLineDet_Left">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCircleDet_Left">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCan1Step_Left">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消上步结果</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_28">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>绘画</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_19">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnDrawLine_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线段</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawStraight_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawCircle_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>画圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawParallel_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>平行线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearDrawings_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_29">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_20">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLines_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLine2Circle_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureCircles_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearMeasurements_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空测量</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_21">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbleftView_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabFrontView">
+       <attribute name="title">
+        <string>对向视图</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox_22">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_14">
+           <item>
+            <widget class="QGroupBox" name="groupBox_30">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>网格</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_16">
+              <item>
+               <widget class="QLabel" name="label_6">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>选择网格密度</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="cbGridDens_Front">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCancelGrids_Front">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消网格</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_31">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::DefaultContextMenu</enum>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="title">
+              <string>自动测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_21">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnLineDet_Front">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCircleDet_Front">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆查找</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCan1Step_Front">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>取消上步结果</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_32">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>绘画</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_22">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnDrawLine_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线段</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawStraight_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawCircle_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>画圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnDrawParallel_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>平行线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearDrawings_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_33">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="title">
+              <string>测量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+             <property name="flat">
+              <bool>false</bool>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_23">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLines_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureLine2Circle_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnMeasureCircles_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>圆与圆</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnClearMeasurements_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空测量</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QGroupBox" name="groupBox_23">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
+            <widget class="QLabel" name="lbFrontView_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabSettings">
+       <attribute name="title">
+        <string>参数设置</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="2,1">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="2,3">
+            <item>
+             <widget class="QGroupBox" name="groupBox_24">
+              <property name="title">
+               <string>相机采集参数</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_7">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>垂直相机曝光时间：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledVerCamExposureTime"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_7">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>us</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_12">
+                 <item>
+                  <widget class="QLabel" name="label_14">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>左侧相机曝光时间：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledLeftCamExposureTime"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_15">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>us</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_13">
+                 <item>
+                  <widget class="QLabel" name="label_16">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>对向相机曝光时间：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledFrontCamExposureTime"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_17">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>us</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <item>
+                  <widget class="QLabel" name="label_18">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>垂直相机取图格式：</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="cbVerCamImageFormat"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_15">
+                 <item>
+                  <widget class="QLabel" name="label_19">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>左侧相机取图格式：</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="cbLeftCamImageFormat"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_16">
+                 <item>
+                  <widget class="QLabel" name="label_20">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="layoutDirection">
+                    <enum>Qt::LeftToRight</enum>
+                   </property>
+                   <property name="text">
+                    <string>对向相机取图格式：</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="cbFrontCamImageFormat"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <widget class="QLabel" name="label_8">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>垂直相机SN码：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledVerCamSN"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_9">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_10">
+                 <item>
+                  <widget class="QLabel" name="label_10">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>左侧相机SN码：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledLeftCamSN"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_11">
+                 <item>
+                  <widget class="QLabel" name="label_12">
+                   <property name="font">
+                    <font>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>对向相机SN码：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="ledFrontCamSN"/>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_13">
+                   <property name="font">
+                    <font>
+                     <family>Times New Roman</family>
+                     <pointsize>9</pointsize>
+                     <weight>75</weight>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_25">
+              <property name="title">
+               <string>自动测量参数</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_12">
+               <item row="0" column="0">
+                <widget class="QGroupBox" name="groupBox_34">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="title">
+                  <string>直线查找参数</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QGroupBox" name="groupBox_35">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="title">
+                  <string>圆查找参数</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_36">
+            <property name="title">
+             <string>GroupBox</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

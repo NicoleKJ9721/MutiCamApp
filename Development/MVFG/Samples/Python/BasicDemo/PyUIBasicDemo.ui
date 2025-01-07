@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>787</width>
+    <height>632</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>BasicDemo</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>71</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Interface</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>60</y>
+     <width>41</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Device</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="ComboInterface">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>20</y>
+     <width>461</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="ComboDevice">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>60</y>
+     <width>461</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>110</y>
+     <width>531</width>
+     <height>441</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::Box</enum>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>30</y>
+     <width>201</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>采集卡</string>
+   </property>
+   <widget class="QPushButton" name="BtnEnumInterface">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>141</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>枚举采集卡</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnOpenInterface">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>打开采集卡</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnCloseInterface">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>60</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关闭采集卡</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>160</y>
+     <width>201</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>设备</string>
+   </property>
+   <widget class="QPushButton" name="BtnEnumDevice">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>141</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>枚举设备</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnOpenDevice">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>打开设备</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnCloseDevice">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>60</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关闭设备</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>280</y>
+     <width>201</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>图像采集</string>
+   </property>
+   <widget class="QRadioButton" name="RadioContinuousMode">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>89</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>连续模式</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="RadioTriggerMode">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>20</y>
+      <width>89</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>触发模式</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnStart">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开始采集</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnStop">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>50</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>停止采集</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="CheckTriggerbySoftware">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>软触发</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnTriggerOnce">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>90</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>软触发一次</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_4">
+   <property name="geometry">
+    <rect>
+     <x>570</x>
+     <y>430</y>
+     <width>201</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>图像保存</string>
+   </property>
+   <widget class="QPushButton" name="BtnSaveBMP">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保存BMP</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnSaveJPEG">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>30</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保存JPEG</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnSaveTIFF">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保存TIFF</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnSavePNG">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>80</y>
+      <width>81</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保存PNG</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

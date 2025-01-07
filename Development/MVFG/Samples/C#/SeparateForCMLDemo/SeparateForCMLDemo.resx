@@ -1,0 +1,837 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="pictureBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 83</value>
+  </data>
+  <data name="pictureBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>632, 457</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label5.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="btnStartGrab.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="textBoxWidth.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="comboBoxClConfig.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 20</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Name" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="comboBoxPixelFormat.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labelTap.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cmbDeviceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>77, 50</value>
+  </data>
+  <data name="&gt;&gt;comboBoxClConfig.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="comboBoxPixelSize.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="labelWidth.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Name" xml:space="preserve">
+    <value>btnCloseDevice</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="comboBoxPixelSize.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 105</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Name" xml:space="preserve">
+    <value>cmbInterfaceList</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;labelTap.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;label5.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="comboBoxClConfig.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 157</value>
+  </data>
+  <data name="labelClConfiguration.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="labelPixelSize.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="pictureBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxIFParams.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;comboBoxClConfig.Name" xml:space="preserve">
+    <value>comboBoxClConfig</value>
+  </data>
+  <data name="&gt;&gt;label4.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxIFParams.Name" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="btnOpenDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 63</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox4.Text" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Name" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Name" xml:space="preserve">
+    <value>btnStopGrab</value>
+  </data>
+  <data name="label4.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="labelClConfiguration.Size" type="System.Drawing.Size, System.Drawing">
+    <value>101, 12</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnCloseInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnEnumDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 20</value>
+  </data>
+  <data name="labelHeight.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Name" xml:space="preserve">
+    <value>btnEnumDevice</value>
+  </data>
+  <data name="groupBoxIFParams.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 20</value>
+  </data>
+  <data name="btnEnumDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="btnOpenInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="btnOpenDevice.Text" xml:space="preserve">
+    <value>Open Device</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="labelPixelSize.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="label4.Text" xml:space="preserve">
+    <value>Device:</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>Form1</value>
+  </data>
+  <data name="btnStopGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>147, 107</value>
+  </data>
+  <data name="&gt;&gt;labelClConfiguration.Name" xml:space="preserve">
+    <value>labelClConfiguration</value>
+  </data>
+  <data name="btnCloseDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="btnCloseDevice.Text" xml:space="preserve">
+    <value>Close Device</value>
+  </data>
+  <data name="btnEnumInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>210, 23</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnEnumInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 30</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Name" xml:space="preserve">
+    <value>labelHeight</value>
+  </data>
+  <data name="labelPixelFormat.Location" type="System.Drawing.Point, System.Drawing">
+    <value>26, 82</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>Machine Vision Camera SDK Basic Demo (C#)</value>
+  </data>
+  <data name="textBoxHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 48</value>
+  </data>
+  <data name="btnEnumInterface.Text" xml:space="preserve">
+    <value>Enum Interface</value>
+  </data>
+  <data name="&gt;&gt;label4.Name" xml:space="preserve">
+    <value>label4</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Name" xml:space="preserve">
+    <value>cmbDeviceList</value>
+  </data>
+  <data name="cmbInterfaceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>567, 20</value>
+  </data>
+  <data name="btnCloseDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>147, 63</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelSize.Name" xml:space="preserve">
+    <value>comboBoxPixelSize</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Name" xml:space="preserve">
+    <value>comboBoxPixelFormat</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="comboBoxTap.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 20</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labelWidth.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="groupBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="labelHeight.Text" xml:space="preserve">
+    <value>Height:</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Name" xml:space="preserve">
+    <value>btnEnumInterface</value>
+  </data>
+  <data name="groupBoxIFParams.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 320</value>
+  </data>
+  <data name="btnOpenInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="labelPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="labelPixelSize.Location" type="System.Drawing.Point, System.Drawing">
+    <value>26, 108</value>
+  </data>
+  <data name="labelWidth.Text" xml:space="preserve">
+    <value>Width:</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="btnStopGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="comboBoxTap.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 131</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelSize.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>243, 109</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Name" xml:space="preserve">
+    <value>pictureBox1</value>
+  </data>
+  <data name="labelPixelSize.Text" xml:space="preserve">
+    <value>PixelSize:</value>
+  </data>
+  <data name="comboBoxPixelFormat.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 79</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="labelPixelFormat.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnEnumInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>24, 53</value>
+  </data>
+  <data name="&gt;&gt;groupBoxIFParams.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="btnCloseInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="&gt;&gt;labelClConfiguration.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labelPixelFormat.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;labelPixelSize.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Name" xml:space="preserve">
+    <value>btnCloseInterface</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelTap.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;labelPixelSize.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnStopGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="labelPixelFormat.Text" xml:space="preserve">
+    <value>PixelFormat:</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="labelTap.Text" xml:space="preserve">
+    <value>TapGeomertry:</value>
+  </data>
+  <data name="labelPixelSize.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="groupBox4.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTap.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cmbInterfaceList.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="comboBoxTap.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTap.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="labelTap.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelPixelSize.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>47, 12</value>
+  </data>
+  <data name="btnEnumDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>210, 23</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxIFParams.Text" xml:space="preserve">
+    <value>Interface params</value>
+  </data>
+  <data name="btnOpenInterface.Text" xml:space="preserve">
+    <value>Open Interface</value>
+  </data>
+  <data name="&gt;&gt;comboBoxClConfig.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;labelClConfiguration.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label5.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Name" xml:space="preserve">
+    <value>btnOpenInterface</value>
+  </data>
+  <data name="textBoxHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 21</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTap.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Name" xml:space="preserve">
+    <value>textBoxHeight</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;comboBoxClConfig.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="groupBoxIFParams.Size" type="System.Drawing.Size, System.Drawing">
+    <value>237, 220</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="btnEnumDevice.Text" xml:space="preserve">
+    <value>Enum Device</value>
+  </data>
+  <data name="&gt;&gt;labelTap.Name" xml:space="preserve">
+    <value>labelTap</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnOpenDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="textBoxWidth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 21</value>
+  </data>
+  <data name="cmbInterfaceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>76, 17</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Name" xml:space="preserve">
+    <value>textBoxWidth</value>
+  </data>
+  <data name="textBoxHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="btnStartGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 107</value>
+  </data>
+  <data name="labelClConfiguration.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="btnOpenDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="groupBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 12</value>
+  </data>
+  <data name="labelWidth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>56, 24</value>
+  </data>
+  <data name="labelClConfiguration.Text" xml:space="preserve">
+    <value>ClConfiguration:</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="labelWidth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="btnStartGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="&gt;&gt;label4.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 140</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="labelClConfiguration.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 160</value>
+  </data>
+  <data name="&gt;&gt;labelClConfiguration.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="label4.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;label5.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labelHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>56, 51</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelSize.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="labelPixelFormat.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelSize.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="comboBoxPixelSize.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 20</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label5.Text" xml:space="preserve">
+    <value>Interface:</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="groupBox4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>242, 145</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Name" xml:space="preserve">
+    <value>btnOpenDevice</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="&gt;&gt;labelTap.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnStartGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="cmbDeviceList.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Name" xml:space="preserve">
+    <value>labelPixelFormat</value>
+  </data>
+  <data name="labelTap.Location" type="System.Drawing.Point, System.Drawing">
+    <value>26, 134</value>
+  </data>
+  <data name="&gt;&gt;labelPixelSize.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="btnOpenInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>20, 71</value>
+  </data>
+  <data name="&gt;&gt;labelPixelSize.Name" xml:space="preserve">
+    <value>labelPixelSize</value>
+  </data>
+  <data name="label5.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;groupBoxIFParams.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Name" xml:space="preserve">
+    <value>btnStartGrab</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="textBoxWidth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>116, 21</value>
+  </data>
+  <data name="labelHeight.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="btnStopGrab.Text" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="btnCloseDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnCloseInterface.Text" xml:space="preserve">
+    <value>Close Interface</value>
+  </data>
+  <data name="btnCloseInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>147, 71</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Name" xml:space="preserve">
+    <value>labelWidth</value>
+  </data>
+  <data name="cmbDeviceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>567, 20</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="labelTap.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>921, 552</value>
+  </data>
+  <data name="comboBoxPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>114, 20</value>
+  </data>
+  <data name="labelHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="btnStopGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;label5.Name" xml:space="preserve">
+    <value>label5</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTap.Name" xml:space="preserve">
+    <value>comboBoxTap</value>
+  </data>
+  <data name="labelClConfiguration.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="groupBox1.Text" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="comboBoxClConfig.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Parent" xml:space="preserve">
+    <value>groupBoxIFParams</value>
+  </data>
+  <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>47, 12</value>
+  </data>
+  <data name="btnCloseDevice.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
+  </data>
+  <data name="labelTap.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="btnStartGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="$this.Language" type="System.Globalization.CultureInfo, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>English</value>
+  </metadata>
+</root>

@@ -1,0 +1,35 @@
+﻿<Window x:Class="BasicDemoWPF.BasicDemoWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:wfCtrl="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+    xmlns:wfHost="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration" 
+    Title="BasicDemoWPF" Height="399.84" Width="663.901" ResizeMode="CanMinimize">
+    <Grid Height="361.522" Width="651.406">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="322.371*" />
+            <ColumnDefinition Width="315.707*" />
+            <ColumnDefinition Width="13.328*" />
+        </Grid.ColumnDefinitions>
+        <ComboBox Height="23" Margin="12,12,184.093,0" Name="cbDeviceList" VerticalAlignment="Top" Grid.ColumnSpan="2" />
+        <Button Height="23" Margin="151.504,12,6.203,0" Name="bnEnum" VerticalAlignment="Top" Click="bnEnum_Click" Grid.Column="1">查找设备</Button>
+        <Button Margin="151.606,61.642,89.131,0" Name="bnOpen" Height="27" VerticalAlignment="Top" Click="bnOpen_Click" Grid.Column="1">打开设备</Button>
+        <Button Margin="0,61.642,8.33,0" Name="bnClose" HorizontalAlignment="Right" Width="75" Height="27" VerticalAlignment="Top" Click="bnClose_Click" IsEnabled="False" Grid.Column="1">关闭设备</Button>
+        <RadioButton Height="16" HorizontalAlignment="Left" Margin="151.576,121.618,0,0" Name="bnContinuesMode" VerticalAlignment="Top" Width="75" Checked="bnContinuesMode_Checked" IsEnabled="False" Grid.Column="1">连续模式</RadioButton>
+        <RadioButton Height="16" Margin="0,121.618,8.33,0" Name="bnTriggerMode" VerticalAlignment="Top" Checked="bnTriggerMode_Checked" HorizontalAlignment="Right" Width="75" IsEnabled="False" Grid.Column="1">触发模式</RadioButton>
+        <Button HorizontalAlignment="Left" Margin="152.409,149.94,0,0" Name="bnStartGrab" Width="75" Click="bnStartGrab_Click" IsEnabled="False" Grid.Column="1" Height="30.821" VerticalAlignment="Top">开始采集</Button>
+        <Button Height="29.988" HorizontalAlignment="Right" Margin="0,150.773,7.497,0" Name="bnStopGrab" VerticalAlignment="Top" Width="75" Click="bnStopGrab_Click" IsEnabled="False" Grid.Column="1">停止采集</Button>
+        <Button HorizontalAlignment="Right" Margin="0,0,8.33,145.775" Name="bnTriggerExec" Width="75" Click="bnTriggerExec_Click" IsEnabled="False" Grid.Column="1" Height="29.155" VerticalAlignment="Bottom">软触发一次</Button>
+        <CheckBox Margin="151.504,0,98.203,152.438" Name="cbSoftTrigger" Checked="cbSoftTrigger_Checked" IsEnabled="False" Grid.Column="1" Height="15.827" VerticalAlignment="Bottom">软触发</CheckBox>
+        <wfHost:WindowsFormsHost Margin="12,49.147,184.093,11.983" x:Name="DisplayWindow" Grid.ColumnSpan="2" IsEnabled="True">
+            <wfCtrl:PictureBox x:Name="displayArea"/>
+        </wfHost:WindowsFormsHost>
+        <Label Height="28" Margin="152.409,0,111.298,98.294" Name="label1" VerticalAlignment="Bottom" Grid.Column="1">曝光</Label>
+        <Label Margin="152.409,0,111.298,68.306" Name="label2" Grid.Column="1" Height="27.489" VerticalAlignment="Bottom">增益</Label>
+        <Label Height="28" Margin="152.409,0,111.298,39.151" Name="label3" VerticalAlignment="Bottom" Grid.Column="1">帧率</Label>
+        <TextBox HorizontalAlignment="Right" Margin="0,235.228,8.33,99.96" Name="tbExposure" Width="75" IsEnabled="False" Grid.Column="1" />
+        <TextBox Height="23.324" HorizontalAlignment="Right" Margin="0,0,8.33,70.805" Name="tbGain" VerticalAlignment="Bottom" Width="75" IsEnabled="False" Grid.Column="1" />
+        <TextBox Height="23" HorizontalAlignment="Right" Margin="0,0,8.33,41.65" Name="tbFrameRate" VerticalAlignment="Bottom" Width="75" IsEnabled="False" Grid.Column="1" />
+        <Button Height="23" Margin="151.504,0,89.233,12" Name="bnGetParam" VerticalAlignment="Bottom" Click="bnGetParam_Click" IsEnabled="False" Grid.Column="1">获取参数</Button>
+        <Button Height="23" HorizontalAlignment="Right" Margin="0,0,8.33,11.983" Name="bnSetParam" VerticalAlignment="Bottom" Width="75" Click="bnSetParam_Click" IsEnabled="False" Grid.Column="1">设置参数</Button>
+    </Grid>
+</Window>

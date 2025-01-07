@@ -1,0 +1,352 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 中文(中华人民共和国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#include ""res\\BasicDemoLineScan.rc2""  // 非 Microsoft Visual C++ 编辑的资源\r\n"
+    "#include ""l.CHS\\afxres.rc""      // 标准组件\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\BasicDemoLineScan.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "BasicDemoLineScan，1.0 版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_BasicDemo_DIALOG DIALOGEX 0, 0, 514, 338
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "初始化",IDC_INIT_STATIC,380,7,120,44
+    PUSHBUTTON      "查找设备",IDC_ENUM_BUTTON,384,18,112,14
+    PUSHBUTTON      "打开设备",IDC_OPEN_BUTTON,384,33,53,14
+    PUSHBUTTON      "关闭设备",IDC_CLOSE_BUTTON,443,33,53,14
+    GROUPBOX        "图像采集",IDC_IMAGE_GRABBING_STATIC,380,51,120,84
+    GROUPBOX        "图片保存",IDC_SAVE_IMAGE_STATIC,380,135,120,42
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,12,27,364,301
+    GROUPBOX        "参数",IDC_PARAMETER_STATIC,380,181,120,149
+    PUSHBUTTON      "开始采集",IDC_START_GRABBING_BUTTON,384,60,53,14
+    PUSHBUTTON      "停止采集",IDC_STOP_GRABBING_BUTTON,443,60,53,14
+    PUSHBUTTON      "执行一次软触发",IDC_SOFTWARE_ONCE_BUTTON,386,118,109,14
+    PUSHBUTTON      "保存BMP",IDC_SAVE_BMP_BUTTON,384,144,53,14
+    PUSHBUTTON      "保存JPG",IDC_SAVE_JPG_BUTTON,443,144,53,14
+    EDITTEXT        IDC_DIGITAL_SHIFT_EDIT,420,252,73,14,ES_AUTOHSCROLL
+    LTEXT           "曝光",IDC_EXPOSURE_STATIC,385,223,23,8
+    LTEXT           "模拟增益",IDC_GAIN_STATIC,383,239,30,8
+    LTEXT           "数字增益",IDC_FRAME_RATE_STATIC,383,254,30,8
+    PUSHBUTTON      "参数获取",IDC_GET_PARAMETER_BUTTON,382,313,53,14
+    PUSHBUTTON      "参数设置",IDC_SET_PARAMETER_BUTTON,440,313,53,14
+    COMBOBOX        IDC_DEVICE_COMBO,12,11,364,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "保存tiff",IDC_SAVE_TIFF_BUTTON,384,159,53,14
+    PUSHBUTTON      "保存png",IDC_SAVE_PNG_BUTTON,443,159,53,14
+    LTEXT           "像素格式",IDC_PIXEL_FORMAT_STATIC,384,194,31,8
+    LTEXT           "触发选项",IDC_TRIGGERSEL_STATIC,386,78,30,8
+    COMBOBOX        IDC_TRIGGERSEL_COMBO,420,76,76,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "触发开关",IDC_TRIGGERSEL_STATIC2,386,92,29,8
+    LTEXT           "触发源",IDC_TRIGGERSEL_STATIC3,386,105,29,8
+    COMBOBOX        IDC_TRIGGERSWITCH_COMBO,420,90,76,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,420,192,73,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_IMAGE_COMPRESSION_MODE_COMBO,420,207,73,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "HB模式",IDC_PIXEL_FORMAT_STATIC2,384,208,28,8
+    COMBOBOX        IDC_PREAMPGAIN_COMBO,420,238,73,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_TRIGGERSOURCE_COMBO,420,104,76,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EXPOSUACRE_EDIT,420,222,73,14,ES_AUTOHSCROLL
+    LTEXT           "行频设定值",IDC_FRAME_RATE_STATIC2,382,270,35,8
+    EDITTEXT        IDC_ACQUISITION_LINE_RATE_EDIT,420,268,73,14,ES_AUTOHSCROLL
+    LTEXT           "实际行频",IDC_TRIGGERSEL_STATIC5,383,300,31,8
+    EDITTEXT        IDC_RESULTING_LINE_RATE_EDIT,420,298,73,14,ES_AUTOHSCROLL
+    CONTROL         "行频使能开关",IDC_ACQUISITION_LINE_RATE_ENABLE_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,383,285,57,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080403a8"
+        BEGIN
+            VALUE "CompanyName", "TODO: <公司名>"
+            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "BasicDemoLineScan.exe"
+            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "OriginalFilename", "BasicDemoLineScan.exe"
+            VALUE "ProductName", "TODO: <产品名>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 936
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_BasicDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 507
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 335
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "关于 BasicDemo(&A)..."
+END
+
+#endif    // 中文(中华人民共和国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 英语(非特定语言) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "BasicDemoLineScan,V1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_BasicDemo_DIALOG DIALOGEX 0, 0, 512, 339
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Initialization",IDC_INIT_STATIC,380,7,120,44
+    PUSHBUTTON      "Search Device",IDC_ENUM_BUTTON,384,18,112,14
+    PUSHBUTTON      "Open Device",IDC_OPEN_BUTTON,384,33,53,14
+    PUSHBUTTON      "Close Device",IDC_CLOSE_BUTTON,443,33,53,14
+    GROUPBOX        "Image Acquisition",IDC_IMAGE_GRABBING_STATIC,380,51,129,84
+    GROUPBOX        "Picture Storage",IDC_SAVE_IMAGE_STATIC,380,135,129,42
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,12,27,364,308
+    GROUPBOX        "Parameters",IDC_PARAMETER_STATIC,380,181,129,154
+    PUSHBUTTON      "Start",IDC_START_GRABBING_BUTTON,384,60,53,14
+    PUSHBUTTON      "Stop",IDC_STOP_GRABBING_BUTTON,443,60,53,14
+    PUSHBUTTON      "Trigger Once",IDC_SOFTWARE_ONCE_BUTTON,386,118,118,14
+    PUSHBUTTON      "Save as BMP",IDC_SAVE_BMP_BUTTON,384,144,53,14
+    PUSHBUTTON      "Save as JPG",IDC_SAVE_JPG_BUTTON,451,144,53,14
+    EDITTEXT        IDC_DIGITAL_SHIFT_EDIT,445,253,61,14,ES_AUTOHSCROLL
+    LTEXT           "Exposure Time",IDC_EXPOSURE_STATIC,383,224,49,8
+    LTEXT           "Preamp Gain",IDC_GAIN_STATIC,383,239,40,8
+    LTEXT           "Digital Shift",IDC_FRAME_RATE_STATIC,383,255,36,8
+    PUSHBUTTON      "Get Parameter",IDC_GET_PARAMETER_BUTTON,382,318,53,14
+    PUSHBUTTON      "Set Parameter",IDC_SET_PARAMETER_BUTTON,450,318,53,14
+    COMBOBOX        IDC_DEVICE_COMBO,12,11,364,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Save as TIFF",IDC_SAVE_TIFF_BUTTON,384,159,53,14
+    PUSHBUTTON      "Save as PNG",IDC_SAVE_PNG_BUTTON,451,159,53,14
+    LTEXT           "Pixel Format",IDC_PIXEL_FORMAT_STATIC,383,195,46,8
+    LTEXT           "Trigger Selector",IDC_TRIGGERSEL_STATIC,384,78,63,8
+    COMBOBOX        IDC_TRIGGERSEL_COMBO,444,76,60,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Trigger Mode",IDC_TRIGGERSEL_STATIC2,384,92,50,8
+    LTEXT           "Trigger Source",IDC_TRIGGERSEL_STATIC3,384,105,49,8
+    COMBOBOX        IDC_TRIGGERSWITCH_COMBO,444,90,60,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,445,192,61,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_IMAGE_COMPRESSION_MODE_COMBO,445,207,61,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "HB Mode",IDC_PIXEL_FORMAT_STATIC2,383,208,41,9
+    COMBOBOX        IDC_PREAMPGAIN_COMBO,445,238,61,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_TRIGGERSOURCE_COMBO,444,104,60,77,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EXPOSUACRE_EDIT,445,222,61,14,ES_AUTOHSCROLL
+    LTEXT           "AcquisitionLine Rate",IDC_FRAME_RATE_STATIC2,382,273,63,8
+    EDITTEXT        IDC_ACQUISITION_LINE_RATE_EDIT,445,270,61,14,ES_AUTOHSCROLL
+    LTEXT           "Resulting Line Rate",IDC_TRIGGERSEL_STATIC5,383,305,73,8
+    EDITTEXT        IDC_RESULTING_LINE_RATE_EDIT,445,301,61,14,ES_AUTOHSCROLL
+    CONTROL         "Acquisition Line Rate Enable",IDC_ACQUISITION_LINE_RATE_ENABLE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,383,288,103,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_BasicDemo_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        TOPMARGIN, 7
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "About BasicDemoLineScan(&A)..."
+END
+
+#endif    // 英语(非特定语言) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+#include "res\BasicDemoLineScan.rc2"  // 非 Microsoft Visual C++ 编辑的资源
+#include "l.CHS\afxres.rc"      // 标准组件
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

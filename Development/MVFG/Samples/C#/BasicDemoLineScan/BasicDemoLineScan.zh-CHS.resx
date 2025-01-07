@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="pictureBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 86</value>
+  </data>
+  <data name="pictureBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>632, 503</value>
+  </data>
+  <data name="btnCloseInterface.Text" xml:space="preserve">
+    <value>关闭采集卡</value>
+  </data>
+  <data name="btnOpenInterface.Text" xml:space="preserve">
+    <value>打开采集卡</value>
+  </data>
+  <data name="btnEnumInterface.Text" xml:space="preserve">
+    <value>枚举采集卡</value>
+  </data>
+  <data name="groupBoxInterface.Text" xml:space="preserve">
+    <value>采集卡</value>
+  </data>
+  <data name="btnCloseDevice.Text" xml:space="preserve">
+    <value>关闭设备</value>
+  </data>
+  <data name="btnOpenDevice.Text" xml:space="preserve">
+    <value>打开设备</value>
+  </data>
+  <data name="btnEnumDevice.Text" xml:space="preserve">
+    <value>枚举设备</value>
+  </data>
+  <data name="btnStopGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>97, 23</value>
+  </data>
+  <data name="btnStopGrab.Text" xml:space="preserve">
+    <value>停止采集</value>
+  </data>
+  <data name="btnStartGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 23</value>
+  </data>
+  <data name="btnStartGrab.Text" xml:space="preserve">
+    <value>开始采集</value>
+  </data>
+  <data name="groupBoxImageAcq.Size" type="System.Drawing.Size, System.Drawing">
+    <value>197, 76</value>
+  </data>
+  <data name="groupBoxImageAcq.Text" xml:space="preserve">
+    <value>图像采集</value>
+  </data>
+  <data name="btnTriggerExec.Location" type="System.Drawing.Point, System.Drawing">
+    <value>13, 233</value>
+  </data>
+  <data name="btnTriggerExec.Text" xml:space="preserve">
+    <value>软触发一次</value>
+  </data>
+  <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 53</value>
+  </data>
+  <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="label4.Text" xml:space="preserve">
+    <value>相机列表</value>
+  </data>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>5, 20</value>
+  </data>
+  <data name="label5.Text" xml:space="preserve">
+    <value>采集卡列表</value>
+  </data>
+  <data name="groupBoxDevice.Text" xml:space="preserve">
+    <value>相机</value>
+  </data>
+  <data name="labelCCSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="labelCCSource.Text" xml:space="preserve">
+    <value>相机控制源</value>
+  </data>
+  <data name="labelCCSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>89, 12</value>
+  </data>
+  <data name="labelCCSelector.Text" xml:space="preserve">
+    <value>相机控制选择器</value>
+  </data>
+  <data name="labelEncoderTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>89, 12</value>
+  </data>
+  <data name="labelEncoderTriggerMode.Text" xml:space="preserve">
+    <value>编码器触发模式</value>
+  </data>
+  <data name="labelEncoderSourceB.Size" type="System.Drawing.Size, System.Drawing">
+    <value>59, 12</value>
+  </data>
+  <data name="labelEncoderSourceB.Text" xml:space="preserve">
+    <value>编码器源B</value>
+  </data>
+  <data name="labelEncoderSourceA.Size" type="System.Drawing.Size, System.Drawing">
+    <value>59, 12</value>
+  </data>
+  <data name="labelEncoderSourceA.Text" xml:space="preserve">
+    <value>编码器源A</value>
+  </data>
+  <data name="labelEncoderSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="labelEncoderSelector.Text" xml:space="preserve">
+    <value>编码器选择器</value>
+  </data>
+  <data name="labelLineInputPolarity.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="labelLineInputPolarity.Text" xml:space="preserve">
+    <value>线路输入极性</value>
+  </data>
+  <data name="labelLineMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelLineMode.Text" xml:space="preserve">
+    <value>线路模式</value>
+  </data>
+  <data name="labelLineSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="labelLineSelector.Text" xml:space="preserve">
+    <value>线路选择器</value>
+  </data>
+  <data name="labelImageHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>29, 12</value>
+  </data>
+  <data name="labelImageHeight.Text" xml:space="preserve">
+    <value>行高</value>
+  </data>
+  <data name="labelCameraType.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelCameraType.Text" xml:space="preserve">
+    <value>相机类型</value>
+  </data>
+  <data name="groupBoxInterfaceParams.Size" type="System.Drawing.Size, System.Drawing">
+    <value>272, 312</value>
+  </data>
+  <data name="groupBoxInterfaceParams.Text" xml:space="preserve">
+    <value>采集卡参数</value>
+  </data>
+  <data name="labelTriggerActivation.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 210</value>
+  </data>
+  <data name="labelTriggerActivation.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelTriggerActivation.Text" xml:space="preserve">
+    <value>触发极性</value>
+  </data>
+  <data name="labelTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 184</value>
+  </data>
+  <data name="labelTriggerSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="labelTriggerSource.Text" xml:space="preserve">
+    <value>触发源</value>
+  </data>
+  <data name="labelTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 158</value>
+  </data>
+  <data name="labelTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelTriggerMode.Text" xml:space="preserve">
+    <value>触发模式</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="labelScanMode.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="labelScanMode.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelScanMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelScanMode.Text" xml:space="preserve">
+    <value>扫描模式</value>
+  </data>
+  <data name="labelTriggerSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 132</value>
+  </data>
+  <data name="labelTriggerSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="labelTriggerSelector.Text" xml:space="preserve">
+    <value>触发选择器</value>
+  </data>
+  <data name="labelPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelPixelFormat.Text" xml:space="preserve">
+    <value>像素格式</value>
+  </data>
+  <data name="labelHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>29, 12</value>
+  </data>
+  <data name="labelHeight.Text" xml:space="preserve">
+    <value>高度</value>
+  </data>
+  <data name="labelWidth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>29, 12</value>
+  </data>
+  <data name="labelWidth.Text" xml:space="preserve">
+    <value>宽度</value>
+  </data>
+  <data name="comboBoxTriggerActivation.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 207</value>
+  </data>
+  <data name="comboBoxTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 181</value>
+  </data>
+  <data name="comboBoxTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 155</value>
+  </data>
+  <data name="comboBoxTriggerSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 129</value>
+  </data>
+  <data name="groupBoxDeviceParams.Location" type="System.Drawing.Point, System.Drawing">
+    <value>870, 335</value>
+  </data>
+  <data name="groupBoxDeviceParams.Size" type="System.Drawing.Size, System.Drawing">
+    <value>272, 264</value>
+  </data>
+  <data name="groupBoxDeviceParams.Text" xml:space="preserve">
+    <value>相机参数</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>1178, 611</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>MVFG SDK CS演示程序</value>
+  </data>
+</root>

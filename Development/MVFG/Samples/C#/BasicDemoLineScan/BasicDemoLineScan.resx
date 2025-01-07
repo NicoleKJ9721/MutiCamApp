@@ -1,0 +1,1890 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="cmbDeviceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>77, 50</value>
+  </data>
+  <data name="cmbDeviceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>567, 20</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="cmbDeviceList.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Name" xml:space="preserve">
+    <value>cmbDeviceList</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="pictureBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 83</value>
+  </data>
+  <data name="pictureBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>632, 506</value>
+  </data>
+  <data name="pictureBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Name" xml:space="preserve">
+    <value>pictureBox1</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Name" xml:space="preserve">
+    <value>btnCloseInterface</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Name" xml:space="preserve">
+    <value>btnOpenInterface</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Name" xml:space="preserve">
+    <value>btnEnumInterface</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="groupBoxInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 12</value>
+  </data>
+  <data name="groupBoxInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>197, 109</value>
+  </data>
+  <data name="groupBoxInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="groupBoxInterface.Text" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterface.Name" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterface.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterface.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="btnCloseInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>97, 71</value>
+  </data>
+  <data name="btnCloseInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnCloseInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnCloseInterface.Text" xml:space="preserve">
+    <value>Close Interface</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Name" xml:space="preserve">
+    <value>btnCloseInterface</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnCloseInterface.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnOpenInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 71</value>
+  </data>
+  <data name="btnOpenInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnOpenInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="btnOpenInterface.Text" xml:space="preserve">
+    <value>Open Interface</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Name" xml:space="preserve">
+    <value>btnOpenInterface</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnOpenInterface.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="btnEnumInterface.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 30</value>
+  </data>
+  <data name="btnEnumInterface.Size" type="System.Drawing.Size, System.Drawing">
+    <value>172, 23</value>
+  </data>
+  <data name="btnEnumInterface.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="btnEnumInterface.Text" xml:space="preserve">
+    <value>Enum Interface</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Name" xml:space="preserve">
+    <value>btnEnumInterface</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.Parent" xml:space="preserve">
+    <value>groupBoxInterface</value>
+  </data>
+  <data name="&gt;&gt;btnEnumInterface.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="btnCloseDevice.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnCloseDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>97, 58</value>
+  </data>
+  <data name="btnCloseDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnCloseDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnCloseDevice.Text" xml:space="preserve">
+    <value>Close Device</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Name" xml:space="preserve">
+    <value>btnCloseDevice</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.Parent" xml:space="preserve">
+    <value>groupBoxDevice</value>
+  </data>
+  <data name="&gt;&gt;btnCloseDevice.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="btnOpenDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 58</value>
+  </data>
+  <data name="btnOpenDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnOpenDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="btnOpenDevice.Text" xml:space="preserve">
+    <value>Open Device</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Name" xml:space="preserve">
+    <value>btnOpenDevice</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.Parent" xml:space="preserve">
+    <value>groupBoxDevice</value>
+  </data>
+  <data name="&gt;&gt;btnOpenDevice.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="btnEnumDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 20</value>
+  </data>
+  <data name="btnEnumDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>172, 23</value>
+  </data>
+  <data name="btnEnumDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="btnEnumDevice.Text" xml:space="preserve">
+    <value>Enum Device</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Name" xml:space="preserve">
+    <value>btnEnumDevice</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.Parent" xml:space="preserve">
+    <value>groupBoxDevice</value>
+  </data>
+  <data name="&gt;&gt;btnEnumDevice.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Name" xml:space="preserve">
+    <value>btnStopGrab</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Parent" xml:space="preserve">
+    <value>groupBoxImageAcq</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Name" xml:space="preserve">
+    <value>btnStartGrab</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Parent" xml:space="preserve">
+    <value>groupBoxImageAcq</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="groupBoxImageAcq.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 253</value>
+  </data>
+  <data name="groupBoxImageAcq.Size" type="System.Drawing.Size, System.Drawing">
+    <value>197, 88</value>
+  </data>
+  <data name="groupBoxImageAcq.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="groupBoxImageAcq.Text" xml:space="preserve">
+    <value>Image Acquisition</value>
+  </data>
+  <data name="&gt;&gt;groupBoxImageAcq.Name" xml:space="preserve">
+    <value>groupBoxImageAcq</value>
+  </data>
+  <data name="&gt;&gt;groupBoxImageAcq.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxImageAcq.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxImageAcq.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="btnStopGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnStopGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>97, 38</value>
+  </data>
+  <data name="btnStopGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnStopGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="btnStopGrab.Text" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Name" xml:space="preserve">
+    <value>btnStopGrab</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Parent" xml:space="preserve">
+    <value>groupBoxImageAcq</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnStartGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnStartGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 38</value>
+  </data>
+  <data name="btnStartGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 23</value>
+  </data>
+  <data name="btnStartGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnStartGrab.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Name" xml:space="preserve">
+    <value>btnStartGrab</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Parent" xml:space="preserve">
+    <value>groupBoxImageAcq</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="btnTriggerExec.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnTriggerExec.Location" type="System.Drawing.Point, System.Drawing">
+    <value>13, 212</value>
+  </data>
+  <data name="btnTriggerExec.Size" type="System.Drawing.Size, System.Drawing">
+    <value>242, 23</value>
+  </data>
+  <data name="btnTriggerExec.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="btnTriggerExec.Text" xml:space="preserve">
+    <value>Trigger Once</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Name" xml:space="preserve">
+    <value>btnTriggerExec</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="label4.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>24, 53</value>
+  </data>
+  <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>47, 12</value>
+  </data>
+  <data name="label4.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="label4.Text" xml:space="preserve">
+    <value>Device:</value>
+  </data>
+  <data name="&gt;&gt;label4.Name" xml:space="preserve">
+    <value>label4</value>
+  </data>
+  <data name="&gt;&gt;label4.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label4.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="label5.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 20</value>
+  </data>
+  <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="label5.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="label5.Text" xml:space="preserve">
+    <value>Interface:</value>
+  </data>
+  <data name="&gt;&gt;label5.Name" xml:space="preserve">
+    <value>label5</value>
+  </data>
+  <data name="&gt;&gt;label5.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label5.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;label5.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="cmbInterfaceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>76, 17</value>
+  </data>
+  <data name="cmbInterfaceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>567, 20</value>
+  </data>
+  <data name="cmbInterfaceList.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Name" xml:space="preserve">
+    <value>cmbInterfaceList</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;cmbInterfaceList.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxDevice.Location" type="System.Drawing.Point, System.Drawing">
+    <value>666, 140</value>
+  </data>
+  <data name="groupBoxDevice.Size" type="System.Drawing.Size, System.Drawing">
+    <value>197, 107</value>
+  </data>
+  <data name="groupBoxDevice.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="groupBoxDevice.Text" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDevice.Name" xml:space="preserve">
+    <value>groupBoxDevice</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDevice.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDevice.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDevice.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Name" xml:space="preserve">
+    <value>textBoxImageHeight</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Name" xml:space="preserve">
+    <value>labelCCSource</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Name" xml:space="preserve">
+    <value>labelCCSelector</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Name" xml:space="preserve">
+    <value>labelEncoderTriggerMode</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Name" xml:space="preserve">
+    <value>labelEncoderSourceB</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Name" xml:space="preserve">
+    <value>labelEncoderSourceA</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Name" xml:space="preserve">
+    <value>labelEncoderSelector</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Name" xml:space="preserve">
+    <value>labelLineInputPolarity</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Name" xml:space="preserve">
+    <value>labelLineMode</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Name" xml:space="preserve">
+    <value>labelLineSelector</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Name" xml:space="preserve">
+    <value>labelImageHeight</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Name" xml:space="preserve">
+    <value>labelCameraType</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Name" xml:space="preserve">
+    <value>comboBoxCCSource</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Name" xml:space="preserve">
+    <value>comboBoxCCSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Name" xml:space="preserve">
+    <value>comboBoxEncoderTrigger</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Name" xml:space="preserve">
+    <value>comboBoxEncoderSourceB</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Name" xml:space="preserve">
+    <value>comboBoxEncoderSourceA</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Name" xml:space="preserve">
+    <value>comboBoxEncoderSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Name" xml:space="preserve">
+    <value>comboBoxLineInputPolarity</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Name" xml:space="preserve">
+    <value>comboBoxLineMode</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.ZOrder" xml:space="preserve">
+    <value>19</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Name" xml:space="preserve">
+    <value>comboBoxLineSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.ZOrder" xml:space="preserve">
+    <value>20</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Name" xml:space="preserve">
+    <value>comboBoxCameraType</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.ZOrder" xml:space="preserve">
+    <value>21</value>
+  </data>
+  <data name="groupBoxInterfaceParams.Location" type="System.Drawing.Point, System.Drawing">
+    <value>870, 17</value>
+  </data>
+  <data name="groupBoxInterfaceParams.Size" type="System.Drawing.Size, System.Drawing">
+    <value>270, 324</value>
+  </data>
+  <data name="groupBoxInterfaceParams.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="groupBoxInterfaceParams.Text" xml:space="preserve">
+    <value>Interface Params</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterfaceParams.Name" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterfaceParams.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterfaceParams.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxInterfaceParams.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="textBoxImageHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 48</value>
+  </data>
+  <data name="textBoxImageHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="textBoxImageHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Name" xml:space="preserve">
+    <value>textBoxImageHeight</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;textBoxImageHeight.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="labelCCSource.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="labelCCSource.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelCCSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 285</value>
+  </data>
+  <data name="labelCCSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>53, 12</value>
+  </data>
+  <data name="labelCCSource.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelCCSource.Text" xml:space="preserve">
+    <value>CCSource</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Name" xml:space="preserve">
+    <value>labelCCSource</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCCSource.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="labelCCSelector.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelCCSelector.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelCCSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 259</value>
+  </data>
+  <data name="labelCCSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>65, 12</value>
+  </data>
+  <data name="labelCCSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelCCSelector.Text" xml:space="preserve">
+    <value>CCSelector</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Name" xml:space="preserve">
+    <value>labelCCSelector</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCCSelector.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="labelEncoderTriggerMode.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelEncoderTriggerMode.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelEncoderTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 234</value>
+  </data>
+  <data name="labelEncoderTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>113, 12</value>
+  </data>
+  <data name="labelEncoderTriggerMode.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelEncoderTriggerMode.Text" xml:space="preserve">
+    <value>EncoderTriggerMode</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Name" xml:space="preserve">
+    <value>labelEncoderTriggerMode</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderTriggerMode.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="labelEncoderSourceB.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelEncoderSourceB.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelEncoderSourceB.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 208</value>
+  </data>
+  <data name="labelEncoderSourceB.Size" type="System.Drawing.Size, System.Drawing">
+    <value>89, 12</value>
+  </data>
+  <data name="labelEncoderSourceB.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelEncoderSourceB.Text" xml:space="preserve">
+    <value>EncoderSourceB</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Name" xml:space="preserve">
+    <value>labelEncoderSourceB</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceB.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="labelEncoderSourceA.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelEncoderSourceA.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelEncoderSourceA.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 182</value>
+  </data>
+  <data name="labelEncoderSourceA.Size" type="System.Drawing.Size, System.Drawing">
+    <value>89, 12</value>
+  </data>
+  <data name="labelEncoderSourceA.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelEncoderSourceA.Text" xml:space="preserve">
+    <value>EncoderSourceA</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Name" xml:space="preserve">
+    <value>labelEncoderSourceA</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSourceA.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="labelEncoderSelector.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelEncoderSelector.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelEncoderSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 156</value>
+  </data>
+  <data name="labelEncoderSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 12</value>
+  </data>
+  <data name="labelEncoderSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelEncoderSelector.Text" xml:space="preserve">
+    <value>EncoderSelector</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Name" xml:space="preserve">
+    <value>labelEncoderSelector</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelEncoderSelector.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="labelLineInputPolarity.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelLineInputPolarity.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelLineInputPolarity.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 130</value>
+  </data>
+  <data name="labelLineInputPolarity.Size" type="System.Drawing.Size, System.Drawing">
+    <value>107, 12</value>
+  </data>
+  <data name="labelLineInputPolarity.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelLineInputPolarity.Text" xml:space="preserve">
+    <value>LineInputPolarity</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Name" xml:space="preserve">
+    <value>labelLineInputPolarity</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineInputPolarity.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="labelLineMode.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelLineMode.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelLineMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 104</value>
+  </data>
+  <data name="labelLineMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>59, 12</value>
+  </data>
+  <data name="labelLineMode.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelLineMode.Text" xml:space="preserve">
+    <value>Line Mode</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Name" xml:space="preserve">
+    <value>labelLineMode</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineMode.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="labelLineSelector.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelLineSelector.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelLineSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 78</value>
+  </data>
+  <data name="labelLineSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="labelLineSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelLineSelector.Text" xml:space="preserve">
+    <value>Line Selector</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Name" xml:space="preserve">
+    <value>labelLineSelector</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelLineSelector.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="labelImageHeight.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelImageHeight.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelImageHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 51</value>
+  </data>
+  <data name="labelImageHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>77, 12</value>
+  </data>
+  <data name="labelImageHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelImageHeight.Text" xml:space="preserve">
+    <value>Image Height</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Name" xml:space="preserve">
+    <value>labelImageHeight</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelImageHeight.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="labelCameraType.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelCameraType.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 23</value>
+  </data>
+  <data name="labelCameraType.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="labelCameraType.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelCameraType.Text" xml:space="preserve">
+    <value>Camera Type</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Name" xml:space="preserve">
+    <value>labelCameraType</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;labelCameraType.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="comboBoxCCSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 282</value>
+  </data>
+  <data name="comboBoxCCSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxCCSource.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Name" xml:space="preserve">
+    <value>comboBoxCCSource</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSource.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="comboBoxCCSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 256</value>
+  </data>
+  <data name="comboBoxCCSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxCCSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Name" xml:space="preserve">
+    <value>comboBoxCCSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCCSelector.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="comboBoxEncoderTrigger.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 231</value>
+  </data>
+  <data name="comboBoxEncoderTrigger.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxEncoderTrigger.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Name" xml:space="preserve">
+    <value>comboBoxEncoderTrigger</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderTrigger.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="comboBoxEncoderSourceB.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 205</value>
+  </data>
+  <data name="comboBoxEncoderSourceB.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxEncoderSourceB.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Name" xml:space="preserve">
+    <value>comboBoxEncoderSourceB</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceB.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="comboBoxEncoderSourceA.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 179</value>
+  </data>
+  <data name="comboBoxEncoderSourceA.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxEncoderSourceA.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Name" xml:space="preserve">
+    <value>comboBoxEncoderSourceA</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSourceA.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="comboBoxEncoderSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 153</value>
+  </data>
+  <data name="comboBoxEncoderSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxEncoderSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Name" xml:space="preserve">
+    <value>comboBoxEncoderSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxEncoderSelector.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="comboBoxLineInputPolarity.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 127</value>
+  </data>
+  <data name="comboBoxLineInputPolarity.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxLineInputPolarity.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Name" xml:space="preserve">
+    <value>comboBoxLineInputPolarity</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineInputPolarity.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="comboBoxLineMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 101</value>
+  </data>
+  <data name="comboBoxLineMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxLineMode.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Name" xml:space="preserve">
+    <value>comboBoxLineMode</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineMode.ZOrder" xml:space="preserve">
+    <value>19</value>
+  </data>
+  <data name="comboBoxLineSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 75</value>
+  </data>
+  <data name="comboBoxLineSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxLineSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Name" xml:space="preserve">
+    <value>comboBoxLineSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxLineSelector.ZOrder" xml:space="preserve">
+    <value>20</value>
+  </data>
+  <data name="comboBoxCameraType.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 20</value>
+  </data>
+  <data name="comboBoxCameraType.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxCameraType.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Name" xml:space="preserve">
+    <value>comboBoxCameraType</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.Parent" xml:space="preserve">
+    <value>groupBoxInterfaceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxCameraType.ZOrder" xml:space="preserve">
+    <value>21</value>
+  </data>
+  <data name="textBoxHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 47</value>
+  </data>
+  <data name="textBoxHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="textBoxHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Name" xml:space="preserve">
+    <value>textBoxHeight</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;textBoxHeight.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="labelTriggerActivation.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelTriggerActivation.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelTriggerActivation.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 181</value>
+  </data>
+  <data name="labelTriggerActivation.Size" type="System.Drawing.Size, System.Drawing">
+    <value>107, 12</value>
+  </data>
+  <data name="labelTriggerActivation.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelTriggerActivation.Text" xml:space="preserve">
+    <value>TriggerActivation</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerActivation.Name" xml:space="preserve">
+    <value>labelTriggerActivation</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerActivation.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerActivation.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerActivation.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="labelTriggerSource.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelTriggerSource.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 155</value>
+  </data>
+  <data name="labelTriggerSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="labelTriggerSource.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelTriggerSource.Text" xml:space="preserve">
+    <value>TriggerSource</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSource.Name" xml:space="preserve">
+    <value>labelTriggerSource</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSource.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSource.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="labelTriggerMode.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelTriggerMode.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 129</value>
+  </data>
+  <data name="labelTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="labelTriggerMode.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelTriggerMode.Text" xml:space="preserve">
+    <value>TriggerMode</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerMode.Name" xml:space="preserve">
+    <value>labelTriggerMode</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerMode.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerMode.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="labelScanMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 103</value>
+  </data>
+  <data name="labelScanMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>100, 23</value>
+  </data>
+  <data name="labelScanMode.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelScanMode.Text" xml:space="preserve">
+    <value>ScanMode</value>
+  </data>
+  <data name="&gt;&gt;labelScanMode.Name" xml:space="preserve">
+    <value>labelScanMode</value>
+  </data>
+  <data name="&gt;&gt;labelScanMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelScanMode.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelScanMode.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="labelTriggerSelector.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelTriggerSelector.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelTriggerSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 103</value>
+  </data>
+  <data name="labelTriggerSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 12</value>
+  </data>
+  <data name="labelTriggerSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelTriggerSelector.Text" xml:space="preserve">
+    <value>TriggerSelector</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSelector.Name" xml:space="preserve">
+    <value>labelTriggerSelector</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSelector.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelTriggerSelector.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="labelPixelFormat.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelPixelFormat.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelPixelFormat.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 77</value>
+  </data>
+  <data name="labelPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="labelPixelFormat.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelPixelFormat.Text" xml:space="preserve">
+    <value>PixelFormat</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Name" xml:space="preserve">
+    <value>labelPixelFormat</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelPixelFormat.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="labelHeight.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelHeight.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelHeight.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 50</value>
+  </data>
+  <data name="labelHeight.Size" type="System.Drawing.Size, System.Drawing">
+    <value>41, 12</value>
+  </data>
+  <data name="labelHeight.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelHeight.Text" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Name" xml:space="preserve">
+    <value>labelHeight</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelHeight.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="textBoxWidth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 20</value>
+  </data>
+  <data name="textBoxWidth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="textBoxWidth.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Name" xml:space="preserve">
+    <value>textBoxWidth</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;textBoxWidth.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="labelWidth.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelWidth.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelWidth.Location" type="System.Drawing.Point, System.Drawing">
+    <value>11, 23</value>
+  </data>
+  <data name="labelWidth.Size" type="System.Drawing.Size, System.Drawing">
+    <value>35, 12</value>
+  </data>
+  <data name="labelWidth.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="labelWidth.Text" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Name" xml:space="preserve">
+    <value>labelWidth</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;labelWidth.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="comboBoxTriggerActivation.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 178</value>
+  </data>
+  <data name="comboBoxTriggerActivation.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxTriggerActivation.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerActivation.Name" xml:space="preserve">
+    <value>comboBoxTriggerActivation</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerActivation.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerActivation.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerActivation.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="comboBoxTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 152</value>
+  </data>
+  <data name="comboBoxTriggerSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxTriggerSource.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSource.Name" xml:space="preserve">
+    <value>comboBoxTriggerSource</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSource.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSource.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="comboBoxTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 126</value>
+  </data>
+  <data name="comboBoxTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxTriggerMode.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerMode.Name" xml:space="preserve">
+    <value>comboBoxTriggerMode</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerMode.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerMode.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="comboBoxScanMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 100</value>
+  </data>
+  <data name="comboBoxScanMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxScanMode.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxScanMode.Name" xml:space="preserve">
+    <value>comboBoxScanMode</value>
+  </data>
+  <data name="&gt;&gt;comboBoxScanMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxScanMode.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxScanMode.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="comboBoxTriggerSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 100</value>
+  </data>
+  <data name="comboBoxTriggerSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxTriggerSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSelector.Name" xml:space="preserve">
+    <value>comboBoxTriggerSelector</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSelector.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxTriggerSelector.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="comboBoxPixelFormat.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 74</value>
+  </data>
+  <data name="comboBoxPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="comboBoxPixelFormat.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Name" xml:space="preserve">
+    <value>comboBoxPixelFormat</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.Parent" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;comboBoxPixelFormat.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="groupBoxDeviceParams.Location" type="System.Drawing.Point, System.Drawing">
+    <value>870, 348</value>
+  </data>
+  <data name="groupBoxDeviceParams.Size" type="System.Drawing.Size, System.Drawing">
+    <value>270, 241</value>
+  </data>
+  <data name="groupBoxDeviceParams.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="groupBoxDeviceParams.Text" xml:space="preserve">
+    <value>Device Params</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDeviceParams.Name" xml:space="preserve">
+    <value>groupBoxDeviceParams</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDeviceParams.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDeviceParams.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxDeviceParams.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>1152, 601</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>Machine Vision Camera SDK Basic Demo (C#)</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>Form1</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

@@ -1,0 +1,389 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#include ""res\\BasicDemoLineScan.rc2""  // 非 Microsoft Visual C++ 编辑的资源\r\n"
+    "#include ""l.CHS\\afxres.rc""      // 标准组件\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\BasicDemoLineScan.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于 BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "BasicDemoLineScan，1.0 版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_BasicDemoLineScan_DIALOG DIALOGEX 0, 0, 674, 405
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "BasicDemoLineScan 示例程序"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "设备",IDC_INIT_STATIC,386,75,131,53
+    PUSHBUTTON      "打开设备",IDC_OPEN_BUTTON,402,106,52,14
+    PUSHBUTTON      "关闭设备",IDC_CLOSE_BUTTON,462,106,49,14
+    GROUPBOX        "图像采集",IDC_IMAGE_GRABBING_STATIC,387,131,130,43
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,14,45,361,342
+    PUSHBUTTON      "开始采集",IDC_START_GRABBING_BUTTON,401,145,51,14
+    PUSHBUTTON      "停止采集",IDC_STOP_GRABBING_BUTTON,461,145,49,14
+    PUSHBUTTON      "软触发一次",IDC_SOFTWARE_ONCE_BUTTON,581,351,65,14
+    COMBOBOX        IDC_IF_COMBO,50,14,322,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DEVICE_COMBO,50,29,322,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "枚举Interface",IDC_ENUM_IF_BUTTON,414,30,89,14
+    CTEXT           "Interface:",IDC_STATIC,17,18,31,8
+    CTEXT           "Device:",IDC_STATIC,17,32,30,8
+    PUSHBUTTON      "枚举设备",IDC_ENUM_DEV_BUTTON,414,86,89,14
+    GROUPBOX        "采集卡",IDC_INIT_STATIC2,386,19,130,55
+    PUSHBUTTON      "打开采集卡",IDC_OPEN_IF_BUTTON,405,50,52,14
+    PUSHBUTTON      "关闭采集卡",IDC_CLOSE_IF_BUTTON,461,50,52,14
+    LTEXT           "相机类型",IDC_CAMERA_TYPE_STATIC,532,35,28,8,NOT WS_GROUP
+    LTEXT           "编码器选择器",IDC_ENCODER_SELECTOR_STATIC,532,111,42,8
+    LTEXT           "行高",IDC_IMAGE_HEIGHT_STATIC,532,51,15,8
+    LTEXT           "编码器源A",IDC_ENCODER_SOURCE_A_STATIC,532,127,33,8
+    COMBOBOX        IDC_CAMERA_TYPE_COMBO,582,34,65,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ENCODER_SELECTOR_COMBO,582,110,65,76,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ENCODER_SOURCE_A_COMBO,582,126,65,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_IMAGE_HEIGHT_EDIT,582,49,65,14,ES_AUTOHSCROLL
+    GROUPBOX        "采集卡参数",IDC_IF_PARAM_STATIC,522,23,133,185,WS_GROUP
+    LTEXT           "编码器源B",IDC_ENCODER_SOURCE_B_STATIC,532,145,32,8
+    COMBOBOX        IDC_ENCODER_SOURCE_B_COMBO,582,143,65,93,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "编码器触发模式",IDC_ENCODER_TRIGGER_MODE_STATIC,532,161,49,8
+    COMBOBOX        IDC_ENCODER_TRIGGER_MODE_COMBO,582,159,65,82,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "线路选择器",IDC_LINE_SELECTOR_STATIC,532,67,49,8
+    COMBOBOX        IDC_LINE_SELECTOR_COMBO,582,65,65,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "线路模式",IDC_LINE_MODE_STATIC,532,83,49,8
+    COMBOBOX        IDC_LINE_MODE_COMBO,582,81,65,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "线路输入极性",IDC_LINE_INPUT_POLARITY_STATIC,532,97,49,8
+    COMBOBOX        IDC_LINE_INPUT_POLARITY_COMBO,582,95,65,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "相机控制选择",IDC_CC_Selector_STATIC,532,177,42,8
+    COMBOBOX        IDC_CC_SELECTOR_COMBO,582,174,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "相机控制源",IDC_CC_SOURCE_STATIC,532,192,35,8
+    COMBOBOX        IDC_CC_SOURCE_COMBO,582,189,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "相机参数",IDC_CAMERA_PARAM_STATIC,522,221,133,153,WS_GROUP
+    LTEXT           "宽度",IDC_WIDTH_STATIC,531,234,15,8
+    EDITTEXT        IDC_WIDTH_EDIT,581,232,65,14,ES_AUTOHSCROLL
+    LTEXT           "高度",IDC_HEIGHT_STATIC,531,249,15,8
+    EDITTEXT        IDC_HEIGHT_EDIT,581,248,65,14,ES_AUTOHSCROLL
+    LTEXT           "像素格式",IDC_PIXELFORMAT_STATIC,531,264,28,8
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,581,265,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "扫描模式",IDC_SCAN_MODE_STATIC,531,278,28,8
+    COMBOBOX        IDC_SCAN_MODE_COMBO,581,279,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "触发选择器",IDC_TRIGGER_SELECTOR_STATIC,531,293,35,8
+    COMBOBOX        IDC_TRIGGER_SELECTOR_COMBO,581,293,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "触发源",IDC_TRIGGER_SOURCE_STATIC,531,323,22,8
+    COMBOBOX        IDC_TRIGGER_SOURCE_COMBO,581,320,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "触发模式",IDC_TRIGGER_MODE_STATIC,531,309,28,8
+    COMBOBOX        IDC_TRIGGER_MODE_COMB,581,307,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "触发极性",IDC_TRIGGER_ACTIVATION_STATIC,530,338,28,8
+    COMBOBOX        IDC_TRIGGER_ACTIVATION_COMBO,581,335,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080403a8"
+        BEGIN
+            VALUE "CompanyName", "TODO: <公司名>"
+            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "BasicDemoLineScan.exe"
+            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "OriginalFilename", "BasicDemoLineScan.exe"
+            VALUE "ProductName", "TODO: <产品名>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 936
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_BasicDemoLineScan_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 667
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 398
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "关于 BasicDemoLineScan(&A)..."
+END
+
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Neutral) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "BasicDemoLineScan,V1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2016",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_BasicDemoLineScan_DIALOG DIALOGEX 0, 0, 687, 406
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "BasicDemoLineScan"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Device",IDC_INIT_STATIC,386,75,131,53
+    PUSHBUTTON      "Open Device",IDC_OPEN_BUTTON,402,106,52,14
+    PUSHBUTTON      "Close Device",IDC_CLOSE_BUTTON,462,106,49,14
+    GROUPBOX        "Image Acquisition",IDC_IMAGE_GRABBING_STATIC,387,131,130,43
+    CONTROL         "",IDC_DISPLAY_STATIC,"Static",SS_BLACKFRAME,14,45,361,342
+    PUSHBUTTON      "Start",IDC_START_GRABBING_BUTTON,401,145,51,14
+    PUSHBUTTON      "Stop",IDC_STOP_GRABBING_BUTTON,461,145,49,14
+    PUSHBUTTON      "Trigger Once",IDC_SOFTWARE_ONCE_BUTTON,594,351,65,14
+    COMBOBOX        IDC_IF_COMBO,50,14,322,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_DEVICE_COMBO,50,29,322,77,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Enum Interface",IDC_ENUM_IF_BUTTON,414,30,89,14
+    CTEXT           "Interface:",IDC_STATIC,17,18,31,8
+    CTEXT           "Device:",IDC_STATIC,17,32,30,8
+    PUSHBUTTON      "Enum Device",IDC_ENUM_DEV_BUTTON,414,86,89,14
+    GROUPBOX        "Interface",IDC_INIT_STATIC2,386,19,130,55
+    PUSHBUTTON      "Open Interface",IDC_OPEN_IF_BUTTON,405,50,52,14
+    PUSHBUTTON      "Close Interface",IDC_CLOSE_IF_BUTTON,461,50,52,14
+    LTEXT           "Camera Type",IDC_CAMERA_TYPE_STATIC,532,35,58,8,NOT WS_GROUP
+    LTEXT           "Encoder Selector",IDC_ENCODER_SELECTOR_STATIC,532,111,58,8
+    LTEXT           "Image Height",IDC_IMAGE_HEIGHT_STATIC,532,51,58,8
+    LTEXT           "Encoder SourceA",IDC_ENCODER_SOURCE_A_STATIC,532,127,58,8
+    COMBOBOX        IDC_CAMERA_TYPE_COMBO,594,34,65,55,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ENCODER_SELECTOR_COMBO,594,110,65,76,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ENCODER_SOURCE_A_COMBO,594,126,65,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_IMAGE_HEIGHT_EDIT,594,49,65,14,ES_AUTOHSCROLL
+    GROUPBOX        "Interface Params",IDC_IF_PARAM_STATIC,522,23,148,185,WS_GROUP
+    LTEXT           "Encoder SourceB",IDC_ENCODER_SOURCE_B_STATIC,532,145,58,8
+    COMBOBOX        IDC_ENCODER_SOURCE_B_COMBO,594,143,65,93,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Encoder Trigger Mode",IDC_ENCODER_TRIGGER_MODE_STATIC,532,161,58,8
+    COMBOBOX        IDC_ENCODER_TRIGGER_MODE_COMBO,594,159,65,82,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Line Selector",IDC_LINE_SELECTOR_STATIC,532,67,58,8
+    COMBOBOX        IDC_LINE_SELECTOR_COMBO,594,65,65,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Line Mode",IDC_LINE_MODE_STATIC,532,83,58,8
+    COMBOBOX        IDC_LINE_MODE_COMBO,594,81,65,60,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Line Input Polarity",IDC_LINE_INPUT_POLARITY_STATIC,532,97,58,8
+    COMBOBOX        IDC_LINE_INPUT_POLARITY_COMBO,594,95,65,62,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "CC Selector",IDC_CC_Selector_STATIC,532,177,58,8
+    COMBOBOX        IDC_CC_SELECTOR_COMBO,594,174,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "CC Source",IDC_CC_SOURCE_STATIC,532,192,58,8
+    COMBOBOX        IDC_CC_SOURCE_COMBO,594,189,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Camera Params",IDC_CAMERA_PARAM_STATIC,522,221,148,158,WS_GROUP
+    LTEXT           "Width",IDC_WIDTH_STATIC,531,234,60,8
+    EDITTEXT        IDC_WIDTH_EDIT,594,232,65,14,ES_AUTOHSCROLL
+    LTEXT           "Height",IDC_HEIGHT_STATIC,531,249,60,8
+    EDITTEXT        IDC_HEIGHT_EDIT,594,248,65,14,ES_AUTOHSCROLL
+    LTEXT           "PixelFormat",IDC_PIXELFORMAT_STATIC,531,264,60,8
+    COMBOBOX        IDC_PIXELFORMAT_COMBO,594,265,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "ScanMode",IDC_SCAN_MODE_STATIC,531,278,60,8
+    COMBOBOX        IDC_SCAN_MODE_COMBO,594,280,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Trigger Selector",IDC_TRIGGER_SELECTOR_STATIC,531,293,60,8
+    COMBOBOX        IDC_TRIGGER_SELECTOR_COMBO,594,294,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Trigger Source",IDC_TRIGGER_SOURCE_STATIC,531,323,60,8
+    COMBOBOX        IDC_TRIGGER_SOURCE_COMBO,594,321,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Trigger Mode",IDC_TRIGGER_MODE_STATIC,531,309,60,8
+    COMBOBOX        IDC_TRIGGER_MODE_COMB,594,308,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Trigger Activation",IDC_TRIGGER_ACTIVATION_STATIC,530,338,60,8
+    COMBOBOX        IDC_TRIGGER_ACTIVATION_COMBO,594,336,65,61,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_BasicDemoLineScan_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 678
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 405
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "About BasicDemoLineScan(&A)..."
+END
+
+#endif    // English (Neutral) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+#include "res\BasicDemoLineScan.rc2"  // 非 Microsoft Visual C++ 编辑的资源
+#include "l.CHS\afxres.rc"      // 标准组件
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

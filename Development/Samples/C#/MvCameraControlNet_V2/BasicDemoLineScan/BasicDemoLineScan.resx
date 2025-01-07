@@ -1,0 +1,1151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="&gt;&gt;btnSaveBmp.Name" xml:space="preserve">
+    <value>btnSaveBmp</value>
+  </data>
+  <data name="&gt;&gt;label4.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="&gt;&gt;label6.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="label7.Text" xml:space="preserve">
+    <value>Digital Shift</value>
+  </data>
+  <data name="&gt;&gt;label5.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="cmbDeviceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>645, 20</value>
+  </data>
+  <data name="btnStartGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 20</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="cmbTriggerMode.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="label4.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="tbDigitalShift.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnSaveTiff.Parent" xml:space="preserve">
+    <value>groupBox3</value>
+  </data>
+  <data name="groupBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="label10.TabIndex" type="System.Int32, mscorlib">
+    <value>21</value>
+  </data>
+  <data name="&gt;&gt;btnEnum.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;tbExposure.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;btnSaveJpg.Parent" xml:space="preserve">
+    <value>groupBox3</value>
+  </data>
+  <data name="&gt;&gt;label8.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="tbExposure.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;label4.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnTriggerExec.Size" type="System.Drawing.Size, System.Drawing">
+    <value>186, 23</value>
+  </data>
+  <data name="&gt;&gt;labTriggerOpt.Name" xml:space="preserve">
+    <value>labTriggerOpt</value>
+  </data>
+  <data name="btnSaveTiff.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnSaveTiff.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="tbAcqLineRate.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="chkLineRateEnable.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;tbAcqLineRate.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="groupBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>258, 83</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSwith.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;cmbPixelFormat.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label10.Size" type="System.Drawing.Size, System.Drawing">
+    <value>119, 12</value>
+  </data>
+  <data name="&gt;&gt;groupBox3.Name" xml:space="preserve">
+    <value>groupBox3</value>
+  </data>
+  <data name="btnSavePng.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="tbDigitalShift.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="&gt;&gt;label4.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="btnSaveBmp.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 30</value>
+  </data>
+  <data name="&gt;&gt;tbExposure.Name" xml:space="preserve">
+    <value>tbExposure</value>
+  </data>
+  <data name="label6.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 82</value>
+  </data>
+  <data name="btnClose.Text" xml:space="preserve">
+    <value>Close Device</value>
+  </data>
+  <data name="&gt;&gt;label10.Name" xml:space="preserve">
+    <value>label10</value>
+  </data>
+  <data name="cmbTriggerSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="groupBox3.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;label5.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;cmbHBMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labTriggerSwith.Text" xml:space="preserve">
+    <value>TriggerMode</value>
+  </data>
+  <data name="cmbPreampGain.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 107</value>
+  </data>
+  <data name="cmbHBMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 53</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>BasicDemoLineScan</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbPreampGain.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnSaveJpg.Size" type="System.Drawing.Size, System.Drawing">
+    <value>92, 23</value>
+  </data>
+  <data name="groupBox2.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;tbResLineRate.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="labTriggerSwith.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSource.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="btnSaveTiff.Text" xml:space="preserve">
+    <value>Save as TIFF</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnTriggerExec.Text" xml:space="preserve">
+    <value>Software Trigger Once</value>
+  </data>
+  <data name="chkLineRateEnable.TabIndex" type="System.Int32, mscorlib">
+    <value>24</value>
+  </data>
+  <data name="btnSaveTiff.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 68</value>
+  </data>
+  <data name="groupBox3.Size" type="System.Drawing.Size, System.Drawing">
+    <value>258, 100</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="chkLineRateEnable.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 186</value>
+  </data>
+  <data name="&gt;&gt;cmbPreampGain.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;groupBox3.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;btnEnum.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;chkLineRateEnable.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="tbResLineRate.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnSaveJpg.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;groupBox2.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;label7.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;btnSaveJpg.Name" xml:space="preserve">
+    <value>btnSaveJpg</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSwith.Name" xml:space="preserve">
+    <value>labTriggerSwith</value>
+  </data>
+  <data name="cmbPixelFormat.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 27</value>
+  </data>
+  <data name="&gt;&gt;label10.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>264, 271</value>
+  </data>
+  <data name="btnGetParam.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 242</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="btnSavePng.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnClose.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbHBMode.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="cmbTriggerSelector.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnSavePng.Size" type="System.Drawing.Size, System.Drawing">
+    <value>92, 23</value>
+  </data>
+  <data name="tbDigitalShift.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="btnSetParam.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 242</value>
+  </data>
+  <data name="cmbPixelFormat.Size" type="System.Drawing.Size, System.Drawing">
+    <value>122, 20</value>
+  </data>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
+    <value>6, 12</value>
+  </data>
+  <data name="btnSetParam.TabIndex" type="System.Int32, mscorlib">
+    <value>18</value>
+  </data>
+  <data name="label9.TabIndex" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="btnOpen.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 50</value>
+  </data>
+  <data name="&gt;&gt;btnSaveBmp.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="labTriggerSwith.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSwith.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;labTriggerOpt.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cmbHBMode.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="btnClose.Location" type="System.Drawing.Point, System.Drawing">
+    <value>128, 50</value>
+  </data>
+  <data name="&gt;&gt;btnSetParam.Name" xml:space="preserve">
+    <value>btnSetParam</value>
+  </data>
+  <data name="btnSaveBmp.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;chkLineRateEnable.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSource.Name" xml:space="preserve">
+    <value>cmbTriggerSource</value>
+  </data>
+  <data name="btnStopGrab.Location" type="System.Drawing.Point, System.Drawing">
+    <value>128, 20</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSource.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="label4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSelector.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Name" xml:space="preserve">
+    <value>btnStartGrab</value>
+  </data>
+  <data name="btnSavePng.Location" type="System.Drawing.Point, System.Drawing">
+    <value>137, 68</value>
+  </data>
+  <data name="labTriggerSource.Text" xml:space="preserve">
+    <value>TriggerSource</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label9.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 162</value>
+  </data>
+  <data name="pictureBox1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>645, 585</value>
+  </data>
+  <data name="labTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 104</value>
+  </data>
+  <data name="&gt;&gt;btnSavePng.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnEnum.Size" type="System.Drawing.Size, System.Drawing">
+    <value>240, 23</value>
+  </data>
+  <data name="btnSavePng.Text" xml:space="preserve">
+    <value>Save as PNG</value>
+  </data>
+  <data name="chkLineRateEnable.Size" type="System.Drawing.Size, System.Drawing">
+    <value>192, 16</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Name" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="btnStopGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>120, 23</value>
+  </data>
+  <data name="cmbTriggerMode.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;labTriggerOpt.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="&gt;&gt;btnSavePng.Parent" xml:space="preserve">
+    <value>groupBox3</value>
+  </data>
+  <data name="&gt;&gt;mVCCENUMVALUEBindingSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.BindingSource, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="labTriggerSwith.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="btnSaveBmp.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="label4.Text" xml:space="preserve">
+    <value>PixelFormat</value>
+  </data>
+  <data name="label8.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="tbDigitalShift.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 132</value>
+  </data>
+  <data name="label8.Size" type="System.Drawing.Size, System.Drawing">
+    <value>71, 12</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBox1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnSetParam.Size" type="System.Drawing.Size, System.Drawing">
+    <value>120, 23</value>
+  </data>
+  <data name="&gt;&gt;btnSaveTiff.Name" xml:space="preserve">
+    <value>btnSaveTiff</value>
+  </data>
+  <data name="labTriggerSwith.Location" type="System.Drawing.Point, System.Drawing">
+    <value>17, 78</value>
+  </data>
+  <data name="cmbDeviceList.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;label8.Name" xml:space="preserve">
+    <value>label8</value>
+  </data>
+  <data name="btnSaveJpg.Location" type="System.Drawing.Point, System.Drawing">
+    <value>137, 30</value>
+  </data>
+  <data name="btnSetParam.Text" xml:space="preserve">
+    <value>Set Parameter</value>
+  </data>
+  <data name="label10.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;label9.Name" xml:space="preserve">
+    <value>label9</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSelector.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;btnOpen.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnEnum.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;chkLineRateEnable.Name" xml:space="preserve">
+    <value>chkLineRateEnable</value>
+  </data>
+  <data name="cmbTriggerSource.Location" type="System.Drawing.Point, System.Drawing">
+    <value>127, 101</value>
+  </data>
+  <data name="&gt;&gt;groupBox3.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSelector.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="label7.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;label7.Name" xml:space="preserve">
+    <value>label7</value>
+  </data>
+  <data name="&gt;&gt;tbDigitalShift.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label10.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="label4.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnClose.Name" xml:space="preserve">
+    <value>btnClose</value>
+  </data>
+  <data name="&gt;&gt;tbDigitalShift.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="cmbTriggerSelector.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="label6.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="&gt;&gt;tbAcqLineRate.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="labTriggerOpt.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 52</value>
+  </data>
+  <data name="&gt;&gt;label6.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;cmbPreampGain.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="groupBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>669, 12</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerMode.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;cmbPixelFormat.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="label7.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnSavePng.Name" xml:space="preserve">
+    <value>btnSavePng</value>
+  </data>
+  <data name="labTriggerSource.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="&gt;&gt;tbAcqLineRate.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cmbPreampGain.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;tbResLineRate.Name" xml:space="preserve">
+    <value>tbResLineRate</value>
+  </data>
+  <data name="btnClose.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;tbDigitalShift.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;tbDigitalShift.Name" xml:space="preserve">
+    <value>tbDigitalShift</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSource.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="btnGetParam.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 23</value>
+  </data>
+  <data name="&gt;&gt;cmbPreampGain.Name" xml:space="preserve">
+    <value>cmbPreampGain</value>
+  </data>
+  <data name="&gt;&gt;label10.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBox2.Location" type="System.Drawing.Point, System.Drawing">
+    <value>669, 101</value>
+  </data>
+  <data name="&gt;&gt;btnSetParam.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;tbAcqLineRate.Name" xml:space="preserve">
+    <value>tbAcqLineRate</value>
+  </data>
+  <data name="labTriggerOpt.Text" xml:space="preserve">
+    <value>TriggerSelector</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.Name" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="cmbTriggerSelector.Location" type="System.Drawing.Point, System.Drawing">
+    <value>127, 49</value>
+  </data>
+  <data name="btnEnum.Text" xml:space="preserve">
+    <value>Search Device</value>
+  </data>
+  <data name="btnSaveTiff.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 23</value>
+  </data>
+  <data name="label8.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 110</value>
+  </data>
+  <data name="cmbTriggerSelector.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox4.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;groupBox2.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="groupBox3.Location" type="System.Drawing.Point, System.Drawing">
+    <value>669, 270</value>
+  </data>
+  <data name="&gt;&gt;btnSaveBmp.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnGetParam.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="label6.Text" xml:space="preserve">
+    <value>Exposure Time</value>
+  </data>
+  <data name="&gt;&gt;btnGetParam.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="btnStartGrab.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 23</value>
+  </data>
+  <data name="&gt;&gt;btnOpen.Name" xml:space="preserve">
+    <value>btnOpen</value>
+  </data>
+  <data name="labTriggerOpt.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 12</value>
+  </data>
+  <data name="label8.Text" xml:space="preserve">
+    <value>Preamp Gain</value>
+  </data>
+  <data name="labTriggerSource.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cmbPreampGain.TabIndex" type="System.Int32, mscorlib">
+    <value>23</value>
+  </data>
+  <data name="btnSaveJpg.Text" xml:space="preserve">
+    <value>Save as JPG</value>
+  </data>
+  <data name="&gt;&gt;groupBox3.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;btnOpen.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;groupBox2.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="btnSetParam.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnSetParam.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="label8.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="&gt;&gt;pictureBox1.Name" xml:space="preserve">
+    <value>pictureBox1</value>
+  </data>
+  <data name="label5.Size" type="System.Drawing.Size, System.Drawing">
+    <value>125, 12</value>
+  </data>
+  <data name="btnOpen.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.Name" xml:space="preserve">
+    <value>btnStopGrab</value>
+  </data>
+  <data name="label9.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cmbTriggerSource.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="labTriggerOpt.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cmbTriggerMode.Location" type="System.Drawing.Point, System.Drawing">
+    <value>128, 75</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSelector.Name" xml:space="preserve">
+    <value>cmbTriggerSelector</value>
+  </data>
+  <data name="&gt;&gt;btnGetParam.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="btnGetParam.TabIndex" type="System.Int32, mscorlib">
+    <value>19</value>
+  </data>
+  <data name="&gt;&gt;label4.Name" xml:space="preserve">
+    <value>label4</value>
+  </data>
+  <data name="&gt;&gt;mVCCENUMVALUEBindingSource.Name" xml:space="preserve">
+    <value>mVCCENUMVALUEBindingSource</value>
+  </data>
+  <data name="&gt;&gt;btnClose.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="btnGetParam.Text" xml:space="preserve">
+    <value>Get Parameter</value>
+  </data>
+  <data name="tbExposure.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnSavePng.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="tbResLineRate.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="cmbHBMode.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="btnStartGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="label5.Text" xml:space="preserve">
+    <value>ImageCompressionMode</value>
+  </data>
+  <data name="&gt;&gt;btnSaveJpg.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>Form1</value>
+  </data>
+  <data name="btnEnum.Location" type="System.Drawing.Point, System.Drawing">
+    <value>8, 21</value>
+  </data>
+  <data name="groupBox1.Text" xml:space="preserve">
+    <value>Initialization</value>
+  </data>
+  <data name="cmbTriggerMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>120, 20</value>
+  </data>
+  <data name="btnStopGrab.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="label5.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;btnSaveJpg.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="btnSaveBmp.Text" xml:space="preserve">
+    <value>Save as BMP</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="label5.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;label9.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnGetParam.Name" xml:space="preserve">
+    <value>btnGetParam</value>
+  </data>
+  <data name="label7.Size" type="System.Drawing.Size, System.Drawing">
+    <value>83, 12</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSource.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="groupBox2.Text" xml:space="preserve">
+    <value>Image Acquisition</value>
+  </data>
+  <data name="&gt;&gt;btnGetParam.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="label6.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="cmbDeviceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 21</value>
+  </data>
+  <data name="chkLineRateEnable.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;cmbPixelFormat.Name" xml:space="preserve">
+    <value>cmbPixelFormat</value>
+  </data>
+  <data name="btnTriggerExec.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="&gt;&gt;btnSetParam.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="pictureBox1.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;btnClose.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="btnOpen.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 23</value>
+  </data>
+  <data name="btnStartGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;btnSaveBmp.Parent" xml:space="preserve">
+    <value>groupBox3</value>
+  </data>
+  <data name="&gt;&gt;btnStartGrab.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="btnClose.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;label7.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="groupBox3.Text" xml:space="preserve">
+    <value>Picture Storage</value>
+  </data>
+  <data name="cmbPreampGain.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="&gt;&gt;groupBox2.Name" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;label5.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labTriggerOpt.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="groupBox4.Text" xml:space="preserve">
+    <value>Parameters</value>
+  </data>
+  <data name="groupBox2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>258, 163</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Parent" xml:space="preserve">
+    <value>groupBox2</value>
+  </data>
+  <data name="&gt;&gt;label8.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;btnEnum.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="&gt;&gt;label9.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;btnStopGrab.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="tbAcqLineRate.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="btnStartGrab.Text" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="label10.Text" xml:space="preserve">
+    <value>Resulting Line Rate</value>
+  </data>
+  <data name="label9.Size" type="System.Drawing.Size, System.Drawing">
+    <value>125, 12</value>
+  </data>
+  <data name="&gt;&gt;tbExposure.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cmbTriggerSource.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="label5.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 56</value>
+  </data>
+  <data name="&gt;&gt;tbResLineRate.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;btnTriggerExec.Name" xml:space="preserve">
+    <value>btnTriggerExec</value>
+  </data>
+  <data name="labTriggerOpt.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;cmbPixelFormat.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="&gt;&gt;cmbHBMode.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="btnStopGrab.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;chkLineRateEnable.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="cmbPixelFormat.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="label10.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 214</value>
+  </data>
+  <data name="btnSaveBmp.Size" type="System.Drawing.Size, System.Drawing">
+    <value>95, 23</value>
+  </data>
+  <data name="tbExposure.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 79</value>
+  </data>
+  <data name="btnOpen.Text" xml:space="preserve">
+    <value>Open Device</value>
+  </data>
+  <data name="btnTriggerExec.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSource.Name" xml:space="preserve">
+    <value>labTriggerSource</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
+    <value>939, 674</value>
+  </data>
+  <data name="&gt;&gt;label7.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="label9.Text" xml:space="preserve">
+    <value>AcquisitionLine Rate</value>
+  </data>
+  <data name="pictureBox1.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 62</value>
+  </data>
+  <data name="&gt;&gt;btnOpen.Parent" xml:space="preserve">
+    <value>groupBox1</value>
+  </data>
+  <data name="groupBox4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>663, 376</value>
+  </data>
+  <data name="&gt;&gt;tbResLineRate.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="tbAcqLineRate.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;label6.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label5.Name" xml:space="preserve">
+    <value>label5</value>
+  </data>
+  <data name="chkLineRateEnable.Text" xml:space="preserve">
+    <value>Acquisition Line Rate Enable</value>
+  </data>
+  <data name="&gt;&gt;btnSaveTiff.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBox4.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;label8.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerMode.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;cmbDeviceList.Name" xml:space="preserve">
+    <value>cmbDeviceList</value>
+  </data>
+  <data name="cmbHBMode.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 20</value>
+  </data>
+  <data name="btnSaveJpg.Enabled" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="&gt;&gt;label9.Parent" xml:space="preserve">
+    <value>groupBox4</value>
+  </data>
+  <data name="&gt;&gt;cmbHBMode.Name" xml:space="preserve">
+    <value>cmbHBMode</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerSource.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnEnum.Name" xml:space="preserve">
+    <value>btnEnum</value>
+  </data>
+  <data name="label4.Location" type="System.Drawing.Point, System.Drawing">
+    <value>4, 30</value>
+  </data>
+  <data name="tbAcqLineRate.Location" type="System.Drawing.Point, System.Drawing">
+    <value>133, 159</value>
+  </data>
+  <data name="btnSaveTiff.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="btnClose.Size" type="System.Drawing.Size, System.Drawing">
+    <value>120, 23</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerMode.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;tbExposure.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="tbResLineRate.Location" type="System.Drawing.Point, System.Drawing">
+    <value>134, 211</value>
+  </data>
+  <data name="tbExposure.Size" type="System.Drawing.Size, System.Drawing">
+    <value>121, 21</value>
+  </data>
+  <data name="btnTriggerExec.Location" type="System.Drawing.Point, System.Drawing">
+    <value>23, 131</value>
+  </data>
+  <data name="label7.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 136</value>
+  </data>
+  <data name="labTriggerSource.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="cmbPixelFormat.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;labTriggerSwith.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;label6.Name" xml:space="preserve">
+    <value>label6</value>
+  </data>
+  <data name="btnStopGrab.Text" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="label6.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="tbResLineRate.TabIndex" type="System.Int32, mscorlib">
+    <value>22</value>
+  </data>
+  <data name="&gt;&gt;cmbTriggerMode.Name" xml:space="preserve">
+    <value>cmbTriggerMode</value>
+  </data>
+  <metadata name="mVCCENUMVALUEBindingSource.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="$this.Language" type="System.Globalization.CultureInfo, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>zh-CHS</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>25</value>
+  </metadata>
+</root>
