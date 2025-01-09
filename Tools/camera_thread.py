@@ -2,6 +2,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import numpy as np
 import time
 from Tools.camera_controller import HikiCamera
+import cv2
 
 class CameraThread(QThread):
     """相机线程类"""    
@@ -15,6 +16,7 @@ class CameraThread(QThread):
         self.exposure_time = exposure_time
         self.image_format = image_format
         self.running = False
+        self.current_frame = None  # 添加当前帧属性
 
     def run(self):
         try:
@@ -37,6 +39,14 @@ class CameraThread(QThread):
             while self.running:
                 frame = self.camera.get_frame()
                 if frame is not None:
+                    # 统一转换为BGR格式
+                    if len(frame.shape) == 2:  # 如果是灰度图
+                        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+                    elif frame.shape[2] == 3 and self.image_format == "RGB":  # 如果是RGB格式
+                        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    
+                    print(f"相机 {self.camera_sn} 获取到新帧，格式: {frame.shape}")  # 调试信息
+                    self.current_frame = frame
                     self.frame_ready.emit(frame)
                 time.sleep(0.001)  # 避免CPU占用过高
 
