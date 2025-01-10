@@ -2,6 +2,8 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sys
 import os
+import numpy as np
+import cv2
 
 # 添加项目根目录到系统路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +53,9 @@ class MainApp(QMainWindow, Ui_MainWindow):
         
         # 连接信号槽
         self._connect_signals()
+
+        # 添加标志位
+        self.is_undoing = False
 
     def _init_ui(self):
         """初始化UI控件"""
@@ -121,6 +126,25 @@ class MainApp(QMainWindow, Ui_MainWindow):
         # 添加平行线按钮信号连接
         self.btnDrawParallel.clicked.connect(self.start_drawing_mode)
         self.btnDrawParallel_Ver.clicked.connect(self.start_drawing_mode)
+
+        # 先断开所有旧的连接（安全的方式）
+        for btn in [self.btnCan1StepDraw, self.btnCan1StepDraw_Ver, 
+                    self.btnCan1StepDraw_Left, self.btnCan1StepDraw_Front]:
+            try:
+                btn.clicked.disconnect()
+            except TypeError:
+                # 如果没有连接，会抛出 TypeError，我们可以安全地忽略它
+                pass
+        
+        # 使用普通的 clicked 信号
+        print("连接撤销按钮信号")
+        self.btnCan1StepDraw.clicked.connect(self.undo_last_drawing)
+        self.btnCan1StepDraw_Ver.clicked.connect(self.undo_last_drawing)
+        self.btnCan1StepDraw_Left.clicked.connect(self.undo_last_drawing)
+        self.btnCan1StepDraw_Front.clicked.connect(self.undo_last_drawing)
+
+        self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement)
+        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement)
 
     def start_drawing_mode(self):
         """启动绘画模式"""
@@ -422,36 +446,22 @@ class MainApp(QMainWindow, Ui_MainWindow):
 
     def label_mouseDoubleClickEvent(self, event, label):
         """处理标签的双击事件"""
-        if self.active_measurement is None:  # 只在没有激活测量功能时处理双击
-            print(f"双击标签: {label.objectName()}")  # 添加调试打印
+        if event.button() == Qt.LeftButton:
+            # 获取当前标签页索引
+            current_tab = self.tabWidget.currentIndex()
             
-            # 断开主界面相机的信号连接
-            if self.ver_camera_thread:
-                self.ver_camera_thread.frame_ready.disconnect(self.update_ver_camera_view)
-            if self.left_camera_thread:
-                self.left_camera_thread.frame_ready.disconnect(self.update_left_camera_view)
-            if self.front_camera_thread:
-                self.front_camera_thread.frame_ready.disconnect(self.update_front_camera_view)
+            # 根据当前视图设置目标标签页
+            if label == self.lbVerticalView:
+                self.tabWidget.setCurrentIndex(1)
+            elif label == self.lbLeftView:
+                self.tabWidget.setCurrentIndex(2)
+            elif label == self.lbFrontView:
+                self.tabWidget.setCurrentIndex(3)
+            elif label in [self.lbVerticalView_2, self.lbleftView_2, self.lbFrontView_2]:
+                self.tabWidget.setCurrentIndex(0)
             
-            # 根据标签的objectName判断
-            if label.objectName() == "lbVerticalView":
-                print("切换到垂直视图选项卡")  # 添加调试打印
-                self.tabWidget.setCurrentIndex(1)  # 切换到垂直视图选项卡
-                # 重新连接垂直相机的信号
-                if self.ver_camera_thread:
-                    self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
-            elif label.objectName() == "lbLeftView":
-                print("切换到左视图选项卡")  # 添加调试打印
-                self.tabWidget.setCurrentIndex(2)  # 切换到左视图选项卡
-                # 重新连接左侧相机的信号
-                if self.left_camera_thread:
-                    self.left_camera_thread.frame_ready.connect(self.update_left_camera_view)
-            elif label.objectName() == "lbFrontView":
-                print("切换到对向视图选项卡")  # 添加调试打印
-                self.tabWidget.setCurrentIndex(3)  # 切换到对向视图选项卡
-                # 重新连接前视相机的信号
-                if self.front_camera_thread:
-                    self.front_camera_thread.frame_ready.connect(self.update_front_camera_view)
+            # 记录最后操作的视图
+            self.last_active_view = label
 
     def start_single_camera(self, camera_type):
         """启动单个相机"""
@@ -503,6 +513,80 @@ class MainApp(QMainWindow, Ui_MainWindow):
             error_msg = f"启动相机失败: {str(e)}"
             self.log_manager.log_error(error_msg)
             self.show_error(error_msg)
+
+    def undo_last_drawing(self):
+        """撤销上一步绘画"""
+        # 防止重复触发
+        if self.is_undoing:
+            print("正在撤销中，忽略重复触发")
+            return
+        
+        self.is_undoing = True
+        try:
+            print("\n=== 开始撤销操作 ===")
+            print(f"当前标签页索引: {self.tabWidget.currentIndex()}")
+            
+            # 获取当前活动的视图
+            current_tab = self.tabWidget.currentIndex()
+            current_view = None
+            
+            if current_tab == 0:  # 主界面
+                if hasattr(self, 'last_active_view'):
+                    current_view = self.last_active_view
+                    print(f"主界面，最后活动视图: {current_view.objectName()}")
+            else:
+                # 选项卡视图
+                view_map = {
+                    1: self.lbVerticalView_2,
+                    2: self.lbleftView_2,
+                    3: self.lbFrontView_2
+                }
+                current_view = view_map.get(current_tab)
+                if current_view:
+                    print(f"选项卡视图: {current_view.objectName()}")
+            
+            if current_view:
+                measurement = self.drawing_manager.get_measurement_manager(current_view)
+                if measurement:
+                    # 获取当前帧
+                    current_frame = self.get_current_frame_for_view(current_view)
+                    if current_frame is not None:
+                        # 执行撤销操作
+                        if measurement.undo_last_drawing():
+                            # 重新创建显示帧
+                            display_frame = measurement.create_display_frame(current_frame)
+                            if display_frame is not None:
+                                self.update_view(current_view, display_frame)
+            print("=== 撤销操作结束 ===\n")
+        finally:
+            self.is_undoing = False
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.LeftButton and self.active_view and self.active_measurement:
+            pos = event.pos()
+            view_pos = self.active_view.mapFrom(self, pos)
+            image_pos = self.convert_mouse_to_image_coords(view_pos, self.active_view)
+            
+            current_frame = self.get_current_frame_for_view(self.active_view)
+            if current_frame is not None:
+                # 处理鼠标释放事件
+                display_frame = self.active_measurement.handle_mouse_release(image_pos, current_frame)
+                if display_frame is not None:
+                    self.update_view(self.active_view, display_frame)
+                    # 记录最后操作的视图
+                    self.last_active_view = self.active_view
+            
+            self.active_view = None
+            self.active_measurement = None
+
+    def start_circle_line_measurement(self):
+        """启动圆线距离测量模式"""
+        self.drawing_manager.start_circle_line_measurement()
+
+    def start_two_lines_measurement(self):
+        """启动线与线测量模式"""
+        self.drawing_manager.start_two_lines_measurement()
 
 def main():
     app = QApplication(sys.argv)

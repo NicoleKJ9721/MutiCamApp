@@ -45,7 +45,7 @@ class CameraThread(QThread):
                     elif frame.shape[2] == 3 and self.image_format == "RGB":  # 如果是RGB格式
                         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                     
-                    print(f"相机 {self.camera_sn} 获取到新帧，格式: {frame.shape}")  # 调试信息
+                    # print(f"相机 {self.camera_sn} 获取到新帧，格式: {frame.shape}")  # 调试信息
                     self.current_frame = frame
                     self.frame_ready.emit(frame)
                 time.sleep(0.001)  # 避免CPU占用过高

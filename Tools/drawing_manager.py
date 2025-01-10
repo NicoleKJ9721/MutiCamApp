@@ -55,18 +55,24 @@ class DrawingManager(QObject):
                 
     def handle_mouse_press(self, event, label):
         """处理鼠标按下事件"""
-        if event.button() == Qt.LeftButton:
-            self.active_view = label
-            self.active_measurement = self.measurement_managers.get(label)
-            if self.active_measurement:
-                current_frame = self.parent().get_current_frame_for_view(label)
-                if current_frame is not None:
-                    image_pos = self.convert_mouse_to_image_coords(event.pos(), label, current_frame)
-                    self.active_measurement.handle_mouse_press(image_pos, current_frame)
-                    # 立即更新显示
-                    display_frame = self.active_measurement.create_display_frame(current_frame)
-                    if display_frame is not None:
-                        self.parent().update_view(label, display_frame)
+        if label not in self.measurement_managers:
+            return
+            
+        self.active_view = label
+        self.active_measurement = self.measurement_managers[label]
+        
+        # 获取当前帧
+        current_frame = self.parent().get_current_frame_for_view(label)
+        if current_frame is None:
+            return
+            
+        # 转换鼠标坐标
+        image_pos = self.convert_mouse_to_image_coords(event.pos(), label, current_frame)
+        
+        # 处理鼠标事件
+        display_frame = self.active_measurement.handle_mouse_press(image_pos, current_frame)
+        if display_frame is not None:
+            self.parent().update_view(label, display_frame)
                     
     def handle_mouse_move(self, event, label):
         """处理鼠标移动事件"""
@@ -87,6 +93,8 @@ class DrawingManager(QObject):
                 display_frame = self.active_measurement.handle_mouse_release(image_pos, current_frame)
                 if display_frame is not None:
                     self.parent().update_view(label, display_frame)
+                    # 记录最后操作的视图
+                    self.parent().last_active_view = label
             
             self.active_view = None
             self.active_measurement = None
@@ -115,3 +123,23 @@ class DrawingManager(QObject):
     def get_measurement_manager(self, label):
         """获取视图对应的测量管理器"""
         return self.measurement_managers.get(label) 
+        
+    def start_parallel_measurement(self):
+        """启动平行线测量模式"""
+        for label, manager in self.measurement_managers.items():
+            manager.start_parallel_measurement()
+            label.setCursor(Qt.CrossCursor) 
+        
+    def start_circle_line_measurement(self):
+        """启动圆线距离测量模式"""
+        print("启动圆线距离测量")
+        for label, manager in self.measurement_managers.items():
+            manager.start_circle_line_measurement()
+            label.setCursor(Qt.CrossCursor) 
+        
+    def start_two_lines_measurement(self):
+        """启动线与线测量模式"""
+        print("启动线与线测量")
+        for label, manager in self.measurement_managers.items():
+            manager.start_two_lines_measurement()
+            label.setCursor(Qt.CrossCursor) 
