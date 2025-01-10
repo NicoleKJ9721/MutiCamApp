@@ -25,6 +25,7 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.current_frame = None  # 添加这行，用于保存当前帧
         
         # 初始化日志管理器
         self.log_manager = LogManager()
@@ -146,6 +147,33 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement)
         self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement)
 
+        # 主界面和垂直选项卡的线与线测量按钮
+        self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement)
+        self.btnDraw2Line_Ver.clicked.connect(self.start_two_lines_measurement)
+
+        # 主界面和垂直选项卡的线与圆测量按钮
+        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement)
+        self.btnDrawLine_Circle_Ver.clicked.connect(self.start_circle_line_measurement)
+
+        # 垂直选项卡的保存图像按钮
+        self.btnSaveImage_Ver.clicked.connect(self.save_images_vertical)
+
+        # 不要在这里连接相机信号，移到 initCamera 中
+
+    def initCamera(self):
+        """初始化相机"""
+        # ... 其他代码保持不变 ...
+        
+        # 创建相机线程
+        self.ver_camera_thread = CameraThread()
+        
+        # 连接相机信号
+        self.ver_camera_thread.frame_signal.connect(self.update_frame)
+        
+        # 设置相机参数
+        self.ver_camera_thread.running = False
+        self.capturing = False
+
     def start_drawing_mode(self):
         """启动绘画模式"""
         sender = self.sender()
@@ -188,15 +216,22 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.show_error(error_msg)
 
     def start_cameras(self):
+        """启动所有相机"""
         try:
             self.log_manager.log_ui_operation("开始测量")
             
             # 垂直相机
-            self.ver_camera_thread = CameraThread(
-                camera_sn=self.ledVerCamSN.text(),
-                exposure_time=int(self.ledVerCamExposureTime.text()),
-                image_format='Mono8' if self.cbVerCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-            )
+            if self.ver_camera_thread is None:
+                self.ver_camera_thread = CameraThread(
+                    camera_sn=self.ledVerCamSN.text(),
+                    exposure_time=int(self.ledVerCamExposureTime.text()),
+                    image_format='Mono8' if self.cbVerCamImageFormat.currentText() == 'Mono8' else 'RGB8'
+                )
+                # 只连接到一个更新函数
+                self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
+                self.ver_camera_thread.error_occurred.connect(self.show_error)
+                self.ver_camera_thread.start()
+                
             self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
             self.ver_camera_thread.error_occurred.connect(self.show_error)
             self.ver_camera_thread.start()
@@ -266,25 +301,34 @@ class MainApp(QMainWindow, Ui_MainWindow):
 
     def update_ver_camera_view(self, frame):
         """更新垂直相机视图"""
-        # 更新主界面视图
-        measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
-        if measurement:
-            # 如果正在绘画或有永久绘画内容
-            if measurement.drawing or measurement.has_drawing():
-                display_frame = measurement.create_display_frame(frame)
-                self.display_image(display_frame, self.lbVerticalView)
-            else:
-                self.display_image(frame, self.lbVerticalView)
+        # 保存当前帧
+        self.current_frame = frame.copy()
         
-        # 更新垂直选项卡视图
-        measurement_2 = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
-        if measurement_2:
-            # 如果正在绘画或有永久绘画内容
-            if measurement_2.drawing or measurement_2.has_drawing():
-                display_frame = measurement_2.create_display_frame(frame)
-                self.display_image(display_frame, self.lbVerticalView_2)
-            else:
-                self.display_image(frame, self.lbVerticalView_2)
+        # 更新主界面的垂直视图
+        main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
+        main_display_frame = frame.copy()
+        if main_measurement:
+            if main_measurement.display_image is not None:
+                mask = cv2.cvtColor(main_measurement.display_image, cv2.COLOR_BGR2GRAY) > 0
+                main_display_frame[mask] = main_measurement.display_image[mask]
+            if main_measurement.drawing:
+                temp_frame = main_measurement.create_display_frame(main_display_frame)
+                if temp_frame is not None:
+                    main_display_frame = temp_frame
+        self.display_image(main_display_frame, self.lbVerticalView)
+        
+        # 更新垂直选项卡的视图
+        tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
+        tab_display_frame = frame.copy()
+        if tab_measurement:
+            if tab_measurement.display_image is not None:
+                mask = cv2.cvtColor(tab_measurement.display_image, cv2.COLOR_BGR2GRAY) > 0
+                tab_display_frame[mask] = tab_measurement.display_image[mask]
+            if tab_measurement.drawing:
+                temp_frame = tab_measurement.create_display_frame(tab_display_frame)
+                if temp_frame is not None:
+                    tab_display_frame = temp_frame
+        self.display_image(tab_display_frame, self.lbVerticalView_2)
 
     def update_left_camera_view(self, frame):
         """更新左侧相机视图"""
@@ -587,6 +631,80 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def start_two_lines_measurement(self):
         """启动线与线测量模式"""
         self.drawing_manager.start_two_lines_measurement()
+
+    def save_images_vertical(self):
+        """垂直选项卡保存原始图像和可视化图像"""
+        try:
+            # 获取当前相机帧
+            if self.current_frame is None:
+                print("没有可用的相机图像")
+                return
+            
+            # 创建保存路径
+            import os
+            from datetime import datetime
+            
+            # 基础路径
+            base_path = "D:/CamImage"
+            
+            # 获取当前日期作为子文件夹名
+            today = datetime.now().strftime("%Y-%m-%d")
+            save_dir = os.path.join(base_path, today)
+            
+            # 确保文件夹存在
+            os.makedirs(save_dir, exist_ok=True)
+            
+            # 获取当前时间作为文件名
+            current_time = datetime.now().strftime("%H_%M_%S")
+            
+            # 保存原始图像
+            origin_filename = f"origin_{current_time}.jpg"
+            origin_path = os.path.join(save_dir, origin_filename)
+            cv2.imwrite(origin_path, cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB))
+            print(f"原始图像已保存: {origin_filename}")
+            
+            # 获取可视化图像（原始图像 + 绘画）
+            measurement_manager = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
+            if measurement_manager and measurement_manager.display_image is not None:
+                # 创建可视化图像
+                visual_frame = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB).copy()
+                display_image_rgb = cv2.cvtColor(measurement_manager.display_image, cv2.COLOR_BGR2RGB)
+                mask = cv2.cvtColor(display_image_rgb, cv2.COLOR_RGB2GRAY) > 0
+                visual_frame[mask] = cv2.addWeighted(
+                    visual_frame, 0.2,
+                    display_image_rgb, 0.8,
+                    0
+                )[mask]
+                
+                # 保存可视化图像
+                visual_filename = f"visual_{current_time}.jpg"
+                visual_path = os.path.join(save_dir, visual_filename)
+                cv2.imwrite(visual_path, visual_frame)
+                
+                print(f"图像已保存到: {save_dir}")
+                print(f"可视化图像: {visual_filename}")
+            else:
+                print("保存原始图像成功，没有可视化内容需要保存")
+                
+        except Exception as e:
+            print(f"保存图像时出错: {str(e)}")
+
+    def update_frame(self, frame):
+        """更新相机帧显示"""
+        # 保存当前帧
+        self.current_frame = frame.copy()
+        
+        # 调用原有的更新显示逻辑
+        if self.verticalCameraLabel:
+            height, width, channel = frame.shape
+            bytes_per_line = 3 * width
+            q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
+            scaled_pixmap = QPixmap.fromImage(q_image).scaled(
+                self.verticalCameraLabel.size(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+            self.verticalCameraLabel.setPixmap(scaled_pixmap)
 
 def main():
     app = QApplication(sys.argv)
