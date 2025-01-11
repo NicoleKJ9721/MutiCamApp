@@ -25,10 +25,28 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.current_frame = None  # 添加这行，用于保存当前帧
+        self.current_frame = None
+        
+        # 初始化管理器
+        self.log_manager = LogManager()
+        self.settings_manager = SettingsManager()
+        
+        # 先加载设置
+        self.settings_manager.load_settings(self)
+        
+        # 设置窗口大小
+        try:
+            width = int(self.ledUIWidth.text())
+            height = int(self.ledUIHeight.text())
+            self.resize(width, height)
+        except ValueError:
+            self.resize(1000, 800)
+        
+        # 然后再初始化UI和连接信号
+        self._init_ui()
+        self._connect_signals()
         
         # 初始化日志管理器
-        self.log_manager = LogManager()
         self.log_manager.log_ui_operation("程序启动")
         
         # 初始化相机线程
@@ -36,9 +54,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.left_camera_thread = None
         self.front_camera_thread = None
 
-        # 初始化设置管理器
-        self.settings_manager = SettingsManager()
-        
         # 初始化测量管理器
         self.ver_measurement = MeasurementManager()
         self.left_measurement = MeasurementManager()
@@ -49,12 +64,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.active_view = None
         self.active_measurement = None
 
-        # 初始化UI控件
-        self._init_ui()
-        
-        # 连接信号槽
-        self._connect_signals()
-
         # 添加标志位
         self.is_undoing = False
 
@@ -62,9 +71,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         """初始化UI控件"""
         # 初始化ComboBox选项
         self.settings_manager.init_combo_boxes(self)
-        
-        # 加载保存的设置
-        self.settings_manager.load_settings(self)
         
         # 初始化按钮状态
         self.btnStopMeasure.setEnabled(False)
@@ -80,18 +86,33 @@ class MainApp(QMainWindow, Ui_MainWindow):
 
     def _connect_signals(self):
         """连接信号槽"""
-        # 相机参数修改信号
-        self.ledVerCamExposureTime.textChanged.connect(lambda: self.settings_manager.save_settings(self))
-        self.ledLeftCamExposureTime.textChanged.connect(lambda: self.settings_manager.save_settings(self))
-        self.ledFrontCamExposureTime.textChanged.connect(lambda: self.settings_manager.save_settings(self))
-        self.ledVerCamSN.textChanged.connect(lambda: self.settings_manager.save_settings(self))
-        self.ledLeftCamSN.textChanged.connect(lambda: self.settings_manager.save_settings(self))
-        self.ledFrontCamSN.textChanged.connect(lambda: self.settings_manager.save_settings(self))
+        # 修改为 editingFinished 信号，只在用户编辑完成时触发
+        self.ledVerCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledLeftCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledFrontCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledVerCamSN.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledLeftCamSN.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledFrontCamSN.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         
-        # 图像格式修改信号
+        # 图像格式修改信号保持不变
         self.cbVerCamImageFormat.currentTextChanged.connect(lambda: self.settings_manager.save_settings(self))
         self.cbLeftCamImageFormat.currentTextChanged.connect(lambda: self.settings_manager.save_settings(self))
         self.cbFrontCamImageFormat.currentTextChanged.connect(lambda: self.settings_manager.save_settings(self))
+
+        # 其他参数也改用 editingFinished
+        self.ledCannyLineLow.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledCannyLineHigh.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledLineDetThreshold.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledLineDetMinLength.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledLineDetMaxGap.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+
+        # UI尺寸修改信号 - 改用 textChanged 并添加实时更新窗口大小的功能
+        self.ledUIWidth.textChanged.connect(self.update_window_size)
+        self.ledUIHeight.textChanged.connect(self.update_window_size)
+        
+        # 在编辑完成时保存设置
+        self.ledUIWidth.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledUIHeight.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
 
         # 相机控制信号
         self.btnStartMeasure.clicked.connect(self.start_cameras)
@@ -109,6 +130,11 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.btnDrawStraight.clicked.connect(self.start_drawing_mode)
         self.btnDrawCircle.clicked.connect(self.start_drawing_mode)
         self.btnDrawLine.clicked.connect(self.start_drawing_mode)
+        self.btnDrawParallel.clicked.connect(self.start_drawing_mode)
+        
+        # 添加直线检测按钮信号连接
+        self.btnLineDet.clicked.connect(self.start_line_detection)  # 主界面按钮
+        self.btnLineDet_Ver.clicked.connect(self.start_line_detection)  # 垂直选项卡按钮
         
         # 清空绘画按钮信号连接
         self.btnClearDrawings.clicked.connect(lambda: self.drawing_manager.clear_drawings())
@@ -162,8 +188,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
 
     def initCamera(self):
         """初始化相机"""
-        # ... 其他代码保持不变 ...
-        
         # 创建相机线程
         self.ver_camera_thread = CameraThread()
         
@@ -306,49 +330,37 @@ class MainApp(QMainWindow, Ui_MainWindow):
         
         # 更新主界面的垂直视图
         main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
-        main_display_frame = frame.copy()
         if main_measurement:
-            if main_measurement.display_image is not None:
-                mask = cv2.cvtColor(main_measurement.display_image, cv2.COLOR_BGR2GRAY) > 0
-                main_display_frame[mask] = main_measurement.display_image[mask]
-            if main_measurement.drawing:
-                temp_frame = main_measurement.create_display_frame(main_display_frame)
-                if temp_frame is not None:
-                    main_display_frame = temp_frame
-        self.display_image(main_display_frame, self.lbVerticalView)
+            # 使用 LayerManager 渲染帧
+            main_display_frame = main_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(main_display_frame, self.lbVerticalView)
         
         # 更新垂直选项卡的视图
         tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
-        tab_display_frame = frame.copy()
         if tab_measurement:
-            if tab_measurement.display_image is not None:
-                mask = cv2.cvtColor(tab_measurement.display_image, cv2.COLOR_BGR2GRAY) > 0
-                tab_display_frame[mask] = tab_measurement.display_image[mask]
-            if tab_measurement.drawing:
-                temp_frame = tab_measurement.create_display_frame(tab_display_frame)
-                if temp_frame is not None:
-                    tab_display_frame = temp_frame
-        self.display_image(tab_display_frame, self.lbVerticalView_2)
+            # 使用 LayerManager 渲染帧
+            tab_display_frame = tab_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(tab_display_frame, self.lbVerticalView_2)
 
     def update_left_camera_view(self, frame):
         """更新左侧相机视图"""
         measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
         if measurement:
-            if measurement.drawing or measurement.has_drawing():
-                display_frame = measurement.create_display_frame(frame)
-                self.display_image(display_frame, self.lbLeftView)
-            else:
-                self.display_image(frame, self.lbLeftView)
+            # 使用 LayerManager 渲染帧
+            display_frame = measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(display_frame, self.lbLeftView)
+        else:
+            self.display_image(frame, self.lbLeftView)
 
     def update_front_camera_view(self, frame):
         """更新前视相机视图"""
         measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
         if measurement:
-            if measurement.drawing or measurement.has_drawing():
-                display_frame = measurement.create_display_frame(frame)
-                self.display_image(display_frame, self.lbFrontView)
-            else:
-                self.display_image(frame, self.lbFrontView)
+            # 使用 LayerManager 渲染帧
+            display_frame = measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(display_frame, self.lbFrontView)
+        else:
+            self.display_image(frame, self.lbFrontView)
 
     def display_image(self, frame, label):
         try:
@@ -374,8 +386,15 @@ class MainApp(QMainWindow, Ui_MainWindow):
         """关闭窗口事件处理"""
         try:
             self.log_manager.log_ui_operation("关闭程序")
+            # 停止所有相机
             self.stop_cameras()
+            # 清理所有绘画资源
+            self.drawing_manager.clear_drawings()
+            # 等待资源释放
             QThread.msleep(100)
+            # 手动触发垃圾回收
+            import gc
+            gc.collect()
             event.accept()
         except Exception as e:
             error_msg = f"关闭窗口时出错: {str(e)}"
@@ -660,31 +679,24 @@ class MainApp(QMainWindow, Ui_MainWindow):
             # 保存原始图像
             origin_filename = f"origin_{current_time}.jpg"
             origin_path = os.path.join(save_dir, origin_filename)
-            cv2.imwrite(origin_path, cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(origin_path, cv2.cvtColor(self.current_frame, cv2.COLOR_RGB2BGR))  # 转换颜色空间
             print(f"原始图像已保存: {origin_filename}")
             
             # 获取可视化图像（原始图像 + 绘画）
             measurement_manager = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
-            if measurement_manager and measurement_manager.display_image is not None:
-                # 创建可视化图像
-                visual_frame = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB).copy()
-                display_image_rgb = cv2.cvtColor(measurement_manager.display_image, cv2.COLOR_BGR2RGB)
-                mask = cv2.cvtColor(display_image_rgb, cv2.COLOR_RGB2GRAY) > 0
-                visual_frame[mask] = cv2.addWeighted(
-                    visual_frame, 0.2,
-                    display_image_rgb, 0.8,
-                    0
-                )[mask]
-                
-                # 保存可视化图像
-                visual_filename = f"visual_{current_time}.jpg"
-                visual_path = os.path.join(save_dir, visual_filename)
-                cv2.imwrite(visual_path, visual_frame)
-                
-                print(f"图像已保存到: {save_dir}")
-                print(f"可视化图像: {visual_filename}")
-            else:
-                print("保存原始图像成功，没有可视化内容需要保存")
+            if measurement_manager:
+                # 获取当前显示的帧
+                visual_frame = measurement_manager.layer_manager.render_frame(self.current_frame.copy())
+                if visual_frame is not None:
+                    # 保存可视化图像
+                    visual_filename = f"visual_{current_time}.jpg"
+                    visual_path = os.path.join(save_dir, visual_filename)
+                    cv2.imwrite(visual_path, cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR))  # 转换颜色空间
+                    
+                    print(f"图像已保存到: {save_dir}")
+                    print(f"可视化图像: {visual_filename}")
+                else:
+                    print("保存原始图像成功，没有可视化内容需要保存")
                 
         except Exception as e:
             print(f"保存图像时出错: {str(e)}")
@@ -705,6 +717,34 @@ class MainApp(QMainWindow, Ui_MainWindow):
                 Qt.SmoothTransformation
             )
             self.verticalCameraLabel.setPixmap(scaled_pixmap)
+
+    def start_line_detection(self):
+        """启动直线检测模式"""
+        print("开始直线检测")
+        self.drawing_manager.start_line_detection()
+
+    def update_window_size(self):
+        """更新窗口大小"""
+        try:
+            # 获取输入框的文本
+            width_text = self.ledUIWidth.text()
+            height_text = self.ledUIHeight.text()
+            
+            # 检查文本是否为空
+            if width_text and height_text:
+                width = int(width_text)
+                height = int(height_text)
+                
+                # 设置合理的最小值
+                width = max(800, width)
+                height = max(600, height)
+                
+                # 调整窗口大小
+                self.resize(width, height)
+                
+        except ValueError:
+            # 如果转换失败，忽略错误
+            pass
 
 def main():
     app = QApplication(sys.argv)

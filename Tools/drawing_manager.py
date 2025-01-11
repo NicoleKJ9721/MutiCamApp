@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt, QObject, QPoint
 from PyQt5.QtWidgets import QLabel
 from Tools.measurement_manager import MeasurementManager
+import time
 
 class DrawingManager(QObject):
     def __init__(self, parent=None):
@@ -42,14 +43,13 @@ class DrawingManager(QObject):
             label.setCursor(Qt.CrossCursor)
             
     def clear_drawings(self, label=None):
-        """清空绘画
-        Args:
-            label: 指定要清空的视图，None表示清空所有
-        """
+        """清空绘画"""
         if label:
+            # 清空特定视图的绘画
             if label in self.measurement_managers:
                 self.measurement_managers[label].clear_measurements()
         else:
+            # 清空所有视图的绘画
             for manager in self.measurement_managers.values():
                 manager.clear_measurements()
                 
@@ -76,13 +76,22 @@ class DrawingManager(QObject):
                     
     def handle_mouse_move(self, event, label):
         """处理鼠标移动事件"""
-        if label == self.active_view and self.active_measurement:
-            current_frame = self.parent().get_current_frame_for_view(label)
-            if current_frame is not None:
-                image_pos = self.convert_mouse_to_image_coords(event.pos(), label, current_frame)
-                display_frame = self.active_measurement.handle_mouse_move(image_pos, current_frame)
-                if display_frame is not None:
-                    self.parent().update_view(label, display_frame)
+        if label not in self.measurement_managers:
+            return
+        
+        # 添加节流，限制更新频率
+        current_time = time.time()
+        if hasattr(self, '_last_update_time') and current_time - self._last_update_time < 0.03:  # 约30fps
+            return
+        self._last_update_time = current_time
+        
+        # 处理鼠标移动
+        current_frame = self.parent().get_current_frame_for_view(label)
+        if current_frame is not None:
+            image_pos = self.convert_mouse_to_image_coords(event.pos(), label, current_frame)
+            display_frame = self.measurement_managers[label].handle_mouse_move(image_pos, current_frame)
+            if display_frame is not None:
+                self.parent().update_view(label, display_frame)
                     
     def handle_mouse_release(self, event, label):
         """处理鼠标释放事件"""
@@ -142,4 +151,11 @@ class DrawingManager(QObject):
         print("启动线与线测量")
         for label, manager in self.measurement_managers.items():
             manager.start_two_lines_measurement()
+            label.setCursor(Qt.CrossCursor) 
+        
+    def start_line_detection(self):
+        """启动直线检测模式"""
+        print("启动直线检测")
+        for label, manager in self.measurement_managers.items():
+            manager.start_line_detection()
             label.setCursor(Qt.CrossCursor) 

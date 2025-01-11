@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from PyQt5.QtWidgets import QMessageBox
 
 class SettingsManager:
     def __init__(self, settings_file="./Settings/settings.json"):
@@ -20,16 +19,20 @@ class SettingsManager:
             "FrontCamImageFormat": "RGB",
             
             # 直线查找参数
+            "CannyLineLow": 50,
+            "CannyLineHigh": 150,
             "LineDetThreshold": 50,
             "LineDetMinLength": 100,
             "LineDetMaxGap": 10,
             
             # 圆查找参数
-            "CircleDetMinDist": 20,
-            "CircleDetParam1": 50,
+            "CannyCircleLow": 50,
+            "CannyCircleHigh": 150,
             "CircleDetParam2": 30,
-            "CircleDetMinRadius": 20,
-            "CircleDetMaxRadius": 100
+
+            # UI尺寸参数
+            "UIWidth": 1000,
+            "UIHeight": 800
         }
 
     def load_settings(self, ui):
@@ -55,6 +58,9 @@ class SettingsManager:
             
             # 加载圆查找参数
             self._load_circle_detection_settings(ui, settings)
+
+            # 加载UI尺寸参数
+            self._load_ui_size_settings(ui, settings)
                 
         except Exception as e:
             logging.error(f"加载设置时出错: {str(e)}")
@@ -87,13 +93,38 @@ class SettingsManager:
 
     def _load_line_detection_settings(self, ui, settings):
         """加载直线查找参数"""
-        # TODO: 添加直线查找参数的UI控件加载
-        pass
+        # Canny边缘检测参数
+        ui.ledCannyLineLow.setText(str(settings.get("CannyLineLow", 
+                                                self.default_settings["CannyLineLow"])))
+        ui.ledCannyLineHigh.setText(str(settings.get("CannyLineHigh", 
+                                                 self.default_settings["CannyLineHigh"])))
+        
+        # HoughLinesP参数
+        ui.ledLineDetThreshold.setText(str(settings.get("LineDetThreshold", 
+                                                    self.default_settings["LineDetThreshold"])))
+        ui.ledLineDetMinLength.setText(str(settings.get("LineDetMinLength", 
+                                                    self.default_settings["LineDetMinLength"])))
+        ui.ledLineDetMaxGap.setText(str(settings.get("LineDetMaxGap", 
+                                                 self.default_settings["LineDetMaxGap"])))
 
     def _load_circle_detection_settings(self, ui, settings):
         """加载圆查找参数"""
-        # TODO: 添加圆查找参数的UI控件加载
-        pass
+        # Canny边缘检测参数
+        ui.ledCannyCircleLow.setText(str(settings.get("CannyCircleLow", 
+                                                self.default_settings["CannyCircleLow"])))
+        ui.ledCannyCircleHigh.setText(str(settings.get("CannyCircleHigh", 
+                                                 self.default_settings["CannyCircleHigh"])))
+        
+        # HoughCircles参数
+        ui.ledCircleDetParam2.setText(str(settings.get("CircleDetParam2", 
+                                                    self.default_settings["CircleDetParam2"])))
+
+    def _load_ui_size_settings(self, ui, settings):
+        """加载UI尺寸参数"""
+        ui.ledUIWidth.setText(str(settings.get("UIWidth", 
+                                             self.default_settings["UIWidth"])))
+        ui.ledUIHeight.setText(str(settings.get("UIHeight", 
+                                              self.default_settings["UIHeight"])))
 
     def save_settings(self, ui):
         """保存UI中的设置"""
@@ -117,16 +148,21 @@ class SettingsManager:
             "LeftCamImageFormat": ui.cbLeftCamImageFormat.currentText(),
             "FrontCamImageFormat": ui.cbFrontCamImageFormat.currentText(),
             
-            # TODO: 添加直线查找和圆查找参数的获取
-            "LineDetThreshold": self.default_settings["LineDetThreshold"],
-            "LineDetMinLength": self.default_settings["LineDetMinLength"],
-            "LineDetMaxGap": self.default_settings["LineDetMaxGap"],
+            # 直线查找参数
+            "CannyLineLow": int(ui.ledCannyLineLow.text()),
+            "CannyLineHigh": int(ui.ledCannyLineHigh.text()),
+            "LineDetThreshold": int(ui.ledLineDetThreshold.text()),
+            "LineDetMinLength": int(ui.ledLineDetMinLength.text()),
+            "LineDetMaxGap": int(ui.ledLineDetMaxGap.text()),
             
-            "CircleDetMinDist": self.default_settings["CircleDetMinDist"],
-            "CircleDetParam1": self.default_settings["CircleDetParam1"],
-            "CircleDetParam2": self.default_settings["CircleDetParam2"],
-            "CircleDetMinRadius": self.default_settings["CircleDetMinRadius"],
-            "CircleDetMaxRadius": self.default_settings["CircleDetMaxRadius"]
+            # 圆查找参数
+            "CannyCircleLow": int(ui.ledCannyCircleLow.text()),
+            "CannyCircleHigh": int(ui.ledCannyCircleHigh.text()),
+            "CircleDetParam2": int(ui.ledCircleDetParam2.text()),
+            
+            # UI尺寸参数
+            "UIWidth": int(ui.ledUIWidth.text()),
+            "UIHeight": int(ui.ledUIHeight.text())
         }
         return settings
 
@@ -158,7 +194,21 @@ class SettingsManager:
             ui.cbLeftCamImageFormat.setCurrentText(self.default_settings["LeftCamImageFormat"])
             ui.cbFrontCamImageFormat.setCurrentText(self.default_settings["FrontCamImageFormat"])
             
-            # TODO: 添加直线查找和圆查找参数的默认值设置
+            # 直线查找参数
+            ui.ledCannyLineLow.setText(str(self.default_settings["CannyLineLow"]))
+            ui.ledCannyLineHigh.setText(str(self.default_settings["CannyLineHigh"]))
+            ui.ledLineDetThreshold.setText(str(self.default_settings["LineDetThreshold"]))
+            ui.ledLineDetMinLength.setText(str(self.default_settings["LineDetMinLength"]))
+            ui.ledLineDetMaxGap.setText(str(self.default_settings["LineDetMaxGap"]))
+            
+            # 圆查找参数
+            ui.ledCannyCircleLow.setText(str(self.default_settings["CannyCircleLow"]))
+            ui.ledCannyCircleHigh.setText(str(self.default_settings["CannyCircleHigh"]))
+            ui.ledCircleDetParam2.setText(str(self.default_settings["CircleDetParam2"]))
+            
+            # UI尺寸参数
+            ui.ledUIWidth.setText(str(self.default_settings["UIWidth"]))
+            ui.ledUIHeight.setText(str(self.default_settings["UIHeight"]))
             
         except Exception as e:
             logging.error(f"应用默认设置时出错: {str(e)}")
@@ -172,3 +222,40 @@ class SettingsManager:
         ui.cbFrontCamImageFormat.addItems(["RGB", "Mono8"])
         
         # TODO: 添加其他ComboBox的初始化 
+
+    def load_settings_from_file(self):
+        """从文件加载设置"""
+        try:
+            settings_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Settings', 'settings.json')
+            if os.path.exists(settings_path):
+                with open(settings_path, 'r') as f:
+                    return json.load(f)
+            else:
+                # 如果文件不存在，返回默认值
+                return {
+                    'CannyLineLow': 50,
+                    'CannyLineHigh': 150,
+                    'LineDetThreshold': 50,
+                    'LineDetMinLength': 50,
+                    'LineDetMaxGap': 10,
+                    'CannyCircleLow': 50,
+                    'CannyCircleHigh': 150,
+                    'CircleDetParam2': 30,
+                    'UIWidth': 1000,
+                    'UIHeight': 800
+                }
+        except Exception as e:
+            print(f"加载设置文件失败: {str(e)}")
+            # 返回默认值
+            return {
+                'CannyLineLow': 50,
+                'CannyLineHigh': 150,
+                'LineDetThreshold': 50,
+                'LineDetMinLength': 50,
+                'LineDetMaxGap': 10,
+                'CannyCircleLow': 50,
+                'CannyCircleHigh': 150,
+                'CircleDetParam2': 30,
+                'UIWidth': 1000,
+                'UIHeight': 800
+            } 

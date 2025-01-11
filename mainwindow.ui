@@ -2341,7 +2341,7 @@
                   <item>
                    <widget class="QLabel" name="label_26">
                     <property name="text">
-                     <string>直线查找低阈值</string>
+                     <string>直线查找阈值</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2349,7 +2349,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="ledLineLow">
+                   <widget class="QLineEdit" name="ledLineDetThreshold">
                     <property name="text">
                      <string/>
                     </property>
@@ -2375,7 +2375,7 @@
                   <item>
                    <widget class="QLabel" name="label_29">
                     <property name="text">
-                     <string>直线查找高阈值</string>
+                     <string>最小线长</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2383,7 +2383,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="ledLineHigh">
+                   <widget class="QLineEdit" name="ledLineDetMinLength">
                     <property name="text">
                      <string/>
                     </property>
@@ -2409,7 +2409,7 @@
                   <item>
                    <widget class="QLabel" name="label_25">
                     <property name="text">
-                     <string>直线查找容许误差</string>
+                     <string>最大间隙</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2417,7 +2417,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="ledLineDetTol">
+                   <widget class="QLineEdit" name="ledLineDetMaxGap">
                     <property name="text">
                      <string/>
                     </property>
@@ -2519,7 +2519,7 @@
                   <item>
                    <widget class="QLabel" name="label_22">
                     <property name="text">
-                     <string>圆查找低阈值</string>
+                     <string>圆查找阈值</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2527,7 +2527,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QLineEdit" name="ledCircleLow">
+                   <widget class="QLineEdit" name="ledCircleDetParam2">
                     <property name="text">
                      <string/>
                     </property>
@@ -2549,24 +2549,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_31" stretch="3,1,5">
-                  <item>
-                   <widget class="QLabel" name="label_23">
-                    <property name="text">
-                     <string>圆查找高阈值</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="ledCircleHigh">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_31" stretch="5">
                   <item>
                    <spacer name="horizontalSpacer_20">
                     <property name="orientation">
@@ -2583,24 +2566,7 @@
                  </layout>
                 </item>
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="3,1,5">
-                  <item>
-                   <widget class="QLabel" name="label_24">
-                    <property name="text">
-                     <string>圆查找容许误差</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="ledCircleDetTol">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="5">
                   <item>
                    <spacer name="horizontalSpacer_21">
                     <property name="orientation">
@@ -2681,7 +2647,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="ledUIheight"/>
+                <widget class="QLineEdit" name="ledUIHeight"/>
                </item>
                <item>
                 <widget class="QLabel" name="label_33">
