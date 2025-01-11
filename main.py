@@ -4,6 +4,7 @@ import sys
 import os
 import numpy as np
 import cv2
+from typing import List
 
 # 添加项目根目录到系统路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +15,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt, QThread, QPoint
 from mainwindow import Ui_MainWindow
-# import cv2
 from Tools.camera_thread import CameraThread
 from Tools.settings_manager import SettingsManager
 from Tools.log_manager import LogManager
@@ -25,11 +25,17 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.current_frame = None
+        # 为每个视图维护独立的帧
+        self.current_frame_vertical = None
+        self.current_frame_left = None
+        self.current_frame_front = None
         
         # 初始化管理器
         self.log_manager = LogManager()
-        self.settings_manager = SettingsManager()
+        
+        # 修改这里：传入settings_file参数
+        self.settings_manager = SettingsManager(settings_file="./Settings/settings.json", log_manager=self.log_manager)
+        self.drawing_manager = DrawingManager(self)  # self包含log_manager
         
         # 先加载设置
         self.settings_manager.load_settings(self)
@@ -67,6 +73,12 @@ class MainApp(QMainWindow, Ui_MainWindow):
         # 添加标志位
         self.is_undoing = False
 
+        # 初始化网格密度下拉框
+        self.init_grid_density_combos()
+        
+        # 连接网格控制信号
+        self.connect_grid_controls()
+
     def _init_ui(self):
         """初始化UI控件"""
         # 初始化ComboBox选项
@@ -80,13 +92,17 @@ class MainApp(QMainWindow, Ui_MainWindow):
         
         # 设置主界面视图的绘画功能
         self.drawing_manager.setup_view(self.lbVerticalView, "vertical")
-        self.drawing_manager.setup_view(self.lbLeftView, "left")
+        self.drawing_manager.setup_view(self.lbLeftView, "left")      # 主界面左视图
         self.drawing_manager.setup_view(self.lbFrontView, "front")
+        
+        # 设置选项卡视图的绘画功能
         self.drawing_manager.setup_view(self.lbVerticalView_2, "vertical_2")
+        self.drawing_manager.setup_view(self.lbLeftView_2, "left_2")  # 选项卡左视图
+        self.drawing_manager.setup_view(self.lbFrontView_2, "front_2")
 
     def _connect_signals(self):
         """连接信号槽"""
-        # 修改为 editingFinished 信号，只在用户编辑完成时触发
+        # 相机参数 修改为 editingFinished 信号，只在用户编辑完成时触发
         self.ledVerCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledLeftCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledFrontCamExposureTime.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
@@ -99,18 +115,23 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.cbLeftCamImageFormat.currentTextChanged.connect(lambda: self.settings_manager.save_settings(self))
         self.cbFrontCamImageFormat.currentTextChanged.connect(lambda: self.settings_manager.save_settings(self))
 
-        # 其他参数也改用 editingFinished
+        # 直线查找 在编辑完成时保存设置
         self.ledCannyLineLow.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledCannyLineHigh.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledLineDetThreshold.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledLineDetMinLength.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledLineDetMaxGap.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
-
+        
+        # 圆查找参数 在编辑完成时保存设置
+        self.ledCannyCircleLow.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledCannyCircleHigh.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        self.ledCircleDetParam2.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
+        
         # UI尺寸修改信号 - 改用 textChanged 并添加实时更新窗口大小的功能
         self.ledUIWidth.textChanged.connect(self.update_window_size)
         self.ledUIHeight.textChanged.connect(self.update_window_size)
         
-        # 在编辑完成时保存设置
+        # UI尺寸修改信号 在编辑完成时保存设置
         self.ledUIWidth.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledUIHeight.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
 
@@ -126,89 +147,101 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.cbLeftCamImageFormat.currentTextChanged.connect(self.update_camera_params)
         self.cbFrontCamImageFormat.currentTextChanged.connect(self.update_camera_params)
 
-        # 绘画功能按钮信号连接
-        self.btnDrawStraight.clicked.connect(self.start_drawing_mode)
-        self.btnDrawCircle.clicked.connect(self.start_drawing_mode)
-        self.btnDrawLine.clicked.connect(self.start_drawing_mode)
-        self.btnDrawParallel.clicked.connect(self.start_drawing_mode)
-        
-        # 添加直线检测按钮信号连接
-        self.btnLineDet.clicked.connect(self.start_line_detection)  # 主界面按钮
-        self.btnLineDet_Ver.clicked.connect(self.start_line_detection)  # 垂直选项卡按钮
-        
-        # 清空绘画按钮信号连接
-        self.btnClearDrawings.clicked.connect(lambda: self.drawing_manager.clear_drawings())
-        self.btnClearDrawings_Left.clicked.connect(
-            lambda: self.drawing_manager.clear_drawings(self.lbLeftView))
-        self.btnClearDrawings_Front.clicked.connect(
-            lambda: self.drawing_manager.clear_drawings(self.lbFrontView))
+        # 主界面绘画功能按钮信号连接
+        self.btnDrawLine.clicked.connect(self.start_drawing_mode) # 线段按钮
+        self.btnDrawStraight.clicked.connect(self.start_drawing_mode) # 直线按钮
+        self.btnDrawCircle.clicked.connect(self.start_drawing_mode) # 圆形按钮
+        self.btnDrawParallel.clicked.connect(self.start_drawing_mode) # 平行线按钮
+        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
+        self.btnCan1StepDraw.clicked.connect(self.undo_last_drawing)  # 撤销手动绘制
+        self.btnCan1StepDet.clicked.connect(self.undo_last_detection) # 撤销自动检测
+        self.btnClearDrawings.clicked.connect(
+            lambda: [
+                self.drawing_manager.clear_drawings(self.lbVerticalView),
+                self.drawing_manager.clear_drawings(self.lbLeftView),
+                self.drawing_manager.clear_drawings(self.lbFrontView)
+            ]
+        )
+        self.btnLineDet.clicked.connect(self.start_line_detection)  # 直线检测按钮
+        self.btnCircleDet.clicked.connect(self.start_circle_detection)  # 圆形检测按钮
 
-        # 垂直选项卡的绘画功能按钮信号连接
+        # 垂直选项卡绘画功能按钮信号连接
+        self.btnLineDet_Ver.clicked.connect(self.start_line_detection)  # 直线检测按钮
+        self.btnCircleDet_Ver.clicked.connect(self.start_circle_detection)  # 圆形检测按钮
+        self.btnDrawLine_Ver.clicked.connect(self.start_drawing_mode)      # 线段按钮
         self.btnDrawStraight_Ver.clicked.connect(self.start_drawing_mode)  # 直线按钮
         self.btnDrawCircle_Ver.clicked.connect(self.start_drawing_mode)    # 圆形按钮
-        self.btnDrawLine_Ver.clicked.connect(self.start_drawing_mode)      # 线段按钮
+        self.btnDrawParallel_Ver.clicked.connect(self.start_drawing_mode) # 平行线按钮
+        self.btnDrawLine_Circle_Ver.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        self.btnDraw2Line_Ver.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
+        self.btnCan1StepDraw_Ver.clicked.connect(self.undo_last_drawing) # 撤销手动绘制
+        self.btnCan1StepDet_Ver.clicked.connect(self.undo_last_detection) # 撤销自动检测
         self.btnClearDrawings_Ver.clicked.connect(                         # 清空按钮
             lambda: self.drawing_manager.clear_drawings(self.lbVerticalView_2))
+        self.btnSaveImage_Ver.clicked.connect(lambda: self.save_images('vertical'))
 
-        # 添加平行线按钮信号连接
-        self.btnDrawParallel.clicked.connect(self.start_drawing_mode)
-        self.btnDrawParallel_Ver.clicked.connect(self.start_drawing_mode)
+        # 左侧选项卡绘画功能按钮信号连接
+        self.btnLineDet_Left.clicked.connect(self.start_line_detection)  # 直线检测按钮
+        self.btnCircleDet_Left.clicked.connect(self.start_circle_detection)  # 圆形检测按钮
+        self.btnDrawLine_Left.clicked.connect(self.start_drawing_mode)      # 线段按钮
+        self.btnDrawStraight_Left.clicked.connect(self.start_drawing_mode)  # 直线按钮
+        self.btnDrawCircle_Left.clicked.connect(self.start_drawing_mode)    # 圆形按钮
+        self.btnDrawParallel_Left.clicked.connect(self.start_drawing_mode) # 平行线按钮
+        self.btnDrawLine_Circle_Left.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        self.btnDraw2Line_Left.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
+        self.btnCan1StepDraw_Left.clicked.connect(self.undo_last_drawing) # 撤销手动绘制
+        self.btnCan1StepDet_Left.clicked.connect(self.undo_last_detection) # 撤销自动检测
+        self.btnClearDrawings_Left.clicked.connect(                         # 清空按钮
+            lambda: self.drawing_manager.clear_drawings(self.lbLeftView_2))
+        self.btnSaveImage_Left.clicked.connect(lambda: self.save_images('left'))
 
-        # 先断开所有旧的连接（安全的方式）
-        for btn in [self.btnCan1StepDraw, self.btnCan1StepDraw_Ver, 
-                    self.btnCan1StepDraw_Left, self.btnCan1StepDraw_Front]:
-            try:
-                btn.clicked.disconnect()
-            except TypeError:
-                # 如果没有连接，会抛出 TypeError，我们可以安全地忽略它
-                pass
-        
-        # 使用普通的 clicked 信号
-        print("连接撤销按钮信号")
-        self.btnCan1StepDraw.clicked.connect(self.undo_last_drawing)
-        self.btnCan1StepDraw_Ver.clicked.connect(self.undo_last_drawing)
-        self.btnCan1StepDraw_Left.clicked.connect(self.undo_last_drawing)
-        self.btnCan1StepDraw_Front.clicked.connect(self.undo_last_drawing)
-
-        self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement)
-        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement)
-
-        # 主界面和垂直选项卡的线与线测量按钮
-        self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement)
-        self.btnDraw2Line_Ver.clicked.connect(self.start_two_lines_measurement)
-
-        # 主界面和垂直选项卡的线与圆测量按钮
-        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement)
-        self.btnDrawLine_Circle_Ver.clicked.connect(self.start_circle_line_measurement)
-
-        # 垂直选项卡的保存图像按钮
-        self.btnSaveImage_Ver.clicked.connect(self.save_images_vertical)
+        # 对向选项卡绘画功能按钮信号连接
+        self.btnLineDet_Front.clicked.connect(self.start_line_detection)  # 直线检测按钮
+        self.btnCircleDet_Front.clicked.connect(self.start_circle_detection)  # 圆形检测按钮
+        self.btnDrawLine_Front.clicked.connect(self.start_drawing_mode)      # 线段按钮
+        self.btnDrawStraight_Front.clicked.connect(self.start_drawing_mode)  # 直线按钮
+        self.btnDrawCircle_Front.clicked.connect(self.start_drawing_mode)    # 圆形按钮
+        self.btnDrawParallel_Front.clicked.connect(self.start_drawing_mode) # 平行线按钮
+        self.btnDrawLine_Circle_Front.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        self.btnDraw2Line_Front.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
+        self.btnCan1StepDraw_Front.clicked.connect(self.undo_last_drawing) # 撤销手动绘制
+        self.btnCan1StepDet_Front.clicked.connect(self.undo_last_detection) # 撤销自动检测
+        self.btnClearDrawings_Front.clicked.connect(                         # 清空按钮
+            lambda: self.drawing_manager.clear_drawings(self.lbFrontView_2))
+        self.btnSaveImage_Front.clicked.connect(lambda: self.save_images('front'))
 
         # 不要在这里连接相机信号，移到 initCamera 中
 
-    def initCamera(self):
-        """初始化相机"""
-        # 创建相机线程
-        self.ver_camera_thread = CameraThread()
-        
-        # 连接相机信号
-        self.ver_camera_thread.frame_signal.connect(self.update_frame)
-        
-        # 设置相机参数
-        self.ver_camera_thread.running = False
-        self.capturing = False
+        # 添加选项卡切换信号连接
+        self.tabWidget.currentChanged.connect(self.handle_tab_change)
+
+    def handle_tab_change(self, index):
+        """处理选项卡切换事件"""
+        print(f"切换到选项卡: {index}")  # 添加调试信息
+        if index == 0:  # 主界面
+            self.last_active_view = self.lbVerticalView  # 默认设置为垂直视图
+        elif index == 1:  # 垂直选项卡
+            self.last_active_view = self.lbVerticalView_2
+        elif index == 2:  # 左视图选项卡
+            self.last_active_view = self.lbLeftView_2
+        elif index == 3:  # 前视图选项卡
+            self.last_active_view = self.lbFrontView_2
 
     def start_drawing_mode(self):
         """启动绘画模式"""
-        sender = self.sender()
-        if sender in [self.btnDrawParallel, self.btnDrawParallel_Ver]:
-            self.drawing_manager.start_parallel_measurement()
-        elif sender in [self.btnDrawStraight, self.btnDrawStraight_Ver]:
-            self.drawing_manager.start_line_measurement()
-        elif sender in [self.btnDrawCircle, self.btnDrawCircle_Ver]:
-            self.drawing_manager.start_circle_measurement()
-        elif sender in [self.btnDrawLine, self.btnDrawLine_Ver]:
-            self.drawing_manager.start_line_segment_measurement()
+        try:
+            sender = self.sender()
+            if sender in [self.btnDrawParallel, self.btnDrawParallel_Ver, self.btnDrawParallel_Left, self.btnDrawParallel_Front]:
+                self.drawing_manager.start_parallel_measurement()
+            elif sender in [self.btnDrawStraight, self.btnDrawStraight_Ver, self.btnDrawStraight_Left, self.btnDrawStraight_Front]:
+                self.drawing_manager.start_line_measurement()
+            elif sender in [self.btnDrawCircle, self.btnDrawCircle_Ver, self.btnDrawCircle_Left, self.btnDrawCircle_Front]:
+                self.drawing_manager.start_circle_measurement()
+            elif sender in [self.btnDrawLine, self.btnDrawLine_Ver, self.btnDrawLine_Left, self.btnDrawLine_Front]:
+                self.drawing_manager.start_line_segment_measurement()
+        except Exception as e:
+            raise Exception(f"启动绘画模式失败: {str(e)}")
 
     def update_camera_params(self):
         """更新相机参数"""
@@ -246,46 +279,68 @@ class MainApp(QMainWindow, Ui_MainWindow):
             
             # 垂直相机
             if self.ver_camera_thread is None:
+                # 创建相机线程
                 self.ver_camera_thread = CameraThread(
                     camera_sn=self.ledVerCamSN.text(),
                     exposure_time=int(self.ledVerCamExposureTime.text()),
                     image_format='Mono8' if self.cbVerCamImageFormat.currentText() == 'Mono8' else 'RGB8'
                 )
-                # 只连接到一个更新函数
+                # 连接信号（只连接一次）
                 self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
                 self.ver_camera_thread.error_occurred.connect(self.show_error)
-                self.ver_camera_thread.start()
                 
-            self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
-            self.ver_camera_thread.error_occurred.connect(self.show_error)
-            self.ver_camera_thread.start()
-            self.log_manager.log_camera_operation("启动", self.ledVerCamSN.text(), 
-                                                f"曝光时间: {self.ledVerCamExposureTime.text()}, 格式: {self.cbVerCamImageFormat.currentText()}")
+            # 启动相机线程
+            if not self.ver_camera_thread.isRunning():
+                self.ver_camera_thread.start()
+                self.log_manager.log_camera_operation(
+                    "启动", 
+                    self.ledVerCamSN.text(), 
+                    f"曝光时间: {self.ledVerCamExposureTime.text()}, 格式: {self.cbVerCamImageFormat.currentText()}"
+                )
 
             # 左相机
-            self.left_camera_thread = CameraThread(
-                camera_sn=self.ledLeftCamSN.text(),
-                exposure_time=int(self.ledLeftCamExposureTime.text()),
-                image_format='Mono8' if self.cbLeftCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-            )
-            self.left_camera_thread.frame_ready.connect(self.update_left_camera_view)
-            self.left_camera_thread.error_occurred.connect(self.show_error)
-            self.left_camera_thread.start()
-            self.log_manager.log_camera_operation("启动", self.ledLeftCamSN.text(), 
-                                                f"曝光时间: {self.ledLeftCamExposureTime.text()}, 格式: {self.cbLeftCamImageFormat.currentText()}")
+            if self.left_camera_thread is None:
+                # 创建相机线程
+                self.left_camera_thread = CameraThread(
+                    camera_sn=self.ledLeftCamSN.text(),
+                    exposure_time=int(self.ledLeftCamExposureTime.text()),
+                    image_format='Mono8' if self.cbLeftCamImageFormat.currentText() == 'Mono8' else 'RGB8'
+                )
+                # 连接信号（只连接一次）
+                self.left_camera_thread.frame_ready.connect(self.update_left_camera_view)
+                self.left_camera_thread.error_occurred.connect(self.show_error)
+                
+            # 启动相机线程
+            if not self.left_camera_thread.isRunning():
+                self.left_camera_thread.start()
+                self.log_manager.log_camera_operation(
+                    "启动", 
+                    self.ledLeftCamSN.text(), 
+                    f"曝光时间: {self.ledLeftCamExposureTime.text()}, 格式: {self.cbLeftCamImageFormat.currentText()}"
+                )
 
             # 前相机
-            self.front_camera_thread = CameraThread(
-                camera_sn=self.ledFrontCamSN.text(),
-                exposure_time=int(self.ledFrontCamExposureTime.text()),
-                image_format='Mono8' if self.cbFrontCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-            )
-            self.front_camera_thread.frame_ready.connect(self.update_front_camera_view)
-            self.front_camera_thread.error_occurred.connect(self.show_error)
-            self.front_camera_thread.start()
-            self.log_manager.log_camera_operation("启动", self.ledFrontCamSN.text(), 
-                                                f"曝光时间: {self.ledFrontCamExposureTime.text()}, 格式: {self.cbFrontCamImageFormat.currentText()}")
+            if self.front_camera_thread is None:
+                # 创建相机线程
+                self.front_camera_thread = CameraThread(
+                    camera_sn=self.ledFrontCamSN.text(),
+                    exposure_time=int(self.ledFrontCamExposureTime.text()),
+                    image_format='Mono8' if self.cbFrontCamImageFormat.currentText() == 'Mono8' else 'RGB8'
+                )
+                # 连接信号（只连接一次）
+                self.front_camera_thread.frame_ready.connect(self.update_front_camera_view)
+                self.front_camera_thread.error_occurred.connect(self.show_error)
+                
+            # 启动相机线程
+            if not self.front_camera_thread.isRunning():
+                self.front_camera_thread.start()
+                self.log_manager.log_camera_operation(
+                    "启动", 
+                    self.ledFrontCamSN.text(), 
+                    f"曝光时间: {self.ledFrontCamExposureTime.text()}, 格式: {self.cbFrontCamImageFormat.currentText()}"
+                )
 
+            # 更新运行按钮状态
             self.btnStartMeasure.setEnabled(False)
             self.btnStopMeasure.setEnabled(True)
 
@@ -326,41 +381,53 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def update_ver_camera_view(self, frame):
         """更新垂直相机视图"""
         # 保存当前帧
-        self.current_frame = frame.copy()
+        self.current_frame_vertical = frame.copy()
         
         # 更新主界面的垂直视图
         main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
         if main_measurement:
-            # 使用 LayerManager 渲染帧
             main_display_frame = main_measurement.layer_manager.render_frame(frame.copy())
             self.display_image(main_display_frame, self.lbVerticalView)
         
         # 更新垂直选项卡的视图
         tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
         if tab_measurement:
-            # 使用 LayerManager 渲染帧
             tab_display_frame = tab_measurement.layer_manager.render_frame(frame.copy())
             self.display_image(tab_display_frame, self.lbVerticalView_2)
 
     def update_left_camera_view(self, frame):
         """更新左侧相机视图"""
-        measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
-        if measurement:
-            # 使用 LayerManager 渲染帧
-            display_frame = measurement.layer_manager.render_frame(frame.copy())
-            self.display_image(display_frame, self.lbLeftView)
-        else:
-            self.display_image(frame, self.lbLeftView)
+        # 保存当前帧
+        self.current_frame_left = frame.copy()
+        
+        # 更新主界面的左侧视图
+        main_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
+        if main_measurement:
+            main_display_frame = main_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(main_display_frame, self.lbLeftView)
+        
+        # 更新左侧选项卡的视图
+        tab_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
+        if tab_measurement:
+            tab_display_frame = tab_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(tab_display_frame, self.lbLeftView_2)
 
     def update_front_camera_view(self, frame):
-        """更新前视相机视图"""
-        measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
-        if measurement:
-            # 使用 LayerManager 渲染帧
-            display_frame = measurement.layer_manager.render_frame(frame.copy())
-            self.display_image(display_frame, self.lbFrontView)
-        else:
-            self.display_image(frame, self.lbFrontView)
+        """更新对向相机视图"""
+        # 保存当前帧
+        self.current_frame_front = frame.copy()
+        
+        # 更新主界面的前视图
+        main_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
+        if main_measurement:
+            main_display_frame = main_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(main_display_frame, self.lbFrontView)
+        
+        # 更新对向选项卡的视图
+        tab_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
+        if tab_measurement:
+            tab_display_frame = tab_measurement.layer_manager.render_frame(frame.copy())
+            self.display_image(tab_display_frame, self.lbFrontView_2)
 
     def display_image(self, frame, label):
         try:
@@ -401,55 +468,7 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.log_manager.log_error(error_msg)
             event.accept()
 
-    def label_mousePressEvent(self, event, label):
-        """处理标签的鼠标按下事件"""
-        print(f"鼠标按下事件: {label.objectName()}")  # 调试信息
-        if event.button() == Qt.LeftButton:
-            # 确定当前活动的视图和测量管理器
-            if label == self.lbVerticalView:
-                self.active_view = self.lbVerticalView
-                self.active_measurement = self.ver_measurement
-                print("激活垂直视图")  # 调试信息
-            elif label == self.lbLeftView:
-                self.active_view = self.lbLeftView
-                self.active_measurement = self.left_measurement
-                print("激活左侧视图")  # 调试信息
-            elif label == self.lbFrontView:
-                self.active_view = self.lbFrontView
-                self.active_measurement = self.front_measurement
-                print("激活前视图")  # 调试信息
-            
-            if self.active_measurement:
-                image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-                current_frame = self.get_current_frame_for_view(label)
-                print(f"图像坐标: {image_pos.x()}, {image_pos.y()}")  # 调试信息
-                if current_frame is not None:
-                    self.active_measurement.handle_mouse_press(image_pos, current_frame)
-                else:
-                    print("没有获取到当前帧")  # 调试信息
 
-    def label_mouseMoveEvent(self, event, label):
-        """处理标签的鼠标移动事件"""
-        if label == self.active_view and self.active_measurement:
-            image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-            current_frame = self.get_current_frame_for_view(label)
-            display_frame = self.active_measurement.handle_mouse_move(image_pos, current_frame)
-            
-            if display_frame is not None:
-                self.update_view(label, display_frame)
-
-    def label_mouseReleaseEvent(self, event, label):
-        """处理标签的鼠标释放事件"""
-        if event.button() == Qt.LeftButton and label == self.active_view and self.active_measurement:
-            image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-            current_frame = self.get_current_frame_for_view(label)
-            display_frame = self.active_measurement.handle_mouse_release(image_pos, current_frame)
-            
-            if display_frame is not None:
-                self.update_view(label, display_frame)
-            
-            self.active_view = None
-            self.active_measurement = None
 
     def convert_mouse_to_image_coords(self, pos, label):
         """将鼠标坐标转换为图像坐标"""
@@ -483,147 +502,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         print(f"鼠标坐标转换: 屏幕({pos.x()}, {pos.y()}) -> 图像({image_x}, {image_y})")  # 调试信息
         return QPoint(image_x, image_y)
 
-    def get_current_frame_for_view(self, label):
-        """获取对应视图的当前帧"""
-        frame = None
-        if (label == self.lbVerticalView or label == self.lbVerticalView_2) and self.ver_camera_thread:
-            frame = self.ver_camera_thread.current_frame
-        elif label == self.lbLeftView and self.left_camera_thread:
-            frame = self.left_camera_thread.current_frame
-        elif label == self.lbFrontView and self.front_camera_thread:
-            frame = self.front_camera_thread.current_frame
-        
-        if frame is None and not hasattr(self, '_frame_warning_shown'):
-            print(f"警告: {label.objectName()} 没有可用的图像帧")  # 调试信息
-            self._frame_warning_shown = True
-        return frame
-
-    def update_view(self, label, frame):
-        """更新视图显示"""
-        if frame is not None:
-            height, width, channel = frame.shape
-            bytes_per_line = 3 * width
-            q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_RGB888)
-            pixmap = QPixmap.fromImage(q_image)
-            label.setPixmap(pixmap.scaled(label.size(), Qt.KeepAspectRatio))
-
-    def label_mouseDoubleClickEvent(self, event, label):
-        """处理标签的双击事件"""
-        if event.button() == Qt.LeftButton:
-            # 获取当前标签页索引
-            current_tab = self.tabWidget.currentIndex()
-            
-            # 根据当前视图设置目标标签页
-            if label == self.lbVerticalView:
-                self.tabWidget.setCurrentIndex(1)
-            elif label == self.lbLeftView:
-                self.tabWidget.setCurrentIndex(2)
-            elif label == self.lbFrontView:
-                self.tabWidget.setCurrentIndex(3)
-            elif label in [self.lbVerticalView_2, self.lbleftView_2, self.lbFrontView_2]:
-                self.tabWidget.setCurrentIndex(0)
-            
-            # 记录最后操作的视图
-            self.last_active_view = label
-
-    def start_single_camera(self, camera_type):
-        """启动单个相机"""
-        try:
-            if camera_type == 'vertical':
-                self.ver_camera_thread = CameraThread(
-                    camera_sn=self.ledVerCamSN.text(),
-                    exposure_time=int(self.ledVerCamExposureTime.text()),
-                    image_format='Mono8' if self.cbVerCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-                )
-                # 只连接到一个更新函数
-                self.ver_camera_thread.frame_ready.connect(self.update_ver_camera_view)
-                self.ver_camera_thread.error_occurred.connect(self.show_error)
-                self.ver_camera_thread.start()
-                self.log_manager.log_camera_operation("启动", self.ledVerCamSN.text(), 
-                                                    f"曝光时间: {self.ledVerCamExposureTime.text()}, 格式: {self.cbVerCamImageFormat.currentText()}")
-
-            elif camera_type == 'left':
-                self.left_camera_thread = CameraThread(
-                    camera_sn=self.ledLeftCamSN.text(),
-                    exposure_time=int(self.ledLeftCamExposureTime.text()),
-                    image_format='Mono8' if self.cbLeftCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-                )
-                # 只连接到一个更新函数
-                self.left_camera_thread.frame_ready.connect(self.update_left_camera_view)
-                self.left_camera_thread.error_occurred.connect(self.show_error)
-                self.left_camera_thread.start()
-                self.log_manager.log_camera_operation("启动", self.ledLeftCamSN.text(), 
-                                                    f"曝光时间: {self.ledLeftCamExposureTime.text()}, 格式: {self.cbLeftCamImageFormat.currentText()}")
-
-            elif camera_type == 'front':
-                self.front_camera_thread = CameraThread(
-                    camera_sn=self.ledFrontCamSN.text(),
-                    exposure_time=int(self.ledFrontCamExposureTime.text()),
-                    image_format='Mono8' if self.cbFrontCamImageFormat.currentText() == 'Mono8' else 'RGB8'
-                )
-                # 只连接到一个更新函数
-                self.front_camera_thread.frame_ready.connect(self.update_front_camera_view)
-                self.front_camera_thread.error_occurred.connect(self.show_error)
-                self.front_camera_thread.start()
-                self.log_manager.log_camera_operation("启动", self.ledFrontCamSN.text(), 
-                                                    f"曝光时间: {self.ledFrontCamExposureTime.text()}, 格式: {self.cbFrontCamImageFormat.currentText()}")
-                
-            # 更新按钮状态
-            self.btnStartMeasure.setEnabled(False)
-            self.btnStopMeasure.setEnabled(True)
-            
-        except Exception as e:
-            error_msg = f"启动相机失败: {str(e)}"
-            self.log_manager.log_error(error_msg)
-            self.show_error(error_msg)
-
-    def undo_last_drawing(self):
-        """撤销上一步绘画"""
-        # 防止重复触发
-        if self.is_undoing:
-            print("正在撤销中，忽略重复触发")
-            return
-        
-        self.is_undoing = True
-        try:
-            print("\n=== 开始撤销操作 ===")
-            print(f"当前标签页索引: {self.tabWidget.currentIndex()}")
-            
-            # 获取当前活动的视图
-            current_tab = self.tabWidget.currentIndex()
-            current_view = None
-            
-            if current_tab == 0:  # 主界面
-                if hasattr(self, 'last_active_view'):
-                    current_view = self.last_active_view
-                    print(f"主界面，最后活动视图: {current_view.objectName()}")
-            else:
-                # 选项卡视图
-                view_map = {
-                    1: self.lbVerticalView_2,
-                    2: self.lbleftView_2,
-                    3: self.lbFrontView_2
-                }
-                current_view = view_map.get(current_tab)
-                if current_view:
-                    print(f"选项卡视图: {current_view.objectName()}")
-            
-            if current_view:
-                measurement = self.drawing_manager.get_measurement_manager(current_view)
-                if measurement:
-                    # 获取当前帧
-                    current_frame = self.get_current_frame_for_view(current_view)
-                    if current_frame is not None:
-                        # 执行撤销操作
-                        if measurement.undo_last_drawing():
-                            # 重新创建显示帧
-                            display_frame = measurement.create_display_frame(current_frame)
-                            if display_frame is not None:
-                                self.update_view(current_view, display_frame)
-            print("=== 撤销操作结束 ===\n")
-        finally:
-            self.is_undoing = False
-
     def mouseReleaseEvent(self, event):
         """鼠标释放事件"""
         if event.button() == Qt.LeftButton and self.active_view and self.active_measurement:
@@ -643,6 +521,49 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.active_view = None
             self.active_measurement = None
 
+    def get_current_frame_for_view(self, label):
+        """根据视图标签获取对应的当前帧"""
+        # 根据标签返回对应相机的帧
+        if label in [self.lbVerticalView, self.lbVerticalView_2]:
+            return self.current_frame_vertical
+        elif label in [self.lbLeftView, self.lbLeftView_2]:
+            return self.current_frame_left
+        elif label in [self.lbFrontView, self.lbFrontView_2]:
+            return self.current_frame_front
+        return None
+
+    def update_view(self, label, frame):
+        """更新指定视图的显示"""
+        if frame is not None:
+            self.display_image(frame, label)
+
+    def label_mouseDoubleClickEvent(self, event, label):
+        """处理标签的双击事件"""
+        if event.button() == Qt.LeftButton:
+            # 获取当前标签页索引
+            current_tab = self.tabWidget.currentIndex()
+            
+            # 根据当前视图设置目标标签页
+            if label == self.lbVerticalView:
+                self.tabWidget.setCurrentIndex(1)
+            elif label == self.lbLeftView:
+                self.tabWidget.setCurrentIndex(2)
+            elif label == self.lbFrontView:
+                self.tabWidget.setCurrentIndex(3)
+            elif label in [self.lbVerticalView_2, self.lbLeftView_2, self.lbFrontView_2]:
+                self.tabWidget.setCurrentIndex(0)
+            
+            # 记录最后操作的视图
+            self.last_active_view = label
+
+    def undo_last_drawing(self):
+        """撤销上一步手动绘制"""
+        self.drawing_manager.undo_last_drawing()
+        
+    def undo_last_detection(self):
+        """撤销上一步自动检测"""
+        self.drawing_manager.undo_last_detection()
+
     def start_circle_line_measurement(self):
         """启动圆线距离测量模式"""
         self.drawing_manager.start_circle_line_measurement()
@@ -651,13 +572,36 @@ class MainApp(QMainWindow, Ui_MainWindow):
         """启动线与线测量模式"""
         self.drawing_manager.start_two_lines_measurement()
 
-    def save_images_vertical(self):
-        """垂直选项卡保存原始图像和可视化图像"""
+    def save_images(self, view_type=None):
+        """保存原始图像和可视化图像
+        Args:
+            view_type: 视图类型，可以是 'vertical', 'left', 'front'
+        """
         try:
-            # 获取当前相机帧
-            if self.current_frame is None:
-                print("没有可用的相机图像")
+            # 根据当前标签页或传入的view_type确定要保存的视图
+            if view_type is None:
+                current_tab = self.tabWidget.currentIndex()
+                view_type = {
+                    1: 'vertical',
+                    2: 'left',
+                    3: 'front'
+                }.get(current_tab, 'vertical')
+            
+            # 获取对应视图的标签和测量管理器
+            view_map = {
+                'vertical': (self.lbVerticalView_2, self.ver_camera_thread),
+                'left': (self.lbLeftView_2, self.left_camera_thread),
+                'front': (self.lbFrontView_2, self.front_camera_thread)
+            }
+            
+            view_label, camera_thread = view_map.get(view_type)
+            
+            # 检查相机帧是否可用
+            if not camera_thread or not camera_thread.current_frame is not None:
+                print(f"{view_type}视图没有可用的相机图像")
                 return
+            
+            current_frame = camera_thread.current_frame
             
             # 创建保存路径
             import os
@@ -679,50 +623,52 @@ class MainApp(QMainWindow, Ui_MainWindow):
             # 保存原始图像
             origin_filename = f"origin_{current_time}.jpg"
             origin_path = os.path.join(save_dir, origin_filename)
-            cv2.imwrite(origin_path, cv2.cvtColor(self.current_frame, cv2.COLOR_RGB2BGR))  # 转换颜色空间
+            cv2.imwrite(origin_path, cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR))
             print(f"原始图像已保存: {origin_filename}")
             
             # 获取可视化图像（原始图像 + 绘画）
-            measurement_manager = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
+            measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
             if measurement_manager:
-                # 获取当前显示的帧
-                visual_frame = measurement_manager.layer_manager.render_frame(self.current_frame.copy())
+                # 保存当前网格状态
+                original_grid_state = measurement_manager.layer_manager.show_grid
+                original_grid_density = measurement_manager.layer_manager.grid_density
+                
+                # 临时关闭网格
+                measurement_manager.layer_manager.set_grid(False)
+                
+                # 获取当前显示的帧（不含网格）
+                visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                
+                # 恢复原来的网格状态
+                measurement_manager.layer_manager.set_grid(original_grid_state, original_grid_density)
+                
                 if visual_frame is not None:
                     # 保存可视化图像
                     visual_filename = f"visual_{current_time}.jpg"
                     visual_path = os.path.join(save_dir, visual_filename)
-                    cv2.imwrite(visual_path, cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR))  # 转换颜色空间
+                    cv2.imwrite(visual_path, cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR))
                     
                     print(f"图像已保存到: {save_dir}")
                     print(f"可视化图像: {visual_filename}")
                 else:
                     print("保存原始图像成功，没有可视化内容需要保存")
                 
+                # 重新渲染视图（恢复网格显示）
+                self.update_view_with_current_frame(view_label)
+                
         except Exception as e:
             print(f"保存图像时出错: {str(e)}")
-
-    def update_frame(self, frame):
-        """更新相机帧显示"""
-        # 保存当前帧
-        self.current_frame = frame.copy()
-        
-        # 调用原有的更新显示逻辑
-        if self.verticalCameraLabel:
-            height, width, channel = frame.shape
-            bytes_per_line = 3 * width
-            q_image = QImage(frame.data, width, height, bytes_per_line, QImage.Format_BGR888)
-            scaled_pixmap = QPixmap.fromImage(q_image).scaled(
-                self.verticalCameraLabel.size(),
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
-            )
-            self.verticalCameraLabel.setPixmap(scaled_pixmap)
 
     def start_line_detection(self):
         """启动直线检测模式"""
         print("开始直线检测")
         self.drawing_manager.start_line_detection()
 
+    def start_circle_detection(self):
+        """启动圆形检测模式"""
+        print("开始圆形检测")
+        self.drawing_manager.start_circle_detection()
+    
     def update_window_size(self):
         """更新窗口大小"""
         try:
@@ -745,6 +691,97 @@ class MainApp(QMainWindow, Ui_MainWindow):
         except ValueError:
             # 如果转换失败，忽略错误
             pass
+
+    def init_grid_density_combos(self):
+        """初始化网格密度下拉框"""
+        densities = [
+            ("10% (密)", 0.1),
+            ("20%", 0.2),
+            ("30%", 0.3),
+            ("40%", 0.4),
+            ("50%", 0.5),
+            ("60%", 0.6),
+            ("70%", 0.7),
+            ("80% (疏)", 0.8)
+        ]
+        
+        # 为所有网格密度下拉框添加选项
+        for combo in [self.cbGridDens, self.cbGridDens_Ver, self.cbGridDens_Left, self.cbGridDens_Front]:
+            for text, _ in densities:
+                combo.addItem(text)
+            
+    def connect_grid_controls(self):
+        """连接网格控制信号"""
+        # 主界面网格控制
+        self.cbGridDens.activated.connect(
+            lambda: self.update_grid_density(self.cbGridDens.currentIndex(), [self.lbVerticalView, self.lbLeftView, self.lbFrontView]))
+        self.btnCancelGrids.clicked.connect(
+            lambda: self.toggle_grid(False, [self.lbVerticalView, self.lbLeftView, self.lbFrontView]))
+        
+        # 垂直视图网格控制
+        self.cbGridDens_Ver.activated.connect(
+            lambda: self.update_grid_density(self.cbGridDens_Ver.currentIndex(), [self.lbVerticalView_2]))
+        self.btnCancelGrids_Ver.clicked.connect(
+            lambda: self.toggle_grid(False, [self.lbVerticalView_2]))
+        
+        # 左视图网格控制
+        self.cbGridDens_Left.activated.connect(
+            lambda: self.update_grid_density(self.cbGridDens_Left.currentIndex(), [self.lbLeftView_2]))
+        self.btnCancelGrids_Left.clicked.connect(
+            lambda: self.toggle_grid(False, [self.lbLeftView_2]))
+        
+        # 对向视图网格控制
+        self.cbGridDens_Front.activated.connect(
+            lambda: self.update_grid_density(self.cbGridDens_Front.currentIndex(), [self.lbFrontView_2]))
+        self.btnCancelGrids_Front.clicked.connect(
+            lambda: self.toggle_grid(False, [self.lbFrontView_2]))
+
+    def update_grid_density(self, index: int, labels: List[QLabel]):
+        """更新网格密度"""
+        density = (index + 1) * 0.1  # 将索引转换为密度值
+        for label in labels:
+            if label in self.drawing_manager.measurement_managers:
+                if self.log_manager:
+                    self.log_manager.log_ui_operation("更新网格密度", f"密度: {density}, 视图: {label.objectName()}")
+                manager = self.drawing_manager.measurement_managers[label]
+                manager.set_grid(True, density)
+                # 重新渲染视图
+                self.update_view_with_current_frame(label)
+
+    def toggle_grid(self, show: bool, labels: List[QLabel]):
+        """切换网格显示状态"""
+        for label in labels:
+            if label in self.drawing_manager.measurement_managers:
+                if self.log_manager:
+                    self.log_manager.log_ui_operation("切换网格显示", f"显示: {show}, 视图: {label.objectName()}")
+                manager = self.drawing_manager.measurement_managers[label]
+                manager.set_grid(show)
+                # 重新渲染视图
+                self.update_view_with_current_frame(label)
+
+    def update_view_with_current_frame(self, label):
+        """使用当前帧更新视图"""
+        current_frame = self.get_current_frame_for_view(label)
+        if current_frame is not None:
+            manager = self.drawing_manager.measurement_managers[label]
+            display_frame = manager.layer_manager.render_frame(current_frame.copy())
+            if display_frame is not None:
+                self.update_view(label, display_frame)
+
+    def resizeEvent(self, event):
+        """窗口大小改变事件处理"""
+        super().resizeEvent(event)
+        
+        # 获取所有需要更新的视图标签
+        all_views = [
+            self.lbVerticalView, self.lbLeftView, self.lbFrontView,  # 主界面视图
+            self.lbVerticalView_2, self.lbLeftView_2, self.lbFrontView_2  # 选项卡视图
+        ]
+        
+        # 更新每个视图
+        for label in all_views:
+            if label in self.drawing_manager.measurement_managers:
+                self.update_view_with_current_frame(label)
 
 def main():
     app = QApplication(sys.argv)

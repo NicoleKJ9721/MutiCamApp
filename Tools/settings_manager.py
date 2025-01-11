@@ -3,8 +3,14 @@ import json
 import logging
 
 class SettingsManager:
-    def __init__(self, settings_file="./Settings/settings.json"):
+    def __init__(self, settings_file="./Settings/settings.json", log_manager=None):
+        """初始化设置管理器
+        Args:
+            settings_file (str): 设置文件路径
+            log_manager (LogManager, optional): 日志管理器实例
+        """
         self.settings_file = settings_file
+        self.log_manager = log_manager
         # 设置默认值
         self.default_settings = {
             # 相机参数
@@ -131,8 +137,11 @@ class SettingsManager:
         try:
             settings = self._get_current_settings(ui)
             self.save_settings_to_file(settings)
+            if self.log_manager:
+                self.log_manager.log_settings_operation("保存设置", "成功保存所有设置")
         except Exception as e:
-            logging.error(f"保存设置时出错: {str(e)}")
+            if self.log_manager:
+                self.log_manager.log_error(f"保存设置失败: {str(e)}")
 
     def _get_current_settings(self, ui):
         """获取当前UI中的所有设置值"""

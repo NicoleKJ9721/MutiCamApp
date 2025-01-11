@@ -5,10 +5,25 @@ import time
 
 class DrawingManager(QObject):
     def __init__(self, parent=None):
-        super().__init__(parent)
-        self.active_view = None
-        self.active_measurement = None
-        self.measurement_managers = {}  # 存储每个视图对应的测量管理器
+        try:
+            super().__init__(parent)
+            self.active_view = None
+            self.active_measurement = None
+            self.measurement_managers = {}  # 存储每个视图对应的测量管理器
+            self.log_manager = parent.log_manager if parent else None
+        except Exception as e:
+            if self.log_manager:
+                self.log_manager.log_error("DrawingManager初始化失败", str(e))
+            raise
+        
+    def safe_execute(self, func, *args, **kwargs):
+        """安全执行方法的装饰器"""
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            if self.log_manager:
+                self.log_manager.log_error(f"{func.__name__}执行失败", str(e))
+            return None
         
     def setup_view(self, label: QLabel, name: str):
         """为视图设置绘画功能"""
@@ -25,13 +40,20 @@ class DrawingManager(QObject):
         label.mouseDoubleClickEvent = lambda evt: self.parent().label_mouseDoubleClickEvent(evt, label)
         
     def start_line_measurement(self):
-        """启动直线测量模式"""
+        """启动线段测量模式"""
+        return self.safe_execute(self._start_line_measurement)
+
+    def _start_line_measurement(self):
+        if self.log_manager:
+            self.log_manager.log_drawing_operation("启动线段测量")
         for label, manager in self.measurement_managers.items():
             manager.start_line_measurement()
             label.setCursor(Qt.CrossCursor)
             
     def start_circle_measurement(self):
         """启动圆形测量模式"""
+        if self.log_manager:
+            self.log_manager.log_drawing_operation("启动圆形测量")
         for label, manager in self.measurement_managers.items():
             manager.start_circle_measurement()
             label.setCursor(Qt.CrossCursor)
@@ -43,15 +65,30 @@ class DrawingManager(QObject):
             label.setCursor(Qt.CrossCursor)
             
     def clear_drawings(self, label=None):
-        """清空绘画"""
+        """清空手动绘画"""
+        if self.log_manager:
+            self.log_manager.log_drawing_operation("清空绘画", f"视图: {label.objectName() if label else '所有'}")
         if label:
-            # 清空特定视图的绘画
+            # 清空特定视图的手动绘画
             if label in self.measurement_managers:
-                self.measurement_managers[label].clear_measurements()
+                manager = self.measurement_managers[label]
+                manager.layer_manager.clear_drawings()  # 只清空手动绘制
+                # 重新渲染视图
+                current_frame = self.parent().get_current_frame_for_view(label)
+                if current_frame is not None:
+                    display_frame = manager.layer_manager.render_frame(current_frame)
+                    if display_frame is not None:
+                        self.parent().update_view(label, display_frame)
         else:
-            # 清空所有视图的绘画
-            for manager in self.measurement_managers.values():
-                manager.clear_measurements()
+            # 清空所有视图的手动绘画
+            for label, manager in self.measurement_managers.items():
+                manager.layer_manager.clear_drawings()  # 只清空手动绘制
+                # 重新渲染视图
+                current_frame = self.parent().get_current_frame_for_view(label)
+                if current_frame is not None:
+                    display_frame = manager.layer_manager.render_frame(current_frame)
+                    if display_frame is not None:
+                        self.parent().update_view(label, display_frame)
                 
     def handle_mouse_press(self, event, label):
         """处理鼠标按下事件"""
@@ -159,3 +196,38 @@ class DrawingManager(QObject):
         for label, manager in self.measurement_managers.items():
             manager.start_line_detection()
             label.setCursor(Qt.CrossCursor) 
+            
+    def start_circle_detection(self):
+        """启动圆形检测模式"""
+        print("开始圆形检测")
+        for label, manager in self.measurement_managers.items():
+            manager.start_circle_detection()
+            label.setCursor(Qt.CrossCursor) 
+
+    def undo_last_drawing(self):
+        """撤销上一步手动绘制"""
+        active_view = self.parent().last_active_view
+        if active_view and active_view in self.measurement_managers:
+            if self.log_manager:
+                self.log_manager.log_drawing_operation("撤销绘制", f"视图: {active_view.objectName()}")
+            manager = self.measurement_managers[active_view]
+            if manager.layer_manager.undo_last_drawing():
+                current_frame = self.parent().get_current_frame_for_view(active_view)
+                if current_frame is not None:
+                    display_frame = manager.layer_manager.render_frame(current_frame)
+                    if display_frame is not None:
+                        self.parent().update_view(active_view, display_frame)
+                        
+    def undo_last_detection(self):
+        """撤销上一步自动检测"""
+        active_view = self.parent().last_active_view
+        if active_view and active_view in self.measurement_managers:
+            if self.log_manager:
+                self.log_manager.log_drawing_operation("撤销检测", f"视图: {active_view.objectName()}")
+            manager = self.measurement_managers[active_view]
+            if manager.layer_manager.undo_last_detection():
+                current_frame = self.parent().get_current_frame_for_view(active_view)
+                if current_frame is not None:
+                    display_frame = manager.layer_manager.render_frame(current_frame)
+                    if display_frame is not None:
+                        self.parent().update_view(active_view, display_frame)
