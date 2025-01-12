@@ -88,3 +88,24 @@ class LogManager:
                 f.write(log_message + '\n')
         except Exception as e:
             print(f"写入日志文件失败: {str(e)}") 
+
+    def log_drawing_operation(self, operation, details=""):
+        """记录绘图操作"""
+        message = f"绘图操作 - {operation}"
+        if details:
+            message += f" - 详情: {details}"
+        self.log(message)
+
+    def log_measurement_operation(self, operation, details=""):
+        """记录测量操作"""
+        message = f"测量操作 - {operation}"
+        if details:
+            message += f" - 详情: {details}"
+        self.log(message)
+
+    def log_settings_operation(self, operation, details=""):
+        """记录设置操作"""
+        message = f"设置操作 - {operation}"
+        if details:
+            message += f" - 详情: {details}"
+        self.log(message) 

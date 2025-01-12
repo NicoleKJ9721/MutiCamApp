@@ -1,6 +1,6 @@
 {
     "VerCamExposureTime": 800,
-    "LeftCamExposureTime": 2020,
+    "LeftCamExposureTime": 2000,
     "FrontCamExposureTime": 1200,
     "VerCamSN": "K02663713",
     "LeftCamSN": "Vir24413558",
@@ -15,7 +15,7 @@
     "LineDetMaxGap": 10,
     "CannyCircleLow": 50,
     "CannyCircleHigh": 150,
-    "CircleDetParam2": 30,
-    "UIWidth": 2300,
-    "UIHeight": 1400
+    "CircleDetParam2": 20,
+    "UIWidth": 2230,
+    "UIHeight": 1300
 }

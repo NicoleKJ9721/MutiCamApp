@@ -1,13 +1,12 @@
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-from PyQt5.QtCore import QObject, Qt, QPoint
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QObject, QPoint
 import cv2
 import numpy as np
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple, Optional
+from typing import List, Optional
 
 class DrawingType(Enum):
     LINE = "line"
@@ -17,6 +16,7 @@ class DrawingType(Enum):
     CIRCLE_LINE = "circle_line"
     TWO_LINES = "two_lines"
     LINE_DETECT = "line_detect"  # 添加直线检测类型
+    CIRCLE_DETECT = "circle_detect"  # 添加圆形检测类型
 
 @dataclass
 class DrawingObject:
@@ -27,10 +27,126 @@ class DrawingObject:
 
 class LayerManager:
     def __init__(self):
-        self.drawing_objects: List[DrawingObject] = []  # 所有绘制对象
-        self.current_object: Optional[DrawingObject] = None  # 当前正在绘制的对象
-        self.base_frame = None  # 基础帧（相机图像）
+        self.drawing_objects: List[DrawingObject] = []  # 手动绘制对象
+        self.detection_objects: List[DrawingObject] = []  # 自动检测对象
+        self.current_object: Optional[DrawingObject] = None
+        self.base_frame = None
+        self.show_grid = False  # 是否显示网格
+        self.grid_density = 0.1  # 网格密度（默认10%）
         
+    def set_grid(self, show: bool, density: float = 0.1):
+        """设置网格显示"""
+        self.show_grid = show
+        self.grid_density = density
+        
+    def _draw_grid(self, frame):
+        """绘制网格"""
+        if not self.show_grid:
+            return frame
+            
+        h, w = frame.shape[:2]
+        
+        # 计算网格间距
+        cell_size = int(min(w, h) * self.grid_density)
+        if cell_size < 10:  # 设置最小网格大小
+            cell_size = 10
+            
+        # 绘制垂直线
+        for x in range(0, w, cell_size):
+            cv2.line(frame, (x, 0), (x, h), (255, 0, 0), 1, cv2.LINE_AA)
+            
+        # 绘制水平线
+        for y in range(0, h, cell_size):
+            cv2.line(frame, (0, y), (w, y), (255, 0, 0), 1, cv2.LINE_AA)
+            
+        return frame
+        
+    def clear(self):
+        """清空所有绘制对象"""
+        self.drawing_objects = []
+        self.detection_objects = []
+        self.current_object = None
+
+    def clear_drawings(self):
+        """清空手动绘制"""
+        self.drawing_objects = []
+        
+    def clear_detections(self):
+        """清空自动检测"""
+        self.detection_objects = []
+        
+    def commit_drawing(self):
+        """提交当前绘制"""
+        if self.current_object:
+            if self.current_object.type in [DrawingType.LINE_DETECT, DrawingType.CIRCLE_DETECT]:
+                self.detection_objects.append(self.current_object)
+            else:
+                self.drawing_objects.append(self.current_object)
+            self.current_object = None
+            
+    def undo_last_drawing(self):
+        """撤销最后一次手动绘制"""
+        if self.drawing_objects:
+            self.drawing_objects.pop()
+            return True
+        return False
+        
+    def undo_last_detection(self):
+        """撤销最后一次自动检测"""
+        if self.detection_objects:
+            self.detection_objects.pop()
+            return True
+        return False
+        
+    def render_object(self, frame, obj: DrawingObject):
+        """渲染单个绘制对象"""
+        if obj is None or not obj.visible:
+            return
+            
+        # 根据对象类型调用相应的绘制方法
+        draw_methods = {
+            DrawingType.LINE: self._draw_line,
+            DrawingType.CIRCLE: self._draw_circle,
+            DrawingType.LINE_SEGMENT: self._draw_line_segment,
+            DrawingType.PARALLEL: self._draw_parallel,
+            DrawingType.CIRCLE_LINE: self._draw_circle_line,
+            DrawingType.TWO_LINES: self._draw_two_lines,
+            DrawingType.LINE_DETECT: self._draw_line_detect,
+            DrawingType.CIRCLE_DETECT: self._draw_circle_detect
+        }
+        
+        try:
+            draw_method = draw_methods.get(obj.type)
+            if draw_method:
+                draw_method(frame, obj)
+        except Exception as e:
+            print(f"渲染对象时出错: {str(e)}")
+
+    def render_frame(self, frame):
+        """渲染帧"""
+        if frame is None:
+            return None
+            
+        # 创建副本以避免修改原始帧
+        display_frame = frame.copy()
+        
+        # 首先绘制网格（如果启用）
+        display_frame = self._draw_grid(display_frame)
+        
+        # 渲染所有已完成的绘制对象
+        for obj in self.drawing_objects:
+            self.render_object(display_frame, obj)
+            
+        # 渲染所有检测对象
+        for obj in self.detection_objects:
+            self.render_object(display_frame, obj)
+            
+        # 渲染当前正在绘制的对象
+        if self.current_object:
+            self.render_object(display_frame, self.current_object)
+            
+        return display_frame
+
     def start_drawing(self, drawing_type: DrawingType, properties: dict):
         """开始新的绘制"""
         self.current_object = DrawingObject(
@@ -94,6 +210,13 @@ class LayerManager:
                         self.current_object.points.append(point)
                     else:
                         self.current_object.points[1] = point
+            elif self.current_object.type == DrawingType.CIRCLE_DETECT:
+                # 圆形检测模式处理
+                if len(self.current_object.points) < 2:
+                    if len(self.current_object.points) == 0:
+                        self.current_object.points.append(point)
+                    else:
+                        self.current_object.points[1] = point
             else:
                 # 其他模式保持不变
                 if len(self.current_object.points) == 0:
@@ -103,28 +226,6 @@ class LayerManager:
                 else:
                     self.current_object.points[1] = point
             
-    def commit_drawing(self):
-        """提交当前绘制"""
-        if self.current_object:
-            self.drawing_objects.append(self.current_object)
-            self.current_object = None
-            
-    def render_frame(self, base_frame):
-        """渲染当前帧"""
-        # 创建显示帧
-        display_frame = base_frame.copy()
-        
-        # 绘制所有永久对象
-        for obj in self.drawing_objects:
-            if obj.visible:
-                self._draw_object(display_frame, obj)
-                
-        # 绘制当前临时对象
-        if self.current_object:
-            self._draw_object(display_frame, self.current_object)
-            
-        return display_frame
-    
     def _draw_line(self, frame, obj: DrawingObject):
         """绘制直线"""
         if len(obj.points) >= 1:
@@ -364,41 +465,79 @@ class LayerManager:
             cv2.circle(frame, (p1.x(), p1.y()), radius, obj.properties['color'], -1)
             cv2.circle(frame, (p2.x(), p2.y()), radius, obj.properties['color'], -1)
             
-            # 计算长度
+            # 计算长度和角度
             length = np.sqrt((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)
+            # 计算与水平线的夹角
+            angle = np.degrees(np.arctan2(-(p2.y() - p1.y()), p2.x() - p1.x()))  # 取负是因为y轴向下为正
+            if angle < 0:
+                angle += 180
             
             # 计算文字位置（线段中点）
-            text_x = (p1.x() + p2.x()) // 2
+            text_x = (p1.x() + p2.x()) // 2 + 40  # 向右偏移，避免与线重叠
             text_y = (p1.y() + p2.y()) // 2
             
-            # 绘制长度文本
-            text = f"{length:.1f}px"
+            # 准备文本
+            dist_text = f"{length:.1f}px"
+            angle_text = f"{angle:.1f}"
+            
+            # 设置文本参数
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 0.8
             thickness = max(1, obj.properties['thickness'] - 1)
-            (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+            
+            # 计算文本大小
+            (dist_width, text_height), baseline = cv2.getTextSize(dist_text, font, font_scale, thickness)
+            (angle_width, _), _ = cv2.getTextSize(angle_text, font, font_scale, thickness)
+            
+            # 计算度数符号的额外空间和最大宽度
+            dot_space = 10
+            max_width = max(dist_width, angle_width + dot_space)
+            line_spacing = 10
             
             # 绘制文本背景
-            padding = 6
-            bg_x1 = text_x - text_width//2 - padding
-            bg_y1 = text_y - text_height//2 - padding
-            bg_x2 = text_x + text_width//2 + padding
-            bg_y2 = text_y + text_height//2 + padding
-            cv2.rectangle(frame, 
-                         (int(bg_x1), int(bg_y1)), 
-                         (int(bg_x2), int(bg_y2)), 
-                         (0, 0, 0), 
+            padding = 2
+            total_height = text_height * 2 + line_spacing + padding
+            cv2.rectangle(frame,
+                         (int(text_x - max_width//2 - padding), 
+                          int(text_y - total_height)),
+                         (int(text_x + max_width//2 + padding), 
+                          int(text_y + text_height + padding)),
+                         (0, 0, 0),
                          -1)
             
-            # 绘制文本
-            cv2.putText(frame, 
-                       text,
-                       (int(text_x - text_width//2), int(text_y + text_height//2)),
+            # 绘制距离文本（第一行）
+            dist_x = text_x - dist_width//2
+            dist_y = text_y - text_height - line_spacing
+            cv2.putText(frame,
+                       dist_text,
+                       (int(dist_x), int(dist_y + text_height//2)),
                        font,
                        font_scale,
                        obj.properties['color'],
                        thickness,
                        cv2.LINE_AA)
+            
+            # 绘制角度文本（第二行）
+            angle_x = text_x - (angle_width + dot_space)//2
+            angle_y = text_y
+            cv2.putText(frame,
+                       angle_text,
+                       (int(angle_x), int(angle_y + text_height//2)),
+                       font,
+                       font_scale,
+                       obj.properties['color'],
+                       thickness,
+                       cv2.LINE_AA)
+            
+            # 绘制度数符号（空心圆）
+            dot_x = angle_x + angle_width + 3
+            dot_y = angle_y - text_height//2 + 3
+            cv2.circle(frame,
+                      (int(dot_x), int(dot_y)),
+                      3,
+                      obj.properties['color'],
+                      1,
+                      cv2.LINE_AA)
 
     def _draw_current_line_segment(self, frame, obj: DrawingObject):
         """绘制当前正在绘制的线段"""
@@ -818,21 +957,12 @@ class LayerManager:
             DrawingType.CIRCLE_LINE: self._draw_circle_line,
             DrawingType.TWO_LINES: self._draw_two_lines,
             DrawingType.LINE_DETECT: self._draw_line_detect,  # 添加直线检测
+            DrawingType.CIRCLE_DETECT: self._draw_circle_detect,  # 添加圆形检测
         }
         
         if obj.type in draw_methods:
             draw_methods[obj.type](frame, obj)
         
-    def undo(self):
-        """撤销操作"""
-        if self.drawing_objects:
-            self.drawing_objects.pop()
-            
-    def clear(self):
-        """清空所有绘制"""
-        self.drawing_objects.clear()
-        self.current_object = None 
-
     def _draw_two_lines(self, frame, obj: DrawingObject):
         """绘制两条线的夹角测量"""
         if len(obj.points) >= 2:
@@ -1027,8 +1157,7 @@ class LayerManager:
     def _draw_line_detect(self, frame, obj: DrawingObject):
         """绘制直线检测"""
         if len(obj.points) >= 2:
-            p1 = obj.points[0]
-            p2 = obj.points[1]
+            p1, p2 = obj.points[:2]
             
             if obj.properties.get('is_roi', True):
                 # 绘制ROI框
@@ -1065,10 +1194,225 @@ class LayerManager:
                             obj.properties['color'],
                             obj.properties['thickness'],
                             cv2.LINE_AA)
+                    
+                     # 计算角度
+                    dx = p2.x() - p1.x()
+                    dy = p2.y() - p1.y()
+                    angle = np.degrees(np.arctan2(-dy, dx))  # 使用-dy是因为y轴向下为正
+                    if angle < 0:
+                        angle += 180
+                    
+                    # 绘制文本（带背景）
+                    text = f"{angle:.1f}"
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.8
+                    thickness = 1
+                    (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+                    
+                    # 计算直线中点
+                    mid_x = (p1.x() + p2.x()) // 2
+                    mid_y = (p1.y() + p2.y()) // 2
+                    
+                    # 计算文本位置（在直线中点的上方）
+                    text_x = mid_x - text_width // 2  # 文本水平居中
+                    text_y = mid_y - text_height - 10  # 文本在线段上方
+                    
+                    # 计算度数圆点的位置
+                    dot_x = text_x + text_width + 5
+                    dot_y = text_y - text_height + 3
+                    
+                    # 绘制文本背景
+                    padding = 6
+                    cv2.rectangle(frame,
+                                (int(text_x - padding), int(text_y - text_height - padding)),
+                                (int(dot_x + 2 + padding), int(text_y + padding)),
+                                (0, 0, 0),
+                                -1)
+                    
+                    # 绘制文本
+                    cv2.putText(frame,
+                            text,
+                            (text_x, text_y),
+                            font,
+                            font_scale,
+                            obj.properties['color'],
+                            thickness,
+                            cv2.LINE_AA)
+                    
+                    # 绘制度数圆点
+                    cv2.circle(frame,
+                            (int(dot_x), int(dot_y)),
+                            3,
+                            obj.properties['color'],
+                            1,
+                            cv2.LINE_AA)
+
+    def _detect_circle_in_roi(self, frame, roi_points):
+        """在ROI区域内检测圆形"""
+        try:
+            # 从 settings.json 读取参数
+            from Tools.settings_manager import SettingsManager
+            settings = SettingsManager()
+            settings_dict = settings.load_settings_from_file()
+            
+            # 获取参数
+            canny_low = int(settings_dict.get('CannyCircleLow', 100))
+            canny_high = int(settings_dict.get('CannyCircleHigh', 200))
+            circle_threshold = int(settings_dict.get('CircleDetParam2', 15))
+            
+            # 获取ROI区域的坐标
+            x1, y1 = roi_points[0].x(), roi_points[0].y()
+            x2, y2 = roi_points[1].x(), roi_points[1].y()
+            
+            # 确保坐标正确排序
+            x_min, x_max = min(x1, x2), max(x1, x2)
+            y_min, y_max = min(y1, y2), max(y1, y2)
+            
+            # 计算ROI尺寸
+            roi_width = abs(x_max - x_min)
+            roi_height = abs(y_max - y_min)
+            roi_radius = min(roi_width, roi_height) // 2
+            
+            # 确保ROI区域有效
+            if roi_width < 10 or roi_height < 10:
+                print("ROI区域太小")
+                return None
+            
+            # 提取ROI区域
+            roi = frame[y_min:y_max, x_min:x_max]
+            if roi.size == 0:
+                print("ROI区域无效")
+                return None
+            
+            # 转换为灰度图
+            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            
+            # 二值化处理
+            _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+            
+            # 形态学操作改善圆形
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+            binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+            
+            # 边缘检测
+            edges = cv2.Canny(binary, canny_low, canny_high)
+            
+            # 霍夫圆变换检测圆形
+            circles = cv2.HoughCircles(
+                edges,
+                cv2.HOUGH_GRADIENT,
+                dp=1,
+                minDist=roi_radius,
+                param1=canny_high,
+                param2=circle_threshold,
+                minRadius=10,
+                maxRadius=roi_radius
+            )
+            
+            if circles is not None:
+                print(f"检测到 {len(circles[0])} 个圆")  # 调试信息
+                # 只取准确率最高的一个圆
+                best_circle = circles[0][0]
+                center_x = int(best_circle[0]) + x_min
+                center_y = int(best_circle[1]) + y_min
+                radius = int(best_circle[2])
+                return {'center_x': center_x, 'center_y': center_y, 'radius': radius}
+            else:
+                print("未检测到圆形")
+                return None
+            
+        except Exception as e:
+            print(f"圆形检测失败: {str(e)}")
+            return None
+    
+    def _draw_circle_detect(self, frame, obj: DrawingObject):
+        """绘制圆形检测"""
+        try:
+            if len(obj.points) >= 2:
+                p1 = obj.points[0]
+                p2 = obj.points[1]
+                
+                if obj.properties.get('is_roi', True):
+                    # 绘制临时ROI圆形框
+                    x1, y1 = p1.x(), p1.y()
+                    x2, y2 = p2.x(), p2.y()
+                    center_x = (x1 + x2) // 2
+                    center_y = (y1 + y2) // 2
+                    radius = int(np.sqrt((x2-x1)**2 + (y2-y1)**2) / 2)
+                    
+                    cv2.circle(frame,
+                              (center_x, center_y),
+                              radius,
+                              obj.properties['color'],
+                              2,
+                              cv2.LINE_AA)
+                elif obj.properties.get('circle_detected', False):  # 只有在确认检测到圆时才绘制
+                    # 绘制检测到的圆
+                    center_x = obj.properties.get('center_x', 0)
+                    center_y = obj.properties.get('center_y', 0)
+                    radius = obj.properties.get('radius', 0)
+                    
+                    # 绘制圆形
+                    cv2.circle(frame,
+                             (int(center_x), int(center_y)),
+                             int(radius),
+                             obj.properties['color'],
+                             obj.properties['thickness'],
+                             cv2.LINE_AA)
+                    
+                    # 绘制圆心十字标记
+                    cross_size = 5
+                    cv2.line(frame,
+                            (int(center_x - cross_size), int(center_y)),
+                            (int(center_x + cross_size), int(center_y)),
+                            obj.properties['color'],
+                            1,
+                            cv2.LINE_AA)
+                    cv2.line(frame,
+                            (int(center_x), int(center_y - cross_size)),
+                            (int(center_x), int(center_y + cross_size)),
+                            obj.properties['color'],
+                            1,
+                            cv2.LINE_AA)
+                    
+                    # 显示半径信息
+                    text = f"R={radius:.1f}"
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.8
+                    thickness = 1
+                    
+                    # 获取文本大小
+                    (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+                    
+                    # 计算文本位置(在圆心右上方)
+                    text_x = int(center_x + 10)
+                    text_y = int(center_y - 10)
+                    
+                    # 绘制文本背景
+                    padding = 6
+                    cv2.rectangle(frame,
+                                (text_x - padding, text_y - text_height - padding),
+                                (text_x + text_width + padding, text_y + padding),
+                                (0, 0, 0),
+                                -1)
+                    
+                    # 绘制文本
+                    cv2.putText(frame,
+                              text,
+                              (text_x, text_y),
+                              font,
+                              font_scale,
+                              obj.properties['color'],
+                              thickness,
+                              cv2.LINE_AA)
+        except Exception as e:
+            if str(e) != "0":  # 只打印非0错误
+                print(f"绘制圆形检测时出错: {str(e)}")
 
 class MeasurementManager(QObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.log_manager = parent.log_manager if parent else None
         self.layer_manager = LayerManager()
         self.drawing = False
         self.draw_mode = None
@@ -1104,12 +1448,31 @@ class MeasurementManager(QObject):
         self.draw_mode = DrawingType.TWO_LINES
         self.drawing = False
 
+    def start_line_detection(self):
+        """启动直线检测模式"""
+        if self.log_manager:
+            self.log_manager.log_measurement_operation("启动直线检测")
+        self.draw_mode = DrawingType.LINE_DETECT
+        self.drawing = False 
+        
+    def start_circle_detection(self):
+        """启动圆形检测模式"""
+        if self.log_manager:
+            self.log_manager.log_measurement_operation("启动圆形检测")
+        self.draw_mode = DrawingType.CIRCLE_DETECT
+        self.drawing = False 
+
     def clear_measurements(self):
-        """清除所有测量"""
-        self.layer_manager.clear()
-        self.drawing = False
+        """清空所有测量"""
         self.draw_mode = None
-        self.drawing_history.clear()  # 清空绘画历史
+        self.drawing = False
+        self.layer_manager.clear()  # 保留此方法用于完全清空
+        
+    def clear_drawings(self):
+        """只清空手动绘制"""
+        self.draw_mode = None
+        self.drawing = False
+        self.layer_manager.clear_drawings()  # 只清空手动绘制
 
     def undo_last_drawing(self):
         """撤销上一步绘制"""
@@ -1125,10 +1488,21 @@ class MeasurementManager(QObject):
             if not self.layer_manager.current_object:
                 self.drawing = True
                 properties = {
-                    'color': (255, 190, 0),  # RGB格式：暗黄色
+                    'color': (0, 255, 255),  # RGB格式：青色
                     'thickness': 2,
                     'line_detected': False,  # 标记是否已检测到直线
                     'is_roi': True  # 标记当前是ROI框阶段
+                }
+                self.layer_manager.start_drawing(self.draw_mode, properties)
+                self.layer_manager.current_object.points.append(event_pos)
+            return self.layer_manager.render_frame(current_frame)
+        elif self.draw_mode == DrawingType.CIRCLE_DETECT:
+            # 圆形检测模式
+            if not self.layer_manager.current_object:
+                self.drawing = True
+                properties = {
+                    'color': (0, 255, 255),  # RGB格式：青色
+                    'thickness': 2
                 }
                 self.layer_manager.start_drawing(self.draw_mode, properties)
                 self.layer_manager.current_object.points.append(event_pos)
@@ -1200,6 +1574,12 @@ class MeasurementManager(QObject):
                     self.layer_manager.current_object.points.append(event_pos)
                 else:
                     self.layer_manager.current_object.points[1] = event_pos
+            elif self.draw_mode == DrawingType.CIRCLE_DETECT:
+                # 圆形检测模式 - 绘制圆形ROI
+                if len(self.layer_manager.current_object.points) == 1:
+                    self.layer_manager.current_object.points.append(event_pos)
+                else:
+                    self.layer_manager.current_object.points[1] = event_pos
             elif self.draw_mode == DrawingType.TWO_LINES:
                 # 两线夹角测量模式
                 current_obj = self.layer_manager.current_object
@@ -1229,6 +1609,7 @@ class MeasurementManager(QObject):
                         self.layer_manager.current_object.points.append(event_pos)
                     else:
                         self.layer_manager.current_object.points[3] = event_pos
+                return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.PARALLEL:
                 # 保持平行线模式处理不变
                 if len(self.layer_manager.current_object.points) <= 2:
@@ -1264,6 +1645,37 @@ class MeasurementManager(QObject):
                 if detected_points:
                     self.layer_manager.current_object.points = detected_points
                     self.layer_manager.current_object.properties['line_detected'] = True
+                
+                self.layer_manager.commit_drawing()
+                self.drawing = False
+                return self.layer_manager.render_frame(current_frame)
+            elif self.draw_mode == DrawingType.CIRCLE_DETECT:
+                # 圆形检测模式
+                if len(self.layer_manager.current_object.points) == 1:
+                    self.layer_manager.current_object.points.append(event_pos)
+                else:
+                    self.layer_manager.current_object.points[1] = event_pos
+                
+                # 设置标记，准备进行圆形检测
+                self.layer_manager.current_object.properties['is_roi'] = False
+                
+                # 立即进行圆形检测
+                detected_circle = self.layer_manager._detect_circle_in_roi(current_frame, 
+                                                                       self.layer_manager.current_object.points)
+                if detected_circle:
+                    # 更新当前对象的属性
+                    self.layer_manager.current_object.properties.update(detected_circle)
+                    self.layer_manager.current_object.properties['circle_detected'] = True
+                    
+                    # 创建新的点列表,使用检测到的圆心
+                    center_x = detected_circle['center_x']
+                    center_y = detected_circle['center_y']
+                    self.layer_manager.current_object.points = [
+                        QPoint(center_x, center_y),
+                        QPoint(center_x + detected_circle['radius'], center_y)  # 用于确定半径的点
+                    ]
+                    
+                    print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}")
                 
                 self.layer_manager.commit_drawing()
                 self.drawing = False
@@ -1319,16 +1731,6 @@ class MeasurementManager(QObject):
             return self.layer_manager.render_frame(current_frame)
         return None 
 
-    def draw_measurement_line(self, img, pt1, pt2, color, is_dashed=False):
-        """
-        绘制测量线
-        """
-        if is_dashed:
-            self.draw_dashed_line(img, pt1, pt2, color, thickness=2)
-        else:
-            cv2.line(img, pt1, pt2, color, 2, cv2.LINE_AA) 
-
-    def start_line_detection(self):
-        """启动直线检测模式"""
-        self.draw_mode = DrawingType.LINE_DETECT
-        self.drawing = False 
+    def set_grid(self, show: bool, density: float = 0.1):
+        """设置网格显示"""
+        self.layer_manager.set_grid(show, density)
