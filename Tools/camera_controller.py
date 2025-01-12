@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy as np
 from ctypes import *
+import os
 sys.path.append("./Development/Samples/Python/MvImport")
 
 from MvCameraControl_class import *
@@ -15,10 +16,16 @@ CALL_BACK_FUN = CFUNCTYPE(None, c_void_p, POINTER(MV_FRAME_OUT_INFO_EX), c_void_
 
 class HikiCamera:
     def __init__(self, serial_number=None):
-        """初始化相机
-        Args:
-            serial_number (str, optional): 相机序列号。如果提供，将自动尝试打开该相机
-        """
+        """初始化相机"""
+        # 强制使用64位DLL
+        if sys.maxsize > 2**32:  # 如果是64位Python
+            dll_path = r'C:\Program Files (x86)\Common Files\MVS\Runtime\Win64_x64'
+            # 将64位DLL路径放在PATH的最前面
+            if dll_path not in os.environ['PATH']:
+                os.environ['PATH'] = dll_path + os.pathsep + os.environ['PATH']
+            # 显式设置DLL搜索路径
+            os.add_dll_directory(dll_path)
+        
         self.cam = None
         self.device_list = None
         self.nPayloadSize = None
@@ -38,66 +45,130 @@ class HikiCamera:
                 print(f"无法自动打开序列号为 {serial_number} 的相机")
         
     def enum_devices(self):
-        """枚举设备，同时支持USB和GigE相机"""
+        """枚举所有设备"""
+        print("\n=== 开始诊断 ===")
+        print(f"当前工作目录: {os.getcwd()}")
+        print(f"Python版本: {sys.version}")
+        print(f"系统架构: {'64 bit' if sys.maxsize > 2**32 else '32 bit'}")
+        
+        # 检查DLL文件
+        dll_paths = [
+            r"C:\Program Files (x86)\Common Files\MVS\Runtime\Win64_x64\MvCameraControl.dll",
+            r"C:\Program Files (x86)\Common Files\MVS\Runtime\Win32_i86\MvCameraControl.dll",
+            os.path.join(os.getcwd(), "MvCameraControl.dll")
+        ]
+        
+        print("\n检查DLL文件:")
+        found_dlls = []
+        for path in dll_paths:
+            if os.path.exists(path):
+                found_dlls.append(path)
+                print(f"找到DLL: {path}")
+                # 检查DLL位数
+                try:
+                    import pefile
+                    pe = pefile.PE(path)
+                    is_64 = pe.FILE_HEADER.Machine == pefile.MACHINE_TYPE['IMAGE_FILE_MACHINE_AMD64']
+                    print(f"  DLL架构: {'64位' if is_64 else '32位'}")
+                except ImportError:
+                    print("  无法检查DLL架构（需要安装pefile包）")
+            else:
+                print(f"未找到DLL: {path}")
+        
+        print("\n检查环境变量PATH:")
+        path_dirs = os.environ['PATH'].split(';')
+        mvs_dirs = []
+        for dir in path_dirs:
+            if 'MVS' in dir:
+                mvs_dirs.append(dir)
+                print(f"发现MVS相关目录: {dir}")
+                if os.path.exists(dir):
+                    dlls = [f for f in os.listdir(dir) if f.endswith('.dll')]
+                    print(f"  目录存在，包含 {len(dlls)} 个DLL文件:")
+                    for dll in dlls:
+                        print(f"    - {dll}")
+                else:
+                    print(f"  目录不存在")
+        
+        if not found_dlls:
+            print("\n警告: 未找到任何MvCameraControl.dll!")
+            print("建议:")
+            print("1. 确保已安装海康相机SDK")
+            print("2. 检查SDK安装路径是否正确")
+            if sys.maxsize > 2**32:
+                print("3. 当前Python为64位，请确保安装了64位SDK")
+            else:
+                print("3. 当前Python为32位，请确保安装了32位SDK")
+        
+        if not mvs_dirs:
+            print("\n警告: 环境变量PATH中未找到MVS目录!")
+            print("建议将SDK运行时目录添加到系统环境变量PATH中")
+        
+        print("\n开始枚举设备...")
+        
+        print("尝试枚举GigE设备...")
+        deviceList_gige = MV_CC_DEVICE_INFO_LIST()
+        ret_gige = MvCamera.MV_CC_EnumDevices(MV_GIGE_DEVICE, deviceList_gige)
+        if ret_gige == 0:
+            print(f"找到 {deviceList_gige.nDeviceNum} 个GigE设备")
+        else:
+            error_code = ret_gige & 0xFFFFFFFF
+            print(f"枚举GigE设备失败: {ret_gige} (0x{error_code:08X})")
+            deviceList_gige.nDeviceNum = 0  # 确保失败时设备数为0
+        
+        print("\n尝试枚举USB设备...")
+        deviceList_usb = MV_CC_DEVICE_INFO_LIST()
+        ret_usb = MvCamera.MV_CC_EnumDevices(MV_USB_DEVICE, deviceList_usb)
+        if ret_usb == 0:
+            print(f"找到 {deviceList_usb.nDeviceNum} 个USB设备")
+        else:
+            error_code = ret_usb & 0xFFFFFFFF
+            print(f"枚举USB设备失败: {ret_usb} (0x{error_code:08X})")
+            deviceList_usb.nDeviceNum = 0  # 确保失败时设备数为0
+        
+        print("\n=== 诊断结束 ===\n")
+        
+        # 创建合并的设备列表
         deviceList = MV_CC_DEVICE_INFO_LIST()
+        total_devices = deviceList_gige.nDeviceNum + deviceList_usb.nDeviceNum
         
-        # 枚举所有设备
-        ret = MvCamera.MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, deviceList)
-        if ret != 0:
-            print(f"枚举设备失败! ret={ret}")
-            return False
+        if total_devices == 0:
+            print("未找到任何设备!")
+            return None
         
-        if deviceList.nDeviceNum == 0:
-            print("没有找到设备!")
-            return False
+        deviceList.nDeviceNum = total_devices
         
-        self.device_list = deviceList
-        print(f"找到 {deviceList.nDeviceNum} 个设备!")
+        # 复制设备信息
+        for i in range(deviceList_gige.nDeviceNum):
+            deviceList.pDeviceInfo[i] = deviceList_gige.pDeviceInfo[i]
         
-        # 打印每个相机的信息
-        for i in range(deviceList.nDeviceNum):
+        for i in range(deviceList_usb.nDeviceNum):
+            deviceList.pDeviceInfo[deviceList_gige.nDeviceNum + i] = deviceList_usb.pDeviceInfo[i]
+        
+        self.device_list = deviceList  # 保存设备列表
+        
+        # 打印找到的设备信息
+        print(f"\n总共找到 {total_devices} 个设备:")
+        for i in range(total_devices):
             mvcc_dev_info = cast(deviceList.pDeviceInfo[i], POINTER(MV_CC_DEVICE_INFO)).contents
             if mvcc_dev_info.nTLayerType == MV_GIGE_DEVICE:
                 print(f"\nGigE设备序号: {i}")
-                strModeName = ""
-                for per in mvcc_dev_info.SpecialInfo.stGigEInfo.chModelName:
-                    if per == 0:
-                        break
-                    strModeName = strModeName + chr(per)
-                # print(f"设备型号名: {strModeName}")
-                
-                nip1 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0xff000000) >> 24)
-                nip2 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x00ff0000) >> 16)
-                nip3 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x0000ff00) >> 8)
-                nip4 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff)
-                print(f"当前IP: {nip1}.{nip2}.{nip3}.{nip4}")
-                
-                # 获取序列号
                 strSerialNumber = ""
                 for per in mvcc_dev_info.SpecialInfo.stGigEInfo.chSerialNumber:
                     if per == 0:
                         break
                     strSerialNumber = strSerialNumber + chr(per)
                 print(f"序列号: {strSerialNumber}")
-                
             elif mvcc_dev_info.nTLayerType == MV_USB_DEVICE:
                 print(f"\nUSB设备序号: {i}")
-                strModeName = ""
-                for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chModelName:
-                    if per == 0:
-                        break
-                    strModeName = strModeName + chr(per)
-                print(f"设备型号名: {strModeName}")
-                
-                # 获取序列号
                 strSerialNumber = ""
                 for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chSerialNumber:
                     if per == 0:
                         break
                     strSerialNumber = strSerialNumber + chr(per)
                 print(f"序列号: {strSerialNumber}")
-                
-        return True
+        
+        return deviceList
 
     def open_camera(self, device_index=0):
         """打开相机"""
