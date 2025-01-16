@@ -621,6 +621,11 @@ class MainApp(QMainWindow, Ui_MainWindow):
             origin_path = os.path.join(save_dir, origin_filename)
             cv2.imwrite(origin_path, cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR))
             print(f"原始图像已保存: {origin_filename}")
+            # 记录原始图像保存成功的日志
+            self.log_manager.log_ui_operation(
+                "保存原始图像成功",
+                f"文件路径: {origin_path}"
+            )
             
             # 获取可视化图像（原始图像 + 绘画）
             measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
@@ -646,8 +651,18 @@ class MainApp(QMainWindow, Ui_MainWindow):
                     
                     print(f"图像已保存到: {save_dir}")
                     print(f"可视化图像: {visual_filename}")
+                    # 记录可视化图像保存成功的日志
+                    self.log_manager.log_ui_operation(
+                        "保存可视化图像成功",
+                        f"文件路径: {visual_path}"
+                    )
                 else:
                     print("保存原始图像成功，没有可视化内容需要保存")
+                    # 记录无可视化内容的日志
+                    self.log_manager.log_ui_operation(
+                        "保存可视化图像跳过",
+                        "没有可视化内容需要保存"
+                    )
                 
                 # 重新渲染视图（恢复网格显示）
                 self.update_view_with_current_frame(view_label)
