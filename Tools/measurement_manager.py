@@ -53,11 +53,11 @@ class LayerManager:
             
         # 绘制垂直线
         for x in range(0, w, cell_size):
-            cv2.line(frame, (x, 0), (x, h), (255, 0, 0), 1, cv2.LINE_AA)
+            cv2.line(frame, (x, 0), (x, h), (255, 0, 0), 2, cv2.LINE_AA)
             
         # 绘制水平线
         for y in range(0, h, cell_size):
-            cv2.line(frame, (0, y), (w, y), (255, 0, 0), 1, cv2.LINE_AA)
+            cv2.line(frame, (0, y), (w, y), (255, 0, 0), 2, cv2.LINE_AA)
             
         return frame
         
