@@ -27,8 +27,9 @@ class DrawingManager(QObject):
         
     def setup_view(self, label: QLabel, name: str):
         """为视图设置绘画功能"""
-        # 创建测量管理器
-        self.measurement_managers[label] = MeasurementManager()
+        # 创建测量管理器时传入 DrawingManager 实例本身，而不是 parent
+        measurement_manager = MeasurementManager(self)
+        self.measurement_managers[label] = measurement_manager
         
         # 启用鼠标追踪
         label.setMouseTracking(True)
@@ -44,16 +45,12 @@ class DrawingManager(QObject):
         return self.safe_execute(self._start_line_measurement)
 
     def _start_line_measurement(self):
-        if self.log_manager:
-            self.log_manager.log_drawing_operation("启动线段测量")
         for label, manager in self.measurement_managers.items():
             manager.start_line_measurement()
             label.setCursor(Qt.CrossCursor)
             
     def start_circle_measurement(self):
         """启动圆形测量模式"""
-        if self.log_manager:
-            self.log_manager.log_drawing_operation("启动圆形测量")
         for label, manager in self.measurement_managers.items():
             manager.start_circle_measurement()
             label.setCursor(Qt.CrossCursor)
@@ -172,6 +169,7 @@ class DrawingManager(QObject):
         
     def start_parallel_measurement(self):
         """启动平行线测量模式"""
+        print("启动平行线测量")
         for label, manager in self.measurement_managers.items():
             manager.start_parallel_measurement()
             label.setCursor(Qt.CrossCursor) 
@@ -195,11 +193,11 @@ class DrawingManager(QObject):
         print("启动直线检测")
         for label, manager in self.measurement_managers.items():
             manager.start_line_detection()
-            label.setCursor(Qt.CrossCursor) 
+            label.setCursor(Qt.CrossCursor)
             
     def start_circle_detection(self):
         """启动圆形检测模式"""
-        print("开始圆形检测")
+        print("启动圆形检测")
         for label, manager in self.measurement_managers.items():
             manager.start_circle_detection()
             label.setCursor(Qt.CrossCursor) 

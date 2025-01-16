@@ -30,12 +30,14 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.current_frame_left = None
         self.current_frame_front = None
         
-        # 初始化管理器
+        # 确保log_manager最先初始化
         self.log_manager = LogManager()
+        
+        # 创建 DrawingManager，传入 self（MainApp实例）
+        self.drawing_manager = DrawingManager(self)
         
         # 修改这里：传入settings_file参数
         self.settings_manager = SettingsManager(settings_file="./Settings/settings.json", log_manager=self.log_manager)
-        self.drawing_manager = DrawingManager(self)  # self包含log_manager
         
         # 先加载设置
         self.settings_manager.load_settings(self)
@@ -60,12 +62,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.left_camera_thread = None
         self.front_camera_thread = None
 
-        # 初始化测量管理器
-        self.ver_measurement = MeasurementManager()
-        self.left_measurement = MeasurementManager()
-        self.front_measurement = MeasurementManager()
-        self.ver_measurement_2 = MeasurementManager()
-        
         # 当前活动的视图
         self.active_view = None
         self.active_measurement = None

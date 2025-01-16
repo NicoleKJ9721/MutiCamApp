@@ -144,8 +144,18 @@ class SettingsManager:
                 self.log_manager.log_error(f"保存设置失败: {str(e)}")
 
     def _get_current_settings(self, ui):
-        """获取当前UI中的所有设置值"""
-        settings = {
+        """获取当前UI中的所有设置值并记录更改"""
+        old_settings = {}
+        try:
+            # 如果存在旧设置文件，读取它
+            if os.path.exists(self.settings_file):
+                with open(self.settings_file, 'r', encoding='utf-8') as f:
+                    old_settings = json.load(f)
+        except Exception:
+            old_settings = self.default_settings
+
+        # 获取新设置
+        new_settings = {
             # 相机参数
             "VerCamExposureTime": int(ui.ledVerCamExposureTime.text()),
             "LeftCamExposureTime": int(ui.ledLeftCamExposureTime.text()),
@@ -173,7 +183,18 @@ class SettingsManager:
             "UIWidth": int(ui.ledUIWidth.text()),
             "UIHeight": int(ui.ledUIHeight.text())
         }
-        return settings
+
+        # 比较并记录更改
+        if self.log_manager:
+            for key, new_value in new_settings.items():
+                old_value = old_settings.get(key, self.default_settings.get(key))
+                if new_value != old_value:
+                    self.log_manager.log_settings_operation(
+                        f"参数修改: {key}",
+                        f"从 {old_value} 改为 {new_value}"
+                    )
+
+        return new_settings
 
     def save_settings_to_file(self, settings):
         """将设置保存到文件"""

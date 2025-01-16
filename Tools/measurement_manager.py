@@ -1142,7 +1142,8 @@ class LayerManager:
                         QPoint(x1 + x_min, y1 + y_min),
                         QPoint(x2 + x_min, y2 + y_min)
                     ]
-            
+                
+            print("未检测到直线")
             return None
         
         except Exception as e:
@@ -1168,84 +1169,85 @@ class LayerManager:
                              2,
                              cv2.LINE_AA)
             else:
-                # 绘制检测到的直线（延伸到图像边界）
-                height, width = frame.shape[:2]
-                max_length = int(np.sqrt(width**2 + height**2))
-                
-                # 计算直线方向向量
-                dx = p2.x() - p1.x()
-                dy = p2.y() - p1.y()
-                
-                if dx != 0 or dy != 0:
-                    # 计算单位向量
-                    length = np.sqrt(dx*dx + dy*dy)
-                    dx, dy = dx/length, dy/length
+                if obj.properties.get('line_detected', False):
+                    # 绘制检测到的直线（延伸到图像边界）
+                    height, width = frame.shape[:2]
+                    max_length = int(np.sqrt(width**2 + height**2))
                     
-                    # 计算延长线的起点和终点
-                    start_x = int(p1.x() - dx * max_length)
-                    start_y = int(p1.y() - dy * max_length)
-                    end_x = int(p1.x() + dx * max_length)
-                    end_y = int(p1.y() + dy * max_length)
-                    
-                    # 绘制延长线
-                    cv2.line(frame,
-                            (start_x, start_y),
-                            (end_x, end_y),
-                            obj.properties['color'],
-                            obj.properties['thickness'],
-                            cv2.LINE_AA)
-                    
-                     # 计算角度
+                    # 计算直线方向向量
                     dx = p2.x() - p1.x()
                     dy = p2.y() - p1.y()
-                    angle = np.degrees(np.arctan2(-dy, dx))  # 使用-dy是因为y轴向下为正
-                    if angle < 0:
-                        angle += 180
                     
-                    # 绘制文本（带背景）
-                    text = f"{angle:.1f}"
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.8
-                    thickness = 1
-                    (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
-                    
-                    # 计算直线中点
-                    mid_x = (p1.x() + p2.x()) // 2
-                    mid_y = (p1.y() + p2.y()) // 2
-                    
-                    # 计算文本位置（在直线中点的上方）
-                    text_x = mid_x - text_width // 2  # 文本水平居中
-                    text_y = mid_y - text_height - 10  # 文本在线段上方
-                    
-                    # 计算度数圆点的位置
-                    dot_x = text_x + text_width + 5
-                    dot_y = text_y - text_height + 3
-                    
-                    # 绘制文本背景
-                    padding = 6
-                    cv2.rectangle(frame,
-                                (int(text_x - padding), int(text_y - text_height - padding)),
-                                (int(dot_x + 2 + padding), int(text_y + padding)),
-                                (0, 0, 0),
-                                -1)
-                    
-                    # 绘制文本
-                    cv2.putText(frame,
-                            text,
-                            (text_x, text_y),
-                            font,
-                            font_scale,
-                            obj.properties['color'],
-                            thickness,
-                            cv2.LINE_AA)
-                    
-                    # 绘制度数圆点
-                    cv2.circle(frame,
-                            (int(dot_x), int(dot_y)),
-                            3,
-                            obj.properties['color'],
-                            1,
-                            cv2.LINE_AA)
+                    if dx != 0 or dy != 0:
+                        # 计算单位向量
+                        length = np.sqrt(dx*dx + dy*dy)
+                        dx, dy = dx/length, dy/length
+                        
+                        # 计算延长线的起点和终点
+                        start_x = int(p1.x() - dx * max_length)
+                        start_y = int(p1.y() - dy * max_length)
+                        end_x = int(p1.x() + dx * max_length)
+                        end_y = int(p1.y() + dy * max_length)
+                        
+                        # 绘制延长线
+                        cv2.line(frame,
+                                (start_x, start_y),
+                                (end_x, end_y),
+                                obj.properties['color'],
+                                obj.properties['thickness'],
+                                cv2.LINE_AA)
+                        
+                        # 计算角度
+                        dx = p2.x() - p1.x()
+                        dy = p2.y() - p1.y()
+                        angle = np.degrees(np.arctan2(-dy, dx))  # 使用-dy是因为y轴向下为正
+                        if angle < 0:
+                            angle += 180
+                        
+                        # 绘制文本（带背景）
+                        text = f"{angle:.1f}"
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        font_scale = 0.8
+                        thickness = 1
+                        (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+                        
+                        # 计算直线中点
+                        mid_x = (p1.x() + p2.x()) // 2
+                        mid_y = (p1.y() + p2.y()) // 2
+                        
+                        # 计算文本位置（在直线中点的上方）
+                        text_x = mid_x - text_width // 2  # 文本水平居中
+                        text_y = mid_y - text_height - 10  # 文本在线段上方
+                        
+                        # 计算度数圆点的位置
+                        dot_x = text_x + text_width + 5
+                        dot_y = text_y - text_height + 3
+                        
+                        # 绘制文本背景
+                        padding = 6
+                        cv2.rectangle(frame,
+                                    (int(text_x - padding), int(text_y - text_height - padding)),
+                                    (int(dot_x + 2 + padding), int(text_y + padding)),
+                                    (0, 0, 0),
+                                    -1)
+                        
+                        # 绘制文本
+                        cv2.putText(frame,
+                                text,
+                                (text_x, text_y),
+                                font,
+                                font_scale,
+                                obj.properties['color'],
+                                thickness,
+                                cv2.LINE_AA)
+                        
+                        # 绘制度数圆点
+                        cv2.circle(frame,
+                                (int(dot_x), int(dot_y)),
+                                3,
+                                obj.properties['color'],
+                                1,
+                                cv2.LINE_AA)
 
     def _detect_circle_in_roi(self, frame, roi_points):
         """在ROI区域内检测圆形"""
@@ -1412,6 +1414,7 @@ class LayerManager:
 class MeasurementManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # parent 现在是 DrawingManager 实例，直接从它获取 log_manager
         self.log_manager = parent.log_manager if parent else None
         self.layer_manager = LayerManager()
         self.drawing = False
@@ -1450,15 +1453,11 @@ class MeasurementManager(QObject):
 
     def start_line_detection(self):
         """启动直线检测模式"""
-        if self.log_manager:
-            self.log_manager.log_measurement_operation("启动直线检测")
         self.draw_mode = DrawingType.LINE_DETECT
         self.drawing = False 
         
     def start_circle_detection(self):
         """启动圆形检测模式"""
-        if self.log_manager:
-            self.log_manager.log_measurement_operation("启动圆形检测")
         self.draw_mode = DrawingType.CIRCLE_DETECT
         self.drawing = False 
 
@@ -1629,6 +1628,8 @@ class MeasurementManager(QObject):
     def handle_mouse_release(self, event_pos, current_frame):
         """处理鼠标释放事件"""
         if self.drawing:
+            # 获取当前视图名称
+            view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
             if self.draw_mode == DrawingType.LINE_DETECT:
                 # 直线检测模式
                 if len(self.layer_manager.current_object.points) == 1:
@@ -1645,6 +1646,18 @@ class MeasurementManager(QObject):
                 if detected_points:
                     self.layer_manager.current_object.points = detected_points
                     self.layer_manager.current_object.properties['line_detected'] = True
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"直线检测成功 - 视图: {view_name}",
+                            f"检测到直线: ({detected_points[0].x()}, {detected_points[0].y()}) - "
+                            f"({detected_points[1].x()}, {detected_points[1].y()})"
+                        )
+                else:
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"直线检测失败 - 视图: {view_name}", 
+                            "未在ROI区域内检测到直线"
+                        )
                 
                 self.layer_manager.commit_drawing()
                 self.drawing = False
@@ -1674,8 +1687,21 @@ class MeasurementManager(QObject):
                         QPoint(center_x, center_y),
                         QPoint(center_x + detected_circle['radius'], center_y)  # 用于确定半径的点
                     ]
+
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"圆形检测成功 - 视图: {view_name}",
+                            f"检测到圆形: 圆心({detected_circle['center_x']}, {detected_circle['center_y']}), "
+                            f"半径: {detected_circle['radius']}"
+                        )
                     
                     print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}")
+                else:
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"圆形检测失败 - 视图: {view_name}", 
+                            "未在ROI区域内检测到圆形"
+                        )
                 
                 self.layer_manager.commit_drawing()
                 self.drawing = False
@@ -1697,6 +1723,11 @@ class MeasurementManager(QObject):
                         self.layer_manager.current_object.points[3] = event_pos
                     self.layer_manager.commit_drawing()
                     self.drawing = False
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"两线夹角测量完成 - {view_name}", 
+                            f"两线夹角测量完成 - 视图: {view_name}"
+                        )
                     return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.CIRCLE_LINE:
                 if len(self.layer_manager.current_object.points) <= 2:
@@ -1715,6 +1746,11 @@ class MeasurementManager(QObject):
                         self.layer_manager.current_object.points[3] = event_pos
                     self.layer_manager.commit_drawing()
                     self.drawing = False
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"圆线距离测量完成 - {view_name}", 
+                            f"圆线距离测量完成 - 视图: {view_name}"
+                        )
                     return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.PARALLEL:
                 # 保持平行线处理不变
@@ -1724,8 +1760,40 @@ class MeasurementManager(QObject):
                     else:
                         self.layer_manager.current_object.points[1] = event_pos
                     self.drawing = False
+                    print(self.layer_manager.current_object.points)
+                    if self.log_manager:
+                        self.log_manager.log_measurement_operation(
+                            f"平行线测量完成 - {view_name}", 
+                            f"平行线测量完成 - 视图: {view_name}"
+                        )
                     return self.layer_manager.render_frame(current_frame)
-            # 其他情况正常提交
+            # 直线测量
+            elif self.draw_mode == DrawingType.LINE:
+                if self.log_manager:
+                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                    self.log_manager.log_measurement_operation(
+                        f"直线测量完成 - {view_name}", 
+                        f"直线测量完成 - 视图: {view_name}"
+                    )
+
+            # 线段测量
+            elif self.draw_mode == DrawingType.LINE_SEGMENT:
+                if self.log_manager:
+                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                    self.log_manager.log_measurement_operation(
+                        f"线段测量完成 - {view_name}", 
+                        f"线段测量完成 - 视图: {view_name}"
+                    )
+
+            # 圆形测量
+            elif self.draw_mode == DrawingType.CIRCLE:
+                if self.log_manager:
+                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                    self.log_manager.log_measurement_operation(
+                        f"圆形测量完成 - {view_name}", 
+                        f"圆形测量完成 - 视图: {view_name}"
+                    )
+
             self.layer_manager.commit_drawing()
             self.drawing = False
             return self.layer_manager.render_frame(current_frame)
