@@ -11,6 +11,8 @@ class DrawingManager(QObject):
             self.active_measurement = None
             self.measurement_managers = {}  # 存储每个视图对应的测量管理器
             self.log_manager = parent.log_manager if parent else None
+            # 添加视图映射关系
+            self.view_pairs = {}  # 存储主界面视图和选项卡视图的对应关系
         except Exception as e:
             if self.log_manager:
                 self.log_manager.log_error("DrawingManager初始化失败", str(e))
@@ -27,9 +29,23 @@ class DrawingManager(QObject):
         
     def setup_view(self, label: QLabel, name: str):
         """为视图设置绘画功能"""
-        # 创建测量管理器时传入 DrawingManager 实例本身，而不是 parent
+        # 创建测量管理器
         measurement_manager = MeasurementManager(self)
         self.measurement_managers[label] = measurement_manager
+        
+        # 设置视图对应关系
+        if name == "vertical":
+            self.view_pairs[label] = self.parent().lbVerticalView_2
+        elif name == "left":
+            self.view_pairs[label] = self.parent().lbLeftView_2
+        elif name == "front":
+            self.view_pairs[label] = self.parent().lbFrontView_2
+        elif name == "vertical_2":
+            self.view_pairs[label] = self.parent().lbVerticalView
+        elif name == "left_2":
+            self.view_pairs[label] = self.parent().lbLeftView
+        elif name == "front_2":
+            self.view_pairs[label] = self.parent().lbFrontView
         
         # 启用鼠标追踪
         label.setMouseTracking(True)
@@ -69,13 +85,21 @@ class DrawingManager(QObject):
             # 清空特定视图的手动绘画
             if label in self.measurement_managers:
                 manager = self.measurement_managers[label]
-                manager.layer_manager.clear_drawings()  # 只清空手动绘制
-                # 重新渲染视图
-                current_frame = self.parent().get_current_frame_for_view(label)
-                if current_frame is not None:
-                    display_frame = manager.layer_manager.render_frame(current_frame)
-                    if display_frame is not None:
-                        self.parent().update_view(label, display_frame)
+                manager.layer_manager.clear_drawings()
+                
+                # 同步清空对应视图
+                paired_view = self.view_pairs.get(label)
+                if paired_view and paired_view in self.measurement_managers:
+                    self.measurement_managers[paired_view].layer_manager.clear_drawings()
+                
+                # 重新渲染两个视图
+                for view in [label, paired_view]:
+                    if view:
+                        current_frame = self.parent().get_current_frame_for_view(view)
+                        if current_frame is not None:
+                            display_frame = self.measurement_managers[view].layer_manager.render_frame(current_frame)
+                            if display_frame is not None:
+                                self.parent().update_view(view, display_frame)
         else:
             # 清空所有视图的手动绘画
             for label, manager in self.measurement_managers.items():
@@ -138,6 +162,11 @@ class DrawingManager(QObject):
                     self.parent().update_view(label, display_frame)
                     # 记录最后操作的视图
                     self.parent().last_active_view = label
+                    
+                    # 同步到对应的视图
+                    paired_view = self.view_pairs.get(label)
+                    if paired_view:
+                        self.sync_drawings(label, paired_view)
             
             self.active_view = None
             self.active_measurement = None
@@ -210,12 +239,18 @@ class DrawingManager(QObject):
                 self.log_manager.log_drawing_operation("撤销绘制", f"视图: {active_view.objectName()}")
             manager = self.measurement_managers[active_view]
             if manager.layer_manager.undo_last_drawing():
+                # 更新当前视图
                 current_frame = self.parent().get_current_frame_for_view(active_view)
                 if current_frame is not None:
                     display_frame = manager.layer_manager.render_frame(current_frame)
                     if display_frame is not None:
                         self.parent().update_view(active_view, display_frame)
                         
+                        # 同步到对应的视图
+                        paired_view = self.view_pairs.get(active_view)
+                        if paired_view:
+                            self.sync_drawings(active_view, paired_view)
+            
     def undo_last_detection(self):
         """撤销上一步自动检测"""
         active_view = self.parent().last_active_view
@@ -224,8 +259,38 @@ class DrawingManager(QObject):
                 self.log_manager.log_drawing_operation("撤销检测", f"视图: {active_view.objectName()}")
             manager = self.measurement_managers[active_view]
             if manager.layer_manager.undo_last_detection():
+                # 更新当前视图
                 current_frame = self.parent().get_current_frame_for_view(active_view)
                 if current_frame is not None:
                     display_frame = manager.layer_manager.render_frame(current_frame)
                     if display_frame is not None:
                         self.parent().update_view(active_view, display_frame)
+                        
+                        # 同步到对应的视图
+                        paired_view = self.view_pairs.get(active_view)
+                        if paired_view:
+                            self.sync_drawings(active_view, paired_view)
+
+    def sync_drawings(self, source_label, target_label):
+        """同步两个视图的绘制内容"""
+        if source_label in self.measurement_managers and target_label in self.measurement_managers:
+            source_manager = self.measurement_managers[source_label]
+            target_manager = self.measurement_managers[target_label]
+            
+            # 同步绘制对象
+            target_manager.layer_manager.drawing_objects = source_manager.layer_manager.drawing_objects.copy()
+            target_manager.layer_manager.detection_objects = source_manager.layer_manager.detection_objects.copy()
+            
+            # 更新目标视图显示
+            current_frame = self.parent().get_current_frame_for_view(target_label)
+            if current_frame is not None:
+                display_frame = target_manager.layer_manager.render_frame(current_frame.copy())
+                if display_frame is not None:
+                    self.parent().update_view(target_label, display_frame)
+
+    def get_main_view(self, tab_view):
+        """获取选项卡视图对应的主界面视图"""
+        for main_view, paired_view in self.view_pairs.items():
+            if paired_view == tab_view:
+                return main_view
+        return None

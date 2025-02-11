@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1144</width>
-    <height>796</height>
+    <width>1200</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -43,7 +43,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tabMian">
        <attribute name="title">
@@ -272,7 +272,7 @@
                <property name="checkable">
                 <bool>false</bool>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,1,0,0">
+               <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,1,0,0,0">
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
@@ -376,6 +376,13 @@
                  <widget class="QPushButton" name="btnClearDrawings">
                   <property name="text">
                    <string>清空绘画</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnSaveImage">
+                  <property name="text">
+                   <string>保存图像（原始图像+可视化图像）</string>
                   </property>
                  </widget>
                 </item>
@@ -948,6 +955,13 @@
                 </property>
                </widget>
               </item>
+              <item>
+               <widget class="QPushButton" name="btnCalibration_Ver">
+                <property name="text">
+                 <string>像素距离标定</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -1358,6 +1372,13 @@
                 </property>
                </widget>
               </item>
+              <item>
+               <widget class="QPushButton" name="btnCalibration_Left">
+                <property name="text">
+                 <string>像素距离标定</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
@@ -1753,6 +1774,13 @@
                 </property>
                 <property name="text">
                  <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnCalibration_Front">
+                <property name="text">
+                 <string>像素距离标定</string>
                 </property>
                </widget>
               </item>

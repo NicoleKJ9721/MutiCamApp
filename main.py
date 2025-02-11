@@ -5,6 +5,7 @@ import os
 import numpy as np
 import cv2
 from typing import List
+from datetime import datetime
 
 # 添加项目根目录到系统路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -95,6 +96,9 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.drawing_manager.setup_view(self.lbVerticalView_2, "vertical_2")
         self.drawing_manager.setup_view(self.lbLeftView_2, "left_2")  # 选项卡左视图
         self.drawing_manager.setup_view(self.lbFrontView_2, "front_2")
+
+        # 添加主界面保存图像按钮信号连接
+        self.btnSaveImage.clicked.connect(self.save_all_views)
 
     def _connect_signals(self):
         """连接信号槽"""
@@ -464,8 +468,6 @@ class MainApp(QMainWindow, Ui_MainWindow):
             self.log_manager.log_error(error_msg)
             event.accept()
 
-
-
     def convert_mouse_to_image_coords(self, pos, label):
         """将鼠标坐标转换为图像坐标"""
         current_frame = self.get_current_frame_for_view(label)
@@ -569,10 +571,7 @@ class MainApp(QMainWindow, Ui_MainWindow):
         self.drawing_manager.start_two_lines_measurement()
 
     def save_images(self, view_type=None):
-        """保存原始图像和可视化图像
-        Args:
-            view_type: 视图类型，可以是 'vertical', 'left', 'front'
-        """
+        """保存原始图像和可视化图像"""
         try:
             # 根据当前标签页或传入的view_type确定要保存的视图
             if view_type is None:
@@ -585,90 +584,138 @@ class MainApp(QMainWindow, Ui_MainWindow):
             
             # 获取对应视图的标签和测量管理器
             view_map = {
-                'vertical': (self.lbVerticalView_2, self.ver_camera_thread),
-                'left': (self.lbLeftView_2, self.left_camera_thread),
-                'front': (self.lbFrontView_2, self.front_camera_thread)
+                'vertical': (self.lbVerticalView_2, self.ver_camera_thread, "垂直"),
+                'left': (self.lbLeftView_2, self.left_camera_thread, "左侧"),
+                'front': (self.lbFrontView_2, self.front_camera_thread, "对向")
             }
             
-            view_label, camera_thread = view_map.get(view_type)
+            view_label, camera_thread, view_name = view_map.get(view_type)
             
-            # 检查相机帧是否可用
-            if not camera_thread or not camera_thread.current_frame is not None:
-                print(f"{view_type}视图没有可用的相机图像")
+            # 检查相机帧
+            if camera_thread is None or camera_thread.current_frame is None:
+                print(f"{view_name}视图没有可用的相机图像")
                 return
             
-            current_frame = camera_thread.current_frame
+            current_frame = camera_thread.current_frame.copy()  # 创建副本
             
-            # 创建保存路径
+            # 检查图像数据
+            if current_frame is None or current_frame.size == 0:
+                print(f"{view_name}视图的图像帧无效")
+                return
+                
+            # 打印图像信息用于调试
+            print(f"图像信息: shape={current_frame.shape}, dtype={current_frame.dtype}")
+            
+            # 修改路径创建部分
             import os
             from datetime import datetime
             
-            # 基础路径
+            # 基础路径 - 使用正斜杠
             base_path = "D:/CamImage"
+            today = datetime.now().strftime("%Y.%m.%d")
             
-            # 获取当前日期作为子文件夹名
-            today = datetime.now().strftime("%Y-%m-%d")
-            save_dir = os.path.join(base_path, today)
+            # 使用 os.path.join 并替换反斜杠为正斜杠
+            date_dir = os.path.join(base_path, today).replace('\\', '/')
+            view_dir = os.path.join(date_dir, view_name).replace('\\', '/')
             
-            # 确保文件夹存在
-            os.makedirs(save_dir, exist_ok=True)
+            # 确保目录存在
+            os.makedirs(view_dir, exist_ok=True)
             
-            # 获取当前时间作为文件名
-            current_time = datetime.now().strftime("%H_%M_%S")
+            current_time = datetime.now().strftime("%H-%M-%S")
             
-            # 保存原始图像
-            origin_filename = f"origin_{current_time}.jpg"
-            origin_path = os.path.join(save_dir, origin_filename)
-            cv2.imwrite(origin_path, cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR))
-            print(f"原始图像已保存: {origin_filename}")
-            # 记录原始图像保存成功的日志
-            self.log_manager.log_ui_operation(
-                "保存原始图像成功",
-                f"文件路径: {origin_path}"
-            )
-            
-            # 获取可视化图像（原始图像 + 绘画）
-            measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
-            if measurement_manager:
-                # 保存当前网格状态
-                original_grid_state = measurement_manager.layer_manager.show_grid
-                original_grid_density = measurement_manager.layer_manager.grid_density
+            try:
+                # 保存原始图像
+                origin_filename = f"{current_time}_origin.jpg"
+                origin_path = os.path.join(view_dir, origin_filename).replace('\\', '/')
                 
-                # 临时关闭网格
-                measurement_manager.layer_manager.set_grid(False)
+                # 检查图像格式并进行必要的转换
+                if len(current_frame.shape) == 2:  # 如果是灰度图
+                    save_frame = current_frame
+                else:  # 如果是RGB或BGR图像
+                    if current_frame.shape[2] == 3:  # 确保是3通道
+                        # RGB转BGR
+                        save_frame = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR)
+                    else:
+                        print(f"不支持的图像格式: {current_frame.shape}")
+                        return
                 
-                # 获取当前显示的帧（不含网格）
-                visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                # 确保图像数据类型正确
+                if save_frame.dtype != np.uint8:
+                    save_frame = (save_frame * 255).astype(np.uint8)
                 
-                # 恢复原来的网格状态
-                measurement_manager.layer_manager.set_grid(original_grid_state, original_grid_density)
+                # 打印保存路径和图像信息
+                print(f"尝试保存原始图像到: {origin_path}")
+                print(f"图像信息: shape={save_frame.shape}, dtype={save_frame.dtype}")
                 
-                if visual_frame is not None:
-                    # 保存可视化图像
-                    visual_filename = f"visual_{current_time}.jpg"
-                    visual_path = os.path.join(save_dir, visual_filename)
-                    cv2.imwrite(visual_path, cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR))
-                    
-                    print(f"图像已保存到: {save_dir}")
-                    print(f"可视化图像: {visual_filename}")
-                    # 记录可视化图像保存成功的日志
+                # 使用 imencode 和 文件写入的方式保存图像
+                is_success, buffer = cv2.imencode(".jpg", save_frame)
+                if is_success:
+                    with open(origin_path, "wb") as f:
+                        f.write(buffer.tobytes())
+                    print(f"原始图像已保存: {origin_filename}")
                     self.log_manager.log_ui_operation(
-                        "保存可视化图像成功",
-                        f"文件路径: {visual_path}"
+                        "保存原始图像成功",
+                        f"文件路径: {origin_path}"
                     )
                 else:
-                    print("保存原始图像成功，没有可视化内容需要保存")
-                    # 记录无可视化内容的日志
-                    self.log_manager.log_ui_operation(
-                        "保存可视化图像跳过",
-                        "没有可视化内容需要保存"
-                    )
+                    raise Exception("图像编码失败")
                 
-                # 重新渲染视图（恢复网格显示）
-                self.update_view_with_current_frame(view_label)
+                # 保存可视化图像
+                measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
+                if measurement_manager:
+                    # 保存网格状态并临时关闭
+                    original_grid_state = measurement_manager.layer_manager.show_grid
+                    original_grid_density = measurement_manager.layer_manager.grid_density
+                    measurement_manager.layer_manager.set_grid(False)
+                    
+                    # 获取可视化帧
+                    visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                    
+                    # 恢复网格状态
+                    measurement_manager.layer_manager.set_grid(original_grid_state, original_grid_density)
+                    
+                    if visual_frame is not None:
+                        visual_filename = f"{current_time}_visual.jpg"
+                        visual_path = os.path.join(view_dir, visual_filename).replace('\\', '/')
+                        
+                        # 转换可视化图像的颜色空间
+                        if len(visual_frame.shape) == 2:  # 灰度图
+                            save_visual = visual_frame
+                        else:  # RGB图像
+                            if visual_frame.shape[2] == 3:
+                                # RGB转BGR
+                                save_visual = cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR)
+                            else:
+                                print(f"不支持的可视化图像格式: {visual_frame.shape}")
+                                return
+                        
+                        # 使用相同的方式保存可视化图像
+                        is_success, buffer = cv2.imencode(".jpg", save_visual)
+                        if is_success:
+                            with open(visual_path, "wb") as f:
+                                f.write(buffer.tobytes())
+                            print(f"可视化图像已保存: {visual_filename}")
+                            self.log_manager.log_ui_operation(
+                                "保存可视化图像成功",
+                                f"文件路径: {visual_path}"
+                            )
+                        else:
+                            raise Exception("可视化图像编码失败")
+                    
+                    # 重新渲染视图
+                    self.update_view_with_current_frame(view_label)
+                    
+            except Exception as e:
+                error_msg = f"保存图像过程中出错: {str(e)}"
+                print(error_msg)
+                self.log_manager.log_error(error_msg)
+                self.show_error(error_msg)
                 
         except Exception as e:
-            print(f"保存图像时出错: {str(e)}")
+            error_msg = f"保存图像时出错: {str(e)}"
+            print(error_msg)
+            self.log_manager.log_error(error_msg)
+            self.show_error(error_msg)
 
     def start_line_detection(self):
         """启动直线检测模式"""
@@ -706,14 +753,14 @@ class MainApp(QMainWindow, Ui_MainWindow):
     def init_grid_density_combos(self):
         """初始化网格密度下拉框"""
         densities = [
-            ("10% (密)", 0.1),
-            ("20%", 0.2),
-            ("30%", 0.3),
-            ("40%", 0.4),
-            ("50%", 0.5),
-            ("60%", 0.6),
-            ("70%", 0.7),
-            ("80% (疏)", 0.8)
+            ("10%", 0.10),
+            ("13%", 0.13),
+            ("16%", 0.16),
+            ("19%", 0.19),
+            ("22%", 0.22),
+            ("25%", 0.25),
+            ("28%", 0.28),
+            ("30%", 0.30)
         ]
         
         # 为所有网格密度下拉框添加选项
@@ -723,33 +770,46 @@ class MainApp(QMainWindow, Ui_MainWindow):
             
     def connect_grid_controls(self):
         """连接网格控制信号"""
-        # 主界面网格控制
+        # 主界面网格控制 - 不需要同步到选项卡
         self.cbGridDens.activated.connect(
-            lambda: self.update_grid_density(self.cbGridDens.currentIndex(), [self.lbVerticalView, self.lbLeftView, self.lbFrontView]))
+            lambda: self.update_grid_density(self.cbGridDens.currentIndex(), [self.lbVerticalView, self.lbLeftView, self.lbFrontView], sync_to_main=False))
         self.btnCancelGrids.clicked.connect(
-            lambda: self.toggle_grid(False, [self.lbVerticalView, self.lbLeftView, self.lbFrontView]))
+            lambda: self.toggle_grid(False, [self.lbVerticalView, self.lbLeftView, self.lbFrontView], sync_to_main=False))
         
-        # 垂直视图网格控制
+        # 垂直视图网格控制 - 需要同步到主界面
         self.cbGridDens_Ver.activated.connect(
-            lambda: self.update_grid_density(self.cbGridDens_Ver.currentIndex(), [self.lbVerticalView_2]))
+            lambda: self.update_grid_density(self.cbGridDens_Ver.currentIndex(), [self.lbVerticalView_2], sync_to_main=True))
         self.btnCancelGrids_Ver.clicked.connect(
-            lambda: self.toggle_grid(False, [self.lbVerticalView_2]))
+            lambda: self.toggle_grid(False, [self.lbVerticalView_2], sync_to_main=True))
         
-        # 左视图网格控制
+        # 左视图网格控制 - 需要同步到主界面
         self.cbGridDens_Left.activated.connect(
-            lambda: self.update_grid_density(self.cbGridDens_Left.currentIndex(), [self.lbLeftView_2]))
+            lambda: self.update_grid_density(self.cbGridDens_Left.currentIndex(), [self.lbLeftView_2], sync_to_main=True))
         self.btnCancelGrids_Left.clicked.connect(
-            lambda: self.toggle_grid(False, [self.lbLeftView_2]))
+            lambda: self.toggle_grid(False, [self.lbLeftView_2], sync_to_main=True))
         
-        # 对向视图网格控制
+        # 对向视图网格控制 - 需要同步到主界面
         self.cbGridDens_Front.activated.connect(
-            lambda: self.update_grid_density(self.cbGridDens_Front.currentIndex(), [self.lbFrontView_2]))
+            lambda: self.update_grid_density(self.cbGridDens_Front.currentIndex(), [self.lbFrontView_2], sync_to_main=True))
         self.btnCancelGrids_Front.clicked.connect(
-            lambda: self.toggle_grid(False, [self.lbFrontView_2]))
+            lambda: self.toggle_grid(False, [self.lbFrontView_2], sync_to_main=True))
 
-    def update_grid_density(self, index: int, labels: List[QLabel]):
+    def update_grid_density(self, index: int, labels: List[QLabel], sync_to_main: bool = False):
         """更新网格密度"""
-        density = (index + 1) * 0.1  # 将索引转换为密度值
+        # 修改这里：使用正确的密度映射
+        densities = {
+            0: 0.10,  # 10%
+            1: 0.13,  # 13%
+            2: 0.16,  # 16%
+            3: 0.19,  # 19%
+            4: 0.22,  # 22%
+            5: 0.25,  # 25%
+            6: 0.28,  # 28%
+            7: 0.30   # 30%
+        }
+        
+        density = densities.get(index, 0.10)  # 如果索引不存在，默认使用10%
+        
         for label in labels:
             if label in self.drawing_manager.measurement_managers:
                 if self.log_manager:
@@ -758,8 +818,16 @@ class MainApp(QMainWindow, Ui_MainWindow):
                 manager.set_grid(True, density)
                 # 重新渲染视图
                 self.update_view_with_current_frame(label)
+                
+                # 如果是从选项卡更新的，同步到主界面对应的视图
+                if sync_to_main:
+                    main_view = self.drawing_manager.get_main_view(label)
+                    if main_view and main_view in self.drawing_manager.measurement_managers:
+                        main_manager = self.drawing_manager.measurement_managers[main_view]
+                        main_manager.set_grid(True, density)
+                        self.update_view_with_current_frame(main_view)
 
-    def toggle_grid(self, show: bool, labels: List[QLabel]):
+    def toggle_grid(self, show: bool, labels: List[QLabel], sync_to_main: bool = False):
         """切换网格显示状态"""
         for label in labels:
             if label in self.drawing_manager.measurement_managers:
@@ -769,6 +837,14 @@ class MainApp(QMainWindow, Ui_MainWindow):
                 manager.set_grid(show)
                 # 重新渲染视图
                 self.update_view_with_current_frame(label)
+                
+                # 如果是从选项卡更新的，同步到主界面对应的视图
+                if sync_to_main:
+                    main_view = self.drawing_manager.get_main_view(label)
+                    if main_view and main_view in self.drawing_manager.measurement_managers:
+                        main_manager = self.drawing_manager.measurement_managers[main_view]
+                        main_manager.set_grid(show)
+                        self.update_view_with_current_frame(main_view)
 
     def update_view_with_current_frame(self, label):
         """使用当前帧更新视图"""
@@ -793,6 +869,118 @@ class MainApp(QMainWindow, Ui_MainWindow):
         for label in all_views:
             if label in self.drawing_manager.measurement_managers:
                 self.update_view_with_current_frame(label)
+
+    def save_all_views(self):
+        """保存主界面所有可用视图的图像"""
+        try:
+            # 获取主界面的视图和对应的相机线程
+            views = [
+                (self.lbVerticalView, self.ver_camera_thread, "垂直"),  # 主界面的垂直视图
+                (self.lbLeftView, self.left_camera_thread, "左侧"),     # 主界面的左侧视图
+                (self.lbFrontView, self.front_camera_thread, "对向")    # 主界面的前视图
+            ]
+            
+            saved_count = 0
+            for view_label, camera_thread, view_name in views:
+                try:
+                    # 检查相机是否可用
+                    if camera_thread is None or camera_thread.current_frame is None:
+                        print(f"{view_name}视图没有可用的相机图像")
+                        continue
+                    
+                    current_frame = camera_thread.current_frame.copy()
+                    if current_frame is None or current_frame.size == 0:
+                        print(f"{view_name}视图的图像帧无效")
+                        continue
+                    
+                    # 创建保存路径
+                    base_path = "D:/CamImage"
+                    today = datetime.now().strftime("%Y.%m.%d")
+                    date_dir = os.path.join(base_path, today).replace('\\', '/')
+                    view_dir = os.path.join(date_dir, view_name).replace('\\', '/')
+                    os.makedirs(view_dir, exist_ok=True)
+                    
+                    current_time = datetime.now().strftime("%H-%M-%S")
+                    
+                    # 保存原始图像
+                    origin_filename = f"{current_time}_origin.jpg"
+                    origin_path = os.path.join(view_dir, origin_filename).replace('\\', '/')
+                    
+                    # 转换颜色空间并保存
+                    if len(current_frame.shape) == 2:
+                        save_frame = current_frame
+                    else:
+                        if current_frame.shape[2] == 3:
+                            save_frame = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR)
+                        else:
+                            print(f"不支持的图像格式: {current_frame.shape}")
+                            continue
+                    
+                    # 保存原始图像
+                    is_success, buffer = cv2.imencode(".jpg", save_frame)
+                    if is_success:
+                        with open(origin_path, "wb") as f:
+                            f.write(buffer.tobytes())
+                        print(f"原始图像已保存: {origin_filename}")
+                        
+                        # 保存可视化图像
+                        measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
+                        if measurement_manager:
+                            # 保存网格状态并临时关闭
+                            original_grid_state = measurement_manager.layer_manager.show_grid
+                            original_grid_density = measurement_manager.layer_manager.grid_density
+                            measurement_manager.layer_manager.set_grid(False)
+                            
+                            # 获取可视化帧
+                            visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                            
+                            # 恢复网格状态
+                            measurement_manager.layer_manager.set_grid(original_grid_state, original_grid_density)
+                            
+                            if visual_frame is not None:
+                                visual_filename = f"{current_time}_visual.jpg"
+                                visual_path = os.path.join(view_dir, visual_filename).replace('\\', '/')
+                                
+                                # 转换颜色空间
+                                if len(visual_frame.shape) == 2:
+                                    save_visual = visual_frame
+                                else:
+                                    if visual_frame.shape[2] == 3:
+                                        save_visual = cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR)
+                                    else:
+                                        continue
+                                
+                                # 保存可视化图像
+                                is_success, buffer = cv2.imencode(".jpg", save_visual)
+                                if is_success:
+                                    with open(visual_path, "wb") as f:
+                                        f.write(buffer.tobytes())
+                                    print(f"可视化图像已保存: {visual_filename}")
+                    
+                    saved_count += 1
+                    self.log_manager.log_ui_operation(
+                        f"保存{view_name}视图成功",
+                        f"原始图像: {origin_path}\n可视化图像: {visual_path if 'visual_path' in locals() else '无'}"
+                    )
+                
+                except Exception as e:
+                    print(f"{view_name}视图保存失败: {str(e)}")
+                    continue
+            
+            # 显示保存结果
+            if saved_count > 0:
+                self.log_manager.log_ui_operation(
+                    "保存完成",
+                    f"成功保存了 {saved_count} 个视图的图像"
+                )
+            else:
+                self.show_error("没有可用的相机视图可以保存")
+                
+        except Exception as e:
+            error_msg = f"保存图像时出错: {str(e)}"
+            print(error_msg)
+            self.log_manager.log_error(error_msg)
+            self.show_error(error_msg)
 
 def main():
     app = QApplication(sys.argv)

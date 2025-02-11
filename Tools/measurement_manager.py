@@ -50,15 +50,33 @@ class LayerManager:
         cell_size = int(min(w, h) * self.grid_density)
         if cell_size < 10:  # 设置最小网格大小
             cell_size = 10
-            
-        # 绘制垂直线
+        
+        # 绘制虚线网格
+        # 设置虚线参数：(线段长度, 间隔长度)
+        line_type = cv2.LINE_AA
+        dash_length = 10
+        gap_length = 10
+        
+        # 绘制垂直虚线
         for x in range(0, w, cell_size):
-            cv2.line(frame, (x, 0), (x, h), (255, 0, 0), 2, cv2.LINE_AA)
+            y = 0
+            while y < h:
+                # 绘制一段虚线
+                start_y = y
+                end_y = min(y + dash_length, h)
+                cv2.line(frame, (x, start_y), (x, end_y), (255, 0, 0), 2, line_type)
+                y = end_y + gap_length
             
-        # 绘制水平线
+        # 绘制水平虚线
         for y in range(0, h, cell_size):
-            cv2.line(frame, (0, y), (w, y), (255, 0, 0), 2, cv2.LINE_AA)
-            
+            x = 0
+            while x < w:
+                # 绘制一段虚线
+                start_x = x
+                end_x = min(x + dash_length, w)
+                cv2.line(frame, (start_x, y), (end_x, y), (255, 0, 0), 2, line_type)
+                x = end_x + gap_length
+        
         return frame
         
     def clear(self):
@@ -306,8 +324,9 @@ class LayerManager:
                 
                 # 绘制文本（带背景）
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 0.8
-                thickness = 1
+                font_scale = 1.2  # 增大字体大小
+                thickness = 2     # 增加字体粗细
+                padding = 10      # 增大背景padding
                 (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
                 
                 # 计算度数圆点的位置（调整到右上方）
@@ -364,31 +383,53 @@ class LayerManager:
                       obj.properties['color'], 
                       -1)
             
-            # 显示圆心坐标
+            # 准备显示文本
             coord_text = f"({center.x()}, {center.y()})"
+            radius_text = f"R={radius:.1f}px"
+            
+            # 设置文本参数
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 1.2  # 增大字体大小
+            thickness = 2     # 增加字体粗细
+            padding = 10      # 增大背景padding
+            
+            # 计算两个文本的尺寸
+            (coord_width, text_height), baseline = cv2.getTextSize(coord_text, font, font_scale, thickness)
+            (radius_width, _), _ = cv2.getTextSize(radius_text, font, font_scale, thickness)
             
             # 计算文本位置（在圆心右侧）
             text_x = center.x() + 20
-            text_y = center.y() - 10
+            coord_y = center.y() - 10
+            radius_y = coord_y + text_height + 10  # 半径文本在坐标文本下方
             
-            # 绘制文本（带背景）
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 0.8
-            thickness = 1
-            (text_width, text_height), baseline = cv2.getTextSize(coord_text, font, font_scale, thickness)
+            # 计算背景矩形的尺寸
+            max_width = max(coord_width, radius_width)
+            total_height = (text_height + 10) * 2  # 两行文本的总高度
             
             # 绘制文本背景
             padding = 6
             cv2.rectangle(frame,
-                         (int(text_x - padding), int(text_y - text_height - padding)),
-                         (int(text_x + text_width + padding), int(text_y + padding)),
+                         (int(text_x - padding), 
+                          int(coord_y - text_height - padding)),
+                         (int(text_x + max_width + padding), 
+                          int(radius_y + padding)),
                          (0, 0, 0),
                          -1)
             
-            # 绘制文本
+            # 绘制坐标文本
             cv2.putText(frame,
                        coord_text,
-                       (text_x, text_y),
+                       (text_x, coord_y),
+                       font,
+                       font_scale,
+                       obj.properties['color'],
+                       thickness,
+                       cv2.LINE_AA)
+            
+            # 绘制半径文本
+            cv2.putText(frame,
+                       radius_text,
+                       (text_x, radius_y),
                        font,
                        font_scale,
                        obj.properties['color'],
@@ -482,8 +523,11 @@ class LayerManager:
             
             # 设置文本参数
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 0.8
-            thickness = max(1, obj.properties['thickness'] - 1)
+            font_scale = 1.2  # 增大字体大小
+            thickness = 2     # 增加字体粗细
+            padding = 10      # 增大背景padding
+            # font_scale = 0.8
+            # thickness = max(1, obj.properties['thickness'] - 1)
             
             # 计算文本大小
             (dist_width, text_height), baseline = cv2.getTextSize(dist_text, font, font_scale, thickness)
@@ -606,15 +650,19 @@ class LayerManager:
             
             # 绘制文本（带背景）
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 0.8
-            thickness = 1
+            font_scale = 1.2  # 增大字体大小
+            thickness = 2     # 增加字体粗细
+            padding = 10      # 增大背景padding
+            
+            # 获取文本大小
             (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
             
             # 绘制文本背景
-            padding = 6
             cv2.rectangle(frame,
-                         (int(text_x - text_width//2 - padding), int(text_y - text_height//2 - padding)),
-                         (int(text_x + text_width//2 + padding), int(text_y + text_height//2 + padding)),
+                         (int(text_x - text_width//2 - padding), 
+                          int(text_y - text_height//2 - padding)),
+                         (int(text_x + text_width//2 + padding), 
+                          int(text_y + text_height//2 + padding)),
                          (0, 0, 0),
                          -1)
             
@@ -625,7 +673,8 @@ class LayerManager:
                        font,
                        font_scale,
                        obj.properties['color'],
-                       thickness)
+                       thickness,
+                       cv2.LINE_AA)
 
     def _draw_parallel(self, frame, obj: DrawingObject):
         """绘制平行线"""
@@ -746,7 +795,7 @@ class LayerManager:
                                     (dash_start_x, dash_start_y),
                                     (dash_end_x, dash_end_y),
                                     obj.properties['color'],
-                                    1,  # 使用较细的线宽
+                                    obj.properties['thickness'],  # 使用较细的线宽
                                     cv2.LINE_AA)
                     
                     # 显示距离和角度信息（分两行显示）
@@ -759,8 +808,10 @@ class LayerManager:
 
                     # 绘制文本（带背景）
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.8
-                    thickness = 1
+                    font_scale = 1.2  # 增大字体大小
+                    thickness = 2     # 增加字体粗细
+                    padding = 10      # 增大背景padding
+                    line_spacing = 15 # 增加行间距
 
                     # 计算文本大小
                     (dist_width, text_height), baseline = cv2.getTextSize(dist_text, font, font_scale, thickness)
@@ -773,7 +824,7 @@ class LayerManager:
                     max_width = max(dist_width, angle_width + dot_space)
 
                     # 计算两行文本的垂直间距
-                    line_spacing = 10
+                    line_spacing = 15
 
                     # 绘制文本背景（覆盖两行文本）
                     padding = 2
@@ -917,8 +968,9 @@ class LayerManager:
                         # 显示距离信息
                         text = f"{dist:.1f}px"  # 直接显示垂直距离，不减去半径
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 0.8
-                        thickness = 1
+                        font_scale = 1.2  # 增大字体大小
+                        thickness = 2     # 增加字体粗细
+                        padding = 10      # 增大背景padding
                         
                         # 计算文本位置
                         text_x = int((center.x() + foot_x) / 2)
@@ -1047,8 +1099,9 @@ class LayerManager:
                         # 显示角度信息
                         text = f"{angle:.1f}"
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 0.8
-                        thickness = 1
+                        font_scale = 1.2  # 增大字体大小
+                        thickness = 2     # 增加字体粗细
+                        padding = 10      # 增大背景padding
                         
                         # 获取文本大小
                         (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
@@ -1207,8 +1260,9 @@ class LayerManager:
                         # 绘制文本（带背景）
                         text = f"{angle:.1f}"
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 0.8
-                        thickness = 1
+                        font_scale = 1.2  # 增大字体大小
+                        thickness = 2     # 增加字体粗细
+                        padding = 10      # 增大背景padding
                         (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
                         
                         # 计算直线中点
@@ -1380,8 +1434,9 @@ class LayerManager:
                     # 显示半径信息
                     text = f"R={radius:.1f}"
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.8
-                    thickness = 1
+                    font_scale = 1.2  # 增大字体大小
+                    thickness = 2     # 增加字体粗细
+                    padding = 10      # 增大背景padding
                     
                     # 获取文本大小
                     (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
