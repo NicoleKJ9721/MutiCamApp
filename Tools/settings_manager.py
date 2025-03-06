@@ -14,15 +14,9 @@ class SettingsManager:
         # 设置默认值
         self.default_settings = {
             # 相机参数
-            "VerCamExposureTime": 800,
-            "LeftCamExposureTime": 2000,
-            "FrontCamExposureTime": 1200,
             "VerCamSN": "K02663713",
             "LeftCamSN": "Vir77537160",
             "FrontCamSN": "Vir77537142",
-            "VerCamImageFormat": "RGB",
-            "LeftCamImageFormat": "RGB",
-            "FrontCamImageFormat": "RGB",
             
             # 直线查找参数
             "CannyLineLow": 50,
@@ -75,13 +69,6 @@ class SettingsManager:
 
     def _load_camera_settings(self, ui, settings):
         """加载相机参数"""
-        # 曝光时间
-        ui.ledVerCamExposureTime.setText(str(settings.get("VerCamExposureTime", 
-                                                      self.default_settings["VerCamExposureTime"])))
-        ui.ledLeftCamExposureTime.setText(str(settings.get("LeftCamExposureTime", 
-                                                       self.default_settings["LeftCamExposureTime"])))
-        ui.ledFrontCamExposureTime.setText(str(settings.get("FrontCamExposureTime", 
-                                                        self.default_settings["FrontCamExposureTime"])))
         # 序列号
         ui.ledVerCamSN.setText(str(settings.get("VerCamSN", 
                                             self.default_settings["VerCamSN"])))
@@ -89,13 +76,6 @@ class SettingsManager:
                                              self.default_settings["LeftCamSN"])))
         ui.ledFrontCamSN.setText(str(settings.get("FrontCamSN", 
                                               self.default_settings["FrontCamSN"])))
-        # 图像格式
-        ui.cbVerCamImageFormat.setCurrentText(settings.get("VerCamImageFormat", 
-                                                       self.default_settings["VerCamImageFormat"]))
-        ui.cbLeftCamImageFormat.setCurrentText(settings.get("LeftCamImageFormat", 
-                                                       self.default_settings["LeftCamImageFormat"]))
-        ui.cbFrontCamImageFormat.setCurrentText(settings.get("FrontCamImageFormat", 
-                                                        self.default_settings["FrontCamImageFormat"]))
 
     def _load_line_detection_settings(self, ui, settings):
         """加载直线查找参数"""
@@ -157,15 +137,9 @@ class SettingsManager:
         # 获取新设置
         new_settings = {
             # 相机参数
-            "VerCamExposureTime": int(ui.ledVerCamExposureTime.text()),
-            "LeftCamExposureTime": int(ui.ledLeftCamExposureTime.text()),
-            "FrontCamExposureTime": int(ui.ledFrontCamExposureTime.text()),
             "VerCamSN": ui.ledVerCamSN.text(),
             "LeftCamSN": ui.ledLeftCamSN.text(),
             "FrontCamSN": ui.ledFrontCamSN.text(),
-            "VerCamImageFormat": ui.cbVerCamImageFormat.currentText(),
-            "LeftCamImageFormat": ui.cbLeftCamImageFormat.currentText(),
-            "FrontCamImageFormat": ui.cbFrontCamImageFormat.currentText(),
             
             # 直线查找参数
             "CannyLineLow": int(ui.ledCannyLineLow.text()),
@@ -214,15 +188,9 @@ class SettingsManager:
         """应用默认设置到UI"""
         try:
             # 相机参数
-            ui.ledVerCamExposureTime.setText(str(self.default_settings["VerCamExposureTime"]))
-            ui.ledLeftCamExposureTime.setText(str(self.default_settings["LeftCamExposureTime"]))
-            ui.ledFrontCamExposureTime.setText(str(self.default_settings["FrontCamExposureTime"]))
             ui.ledVerCamSN.setText(str(self.default_settings["VerCamSN"]))
             ui.ledLeftCamSN.setText(str(self.default_settings["LeftCamSN"]))
             ui.ledFrontCamSN.setText(str(self.default_settings["FrontCamSN"]))
-            ui.cbVerCamImageFormat.setCurrentText(self.default_settings["VerCamImageFormat"])
-            ui.cbLeftCamImageFormat.setCurrentText(self.default_settings["LeftCamImageFormat"])
-            ui.cbFrontCamImageFormat.setCurrentText(self.default_settings["FrontCamImageFormat"])
             
             # 直线查找参数
             ui.ledCannyLineLow.setText(str(self.default_settings["CannyLineLow"]))
@@ -243,15 +211,6 @@ class SettingsManager:
         except Exception as e:
             logging.error(f"应用默认设置时出错: {str(e)}")
             raise
-
-    def init_combo_boxes(self, ui):
-        """初始化ComboBox选项"""
-        # 相机图像格式选项
-        ui.cbVerCamImageFormat.addItems(["RGB", "Mono8"])
-        ui.cbLeftCamImageFormat.addItems(["RGB", "Mono8"])
-        ui.cbFrontCamImageFormat.addItems(["RGB", "Mono8"])
-        
-        # TODO: 添加其他ComboBox的初始化 
 
     def load_settings_from_file(self):
         """从文件加载设置"""

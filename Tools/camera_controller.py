@@ -4,17 +4,22 @@ import cv2
 import numpy as np
 from ctypes import *
 import os
-sys.path.append("./Development/Samples/Python/MvImport")
 
-from MvCameraControl_class import *
-from MvErrorDefine_const import *
-from CameraParams_header import *
-from PixelType_header import *
+# 修改导入路径
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Development'))
+
+from Development.MvCameraControl_class import *
+from Development.MvErrorDefine_const import *
+from Development.CameraParams_header import *
+from Development.PixelType_header import *
 
 # 定义回调函数类型
 CALL_BACK_FUN = CFUNCTYPE(None, c_void_p, POINTER(MV_FRAME_OUT_INFO_EX), c_void_p)
 
 class HikiCamera:
+    _devices_enumerated = False  # 类变量，用于跟踪是否已经枚举过设备
+    _device_list = None  # 类变量，存储枚举到的设备列表
+    
     def __init__(self, serial_number=None):
         """初始化相机"""
         # 强制使用64位DLL
@@ -27,7 +32,6 @@ class HikiCamera:
             os.add_dll_directory(dll_path)
         
         self.cam = None
-        self.device_list = None
         self.nPayloadSize = None
         self.running = False
         # 添加回调相关的属性
@@ -43,9 +47,19 @@ class HikiCamera:
         if serial_number is not None:
             if not self.open_camera_by_sn(serial_number):
                 print(f"无法自动打开序列号为 {serial_number} 的相机")
-        
-    def enum_devices(self):
-        """枚举所有设备"""
+                
+    @classmethod
+    def enum_devices(cls, force_enum=False):
+        """枚举所有设备
+        Args:
+            force_enum (bool): 是否强制重新枚举设备
+        Returns:
+            MV_CC_DEVICE_INFO_LIST: 设备列表
+        """
+        # 如果已经枚举过设备且不强制重新枚举，直接返回缓存的结果
+        if cls._devices_enumerated and not force_enum and cls._device_list is not None:
+            return cls._device_list
+            
         print("\n=== 开始诊断 ===")
         print(f"当前工作目录: {os.getcwd()}")
         print(f"Python版本: {sys.version}")
@@ -64,7 +78,6 @@ class HikiCamera:
             if os.path.exists(path):
                 found_dlls.append(path)
                 print(f"找到DLL: {path}")
-                # 检查DLL位数
                 try:
                     import pefile
                     pe = pefile.PE(path)
@@ -84,9 +97,7 @@ class HikiCamera:
                 print(f"发现MVS相关目录: {dir}")
                 if os.path.exists(dir):
                     dlls = [f for f in os.listdir(dir) if f.endswith('.dll')]
-                    print(f"  目录存在，包含 {len(dlls)} 个DLL文件:")
-                    for dll in dlls:
-                        print(f"    - {dll}")
+                    print(f"  目录存在，包含 {len(dlls)} 个DLL文件")
                 else:
                     print(f"  目录不存在")
         
@@ -114,7 +125,7 @@ class HikiCamera:
         else:
             error_code = ret_gige & 0xFFFFFFFF
             print(f"枚举GigE设备失败: {ret_gige} (0x{error_code:08X})")
-            deviceList_gige.nDeviceNum = 0  # 确保失败时设备数为0
+            deviceList_gige.nDeviceNum = 0
         
         print("\n尝试枚举USB设备...")
         deviceList_usb = MV_CC_DEVICE_INFO_LIST()
@@ -124,7 +135,7 @@ class HikiCamera:
         else:
             error_code = ret_usb & 0xFFFFFFFF
             print(f"枚举USB设备失败: {ret_usb} (0x{error_code:08X})")
-            deviceList_usb.nDeviceNum = 0  # 确保失败时设备数为0
+            deviceList_usb.nDeviceNum = 0
         
         print("\n=== 诊断结束 ===\n")
         
@@ -145,7 +156,9 @@ class HikiCamera:
         for i in range(deviceList_usb.nDeviceNum):
             deviceList.pDeviceInfo[deviceList_gige.nDeviceNum + i] = deviceList_usb.pDeviceInfo[i]
         
-        self.device_list = deviceList  # 保存设备列表
+        # 保存设备列表到类变量
+        cls._device_list = deviceList
+        cls._devices_enumerated = True
         
         # 打印找到的设备信息
         print(f"\n总共找到 {total_devices} 个设备:")
@@ -172,8 +185,15 @@ class HikiCamera:
 
     def open_camera(self, device_index=0):
         """打开相机"""
-        if self.device_list is None:
-            print("请先枚举设备!")
+        # 使用类方法获取设备列表
+        device_list = self.__class__.enum_devices()
+        if device_list is None:
+            print("未找到任何设备!")
+            return False
+        
+        # 检查设备索引是否有效
+        if device_index >= device_list.nDeviceNum:
+            print(f"设备索引 {device_index} 超出范围!")
             return False
         
         # 确保先关闭之前的相机实例
@@ -183,13 +203,8 @@ class HikiCamera:
         # 创建相机实例
         self.cam = MvCamera()
         
-        # 检查设备信息是否有效
-        if device_index >= self.device_list.nDeviceNum:
-            print(f"设备索引 {device_index} 超出范围!")
-            return False
-        
         # 创建句柄
-        ret = self.cam.MV_CC_CreateHandle(cast(self.device_list.pDeviceInfo[device_index], POINTER(MV_CC_DEVICE_INFO)).contents)
+        ret = self.cam.MV_CC_CreateHandle(cast(device_list.pDeviceInfo[device_index], POINTER(MV_CC_DEVICE_INFO)).contents)
         if ret != 0:
             print(f"创建句柄失败! ret={ret}")
             return False
@@ -202,13 +217,13 @@ class HikiCamera:
             return False
 
         # 设置心跳超时时间（针对GigE相机）
-        if self.device_list.pDeviceInfo[device_index].contents.nTLayerType == MV_GIGE_DEVICE:
+        if device_list.pDeviceInfo[device_index].contents.nTLayerType == MV_GIGE_DEVICE:
             ret = self.cam.MV_CC_SetIntValue("GevHeartbeatTimeout", 5000)
             if ret != 0:
                 print(f"设置心跳超时时间失败! ret={ret}")
         
         # 设置数据包大小（针对GigE相机）
-        if self.device_list.pDeviceInfo[device_index].contents.nTLayerType == MV_GIGE_DEVICE:
+        if device_list.pDeviceInfo[device_index].contents.nTLayerType == MV_GIGE_DEVICE:
             ret = self.cam.MV_CC_SetIntValue("GevSCPSPacketSize", 1500)
             if ret != 0:
                 print(f"设置数据包大小失败! ret={ret}")
@@ -220,10 +235,13 @@ class HikiCamera:
             self.close_camera()
             return False
 
-        # 默认设置为RGB8格式
-        if not self.set_pixel_format('RGB8'):
-            self.close_camera()
-            return False
+        # 获取当前像素格式
+        current_format = self.get_pixel_format()
+        if current_format is None:
+            # 如果获取失败，默认设置为RGB8格式
+            if not self.set_pixel_format('RGB8'):
+                self.close_camera()
+                return False
 
         return True
 
@@ -249,15 +267,14 @@ class HikiCamera:
                 # 转换为numpy数组
                 frame = np.frombuffer(data_buf, dtype=np.uint8)
                 if frame_info.enPixelType == PixelType_Gvsp_Mono8:
+                    # 对于Mono8格式，直接使用reshape而不进行颜色转换
                     frame = frame.reshape((frame_info.nHeight, frame_info.nWidth))
+                    # 不进行颜色空间转换，保持原始格式
                 else:
                     frame = frame.reshape((frame_info.nHeight, frame_info.nWidth, 3))
-                    # 根据实际的像素格式进行转换
-                    if self.pixel_format == "RGB8":
-                        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 
-                # 更新帧缓存
-                self.frame_buffer = frame.copy()
+                # 更新帧缓存，使用引用而不是复制
+                self.frame_buffer = frame
                 self.frame_ready = True
                 
         except Exception as e:
@@ -305,9 +322,10 @@ class HikiCamera:
             if self.frame_ready:
                 self.frame_ready = False
                 try:
-                    return self.frame_buffer.copy() if self.frame_buffer is not None else None
+                    # 返回引用而不是复制，减少内存使用
+                    return self.frame_buffer
                 except Exception as e:
-                    print(f"复制帧缓存失败: {str(e)}")
+                    print(f"获取帧缓存失败: {str(e)}")
                     return None
         else:
             # 轮询模式：直接获取图像
@@ -326,13 +344,17 @@ class HikiCamera:
                 
                 frame = np.frombuffer(data_buf, dtype=np.uint8)
                 if stOutFrame.stFrameInfo.enPixelType == PixelType_Gvsp_Mono8:
+                    # 对于Mono8格式，直接使用reshape而不进行颜色转换
                     frame = frame.reshape((stOutFrame.stFrameInfo.nHeight, stOutFrame.stFrameInfo.nWidth))
+                    # 不进行颜色空间转换，保持原始格式
                 else:
                     frame = frame.reshape((stOutFrame.stFrameInfo.nHeight, stOutFrame.stFrameInfo.nWidth, 3))
-                    if self.pixel_format == "RGB8":
+                    # 只在必要时进行颜色空间转换
+                    if self.pixel_format != "RGB8":
                         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 
-                return frame.copy()  # 返回副本避免内存问题
+                # 返回引用而不是复制，减少内存使用
+                return frame
             except Exception as e:
                 print(f"图像处理失败: {str(e)}")
                 return None
@@ -401,11 +423,11 @@ class HikiCamera:
 
     def get_device_info(self, device_index=0):
         """获取指定设备的详细信息"""
-        if self.device_list is None or device_index >= self.device_list.nDeviceNum:
+        if self.__class__._device_list is None or device_index >= self.__class__._device_list.nDeviceNum:
             return None
         
         device_info = {}
-        mvcc_dev_info = cast(self.device_list.pDeviceInfo[device_index], POINTER(MV_CC_DEVICE_INFO)).contents
+        mvcc_dev_info = cast(self.__class__._device_list.pDeviceInfo[device_index], POINTER(MV_CC_DEVICE_INFO)).contents
         
         # 获取设备类型
         device_info['type'] = 'GigE' if mvcc_dev_info.nTLayerType == MV_GIGE_DEVICE else 'USB'
@@ -495,12 +517,13 @@ class HikiCamera:
         Returns:
             int: 设备索引，如果未找到返回-1
         """
-        if self.device_list is None:
-            if not self.enum_devices():
-                return -1
+        # 使用类方法获取设备列表
+        device_list = self.__class__.enum_devices()
+        if device_list is None:
+            return -1
             
-        for i in range(self.device_list.nDeviceNum):
-            mvcc_dev_info = cast(self.device_list.pDeviceInfo[i], POINTER(MV_CC_DEVICE_INFO)).contents
+        for i in range(device_list.nDeviceNum):
+            mvcc_dev_info = cast(device_list.pDeviceInfo[i], POINTER(MV_CC_DEVICE_INFO)).contents
             if mvcc_dev_info.nTLayerType == MV_GIGE_DEVICE:
                 # GigE相机
                 sn = ""
@@ -565,6 +588,37 @@ class HikiCamera:
         except Exception as e:
             print(f"重连失败: {str(e)}")
             return False
+
+    def get_exposure_time(self):
+        """获取当前曝光时间"""
+        if self.cam is None:
+            return None
+        
+        stFloatParam = MVCC_FLOATVALUE()
+        ret = self.cam.MV_CC_GetFloatValue("ExposureTime", stFloatParam)
+        if ret != 0:
+            print(f"获取曝光时间失败! ret={ret}")
+            return None
+        return stFloatParam.fCurValue
+
+    def get_pixel_format(self):
+        """获取当前像素格式"""
+        if self.cam is None:
+            return None
+        
+        stEnumParam = MVCC_ENUMVALUE()
+        ret = self.cam.MV_CC_GetEnumValue("PixelFormat", stEnumParam)
+        if ret != 0:
+            print(f"获取像素格式失败! ret={ret}")
+            return None
+            
+        # 将像素格式值转换为字符串
+        if stEnumParam.nCurValue == PixelType_Gvsp_RGB8_Packed:
+            return "RGB8"
+        elif stEnumParam.nCurValue == PixelType_Gvsp_Mono8:
+            return "Mono8"
+        else:
+            return None
 
 
 if __name__ == "__main__":

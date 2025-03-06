@@ -1,13 +1,7 @@
 {
-    "VerCamExposureTime": 800,
-    "LeftCamExposureTime": 2000,
-    "FrontCamExposureTime": 1200,
-    "VerCamSN": "K02663713",
-    "LeftCamSN": "Vir24413558",
-    "FrontCamSN": "Vir24413605",
-    "VerCamImageFormat": "RGB",
-    "LeftCamImageFormat": "RGB",
-    "FrontCamImageFormat": "RGB",
+    "VerCamSN": "Vir25077495",
+    "LeftCamSN": "Vir25077725",
+    "FrontCamSN": "Vir25077877",
     "CannyLineLow": 50,
     "CannyLineHigh": 150,
     "LineDetThreshold": 50,
@@ -16,6 +10,6 @@
     "CannyCircleLow": 50,
     "CannyCircleHigh": 150,
     "CircleDetParam2": 20,
-    "UIWidth": 2230,
-    "UIHeight": 1300
+    "UIWidth": 2800,
+    "UIHeight": 1600
 }

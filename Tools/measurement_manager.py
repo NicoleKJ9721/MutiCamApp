@@ -1,7 +1,8 @@
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-from PyQt5.QtCore import QObject, QPoint
+from PyQt5.QtCore import QObject, QPoint, Qt
+from PyQt5.QtWidgets import QApplication  # 从QtWidgets导入QApplication
 import cv2
 import numpy as np
 from dataclasses import dataclass
@@ -9,14 +10,19 @@ from enum import Enum
 from typing import List, Optional
 
 class DrawingType(Enum):
-    LINE = "line"
-    CIRCLE = "circle"
-    LINE_SEGMENT = "line_segment"
-    PARALLEL = "parallel"
-    CIRCLE_LINE = "circle_line"
-    TWO_LINES = "two_lines"
-    LINE_DETECT = "line_detect"  # 添加直线检测类型
-    CIRCLE_DETECT = "circle_detect"  # 添加圆形检测类型
+    LINE = "直线"
+    CIRCLE = "圆形"
+    LINE_SEGMENT = "线段"
+    PARALLEL = "平行线"
+    CIRCLE_LINE = "圆线测量"
+    TWO_LINES = "两线夹角"
+    LINE_DETECT = "直线检测"
+    CIRCLE_DETECT = "圆检测"
+    POINT = "点"
+    POINT_TO_POINT = "点与点"  # 添加点与点类型
+    POINT_TO_LINE = "点与线"   # 添加点与线类型
+    SIMPLE_CIRCLE = "简单圆"  # 添加新类型
+    FINE_CIRCLE = "精细圆"  # 添加新类型
 
 @dataclass
 class DrawingObject:
@@ -24,6 +30,7 @@ class DrawingObject:
     points: List[QPoint]
     properties: dict  # 存储颜色、线宽等属性
     visible: bool = True
+    selected: bool = False  # 添加选中状态标记
 
 class LayerManager:
     def __init__(self):
@@ -31,53 +38,7 @@ class LayerManager:
         self.detection_objects: List[DrawingObject] = []  # 自动检测对象
         self.current_object: Optional[DrawingObject] = None
         self.base_frame = None
-        self.show_grid = False  # 是否显示网格
-        self.grid_density = 0.1  # 网格密度（默认10%）
-        
-    def set_grid(self, show: bool, density: float = 0.1):
-        """设置网格显示"""
-        self.show_grid = show
-        self.grid_density = density
-        
-    def _draw_grid(self, frame):
-        """绘制网格"""
-        if not self.show_grid:
-            return frame
-            
-        h, w = frame.shape[:2]
-        
-        # 计算网格间距
-        cell_size = int(min(w, h) * self.grid_density)
-        if cell_size < 10:  # 设置最小网格大小
-            cell_size = 10
-        
-        # 绘制虚线网格
-        # 设置虚线参数：(线段长度, 间隔长度)
-        line_type = cv2.LINE_AA
-        dash_length = 10
-        gap_length = 10
-        
-        # 绘制垂直虚线
-        for x in range(0, w, cell_size):
-            y = 0
-            while y < h:
-                # 绘制一段虚线
-                start_y = y
-                end_y = min(y + dash_length, h)
-                cv2.line(frame, (x, start_y), (x, end_y), (255, 0, 0), 2, line_type)
-                y = end_y + gap_length
-            
-        # 绘制水平虚线
-        for y in range(0, h, cell_size):
-            x = 0
-            while x < w:
-                # 绘制一段虚线
-                start_x = x
-                end_x = min(x + dash_length, w)
-                cv2.line(frame, (start_x, y), (end_x, y), (255, 0, 0), 2, line_type)
-                x = end_x + gap_length
-        
-        return frame
+        self.selected_objects = []  # 存储选中的图元
         
     def clear(self):
         """清空所有绘制对象"""
@@ -130,7 +91,11 @@ class LayerManager:
             DrawingType.CIRCLE_LINE: self._draw_circle_line,
             DrawingType.TWO_LINES: self._draw_two_lines,
             DrawingType.LINE_DETECT: self._draw_line_detect,
-            DrawingType.CIRCLE_DETECT: self._draw_circle_detect
+            DrawingType.CIRCLE_DETECT: self._draw_circle_detect,
+            DrawingType.POINT: self._draw_point,
+            DrawingType.POINT_TO_LINE: self._draw_point_to_line,  # 添加点到线的绘制方法
+            DrawingType.SIMPLE_CIRCLE: self._draw_simple_circle,  # 添加简单圆的绘制方法
+            DrawingType.FINE_CIRCLE: self._draw_fine_circle,  # 添加精细圆的绘制方法
         }
         
         try:
@@ -145,11 +110,17 @@ class LayerManager:
         if frame is None:
             return None
             
-        # 创建副本以避免修改原始帧
-        display_frame = frame.copy()
+        # 检查图像是否为灰度图
+        is_grayscale = len(frame.shape) == 2
         
-        # 首先绘制网格（如果启用）
-        display_frame = self._draw_grid(display_frame)
+        # 如果是灰度图，转换为RGB以便绘制彩色图形
+        if is_grayscale:
+            # 创建RGB副本以便绘制彩色图形
+            display_frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        else:
+            # 创建副本以避免修改原始帧
+            display_frame = frame.copy()
+        
         
         # 渲染所有已完成的绘制对象
         for obj in self.drawing_objects:
@@ -235,15 +206,47 @@ class LayerManager:
                         self.current_object.points.append(point)
                     else:
                         self.current_object.points[1] = point
+            elif self.current_object.type == DrawingType.SIMPLE_CIRCLE:
+                # 简单圆模式处理
+                pass
+            elif self.current_object.type == DrawingType.FINE_CIRCLE:
+                # 精细圆模式处理
+                pass
             else:
-                # 其他模式保持不变
+                # 其他模式的原有处理逻辑保持不变
                 if len(self.current_object.points) == 0:
                     self.current_object.points.append(point)
                 elif len(self.current_object.points) == 1:
                     self.current_object.points.append(point)
                 else:
                     self.current_object.points[1] = point
+
+    def _calculate_circle_from_three_points(self, points):
+        """根据三个点计算圆心和半径"""
+        try:
+            # 提取三个点的坐标
+            x1, y1 = points[0].x(), points[0].y()
+            x2, y2 = points[1].x(), points[1].y()
+            x3, y3 = points[2].x(), points[2].y()
             
+            # 计算三点确定的圆的参数
+            # 使用行列式计算
+            D = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+            if abs(D) < 1e-10:  # 三点共线
+                return None
+                
+            # 计算圆心
+            center_x = ((x1*x1 + y1*y1) * (y2 - y3) + (x2*x2 + y2*y2) * (y3 - y1) + (x3*x3 + y3*y3) * (y1 - y2)) / D
+            center_y = ((x1*x1 + y1*y1) * (x3 - x2) + (x2*x2 + y2*y2) * (x1 - x3) + (x3*x3 + y3*y3) * (x2 - x1)) / D
+            
+            # 计算半径
+            radius = np.sqrt((center_x - x1)**2 + (center_y - y1)**2)
+            
+            return (center_x, center_y), radius
+        except Exception as e:
+            print(f"计算圆参数时出错: {str(e)}")
+            return None
+
     def _draw_line(self, frame, obj: DrawingObject):
         """绘制直线"""
         if len(obj.points) >= 1:
@@ -271,6 +274,15 @@ class LayerManager:
                 angle = np.degrees(np.arctan2(-dy, dx))  # 使用-dy是因为y轴向下为正
                 if angle < 0:
                     angle += 180
+                
+                # 如果图元被选中，先绘制高亮轮廓
+                if obj.selected:
+                    cv2.line(frame,
+                            (start_x, start_y),
+                            (end_x, end_y),
+                            (0, 0, 255),  # 红色高亮
+                            obj.properties['thickness'] + 8,
+                            cv2.LINE_AA)
                 
                 # 绘制虚线效果
                 if obj == self.current_object:
@@ -315,8 +327,8 @@ class LayerManager:
                           obj.properties['color'],
                           -1)
                 
-                # 修改角度显示部分
-                text = f"{angle:.1f}"  # 先绘制数字
+                # 显示角度信息
+                angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
                 
                 # 计算文本位置（在起点附近）
                 text_x = p1.x() + 20
@@ -327,60 +339,69 @@ class LayerManager:
                 font_scale = 1.2  # 增大字体大小
                 thickness = 2     # 增加字体粗细
                 padding = 10      # 增大背景padding
-                (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+                (text_width, text_height), baseline = cv2.getTextSize(angle_text, font, font_scale, thickness)
                 
-                # 计算度数圆点的位置（调整到右上方）
-                dot_x = text_x + text_width + 5  # 文本右侧偏移1像素
-                dot_y = text_y - text_height + 3  # 上移到文本顶部附近
-                
-                # 绘制文本背景（需要考虑圆点的空间）
-                padding = 6
+                # 绘制文本背景
                 cv2.rectangle(frame,
-                             (int(text_x - padding), int(text_y - text_height - padding)),
-                             (int(dot_x + 2 + padding), int(text_y + padding)),  # +2为圆点预留空间
-                             (0, 0, 0),
-                             -1)
+                            (int(text_x - padding), int(text_y - text_height - padding)),
+                            (int(text_x + text_width + padding + 15), int(text_y + padding)),  # 增加空间给度数符号
+                            (0, 0, 0),
+                            -1)
                 
                 # 绘制文本
                 cv2.putText(frame,
-                           text,
-                           (text_x, text_y),
-                           font,
-                           font_scale,
-                           obj.properties['color'],
-                           thickness,
-                           cv2.LINE_AA)
+                          angle_text,
+                          (text_x, text_y),
+                          font,
+                          font_scale,
+                          obj.properties['color'],
+                          thickness,
+                          cv2.LINE_AA)
                 
-                # 绘制度数圆点（调整大小和位置）
+                # 绘制度数符号（空心圆）
+                dot_x = text_x + text_width + 8
+                dot_y = text_y - text_height//6
                 cv2.circle(frame,
                           (int(dot_x), int(dot_y)),
-                          3,  # 减小圆点半径为1
+                          4,  # 圆的半径
                           obj.properties['color'],
-                          1,  # 实心圆
+                          1,  # 1表示空心圆
                           cv2.LINE_AA)
+                
+                # 添加调试信息
+                if obj.selected:
+                    print(f"Drawing selected {obj.type} at points: {obj.points}")
 
     def _draw_circle(self, frame, obj: DrawingObject):
         """绘制圆形"""
         if len(obj.points) >= 2:
             center = obj.points[0]
-            point = obj.points[-1]
-            radius = int(np.sqrt(
-                (point.x() - center.x())**2 + 
-                (point.y() - center.y())**2
-            ))
+            radius_point = obj.points[1]
+            radius = int(np.sqrt((radius_point.x() - center.x())**2 + 
+                               (radius_point.y() - center.y())**2))
             
-            # 绘制圆形
-            cv2.circle(frame, 
-                      (center.x(), center.y()), 
-                      radius, 
-                      obj.properties['color'], 
-                      obj.properties['thickness'])
+            # 如果图元被选中，先绘制红色高亮轮廓
+            if obj.selected:
+                cv2.circle(frame,
+                          (center.x(), center.y()),
+                          radius,
+                          (0, 0, 255),  # 红色高亮
+                          obj.properties['thickness'] + 4,
+                          cv2.LINE_AA)
+            
+            # 绘制正常圆形
+            cv2.circle(frame,
+                      (center.x(), center.y()),
+                      radius,
+                      obj.properties['color'],
+                      obj.properties['thickness'],
+                      cv2.LINE_AA)
             
             # 绘制圆心
             cv2.circle(frame,
                       (center.x(), center.y()),
-                      3, 
-                      obj.properties['color'], 
+                      3,
+                      obj.properties['color'],
                       -1)
             
             # 准备显示文本
@@ -396,6 +417,8 @@ class LayerManager:
             # 计算两个文本的尺寸
             (coord_width, text_height), baseline = cv2.getTextSize(coord_text, font, font_scale, thickness)
             (radius_width, _), _ = cv2.getTextSize(radius_text, font, font_scale, thickness)
+            # 显示圆心坐标和半径
+            coord_text = f"({center.x()}, {center.y()})"
             
             # 计算文本位置（在圆心右侧）
             text_x = center.x() + 20
@@ -439,148 +462,114 @@ class LayerManager:
     def _draw_line_segment(self, frame, obj: DrawingObject):
         """绘制线段"""
         if len(obj.points) >= 2:
-            p1, p2 = obj.points[0], obj.points[-1]
+            p1, p2 = obj.points[0], obj.points[1]
             
-            # 如果是正在绘制的线段，显示虚线效果
-            if obj == self.current_object:
-                # 计算线段长度
-                dist = np.sqrt((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)
-                if dist > 0:
-                    # 计算单位向量
-                    vx = (p2.x() - p1.x()) / dist
-                    vy = (p2.y() - p1.y()) / dist
-                    
-                    # 虚线参数
-                    dash_length = 10
-                    gap_length = 10
-                    segment_length = dash_length + gap_length
-                    
-                    # 计算虚线段数量
-                    num_segments = int(dist / segment_length)
-                    
-                    # 绘制虚线段
-                    for i in range(num_segments):
-                        start_dist = i * segment_length
-                        end_dist = start_dist + dash_length
-                        
-                        start_x = int(p1.x() + vx * start_dist)
-                        start_y = int(p1.y() + vy * start_dist)
-                        end_x = int(p1.x() + vx * end_dist)
-                        end_y = int(p1.y() + vy * end_dist)
-                        
-                        cv2.line(frame,
-                                (start_x, start_y),
-                                (end_x, end_y),
-                                obj.properties['color'],
-                                obj.properties['thickness'],
-                                cv2.LINE_AA)
-                    
-                    # 处理最后一段可能的不完整虚线
-                    remaining_dist = dist - num_segments * segment_length
-                    if remaining_dist > 0:
-                        start_dist = num_segments * segment_length
-                        end_dist = min(start_dist + dash_length, dist)
-                        
-                        start_x = int(p1.x() + vx * start_dist)
-                        start_y = int(p1.y() + vy * start_dist)
-                        end_x = int(p1.x() + vx * end_dist)
-                        end_y = int(p1.y() + vy * end_dist)
-                        
-                        cv2.line(frame,
-                                (start_x, start_y),
-                                (end_x, end_y),
-                                obj.properties['color'],
-                                obj.properties['thickness'],
-                                cv2.LINE_AA)
-            else:
-                # 绘制完成的线段显示实线
+            # 如果图元被选中，先绘制高亮轮廓
+            if obj.selected:
                 cv2.line(frame,
                         (p1.x(), p1.y()),
                         (p2.x(), p2.y()),
-                        obj.properties['color'],
-                        obj.properties['thickness'],
+                        (0, 0, 255),  # 红色高亮
+                        obj.properties['thickness'] + 8,  # 加粗
                         cv2.LINE_AA)
             
-            # 绘制端点标记
-            radius = max(3, obj.properties['thickness'])
-            cv2.circle(frame, (p1.x(), p1.y()), radius, obj.properties['color'], -1)
-            cv2.circle(frame, (p2.x(), p2.y()), radius, obj.properties['color'], -1)
+            # 绘制正常线段
+            cv2.line(frame,
+                    (p1.x(), p1.y()),
+                    (p2.x(), p2.y()),
+                    obj.properties['color'],
+                    obj.properties['thickness'],
+                    cv2.LINE_AA)
+            
+            # 绘制端点
+            cv2.circle(frame,
+                      (p1.x(), p1.y()),
+                      3,
+                      obj.properties['color'],
+                      -1)
+            cv2.circle(frame,
+                      (p2.x(), p2.y()),
+                      3,
+                      obj.properties['color'],
+                      -1)
             
             # 计算长度和角度
             length = np.sqrt((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)
-            # 计算与水平线的夹角
-            angle = np.degrees(np.arctan2(-(p2.y() - p1.y()), p2.x() - p1.x()))  # 取负是因为y轴向下为正
+            dx = p2.x() - p1.x()
+            dy = p2.y() - p1.y()
+            angle = np.degrees(np.arctan2(-dy, dx))
             if angle < 0:
                 angle += 180
-            
-            # 计算文字位置（线段中点）
-            text_x = (p1.x() + p2.x()) // 2 + 40  # 向右偏移，避免与线重叠
-            text_y = (p1.y() + p2.y()) // 2
-            
-            # 准备文本
+
+            # 准备显示文本（分两行显示）
             dist_text = f"{length:.1f}px"
-            angle_text = f"{angle:.1f}"
-            
-            # 设置文本参数
+            angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
+
+            # 计算文本位置（在线段中点）
+            text_x = (p1.x() + p2.x()) // 2
+            text_y = (p1.y() + p2.y()) // 2
+
+            # 绘制文本（带背景）
             font = cv2.FONT_HERSHEY_SIMPLEX
             font_scale = 1.2  # 增大字体大小
             thickness = 2     # 增加字体粗细
             padding = 10      # 增大背景padding
-            # font_scale = 0.8
-            # thickness = max(1, obj.properties['thickness'] - 1)
-            
+            line_spacing = 15 # 增加行间距
+
             # 计算文本大小
             (dist_width, text_height), baseline = cv2.getTextSize(dist_text, font, font_scale, thickness)
             (angle_width, _), _ = cv2.getTextSize(angle_text, font, font_scale, thickness)
-            
-            # 计算度数符号的额外空间和最大宽度
-            dot_space = 10
+
+            # 计算度数符号的额外空间
+            dot_space = 15  # 为度数符号预留的空间
+
+            # 计算最大宽度（考虑度数符号的空间）
             max_width = max(dist_width, angle_width + dot_space)
-            line_spacing = 10
-            
-            # 绘制文本背景
-            padding = 2
-            total_height = text_height * 2 + line_spacing + padding
+
+            # 计算两行文本的总高度
+            total_height = text_height * 2 + line_spacing + padding * 2
+
+            # 绘制背景矩形
             cv2.rectangle(frame,
-                         (int(text_x - max_width//2 - padding), 
-                          int(text_y - total_height)),
-                         (int(text_x + max_width//2 + padding), 
-                          int(text_y + text_height + padding)),
-                         (0, 0, 0),
-                         -1)
-            
+                        (int(text_x - max_width//2 - padding), 
+                         int(text_y - total_height//2)),
+                        (int(text_x + max_width//2 + padding), 
+                         int(text_y + total_height//2)),
+                        (0, 0, 0),
+                        -1)
+
             # 绘制距离文本（第一行）
             dist_x = text_x - dist_width//2
-            dist_y = text_y - text_height - line_spacing
+            dist_y = text_y - line_spacing//2
             cv2.putText(frame,
-                       dist_text,
-                       (int(dist_x), int(dist_y + text_height//2)),
-                       font,
-                       font_scale,
-                       obj.properties['color'],
-                       thickness,
-                       cv2.LINE_AA)
-            
+                      dist_text,
+                      (int(dist_x), int(dist_y)),
+                      font,
+                      font_scale,
+                      obj.properties['color'],
+                      thickness,
+                      cv2.LINE_AA)
+
             # 绘制角度文本（第二行）
             angle_x = text_x - (angle_width + dot_space)//2
-            angle_y = text_y
+            angle_y = text_y + text_height + line_spacing//2
             cv2.putText(frame,
-                       angle_text,
-                       (int(angle_x), int(angle_y + text_height//2)),
-                       font,
-                       font_scale,
-                       obj.properties['color'],
-                       thickness,
-                       cv2.LINE_AA)
-            
+                      angle_text,
+                      (int(angle_x), int(angle_y)),
+                      font,
+                      font_scale,
+                      obj.properties['color'],
+                      thickness,
+                      cv2.LINE_AA)
+
             # 绘制度数符号（空心圆）
-            dot_x = angle_x + angle_width + 3
-            dot_y = angle_y - text_height//2 + 3
+            dot_x = angle_x + angle_width + 8
+            dot_y = angle_y - text_height//6
             cv2.circle(frame,
                       (int(dot_x), int(dot_y)),
-                      3,
+                      4,  # 圆的半径
                       obj.properties['color'],
-                      1,
+                      1,  # 1表示空心圆
                       cv2.LINE_AA)
 
     def _draw_current_line_segment(self, frame, obj: DrawingObject):
@@ -794,13 +783,13 @@ class LayerManager:
                             cv2.line(frame,
                                     (dash_start_x, dash_start_y),
                                     (dash_end_x, dash_end_y),
-                                    obj.properties['color'],
-                                    obj.properties['thickness'],  # 使用较细的线宽
+                                    (255, 0, 0),
+                                    4,
                                     cv2.LINE_AA)
                     
                     # 显示距离和角度信息（分两行显示）
                     dist_text = f"{dist:.1f}px"
-                    angle_text = f"{angle:.1f}"
+                    angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
 
                     # 计算文本位置（在两条线中间，但要错开）
                     text_x = mid_x + 40  # 向右偏移，避免与中线重叠
@@ -818,7 +807,7 @@ class LayerManager:
                     (angle_width, _), _ = cv2.getTextSize(angle_text, font, font_scale, thickness)
 
                     # 计算度数符号的额外空间
-                    dot_space = 10  # 为度数符号预留的空间
+                    dot_space = 15  # 为度数符号预留的空间
 
                     # 计算最大宽度（考虑度数符号的空间）
                     max_width = max(dist_width, angle_width + dot_space)
@@ -865,7 +854,7 @@ class LayerManager:
 
                     # 绘制度数符号（空心圆）
                     dot_x = angle_x + angle_width + 3
-                    dot_y = angle_y - text_height//2 + 3  # 微调圆的垂直位置
+                    dot_y = angle_y - text_height//6
                     cv2.circle(frame,
                               (int(dot_x), int(dot_y)),
                               3,  # 圆的半径
@@ -962,7 +951,7 @@ class LayerManager:
                                     (dash_start_x, dash_start_y),
                                     (dash_end_x, dash_end_y),
                                     obj.properties['color'],
-                                    1,
+                                    obj.properties['thickness'],
                                     cv2.LINE_AA)
                         
                         # 显示距离信息
@@ -1010,6 +999,7 @@ class LayerManager:
             DrawingType.TWO_LINES: self._draw_two_lines,
             DrawingType.LINE_DETECT: self._draw_line_detect,  # 添加直线检测
             DrawingType.CIRCLE_DETECT: self._draw_circle_detect,  # 添加圆形检测
+            DrawingType.POINT: self._draw_point,  # 添加点的绘制方法
         }
         
         if obj.type in draw_methods:
@@ -1017,124 +1007,169 @@ class LayerManager:
         
     def _draw_two_lines(self, frame, obj: DrawingObject):
         """绘制两条线的夹角测量"""
-        if len(obj.points) >= 2:
-            height, width = frame.shape[:2]
-            max_length = int(np.sqrt(width**2 + height**2))
+        # 首先检查是否有足够的点
+        if len(obj.points) < 2:
+            return  # 如果点数不足，直接返回
+        
+        height, width = frame.shape[:2]
+        max_length = int(10 * np.sqrt(width**2 + height**2))  # 使用10倍对角线长度
+        
+        # 绘制第一条线
+        p1 = obj.points[0]
+        p2 = obj.points[1]
+        
+        # 计算第一条线的方向向量
+        dx1 = p2.x() - p1.x()
+        dy1 = p2.y() - p1.y()
+        
+        # 绘制第一条线
+        if dx1 != 0 or dy1 != 0:
+            # 计算单位向量
+            length1 = np.sqrt(dx1*dx1 + dy1*dy1)
+            dx1, dy1 = dx1/length1, dy1/length1
             
             # 绘制第一条线
-            p1 = obj.points[0]
-            p2 = obj.points[1]
+            start_x1 = int(p1.x() - dx1 * max_length)
+            start_y1 = int(p1.y() - dy1 * max_length)
+            end_x1 = int(p1.x() + dx1 * max_length)
+            end_y1 = int(p1.y() + dy1 * max_length)
             
-            # 计算第一条线的方向向量
-            dx1 = p2.x() - p1.x()
-            dy1 = p2.y() - p1.y()
+            cv2.line(frame,
+                    (start_x1, start_y1),
+                    (end_x1, end_y1),
+                    obj.properties['color'],
+                    obj.properties['thickness'],
+                    cv2.LINE_AA)
+        
+        # 如果没有第二条线的点，到这里就返回
+        if len(obj.points) < 4:
+            return
+        
+        # 绘制第二条线
+        p3 = obj.points[2]
+        p4 = obj.points[3]
+        
+        # 计算第二条线的方向向量
+        dx2 = p4.x() - p3.x()
+        dy2 = p4.y() - p3.y()
+        
+        if dx2 != 0 or dy2 != 0:
+            # 计算单位向量
+            length2 = np.sqrt(dx2*dx2 + dy2*dy2)
+            dx2, dy2 = dx2/length2, dy2/length2
             
-            if dx1 != 0 or dy1 != 0:
-                # 计算单位向量
-                length1 = np.sqrt(dx1*dx1 + dy1*dy1)
-                dx1, dy1 = dx1/length1, dy1/length1
+            # 绘制第二条线
+            start_x2 = int(p3.x() - dx2 * max_length)
+            start_y2 = int(p3.y() - dy2 * max_length)
+            end_x2 = int(p3.x() + dx2 * max_length)
+            end_y2 = int(p3.y() + dy2 * max_length)
+            
+            cv2.line(frame,
+                    (start_x2, start_y2),
+                    (end_x2, end_y2),
+                    obj.properties['color'],
+                    obj.properties['thickness'],
+                    cv2.LINE_AA)
+            
+            # 计算夹角
+            dot_product = dx1*dx2 + dy1*dy2
+            angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
+            
+            # 计算两直线的交点
+            denominator = dx1*dy2 - dy1*dx2
+            if abs(denominator) > 1e-10:  # 非平行线情况
+                t1 = ((p3.x() - p1.x())*dy2 - (p3.y() - p1.y())*dx2) / denominator
+                intersection_x = int(p1.x() + dx1 * t1)
+                intersection_y = int(p1.y() + dy1 * t1)
                 
-                # 绘制第一条线
-                start_x1 = int(p1.x() - dx1 * max_length)
-                start_y1 = int(p1.y() - dy1 * max_length)
-                end_x1 = int(p1.x() + dx1 * max_length)
-                end_y1 = int(p1.y() + dy1 * max_length)
+                # 在交点处画一个小圆点
+                cv2.circle(frame, (intersection_x, intersection_y), 6, obj.properties['color'], -1)
                 
-                cv2.line(frame,
-                        (start_x1, start_y1),
-                        (end_x1, end_y1),
-                        obj.properties['color'],
-                        obj.properties['thickness'],
-                        cv2.LINE_AA)
-                
-                # 如果有第二条线
-                if len(obj.points) >= 4:
-                    p3 = obj.points[2]
-                    p4 = obj.points[3]
+                # 计算角平分线的方向向量（中线）
+                mid_dx = dx1 + dx2
+                mid_dy = dy1 + dy2
+                mid_length = np.sqrt(mid_dx*mid_dx + mid_dy*mid_dy)
+                if mid_length > 1e-10:
+                    mid_dx /= mid_length
+                    mid_dy /= mid_length
                     
-                    # 计算第二条线的方向向量
-                    dx2 = p4.x() - p3.x()
-                    dy2 = p4.y() - p3.y()
+                    # 绘制中线（虚线）
+                    dash_length = 10
+                    gap_length = 10
+                    segment_length = dash_length + gap_length
+                    total_length = max_length * 2
+                    num_segments = int(total_length / segment_length)
                     
-                    if dx2 != 0 or dy2 != 0:
-                        # 计算单位向量
-                        length2 = np.sqrt(dx2*dx2 + dy2*dy2)
-                        dx2, dy2 = dx2/length2, dy2/length2
+                    # 从交点向两边绘制虚线
+                    for i in range(num_segments):
+                        start_dist = i * segment_length - max_length
+                        end_dist = start_dist + dash_length
                         
-                        # 绘制第二条线
-                        start_x2 = int(p3.x() - dx2 * max_length)
-                        start_y2 = int(p3.y() - dy2 * max_length)
-                        end_x2 = int(p3.x() + dx2 * max_length)
-                        end_y2 = int(p3.y() + dy2 * max_length)
+                        dash_start_x = int(intersection_x + mid_dx * start_dist)
+                        dash_start_y = int(intersection_y + mid_dy * start_dist)
+                        dash_end_x = int(intersection_x + mid_dx * end_dist)
+                        dash_end_y = int(intersection_y + mid_dy * end_dist)
                         
-                        cv2.line(frame,
-                                (start_x2, start_y2),
-                                (end_x2, end_y2),
-                                obj.properties['color'],
-                                obj.properties['thickness'],
-                                cv2.LINE_AA)
-                        
-                        # 计算夹角
-                        dot_product = dx1*dx2 + dy1*dy2
-                        angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
-                        
-                        # 计算两直线的交点
-                        # 使用参数方程求解
-                        # 线1: p1 + t1(dx1,dy1)
-                        # 线2: p3 + t2(dx2,dy2)
-                        denominator = dx1*dy2 - dy1*dx2
-                        if abs(denominator) > 1e-10:  # 避免平行线的情况
-                            t1 = ((p3.x() - p1.x())*dy2 - (p3.y() - p1.y())*dx2) / denominator
-                            intersection_x = int(p1.x() + dx1 * t1)
-                            intersection_y = int(p1.y() + dy1 * t1)
-                            
-                            # 计算文本位置（在交点附近）
-                            text_x = intersection_x + 20  # 向右偏移一点
-                            text_y = intersection_y - 20  # 向上偏移一点
-                        else:
-                            # 如果线段平行，使用中点
-                            text_x = (p1.x() + p3.x()) // 2
-                            text_y = (p1.y() + p3.y()) // 2
-                        
-                        # 显示角度信息
-                        text = f"{angle:.1f}"
-                        font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 1.2  # 增大字体大小
-                        thickness = 2     # 增加字体粗细
-                        padding = 10      # 增大背景padding
-                        
-                        # 获取文本大小
-                        (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
-                        
-                        # 绘制文本背景
-                        padding = 6
-                        cv2.rectangle(frame,
-                                    (int(text_x - text_width//2 - padding), 
-                                     int(text_y - text_height//2 - padding)),
-                                    (int(text_x + text_width//2 + padding + 10), 
-                                     int(text_y + text_height//2 + padding)),
-                                    (0, 0, 0),
-                                    -1)
-                        
-                        # 绘制文本
-                        cv2.putText(frame,
-                                  text,
-                                  (int(text_x - text_width//2), int(text_y + text_height//2)),
-                                  font,
-                                  font_scale,
-                                  obj.properties['color'],
-                                  thickness,
-                                  cv2.LINE_AA)
-                        
-                        # 绘制度数符号（空心圆）
-                        dot_x = text_x + text_width//2 + 2
-                        dot_y = text_y - text_height//2 + 3  # 微调圆的垂直位置
-                        cv2.circle(frame,
-                                  (int(dot_x), int(dot_y)),
-                                  3,  # 圆的半径
-                                  obj.properties['color'],
-                                  1,  # 线宽为1表示空心圆
-                                  cv2.LINE_AA)
+                        if (0 <= dash_start_x < width and 0 <= dash_start_y < height and
+                            0 <= dash_end_x < width and 0 <= dash_end_y < height):
+                            cv2.line(frame,
+                                    (dash_start_x, dash_start_y),
+                                    (dash_end_x, dash_end_y),
+                                    obj.properties['color'],
+                                    obj.properties['thickness'],
+                                    cv2.LINE_AA)
+            
+            # 准备显示的文本
+            angle_text = f"{angle:.1f}"
+            coord_text = f"({intersection_x}, {intersection_y})"
+            
+            # 设置文本参数
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 1.2
+            thickness = 2
+            padding = 10
+            
+            # 获取文本尺寸
+            (angle_width, text_height), _ = cv2.getTextSize(angle_text, font, font_scale, thickness)
+            (coord_width, _), _ = cv2.getTextSize(coord_text, font, font_scale, thickness)
+            
+            # 计算文本位置
+            text_x = intersection_x + 20
+            angle_y = intersection_y - text_height - 5
+            coord_y = intersection_y + text_height + 5
+            
+            # 计算背景矩形的尺寸
+            max_width = max(angle_width, coord_width)
+            total_height = text_height * 2 + 20  # 两行文本的总高度加上间距
+            
+            # 绘制文本背景
+            cv2.rectangle(frame,
+                        (int(text_x - padding), 
+                         int(angle_y - padding)),
+                        (int(text_x + max_width + padding), 
+                         int(coord_y + padding)),
+                        (0, 0, 0),
+                        -1)
+            
+            # 绘制角度文本
+            cv2.putText(frame,
+                      angle_text,
+                      (text_x, angle_y + text_height),
+                      font,
+                      font_scale,
+                      obj.properties['color'],
+                      thickness,
+                      cv2.LINE_AA)
+            
+            # 绘制坐标文本
+            cv2.putText(frame,
+                      coord_text,
+                      (text_x, coord_y),
+                      font,
+                      font_scale,
+                      obj.properties['color'],
+                      thickness,
+                      cv2.LINE_AA)
 
     def _detect_line_in_roi(self, frame, roi_points):
         """在ROI区域内检测直线"""
@@ -1258,7 +1293,7 @@ class LayerManager:
                             angle += 180
                         
                         # 绘制文本（带背景）
-                        text = f"{angle:.1f}"
+                        text = f"{angle:.1f}\u00B0"
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         font_scale = 1.2  # 增大字体大小
                         thickness = 2     # 增加字体粗细
@@ -1466,6 +1501,375 @@ class LayerManager:
             if str(e) != "0":  # 只打印非0错误
                 print(f"绘制圆形检测时出错: {str(e)}")
 
+    def _draw_point(self, frame, obj: DrawingObject):
+        """绘制点"""
+        if len(obj.points) >= 1:
+            p = obj.points[0]
+            
+            # 如果图元被选中，先绘制高亮效果
+            if obj.selected:
+                cv2.circle(frame,
+                          (p.x(), p.y()),
+                          obj.properties.get('radius', 10) + 4,  # 增加高亮边缘的宽度
+                          (0, 0, 255),  # 红色高亮
+                          -1)  # 填充圆
+            
+            # 绘制点（实心圆）
+            cv2.circle(frame,
+                      (p.x(), p.y()),
+                      obj.properties.get('radius', 10),  # 保持点的基础半径为10
+                      obj.properties['color'],
+                      -1)  # 填充圆
+            
+            # 显示坐标信息
+            coord_text = f"({p.x()}, {p.y()})"
+            
+            # 绘制文本（带背景）
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 1.2  # 增大字体大小
+            thickness = 2
+            padding = 8  # 增加内边距
+            
+            # 计算文本位置（移动到点的右上方）
+            text_x = p.x() + 10  # 向右偏移10像素
+            text_y = p.y() - 10  # 向上偏移10像素
+            
+            # 获取文本大小
+            (text_width, text_height), baseline = cv2.getTextSize(coord_text, font, font_scale, thickness)
+            
+            # 绘制文本背景
+            cv2.rectangle(frame,
+                        (text_x - padding, text_y - text_height - padding),
+                        (text_x + text_width + padding, text_y + padding),
+                        (0, 0, 0),
+                        -1)
+            
+            # 绘制文本
+            cv2.putText(frame,
+                      coord_text,
+                      (text_x, text_y),
+                      font,
+                      font_scale,
+                      obj.properties['color'],
+                      thickness,
+                      cv2.LINE_AA)
+
+    def _draw_point_to_line(self, frame, obj: DrawingObject):
+        """绘制点到线的垂直距离"""
+        if len(obj.points) >= 3:
+            point = obj.points[0]  # 点的坐标
+            line_p1, line_p2 = obj.points[1], obj.points[2]  # 线的两个端点
+            
+            # 计算点到线的垂直距离
+            # 使用点到直线距离公式：|Ax + By + C|/sqrt(A^2 + B^2)
+            # 其中 Ax + By + C = 0 是直线方程
+            A = line_p2.y() - line_p1.y()
+            B = line_p1.x() - line_p2.x()
+            C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+            
+            distance = abs(A * point.x() + B * point.y() + C) / np.sqrt(A * A + B * B)
+            
+            # 计算垂足坐标
+            # 垂足公式：x = (B^2*x0 - A*B*y0 - A*C)/(A^2 + B^2)
+            #          y = (A^2*y0 - A*B*x0 - B*C)/(A^2 + B^2)
+            foot_x = (B * B * point.x() - A * B * point.y() - A * C) / (A * A + B * B)
+            foot_y = (A * A * point.y() - A * B * point.x() - B * C) / (A * A + B * B)
+            
+            # 绘制虚线
+            if obj.properties.get('is_dashed', False):
+                # 绘制虚线效果
+                dash_length = 10  # 增加虚线长度
+                gap_length = 10   # 增加间隔长度
+                total_length = int(distance)
+                num_segments = total_length // (dash_length + gap_length)
+                
+                # 计算单位向量
+                dx = foot_x - point.x()
+                dy = foot_y - point.y()
+                length = np.sqrt(dx * dx + dy * dy)
+                if length > 0:
+                    dx, dy = dx / length, dy / length
+                    
+                    for i in range(num_segments):
+                        start_dist = i * (dash_length + gap_length)
+                        end_dist = start_dist + dash_length
+                        
+                        start_x = int(point.x() + dx * start_dist)
+                        start_y = int(point.y() + dy * start_dist)
+                        end_x = int(point.x() + dx * end_dist)
+                        end_y = int(point.y() + dy * end_dist)
+                        
+                        cv2.line(frame,
+                                (start_x, start_y),
+                                (end_x, end_y),
+                                obj.properties['color'],
+                                obj.properties['thickness'],
+                                cv2.LINE_AA)
+            
+            # 显示距离文本
+            if obj.properties.get('show_distance', False):
+                distance_text = f"{distance:.1f}px"
+                
+                # 计算文本位置（在垂线中点）
+                text_x = int((point.x() + foot_x) / 2)
+                text_y = int((point.y() + foot_y) / 2)
+                
+                # 设置文本参数
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 1.2
+                thickness = 2
+                padding = 5
+                
+                # 获取文本大小
+                (text_width, text_height), baseline = cv2.getTextSize(distance_text, font, font_scale, thickness)
+                
+                # 绘制文本背景
+                cv2.rectangle(frame,
+                            (text_x - padding, text_y - text_height - padding),
+                            (text_x + text_width + padding, text_y + padding),
+                            (0, 0, 0),
+                            -1)
+                
+                # 绘制文本
+                cv2.putText(frame,
+                          distance_text,
+                          (text_x, text_y),
+                          font,
+                          font_scale,
+                          obj.properties['color'],
+                          thickness,
+                          cv2.LINE_AA)
+
+    def _draw_simple_circle(self, frame, obj: DrawingObject):
+        """绘制简单圆的三个点和连接线"""
+        # 绘制已有的点
+        for point in obj.points:
+            # 绘制点
+            cv2.circle(frame, (point.x(), point.y()), 5, (0, 255, 0), -1)  # 实心点
+            cv2.circle(frame, (point.x(), point.y()), 8, (0, 255, 0), 2)   # 空心圆环
+            
+            # 在点旁边显示序号
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            cv2.putText(frame, str(obj.points.index(point) + 1), 
+                       (point.x() + 15, point.y() + 15), 
+                       font, 0.8, (0, 255, 0), 2)
+        
+        # 如果有多个点，绘制连接线
+        if len(obj.points) >= 2:
+            # 连接点
+            for i in range(len(obj.points)-1):
+                cv2.line(frame,
+                        (obj.points[i].x(), obj.points[i].y()),
+                        (obj.points[i+1].x(), obj.points[i+1].y()),
+                        (0, 255, 0), 2, cv2.LINE_AA)
+
+    def _draw_fine_circle(self, frame, obj: DrawingObject):
+        """绘制精细圆的五个点和拟合圆"""
+        # 绘制已有的点
+        for point in obj.points:
+            # 绘制点
+            cv2.circle(frame, (point.x(), point.y()), 5, (0, 255, 0), -1)  # 实心点
+            cv2.circle(frame, (point.x(), point.y()), 8, (0, 255, 0), 2)   # 空心圆环
+            
+            # 在点旁边显示序号
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            cv2.putText(frame, str(obj.points.index(point) + 1), 
+                       (point.x() + 15, point.y() + 15), 
+                       font, 0.8, (0, 255, 0), 2)
+        
+        # 如果有多个点，绘制连接线
+        if len(obj.points) >= 2:
+            # 连接点
+            for i in range(len(obj.points)-1):
+                cv2.line(frame,
+                        (obj.points[i].x(), obj.points[i].y()),
+                        (obj.points[i+1].x(), obj.points[i+1].y()),
+                        (0, 255, 0), 2, cv2.LINE_AA)
+            
+            # 如果是最后一个点，连接回第一个点形成闭环
+            if len(obj.points) == 5:
+                cv2.line(frame,
+                        (obj.points[-1].x(), obj.points[-1].y()),
+                        (obj.points[0].x(), obj.points[0].y()),
+                        (0, 255, 0), 2, cv2.LINE_AA)
+        
+        # 如果已经拟合了圆，绘制圆
+        if 'center' in obj.properties and 'radius' in obj.properties:
+            center = obj.properties['center']
+            radius = obj.properties['radius']
+            
+            # 绘制圆
+            cv2.circle(frame, 
+                      (int(center[0]), int(center[1])), 
+                      int(radius), 
+                      (0, 0, 255), 2, cv2.LINE_AA)
+            
+            # 绘制圆心
+            cv2.circle(frame, 
+                      (int(center[0]), int(center[1])), 
+                      5, (0, 0, 255), -1)
+            
+            # 显示圆心坐标和半径
+            text = f"Center: ({center[0]:.1f}, {center[1]:.1f}), R: {radius:.1f}"
+            cv2.putText(frame, text, 
+                       (int(center[0]) + 20, int(center[1]) - 20), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
+    def hit_test(self, point, tolerance=10):
+        """测试点击是否命中图元"""
+        hit_objects = []
+        
+        # 检查所有图元
+        for obj in self.drawing_objects + self.detection_objects:
+            if not obj.visible:
+                continue
+                
+            try:
+                # 根据图元类型进行命中测试
+                if obj.type == DrawingType.POINT:
+                    if self._hit_test_point(point, obj.points[0], tolerance):
+                        hit_objects.append(obj)
+                elif obj.type in [DrawingType.LINE, DrawingType.LINE_SEGMENT]:
+                    # 确保有足够的点
+                    if len(obj.points) >= 2:
+                        if self._hit_test_line(point, obj.points[0], obj.points[1], tolerance):
+                            hit_objects.append(obj)
+                elif obj.type == DrawingType.CIRCLE:
+                    if len(obj.points) >= 2:
+                        if self._hit_test_circle(point, obj.points[0], obj.points[1], tolerance):
+                            hit_objects.append(obj)
+                            
+            except Exception as e:
+                print(f"Hit test error for object {obj.type}: {str(e)}")
+                continue
+                
+        return hit_objects
+
+    def _hit_test_point(self, test_point, point, tolerance):
+        """测试点是否在目标点附近"""
+        try:
+            p = np.array([test_point.x(), test_point.y()])
+            target = np.array([point.x(), point.y()])
+            
+            # 计算两点之间的距离
+            dist = np.linalg.norm(p - target)
+            
+            # 增加选中范围到20像素
+            return dist <= 20  # 增加选中范围，使点更容易被选中
+            
+        except Exception as e:
+            print(f"Point hit test error: {str(e)}")
+            return False
+
+    def _hit_test_line(self, point, line_start, line_end, tolerance):
+        """测试点是否在线段附近"""
+        try:
+            p = np.array([point.x(), point.y()])
+            p1 = np.array([line_start.x(), line_start.y()])
+            p2 = np.array([line_end.x(), line_end.y()])
+            
+            # 计算线段向量和点到起点的向量
+            line_vec = p2 - p1
+            point_vec = p - p1
+            
+            # 计算线段长度
+            line_length = np.linalg.norm(line_vec)
+            if line_length < 1e-6:  # 避免除零错误
+                return np.linalg.norm(point_vec) <= tolerance
+            
+            # 将线段向量单位化
+            line_unit_vec = line_vec / line_length
+            
+            # 计算点到线的垂直距离
+            dist = abs(np.cross(line_unit_vec, point_vec))
+            
+            # 对于直线，只需要检查垂直距离
+            return dist <= tolerance
+            
+        except Exception as e:
+            print(f"Line hit test error: {str(e)}")
+            return False
+
+    def _hit_test_circle(self, point, center, radius_point, tolerance):
+        """测试点是否在圆的轮廓附近"""
+        p = np.array([point.x(), point.y()])
+        c = np.array([center.x(), center.y()])
+        r = np.linalg.norm(np.array([radius_point.x(), radius_point.y()]) - c)
+        
+        dist_to_center = np.linalg.norm(p - c)
+        return abs(dist_to_center - r) <= tolerance
+        
+    def select_object(self, obj, ctrl_pressed=False):
+        """选择图元"""
+        if not ctrl_pressed:
+            # 如果没有按Ctrl，清除之前的选择
+            for o in self.selected_objects:
+                o.selected = False
+            self.selected_objects.clear()
+            
+        if obj not in self.selected_objects:
+            obj.selected = True
+            self.selected_objects.append(obj)
+            # 打印选中的图元类型
+            print(f"选中了: {obj.type.value}")  # .value 获取枚举的字符串值
+
+    def delete_selected_objects(self):
+        """删除选中的图元"""
+        # 从绘制列表中移除选中的对象
+        self.drawing_objects = [obj for obj in self.drawing_objects 
+                              if obj not in self.selected_objects]
+        # 从检测列表中移除选中的对象
+        self.detection_objects = [obj for obj in self.detection_objects 
+                                if obj not in self.selected_objects]
+        # 清空选中列表
+        self.selected_objects.clear()
+
+    def clear_selection(self):
+        """清除所有选择"""
+        for obj in self.selected_objects:
+            obj.selected = False
+        self.selected_objects.clear()
+
+    def _calculate_circle_from_five_points(self, points):
+        """使用最小二乘法从五个点拟合圆"""
+        try:
+            # 提取五个点的坐标
+            x = np.array([point.x() for point in points])
+            y = np.array([point.y() for point in points])
+            
+            # 构建最小二乘法方程组
+            # 对于圆方程 (x-h)^2 + (y-k)^2 = r^2
+            # 可以转换为 x^2 + y^2 = 2hx + 2ky + (r^2 - h^2 - k^2)
+            # 令 A = 2h, B = 2k, C = r^2 - h^2 - k^2
+            # 则方程变为 x^2 + y^2 = Ax + By + C
+            
+            # 构建系数矩阵
+            A = np.column_stack((x, y, np.ones(len(x))))
+            
+            # 构建常数项
+            b = x**2 + y**2
+            
+            # 求解线性方程组
+            try:
+                # 使用最小二乘法求解
+                params, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
+                
+                # 提取参数
+                a, b, c = params
+                
+                # 计算圆心和半径
+                h = a / 2
+                k = b / 2
+                r = np.sqrt(c + h**2 + k**2)
+                
+                return (h, k), r
+            except np.linalg.LinAlgError:
+                print("线性代数错误，无法拟合圆")
+                return None
+        except Exception as e:
+            print(f"拟合圆参数时出错: {str(e)}")
+            return None
+
 class MeasurementManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1516,6 +1920,21 @@ class MeasurementManager(QObject):
         self.draw_mode = DrawingType.CIRCLE_DETECT
         self.drawing = False 
 
+    def start_point_measurement(self):
+        """启动点测量模式"""
+        self.draw_mode = DrawingType.POINT
+        self.drawing = False
+
+    def start_simple_circle_measurement(self):
+        """启动简单圆测量模式"""
+        self.draw_mode = DrawingType.SIMPLE_CIRCLE
+        self.drawing = False
+
+    def start_fine_circle_measurement(self):
+        """启动精细圆测量模式"""
+        self.draw_mode = DrawingType.FINE_CIRCLE
+        self.drawing = False
+
     def clear_measurements(self):
         """清空所有测量"""
         self.draw_mode = None
@@ -1534,94 +1953,139 @@ class MeasurementManager(QObject):
 
     def handle_mouse_press(self, event_pos, current_frame):
         """处理鼠标按下事件"""
-        if not self.draw_mode:
+        # 检查是否是右键点击
+        if QApplication.mouseButtons() & Qt.RightButton:
+            # 如果正在绘制，退出绘制状态
+            if self.drawing or self.draw_mode:
+                self.exit_drawing_mode()
+                return self.layer_manager.render_frame(current_frame)
             return None
         
-        if self.draw_mode == DrawingType.LINE_DETECT:
-            # 直线检测模式
-            if not self.layer_manager.current_object:
-                self.drawing = True
-                properties = {
-                    'color': (0, 255, 255),  # RGB格式：青色
-                    'thickness': 2,
-                    'line_detected': False,  # 标记是否已检测到直线
-                    'is_roi': True  # 标记当前是ROI框阶段
-                }
-                self.layer_manager.start_drawing(self.draw_mode, properties)
-                self.layer_manager.current_object.points.append(event_pos)
-            return self.layer_manager.render_frame(current_frame)
-        elif self.draw_mode == DrawingType.CIRCLE_DETECT:
-            # 圆形检测模式
-            if not self.layer_manager.current_object:
-                self.drawing = True
-                properties = {
-                    'color': (0, 255, 255),  # RGB格式：青色
-                    'thickness': 2
-                }
-                self.layer_manager.start_drawing(self.draw_mode, properties)
-                self.layer_manager.current_object.points.append(event_pos)
-            return self.layer_manager.render_frame(current_frame)
-        elif self.draw_mode == DrawingType.TWO_LINES:
-            # 两线夹角测量模式
-            if not self.layer_manager.current_object:
-                # 第一次按下：开始绘制第一条线
-                self.drawing = True
-                properties = {
-                    'color': (255, 190, 0),  # RGB格式：暗黄色
-                    'thickness': 2
-                }
-                self.layer_manager.start_drawing(self.draw_mode, properties)
-                self.layer_manager.current_object.points.append(event_pos)
-            elif len(self.layer_manager.current_object.points) == 2:
-                # 第二次按下：开始绘制第二条线
-                self.drawing = True
-                self.layer_manager.current_object.points.append(event_pos)
-            return self.layer_manager.render_frame(current_frame)
-        elif self.draw_mode == DrawingType.CIRCLE_LINE:
-            # 圆线距离测量模式
-            if not self.layer_manager.current_object:
-                # 第一次按下：开始绘制圆
-                self.drawing = True
-                properties = {
-                    'color': (255, 190, 0),  # RGB格式：暗黄色
-                    'thickness': 2
-                }
-                self.layer_manager.start_drawing(self.draw_mode, properties)
-                self.layer_manager.current_object.points.append(event_pos)
-            elif len(self.layer_manager.current_object.points) == 2:
-                # 第二次按下：开始绘制直线
-                self.drawing = True
-                self.layer_manager.current_object.points.append(event_pos)  # 添加直线起点
-            return self.layer_manager.render_frame(current_frame)
-        elif self.draw_mode == DrawingType.PARALLEL:
-            # 保持平行线处理不变
-            if self.layer_manager.current_object and len(self.layer_manager.current_object.points) == 2:
-                self.layer_manager.update_current_object(event_pos)
-                self.layer_manager.commit_drawing()
+        # 左键点击的原有逻辑
+        if not self.draw_mode and not self.drawing:
+            hit_objects = self.layer_manager.hit_test(event_pos)
+            if hit_objects:
+                ctrl_pressed = QApplication.keyboardModifiers() & Qt.ControlModifier
+                self.layer_manager.select_object(hit_objects[0], ctrl_pressed)
                 return self.layer_manager.render_frame(current_frame)
             else:
+                if self.layer_manager.selected_objects:
+                    self.layer_manager.clear_selection()
+                    return self.layer_manager.render_frame(current_frame)
+        
+        # 如果在绘制模式下，执行正常的绘制操作
+        if self.draw_mode:
+            if self.draw_mode == DrawingType.SIMPLE_CIRCLE:
+                # 简单圆模式不在鼠标按下时处理，而是在鼠标释放时处理
+                return None
+            elif self.draw_mode == DrawingType.FINE_CIRCLE:
+                # 精细圆模式不在鼠标按下时处理，而是在鼠标释放时处理
+                return None
+            elif self.draw_mode == DrawingType.LINE_DETECT:
+                # 直线检测模式
+                if not self.layer_manager.current_object:
+                    self.drawing = True
+                    properties = {
+                        'color': (255, 0, 255),  # RGB格式：亮紫色
+                        'thickness': 2,
+                        'line_detected': False,  # 标记是否已检测到直线
+                        'is_roi': True  # 标记当前是ROI框阶段
+                    }
+                    self.layer_manager.start_drawing(self.draw_mode, properties)
+                    self.layer_manager.current_object.points.append(event_pos)
+                return self.layer_manager.render_frame(current_frame)
+            elif self.draw_mode == DrawingType.CIRCLE_DETECT:
+                # 圆形检测模式
+                if not self.layer_manager.current_object:
+                    self.drawing = True
+                    properties = {
+                        'color': (255, 0, 255),  # RGB格式：亮紫色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(self.draw_mode, properties)
+                    self.layer_manager.current_object.points.append(event_pos)
+                return self.layer_manager.render_frame(current_frame)
+            elif self.draw_mode == DrawingType.TWO_LINES:
+                # 两线夹角测量模式
+                if not self.layer_manager.current_object:
+                    # 第一次按下：开始绘制第一条线
+                    self.drawing = True
+                    properties = {
+                        'color': (0, 255, 0),  # RGB格式：绿色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(self.draw_mode, properties)
+                    self.layer_manager.current_object.points.append(event_pos)
+                elif len(self.layer_manager.current_object.points) == 2:
+                    # 第二次按下：开始绘制第二条线
+                    self.drawing = True
+                    self.layer_manager.current_object.points.append(event_pos)
+                return self.layer_manager.render_frame(current_frame)
+            elif self.draw_mode == DrawingType.CIRCLE_LINE:
+                # 圆线距离测量模式
+                if not self.layer_manager.current_object:
+                    # 第一次按下：开始绘制圆
+                    self.drawing = True
+                    properties = {
+                        'color': (0, 255, 0),  # RGB格式：绿色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(self.draw_mode, properties)
+                    self.layer_manager.current_object.points.append(event_pos)
+                elif len(self.layer_manager.current_object.points) == 2:
+                    # 第二次按下：开始绘制直线
+                    self.drawing = True
+                    self.layer_manager.current_object.points.append(event_pos)  # 添加直线起点
+                return self.layer_manager.render_frame(current_frame)
+            elif self.draw_mode == DrawingType.PARALLEL:
+                # 平行线测量模式
+                if self.layer_manager.current_object and len(self.layer_manager.current_object.points) == 2:
+                    self.layer_manager.update_current_object(event_pos)
+                    self.layer_manager.commit_drawing()
+                    return self.layer_manager.render_frame(current_frame)
+                else:
+                    self.drawing = True
+                    properties = {
+                        'color': (0, 255, 0),  # RGB格式：绿色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(self.draw_mode, properties)
+                    self.layer_manager.current_object.points.append(event_pos)
+            elif self.draw_mode == DrawingType.POINT:
+                # 点绘制模式
                 self.drawing = True
                 properties = {
-                    'color': (255, 190, 0),  # RGB格式：暗黄色
-                    'thickness': 2
+                    'color': (0, 255, 0),  # RGB格式：绿色
+                    'radius': 10,  # 增加点的默认半径到10
                 }
                 self.layer_manager.start_drawing(self.draw_mode, properties)
                 self.layer_manager.current_object.points.append(event_pos)
-        else:
-            # 其他模式正常处理
-            self.drawing = True
-            properties = {
-                'color': (255, 190, 0),  # RGB格式：暗黄色
-                'thickness': 2
-            }
-            self.layer_manager.start_drawing(self.draw_mode, properties)
-            self.layer_manager.update_current_object(event_pos)
-        
-        return self.layer_manager.render_frame(current_frame)
+                self.layer_manager.commit_drawing()  # 立即提交点的绘制
+                self.drawing = False
+                return self.layer_manager.render_frame(current_frame)
+            else:
+                # 其他模式正常处理
+                self.drawing = True
+                properties = {
+                    'color': (0, 255, 0),  # RGB格式：绿色
+                    'thickness': 2
+                }
+                self.layer_manager.start_drawing(self.draw_mode, properties)
+                self.layer_manager.update_current_object(event_pos)
+            
+            return self.layer_manager.render_frame(current_frame)
         
     def handle_mouse_move(self, event_pos, current_frame):
         """处理鼠标移动事件"""
         if self.drawing:
+            # 如果是简单圆模式，不需要在移动时更新
+            if self.draw_mode == DrawingType.SIMPLE_CIRCLE:
+                return None
+                
+            # 如果是精细圆模式，不需要在移动时更新
+            if self.draw_mode == DrawingType.FINE_CIRCLE:
+                return None
+                
             if self.draw_mode == DrawingType.LINE_DETECT:
                 # 直线检测模式 - 绘制ROI框
                 if len(self.layer_manager.current_object.points) == 1:
@@ -1665,7 +2129,7 @@ class MeasurementManager(QObject):
                         self.layer_manager.current_object.points[3] = event_pos
                 return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.PARALLEL:
-                # 保持平行线模式处理不变
+                # 平行线测量模式
                 if len(self.layer_manager.current_object.points) <= 2:
                     if len(self.layer_manager.current_object.points) == 1:
                         self.layer_manager.current_object.points.append(event_pos)
@@ -1674,6 +2138,9 @@ class MeasurementManager(QObject):
                 else:
                     # 其他模式：正常处理
                     self.layer_manager.update_current_object(event_pos)
+            elif self.draw_mode == DrawingType.POINT:
+                # 点不需要处理移动事件
+                return None
             else:
                 # 其他模式：正常处理
                 self.layer_manager.update_current_object(event_pos)
@@ -1682,178 +2149,341 @@ class MeasurementManager(QObject):
         
     def handle_mouse_release(self, event_pos, current_frame):
         """处理鼠标释放事件"""
-        if self.drawing:
-            # 获取当前视图名称
-            view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
-            if self.draw_mode == DrawingType.LINE_DETECT:
-                # 直线检测模式
-                if len(self.layer_manager.current_object.points) == 1:
+        try:
+            if self.draw_mode == DrawingType.SIMPLE_CIRCLE:
+                # 如果是第一个点，创建新的绘制对象
+                if not self.layer_manager.current_object:
+                    properties = {
+                        'color': (0, 255, 0),  # RGB格式：绿色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(DrawingType.SIMPLE_CIRCLE, properties)
+                
+                # 添加新的点
+                if len(self.layer_manager.current_object.points) < 3:
                     self.layer_manager.current_object.points.append(event_pos)
-                else:
-                    self.layer_manager.current_object.points[1] = event_pos
-                
-                # 设置标记，准备进行直线检测
-                self.layer_manager.current_object.properties['is_roi'] = False
-                
-                # 立即进行直线检测 - 使用 layer_manager 的方法
-                detected_points = self.layer_manager._detect_line_in_roi(current_frame, 
-                                                                       self.layer_manager.current_object.points)
-                if detected_points:
-                    self.layer_manager.current_object.points = detected_points
-                    self.layer_manager.current_object.properties['line_detected'] = True
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"直线检测成功 - 视图: {view_name}",
-                            f"检测到直线: ({detected_points[0].x()}, {detected_points[0].y()}) - "
-                            f"({detected_points[1].x()}, {detected_points[1].y()})"
+                    
+                    # 如果已经有三个点，计算圆并创建
+                    if len(self.layer_manager.current_object.points) == 3:
+                        circle_params = self.layer_manager._calculate_circle_from_three_points(
+                            self.layer_manager.current_object.points
                         )
-                else:
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"直线检测失败 - 视图: {view_name}", 
-                            "未在ROI区域内检测到直线"
-                        )
+                        if circle_params:
+                            center, radius = circle_params
+                            # 创建新的圆对象
+                            circle_obj = DrawingObject(
+                                type=DrawingType.CIRCLE,
+                                points=[QPoint(int(center[0]), int(center[1])),
+                                       QPoint(int(center[0] + radius), int(center[1]))],
+                                properties={
+                                    'color': (0, 255, 0),
+                                    'thickness': 2,
+                                    'radius': radius
+                                }
+                            )
+                            # 添加圆对象并清除当前的三点对象
+                            self.layer_manager.drawing_objects.append(circle_obj)
+                            self.layer_manager.current_object = None
+                            self.drawing = False
+                            return self.layer_manager.render_frame(current_frame)
+                    
+                    return self.layer_manager.render_frame(current_frame)
                 
+                return None
+            elif self.draw_mode == DrawingType.FINE_CIRCLE:
+                print(f"精细圆鼠标释放: 当前点数={len(self.layer_manager.current_object.points) if self.layer_manager.current_object else 0}")  # 调试信息
+                # 如果是第一个点，创建新的绘制对象
+                if not self.layer_manager.current_object:
+                    print("创建精细圆对象")  # 调试信息
+                    properties = {
+                        'color': (0, 255, 0),  # RGB格式：绿色
+                        'thickness': 2
+                    }
+                    self.layer_manager.start_drawing(DrawingType.FINE_CIRCLE, properties)
+                
+                # 添加新的点
+                if self.layer_manager.current_object and len(self.layer_manager.current_object.points) < 5:
+                    print(f"添加点 {len(self.layer_manager.current_object.points) + 1}")  # 调试信息
+                    self.layer_manager.current_object.points.append(event_pos)
+                    
+                    # 如果已经有五个点，计算圆并更新属性
+                    if len(self.layer_manager.current_object.points) == 5:
+                        print("开始拟合圆")  # 调试信息
+                        circle_params = self.layer_manager._calculate_circle_from_five_points(
+                            self.layer_manager.current_object.points
+                        )
+                        if circle_params:
+                            center, radius = circle_params
+                            # 创建新的圆对象
+                            circle_obj = DrawingObject(
+                                type=DrawingType.CIRCLE,
+                                points=[QPoint(int(center[0]), int(center[1])),
+                                       QPoint(int(center[0] + radius), int(center[1]))],
+                                properties={
+                                    'color': (0, 255, 0),
+                                    'thickness': 2,
+                                    'radius': radius
+                                }
+                            )
+                            # 添加圆对象并清除当前的三点对象
+                            self.layer_manager.drawing_objects.append(circle_obj)
+                            self.layer_manager.current_object = None
+                            self.drawing = False
+
+                            # 获取当前视图名称
+                            view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                            
+                            # 记录日志
+                            if self.log_manager:
+                                self.log_manager.log_measurement_operation(
+                                    f"精细圆拟合成功 - 视图: {view_name}",
+                                    f"圆心: ({center[0]:.2f}, {center[1]:.2f}), 半径: {radius:.2f}"
+                                )
+                    
+                    # 每次添加点后都重新渲染，以显示点和序号
+                    return self.layer_manager.render_frame(current_frame)
+                
+                return None
+            elif self.drawing:
+                # 获取当前视图名称
+                view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                if self.draw_mode == DrawingType.LINE_DETECT:
+                    # 直线检测模式
+                    if len(self.layer_manager.current_object.points) == 1:
+                        self.layer_manager.current_object.points.append(event_pos)
+                    else:
+                        self.layer_manager.current_object.points[1] = event_pos
+                
+                    # 设置标记，准备进行直线检测
+                    self.layer_manager.current_object.properties['is_roi'] = False
+                    
+                    # 立即进行直线检测 - 使用 layer_manager 的方法
+                    detected_points = self.layer_manager._detect_line_in_roi(current_frame, 
+                                                                           self.layer_manager.current_object.points)
+                    if detected_points:
+                        self.layer_manager.current_object.points = detected_points
+                        self.layer_manager.current_object.properties['line_detected'] = True
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"直线检测成功 - 视图: {view_name}",
+                                f"检测到直线: ({detected_points[0].x()}, {detected_points[0].y()}) - "
+                                f"({detected_points[1].x()}, {detected_points[1].y()})"
+                            )
+                    else:
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"直线检测失败 - 视图: {view_name}", 
+                                "未在ROI区域内检测到直线"
+                            )
+                    
+                    self.layer_manager.commit_drawing()
+                    self.drawing = False
+                    return self.layer_manager.render_frame(current_frame)
+                elif self.draw_mode == DrawingType.CIRCLE_DETECT:
+                    # 圆形检测模式
+                    if len(self.layer_manager.current_object.points) == 1:
+                        self.layer_manager.current_object.points.append(event_pos)
+                    else:
+                        self.layer_manager.current_object.points[1] = event_pos
+                
+                    # 设置标记，准备进行圆形检测
+                    self.layer_manager.current_object.properties['is_roi'] = False
+                    
+                    # 立即进行圆形检测
+                    detected_circle = self.layer_manager._detect_circle_in_roi(current_frame, 
+                                                                               self.layer_manager.current_object.points)
+                    if detected_circle:
+                        # 更新当前对象的属性
+                        self.layer_manager.current_object.properties.update(detected_circle)
+                        self.layer_manager.current_object.properties['circle_detected'] = True
+                        
+                        # 创建新的点列表,使用检测到的圆心
+                        center_x = detected_circle['center_x']
+                        center_y = detected_circle['center_y']
+                        self.layer_manager.current_object.points = [
+                            QPoint(center_x, center_y),
+                            QPoint(center_x + detected_circle['radius'], center_y)  # 用于确定半径的点
+                        ]
+
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"圆形检测成功 - 视图: {view_name}",
+                                f"检测到圆形: 圆心({detected_circle['center_x']}, {detected_circle['center_y']}), "
+                                f"半径: {detected_circle['radius']}"
+                            )
+                        
+                        print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}")
+                    else:
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"圆形检测失败 - 视图: {view_name}", 
+                                "未在ROI区域内检测到圆形"
+                            )
+                
+                    self.layer_manager.commit_drawing()
+                    self.drawing = False
+                    return self.layer_manager.render_frame(current_frame)
+                elif self.draw_mode == DrawingType.TWO_LINES:
+                    # 两线夹角测量模式
+                    if len(self.layer_manager.current_object.points) <= 2:
+                        # 第一条线绘制完成
+                        if len(self.layer_manager.current_object.points) == 1:
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            self.layer_manager.current_object.points[1] = event_pos
+                        self.drawing = False
+                        return self.layer_manager.render_frame(current_frame)
+                    elif len(self.layer_manager.current_object.points) >= 3:
+                        # 第二条线绘制完成
+                        if len(self.layer_manager.current_object.points) == 3:
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            self.layer_manager.current_object.points[3] = event_pos
+                        self.layer_manager.commit_drawing()
+                        self.drawing = False
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"两线夹角测量完成 - {view_name}", 
+                                f"两线夹角测量完成 - 视图: {view_name}"
+                            )
+                        return self.layer_manager.render_frame(current_frame)
+                elif self.draw_mode == DrawingType.CIRCLE_LINE:
+                    # 圆线距离测量模式
+                    if len(self.layer_manager.current_object.points) <= 2:
+                        # 第一阶段：圆绘制完成
+                        if len(self.layer_manager.current_object.points) == 1:
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            self.layer_manager.current_object.points[1] = event_pos
+                        self.drawing = False
+                        return self.layer_manager.render_frame(current_frame)
+                    elif len(self.layer_manager.current_object.points) <= 4:
+                        # 第二阶段：直线绘制完成
+                        if len(self.layer_manager.current_object.points) == 3:
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            self.layer_manager.current_object.points[3] = event_pos
+                        self.layer_manager.commit_drawing()
+                        self.drawing = False
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation(
+                                f"圆线距离测量完成 - {view_name}", 
+                                f"圆线距离测量完成 - 视图: {view_name}"
+                            )
+                        return self.layer_manager.render_frame(current_frame)
+                elif self.draw_mode == DrawingType.PARALLEL:
+                    # 平行线测量模式
+                    if len(self.layer_manager.current_object.points) <= 2:
+                        print(f"平行线第一阶段: 点数={len(self.layer_manager.current_object.points)}")
+                        if len(self.layer_manager.current_object.points) == 1:
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            self.layer_manager.current_object.points[1] = event_pos
+                        self.drawing = False
+                        print("完成第一条线的绘制")
+                        return self.layer_manager.render_frame(current_frame)
+                    else:
+                        print(f"平行线第二阶段: 点数={len(self.layer_manager.current_object.points)}")
+                        # 当完成第三个点的绘制时，提交绘制并同步
+                        if len(self.layer_manager.current_object.points) == 2:
+                            print("添加第三个点")
+                            self.layer_manager.current_object.points.append(event_pos)
+                        else:
+                            print("更新第三个点位置")
+                            self.layer_manager.current_object.points[2] = event_pos
+                        # 提交绘制
+                        print("准备提交绘制")
+                        self.layer_manager.commit_drawing()
+                        self.drawing = False
+                        # 记录日志
+                        if self.log_manager:
+                            view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                            print(f"当前视图: {view_name}")
+                            self.log_manager.log_measurement_operation(
+                                f"平行线测量完成 - {view_name}", 
+                                f"平行线测量完成 - 视图: {view_name}"
+                            )
+                        # 同步到其他视图
+                        parent = self.parent()
+                        if parent and hasattr(parent, 'drawing_manager'):
+                            print("找到 drawing_manager")
+                            # 获取当前视图和对应的视图
+                            current_view = parent.active_view
+                            if current_view:
+                                print(f"当前视图: {current_view.objectName()}")
+                                paired_view = parent.drawing_manager.view_pairs.get(current_view)
+                                if paired_view:
+                                    print(f"找到对应视图: {paired_view.objectName()}")
+                                    # 同步绘制对象
+                                    parent.drawing_manager.sync_drawings(current_view, paired_view)
+                                    print("完成同步绘制")
+                                    # 强制更新两个视图
+                                    current_view.update()
+                                    paired_view.update()
+                                else:
+                                    print("未找到对应的视图")
+                            else:
+                                print("未找到当前视图")
+                        else:
+                            print("未找到 drawing_manager")
+                        return self.layer_manager.render_frame(current_frame)
+                elif self.draw_mode == DrawingType.LINE:
+                    # 直线测量模式
+                    if self.log_manager:
+                        view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                        self.log_manager.log_measurement_operation(
+                            f"直线测量完成 - {view_name}", 
+                            f"直线测量完成 - 视图: {view_name}"
+                        )
+                elif self.draw_mode == DrawingType.LINE_SEGMENT:
+                    # 线段测量模式
+                    if self.log_manager:
+                        view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                        self.log_manager.log_measurement_operation(
+                            f"线段测量完成 - {view_name}", 
+                            f"线段测量完成 - 视图: {view_name}"
+                        )
+                elif self.draw_mode == DrawingType.CIRCLE:
+                    # 圆形测量模式
+                    if self.log_manager:
+                        view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
+                        self.log_manager.log_measurement_operation(
+                            f"圆形测量完成 - {view_name}", 
+                            f"圆形测量完成 - 视图: {view_name}"
+                        )
                 self.layer_manager.commit_drawing()
                 self.drawing = False
                 return self.layer_manager.render_frame(current_frame)
-            elif self.draw_mode == DrawingType.CIRCLE_DETECT:
-                # 圆形检测模式
-                if len(self.layer_manager.current_object.points) == 1:
-                    self.layer_manager.current_object.points.append(event_pos)
-                else:
-                    self.layer_manager.current_object.points[1] = event_pos
-                
-                # 设置标记，准备进行圆形检测
-                self.layer_manager.current_object.properties['is_roi'] = False
-                
-                # 立即进行圆形检测
-                detected_circle = self.layer_manager._detect_circle_in_roi(current_frame, 
-                                                                       self.layer_manager.current_object.points)
-                if detected_circle:
-                    # 更新当前对象的属性
-                    self.layer_manager.current_object.properties.update(detected_circle)
-                    self.layer_manager.current_object.properties['circle_detected'] = True
-                    
-                    # 创建新的点列表,使用检测到的圆心
-                    center_x = detected_circle['center_x']
-                    center_y = detected_circle['center_y']
-                    self.layer_manager.current_object.points = [
-                        QPoint(center_x, center_y),
-                        QPoint(center_x + detected_circle['radius'], center_y)  # 用于确定半径的点
-                    ]
-
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"圆形检测成功 - 视图: {view_name}",
-                            f"检测到圆形: 圆心({detected_circle['center_x']}, {detected_circle['center_y']}), "
-                            f"半径: {detected_circle['radius']}"
-                        )
-                    
-                    print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}")
-                else:
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"圆形检测失败 - 视图: {view_name}", 
-                            "未在ROI区域内检测到圆形"
-                        )
-                
-                self.layer_manager.commit_drawing()
-                self.drawing = False
-                return self.layer_manager.render_frame(current_frame)
-            elif self.draw_mode == DrawingType.TWO_LINES:
-                if len(self.layer_manager.current_object.points) <= 2:
-                    # 第一条线绘制完成
-                    if len(self.layer_manager.current_object.points) == 1:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[1] = event_pos
-                    self.drawing = False
-                    return self.layer_manager.render_frame(current_frame)
-                elif len(self.layer_manager.current_object.points) >= 3:
-                    # 第二条线绘制完成
-                    if len(self.layer_manager.current_object.points) == 3:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[3] = event_pos
-                    self.layer_manager.commit_drawing()
-                    self.drawing = False
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"两线夹角测量完成 - {view_name}", 
-                            f"两线夹角测量完成 - 视图: {view_name}"
-                        )
-                    return self.layer_manager.render_frame(current_frame)
-            elif self.draw_mode == DrawingType.CIRCLE_LINE:
-                if len(self.layer_manager.current_object.points) <= 2:
-                    # 第一阶段：圆绘制完成
-                    if len(self.layer_manager.current_object.points) == 1:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[1] = event_pos
-                    self.drawing = False
-                    return self.layer_manager.render_frame(current_frame)
-                elif len(self.layer_manager.current_object.points) <= 4:
-                    # 第二阶段：直线绘制完成
-                    if len(self.layer_manager.current_object.points) == 3:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[3] = event_pos
-                    self.layer_manager.commit_drawing()
-                    self.drawing = False
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"圆线距离测量完成 - {view_name}", 
-                            f"圆线距离测量完成 - 视图: {view_name}"
-                        )
-                    return self.layer_manager.render_frame(current_frame)
-            elif self.draw_mode == DrawingType.PARALLEL:
-                # 保持平行线处理不变
-                if len(self.layer_manager.current_object.points) <= 2:
-                    if len(self.layer_manager.current_object.points) == 1:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[1] = event_pos
-                    self.drawing = False
-                    print(self.layer_manager.current_object.points)
-                    if self.log_manager:
-                        self.log_manager.log_measurement_operation(
-                            f"平行线测量完成 - {view_name}", 
-                            f"平行线测量完成 - 视图: {view_name}"
-                        )
-                    return self.layer_manager.render_frame(current_frame)
-            # 直线测量
-            elif self.draw_mode == DrawingType.LINE:
-                if self.log_manager:
-                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
-                    self.log_manager.log_measurement_operation(
-                        f"直线测量完成 - {view_name}", 
-                        f"直线测量完成 - 视图: {view_name}"
-                    )
-
-            # 线段测量
-            elif self.draw_mode == DrawingType.LINE_SEGMENT:
-                if self.log_manager:
-                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
-                    self.log_manager.log_measurement_operation(
-                        f"线段测量完成 - {view_name}", 
-                        f"线段测量完成 - 视图: {view_name}"
-                    )
-
-            # 圆形测量
-            elif self.draw_mode == DrawingType.CIRCLE:
-                if self.log_manager:
-                    view_name = self.parent().active_view.objectName() if self.parent() and self.parent().active_view else "未知视图"
-                    self.log_manager.log_measurement_operation(
-                        f"圆形测量完成 - {view_name}", 
-                        f"圆形测量完成 - 视图: {view_name}"
-                    )
-
-            self.layer_manager.commit_drawing()
-            self.drawing = False
-            return self.layer_manager.render_frame(current_frame)
+        except Exception as e:
+            print(f"Error in handle_mouse_release: {str(e)}")
         return None 
 
-    def set_grid(self, show: bool, density: float = 0.1):
-        """设置网格显示"""
-        self.layer_manager.set_grid(show, density)
+    def exit_drawing_mode(self):
+        """退出绘画状态"""
+        self.draw_mode = None
+        self.drawing = False
+        if self.layer_manager.current_object:
+            # 如果有未完成的绘制，取消它
+            self.layer_manager.current_object = None
+        
+        # 恢复默认鼠标光标
+        parent = self.parent()
+        if parent and hasattr(parent, 'drawing_manager'):
+            # 同步所有视图的状态
+            for manager in parent.drawing_manager.measurement_managers.values():
+                manager.draw_mode = None
+                manager.drawing = False
+                if manager.layer_manager.current_object:
+                    manager.layer_manager.current_object = None
+            
+            # 恢复所有视图的鼠标光标
+            for label in parent.drawing_manager.measurement_managers.keys():
+                label.setCursor(Qt.ArrowCursor)
+
+    def handle_key_press(self, event, current_frame):
+        """处理按键事件"""
+        if event.key() == Qt.Key_Escape:  # ESC键
+            if self.drawing or self.draw_mode:
+                self.exit_drawing_mode()
+                return self.layer_manager.render_frame(current_frame)
+        return None
