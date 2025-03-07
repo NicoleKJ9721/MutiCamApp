@@ -342,7 +342,7 @@ class LayerManager:
                 
                 # 绘制文本（带背景）
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 1.2  # 增大字体大小
+                font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                 thickness = 2     # 增加字体粗细
                 padding = 10      # 增大背景padding
                 (text_width, text_height), baseline = cv2.getTextSize(angle_text, font, font_scale, thickness)
@@ -366,12 +366,12 @@ class LayerManager:
                 
                 # 绘制度数符号（空心圆）
                 dot_x = text_x + text_width + 8
-                dot_y = text_y - text_height//6
+                dot_y = text_y - text_height + text_height// 6
                 cv2.circle(frame,
                           (int(dot_x), int(dot_y)),
-                          4,  # 圆的半径
+                          6*int(font_scale),  # 圆的半径
                           obj.properties['color'],
-                          1,  # 1表示空心圆
+                          2,  # 1表示空心圆
                           cv2.LINE_AA)
                 
                 # 添加调试信息
@@ -416,7 +416,7 @@ class LayerManager:
             
             # 设置文本参数
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 1.2  # 增大字体大小
+            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
             thickness = 2     # 增加字体粗细
             padding = 10      # 增大背景padding
             
@@ -517,7 +517,7 @@ class LayerManager:
 
             # 绘制文本（带背景）
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 1.2  # 增大字体大小
+            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
             thickness = 2     # 增加字体粗细
             padding = 10      # 增大背景padding
             line_spacing = 15 # 增加行间距
@@ -570,12 +570,12 @@ class LayerManager:
 
             # 绘制度数符号（空心圆）
             dot_x = angle_x + angle_width + 8
-            dot_y = angle_y - text_height//6
+            dot_y = angle_y - text_height + text_height//6
             cv2.circle(frame,
                       (int(dot_x), int(dot_y)),
-                      4,  # 圆的半径
+                      6*int(font_scale),  # 圆的半径
                       obj.properties['color'],
-                      1,  # 1表示空心圆
+                      2,  # 1表示空心圆
                       cv2.LINE_AA)
 
     def _draw_current_line_segment(self, frame, obj: DrawingObject):
@@ -645,7 +645,7 @@ class LayerManager:
             
             # 绘制文本（带背景）
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 1.2  # 增大字体大小
+            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
             thickness = 2     # 增加字体粗细
             padding = 10      # 增大背景padding
             
@@ -812,7 +812,7 @@ class LayerManager:
 
                     # 绘制文本（带背景）
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 1.2  # 增大字体大小
+                    font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                     thickness = 2     # 增加字体粗细
                     padding = 10      # 增大背景padding
                     line_spacing = 15 # 增加行间距
@@ -868,13 +868,13 @@ class LayerManager:
                               cv2.LINE_AA)
 
                     # 绘制度数符号（空心圆）
-                    dot_x = angle_x + angle_width + 3
-                    dot_y = angle_y - text_height//6
+                    dot_x = angle_x + angle_width + 8
+                    dot_y = angle_y - text_height//3
                     cv2.circle(frame,
                               (int(dot_x), int(dot_y)),
-                              3,  # 圆的半径
+                              6*int(font_scale),  # 圆的半径
                               obj.properties['color'],
-                              1,  # 线宽为1表示空心圆
+                              2,  # 线宽为1表示空心圆
                               cv2.LINE_AA)
 
     def _draw_circle_line(self, frame, obj: DrawingObject):
@@ -1005,7 +1005,7 @@ class LayerManager:
                         # 显示距离信息
                         text = f"{dist:.1f}px"  # 直接显示垂直距离，不减去半径
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 1.2  # 增大字体大小
+                        font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                         thickness = 2     # 增加字体粗细
                         padding = 10      # 增大背景padding
                         
@@ -1168,12 +1168,12 @@ class LayerManager:
                                     cv2.LINE_AA)
             
             # 准备显示的文本
-            angle_text = f"{angle:.1f}"
+            angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
             coord_text = f"({intersection_x}, {intersection_y})"
             
             # 设置文本参数
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 1.2
+            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
             thickness = 2
             padding = 10
             
@@ -1187,7 +1187,7 @@ class LayerManager:
             coord_y = intersection_y + text_height + 5
             
             # 计算背景矩形的尺寸
-            max_width = max(angle_width, coord_width)
+            max_width = max(angle_width + 15, coord_width)  # 增加空间给度数符号
             total_height = text_height * 2 + 20  # 两行文本的总高度加上间距
             
             # 绘制文本背景
@@ -1207,6 +1207,16 @@ class LayerManager:
                       font_scale,
                       obj.properties['color'],
                       thickness,
+                      cv2.LINE_AA)
+                      
+            # 绘制度数符号（空心圆）
+            dot_x = text_x + angle_width + 8
+            dot_y = angle_y + text_height//6
+            cv2.circle(frame,
+                      (int(dot_x), int(dot_y)),
+                      6*int(font_scale),  # 圆的半径
+                      obj.properties['color'],
+                      2,  # 1表示空心圆
                       cv2.LINE_AA)
             
             # 绘制坐标文本
@@ -1343,7 +1353,7 @@ class LayerManager:
                         # 绘制文本（带背景）
                         text = f"{angle:.1f}\u00B0"
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 1.2  # 增大字体大小
+                        font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                         thickness = 2     # 增加字体粗细
                         padding = 10      # 增大背景padding
                         (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
@@ -1517,7 +1527,7 @@ class LayerManager:
                     # 显示半径信息
                     text = f"R={radius:.1f}"
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 1.2  # 增大字体大小
+                    font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                     thickness = 2     # 增加字体粗细
                     padding = 10      # 增大背景padding
                     
@@ -1574,7 +1584,7 @@ class LayerManager:
             
             # 绘制文本（带背景）
             font = cv2.FONT_HERSHEY_SIMPLEX
-            font_scale = 1.2  # 增大字体大小
+            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
             thickness = 2
             padding = 8  # 增加内边距
             
@@ -1588,7 +1598,7 @@ class LayerManager:
             # 绘制文本背景
             cv2.rectangle(frame,
                         (text_x - padding, text_y - text_height - padding),
-                        (text_x + text_width + padding, text_y + padding),
+                        (text_x + text_width + padding, text_y + padding + text_height//4),
                         (0, 0, 0),
                         -1)
             
@@ -1623,6 +1633,9 @@ class LayerManager:
             foot_x = (B * B * point.x() - A * B * point.y() - A * C) / (A * A + B * B)
             foot_y = (A * A * point.y() - A * B * point.x() - B * C) / (A * A + B * B)
             
+            # 确定线条颜色 - 如果对象被选中，使用蓝色
+            line_color = (0, 0, 255) if obj.selected else obj.properties.get('color', (0, 255, 0))
+            
             # 绘制虚线
             if obj.properties.get('is_dashed', False):
                 # 绘制虚线效果
@@ -1650,8 +1663,8 @@ class LayerManager:
                         cv2.line(frame,
                                 (start_x, start_y),
                                 (end_x, end_y),
-                                obj.properties['color'],
-                                obj.properties['thickness'],
+                                line_color,
+                                obj.properties.get('thickness', 2),
                                 cv2.LINE_AA)
             
             # 显示距离文本
@@ -1664,7 +1677,7 @@ class LayerManager:
                 
                 # 设置文本参数
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 1.2
+                font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                 thickness = 2
                 padding = 5
                 
@@ -1684,7 +1697,7 @@ class LayerManager:
                           (text_x, text_y),
                           font,
                           font_scale,
-                          obj.properties['color'],
+                          obj.properties.get('color', (0, 255, 0)),  # 使用与线条相同的颜色
                           thickness,
                           cv2.LINE_AA)
 
@@ -2226,6 +2239,9 @@ class LayerManager:
                     foot_x = circle_center.x() + unit_x * radius
                     foot_y = circle_center.y() + unit_y * radius
                 
+                # 确定线条颜色 - 如果对象被选中，使用蓝色
+                line_color = (0, 0, 255) if obj.selected else obj.properties.get('color', (0, 255, 0))
+                
                 # 绘制虚线
                 if obj.properties.get('is_dashed', True):  # 默认使用虚线
                     # 绘制虚线效果
@@ -2255,14 +2271,14 @@ class LayerManager:
                             end_y = int(point.y() + dy_line * end_dist)
                             
                             cv2.line(frame, (start_x, start_y), (end_x, end_y), 
-                                    obj.properties.get('color', (0, 255, 0)), 
+                                    line_color, 
                                     obj.properties.get('thickness', 2))
                 else:
                     # 绘制实线
                     cv2.line(frame, 
                             (point.x(), point.y()), 
                             (int(foot_x), int(foot_y)), 
-                            obj.properties.get('color', (0, 255, 0)), 
+                            line_color, 
                             obj.properties.get('thickness', 2))
                 
                 # 显示距离信息
@@ -2276,7 +2292,7 @@ class LayerManager:
                     
                     # 绘制文本（带背景）
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 1
+                    font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                     thickness = 2
                     padding = 5
                     
@@ -2312,6 +2328,9 @@ class LayerManager:
                 circle_center = obj.points[2]
                 circle_radius_point = obj.points[3]
                 
+                # 确定线条颜色 - 如果对象被选中，使用蓝色
+                line_color = (0, 0, 255) if obj.selected else obj.properties.get('color', (0, 255, 0))
+                
                 # 计算圆的半径
                 dx = circle_radius_point.x() - circle_center.x()
                 dy = circle_radius_point.y() - circle_center.y()
@@ -2321,14 +2340,14 @@ class LayerManager:
                 cv2.circle(frame, 
                           (circle_center.x(), circle_center.y()), 
                           int(radius), 
-                          obj.properties.get('color', (0, 255, 0)), 
+                          line_color, 
                           obj.properties.get('thickness', 2))
                 
                 # 绘制线段
                 cv2.line(frame, 
                         (line_p1.x(), line_p1.y()), 
                         (line_p2.x(), line_p2.y()), 
-                        obj.properties.get('color', (0, 255, 0)), 
+                        line_color, 
                         obj.properties.get('thickness', 2))
                 
                 # 计算线段的方向向量
@@ -2408,7 +2427,7 @@ class LayerManager:
                                 cv2.line(frame, 
                                         (dash_start_x, dash_start_y), 
                                         (dash_end_x, dash_end_y), 
-                                        obj.properties.get('color', (0, 255, 0)), 
+                                        line_color, 
                                         obj.properties.get('thickness', 1),
                                         cv2.LINE_AA)
                     
@@ -2432,14 +2451,14 @@ class LayerManager:
                         cv2.circle(frame,
                                   (int(foot_x), int(foot_y)),
                                   obj.properties.get('radius', 5),
-                                  obj.properties.get('color', (0, 255, 0)),
+                                  line_color,
                                   -1)  # 填充圆
                         
                         # 绘制圆上的垂足点
                         cv2.circle(frame,
                                   (int(circle_foot_x), int(circle_foot_y)),
                                   obj.properties.get('radius', 5),
-                                  obj.properties.get('color', (0, 255, 0)),
+                                  line_color,
                                   -1)  # 填充圆
                         
                         # 绘制垂线（从线段垂足到圆上垂足）
@@ -2471,14 +2490,14 @@ class LayerManager:
                                     end_y = int(foot_y + perp_dy * end_dist)
                                     
                                     cv2.line(frame, (start_x, start_y), (end_x, end_y), 
-                                            obj.properties.get('color', (0, 255, 0)), 
+                                            line_color, 
                                             obj.properties.get('thickness', 2))
                         else:
                             # 绘制实线
                             cv2.line(frame, 
                                     (int(foot_x), int(foot_y)), 
                                     (int(circle_foot_x), int(circle_foot_y)), 
-                                    obj.properties.get('color', (0, 255, 0)), 
+                                    line_color, 
                                     obj.properties.get('thickness', 2))
                         
                         # 显示距离信息
@@ -2492,7 +2511,7 @@ class LayerManager:
                             
                             # 绘制文本（带背景）
                             font = cv2.FONT_HERSHEY_SIMPLEX
-                            font_scale = 1
+                            font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                             thickness = 2
                             padding = 5
                             
@@ -2567,6 +2586,9 @@ class LayerManager:
                     
                     # 计算直线到圆的垂直距离
                     distance_to_circle = abs(distance_to_line - radius)
+
+                    # 确定线条颜色 - 如果对象被选中，使用蓝色
+                    line_color = (0, 0, 255) if obj.selected else obj.properties.get('color', (0, 255, 0))
                     
                     # 绘制垂直距离虚线
                     if obj.properties.get('is_dashed', True):  # 默认使用虚线
@@ -2597,14 +2619,14 @@ class LayerManager:
                                 end_y = int(foot_y + perp_dy * end_dist)
                                 
                                 cv2.line(frame, (start_x, start_y), (end_x, end_y), 
-                                        obj.properties.get('color', (0, 255, 0)), 
+                                        line_color, 
                                         obj.properties.get('thickness', 2))
                     else:
                         # 绘制实线
                         cv2.line(frame, 
                                 (int(foot_x), int(foot_y)), 
                                 (int(circle_foot_x), int(circle_foot_y)), 
-                                obj.properties.get('color', (0, 255, 0)), 
+                                line_color, 
                                 obj.properties.get('thickness', 2))
                     
                     # 显示距离信息
@@ -2618,7 +2640,7 @@ class LayerManager:
                         
                         # 绘制文本（带背景）
                         font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 1
+                        font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                         thickness = 2
                         padding = 5
                         
@@ -2643,6 +2665,11 @@ class LayerManager:
                                   cv2.LINE_AA)
         except Exception as e:
             print(f"绘制直线到圆的垂直距离时出错: {str(e)}")
+
+    def _calculate_font_scale(self, height):
+        """根据图像高度计算字体大小"""
+        font_scale = max(1.2, height / 70 / 30)  # 除以30是因为OpenCV字体基础大小约为30像素
+        return font_scale
 
 class MeasurementManager(QObject):
     def __init__(self, parent=None):

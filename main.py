@@ -12,7 +12,7 @@ from typing import List
 from datetime import datetime
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QImage, QPixmap, QIntValidator
-from PyQt5.QtCore import Qt, QThread, QPoint, QTimer
+from PyQt5.QtCore import Qt, QThread, QPoint
 from mainwindow import Ui_MainWindow
 from Tools.camera_thread import CameraThread
 from Tools.settings_manager import SettingsManager
