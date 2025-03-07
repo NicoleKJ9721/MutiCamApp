@@ -390,13 +390,45 @@ class DrawingManager(QObject):
         if len(types) == 2 and all(t == DrawingType.POINT for t in types):
             menu_items.append(("点与点", lambda: self._create_point_to_point(label, selected[0], selected[1])))
             
-        # 如果选中了一个点和一条线
-        is_line = lambda t: t in [DrawingType.LINE, DrawingType.LINE_SEGMENT]
+        # 区分直线和线段
+        is_line = lambda t: t == DrawingType.LINE  # 只匹配直线
+        is_line_segment = lambda t: t == DrawingType.LINE_SEGMENT  # 只匹配线段
+        is_circle = lambda t: t in [DrawingType.CIRCLE, DrawingType.CIRCLE_DETECT, DrawingType.SIMPLE_CIRCLE, DrawingType.FINE_CIRCLE]
+            
+        # 如果选中了一个点和一条直线
         if len(types) == 2 and ((types[0] == DrawingType.POINT and is_line(types[1])) or
                                (types[1] == DrawingType.POINT and is_line(types[0]))):
             point = selected[0] if types[0] == DrawingType.POINT else selected[1]
             line = selected[1] if types[0] == DrawingType.POINT else selected[0]
             menu_items.append(("点与线", lambda: self._create_point_to_line(label, point, line)))
+            
+        # 如果选中了一个点和一条线段
+        if len(types) == 2 and ((types[0] == DrawingType.POINT and is_line_segment(types[1])) or
+                               (types[1] == DrawingType.POINT and is_line_segment(types[0]))):
+            point = selected[0] if types[0] == DrawingType.POINT else selected[1]
+            line = selected[1] if types[0] == DrawingType.POINT else selected[0]
+            menu_items.append(("点与线", lambda: self._create_point_to_line(label, point, line)))
+            
+        # 如果选中了一个点和一个圆
+        if len(types) == 2 and ((types[0] == DrawingType.POINT and is_circle(types[1])) or
+                               (types[1] == DrawingType.POINT and is_circle(types[0]))):
+            point = selected[0] if types[0] == DrawingType.POINT else selected[1]
+            circle = selected[1] if types[0] == DrawingType.POINT else selected[0]
+            menu_items.append(("点与圆", lambda: self._create_point_to_circle(label, point, circle)))
+            
+        # 如果选中了一条线段和一个圆
+        if len(types) == 2 and ((is_line_segment(types[0]) and is_circle(types[1])) or
+                               (is_circle(types[0]) and is_line_segment(types[1]))):
+            line = selected[0] if is_line_segment(types[0]) else selected[1]
+            circle = selected[1] if is_line_segment(types[0]) else selected[0]
+            menu_items.append(("线段与圆", lambda: self._create_line_segment_to_circle(label, line, circle)))
+            
+        # 如果选中了一条直线和一个圆
+        if len(types) == 2 and ((is_line(types[0]) and is_circle(types[1])) or
+                               (is_circle(types[0]) and is_line(types[1]))):
+            line = selected[0] if is_line(types[0]) else selected[1]
+            circle = selected[1] if is_line(types[0]) else selected[0]
+            menu_items.append(("直线与圆", lambda: self._create_line_to_circle(label, line, circle)))
             
         return menu_items
 
@@ -575,6 +607,116 @@ class DrawingManager(QObject):
                     if paired_view:
                         self.sync_drawings(label, paired_view)
 
+    def _create_point_to_circle(self, label, point, circle):
+        """创建点到圆的测量"""
+        if label in self.measurement_managers:
+            manager = self.measurement_managers[label]
+            # 创建新的点到圆测量对象
+            properties = {
+                'color': (0, 255, 0),  # RGB格式：绿色
+                'thickness': 2,
+                'is_dashed': True,  # 使用虚线
+                'show_distance': True,  # 显示距离
+                'radius': 5  # 点的半径
+            }
+            
+            # 获取点和圆的坐标
+            point_p = point.points[0]
+            circle_center = circle.points[0]
+            # 对于圆，我们需要一个圆上的点来计算半径
+            circle_radius_point = circle.points[1] if len(circle.points) > 1 else None
+            
+            if circle_radius_point is None:
+                # 如果没有圆上的点，可能是使用了其他方式定义的圆
+                # 尝试从属性中获取半径和中心点
+                if 'radius' in circle.properties and 'center' in circle.properties:
+                    # 创建一个圆上的点
+                    radius = circle.properties['radius']
+                    circle_radius_point = QPoint(circle_center.x() + radius, circle_center.y())
+                else:
+                    # 无法确定圆的信息，返回
+                    return
+            
+            new_obj = DrawingObject(
+                type=DrawingType.POINT_TO_CIRCLE,
+                points=[point_p, circle_center, circle_radius_point],  # 点和圆的坐标
+                properties=properties
+            )
+            
+            # 添加到绘制列表
+            manager.layer_manager.drawing_objects.append(new_obj)
+            # 清除选择
+            manager.layer_manager.clear_selection()
+            # 更新视图
+            current_frame = self.parent().get_current_frame_for_view(label)
+            if current_frame is not None:
+                # 使缓存无效
+                self._invalidate_cache(label)
+                # 获取新的渲染帧
+                display_frame = self._get_cached_frame(label, current_frame)
+                if display_frame is not None:
+                    self.parent().update_view(label, display_frame)
+                    
+                    # 同步到对应的视图
+                    paired_view = self.get_paired_view(label)
+                    if paired_view:
+                        self.sync_drawings(label, paired_view)
+
+    def _create_line_segment_to_circle(self, label, line, circle):
+        """创建线段到圆的测量"""
+        if label in self.measurement_managers:
+            manager = self.measurement_managers[label]
+            # 创建新的线段到圆测量对象
+            properties = {
+                'color': (0, 255, 0),  # RGB格式：绿色
+                'thickness': 2,
+                'is_dashed': True,  # 使用虚线
+                'show_distance': True,  # 显示距离
+                'radius': 5  # 点的半径
+            }
+            
+            # 获取线段和圆的坐标
+            line_p1, line_p2 = line.points[0], line.points[1]
+            circle_center = circle.points[0]
+            # 对于圆，我们需要一个圆上的点来计算半径
+            circle_radius_point = circle.points[1] if len(circle.points) > 1 else None
+            
+            if circle_radius_point is None:
+                # 如果没有圆上的点，可能是使用了其他方式定义的圆
+                # 尝试从属性中获取半径和中心点
+                if 'radius' in circle.properties and 'center' in circle.properties:
+                    # 创建一个圆上的点
+                    radius = circle.properties['radius']
+                    circle_radius_point = QPoint(circle_center.x() + radius, circle_center.y())
+                else:
+                    # 无法确定圆的信息，返回
+                    return
+            
+            new_obj = DrawingObject(
+                type=DrawingType.LINE_SEGMENT_TO_CIRCLE,
+                points=[line_p1, line_p2, circle_center, circle_radius_point],  # 线段和圆的坐标
+                properties=properties
+            )
+            
+            # 添加到绘制列表
+            manager.layer_manager.drawing_objects.append(new_obj)
+            # 清除选择
+            manager.layer_manager.clear_selection()
+            # 更新视图
+            current_frame = self.parent().get_current_frame_for_view(label)
+            if current_frame is not None:
+                # 使缓存无效
+                self._invalidate_cache(label)
+                # 获取新的渲染帧
+                display_frame = self._get_cached_frame(label, current_frame)
+                if display_frame is not None:
+                    self.parent().update_view(label, display_frame)
+                    
+                    # 同步到对应的视图
+                    paired_view = self.get_paired_view(label)
+                    if paired_view:
+                        self.sync_drawings(label, paired_view)
+
     def _get_cached_frame(self, label, current_frame):
         """获取缓存的帧，如果缓存无效则重新渲染"""
         current_time = time.time()
@@ -694,3 +836,58 @@ class DrawingManager(QObject):
         except Exception as e:
             if self.log_manager:
                 self.log_manager.log_error("启动精细圆测量模式失败", str(e))
+
+    def _create_line_to_circle(self, label, line, circle):
+        """创建直线到圆的测量"""
+        if label in self.measurement_managers:
+            manager = self.measurement_managers[label]
+            # 创建新的直线到圆测量对象
+            properties = {
+                'color': (0, 255, 0),  # RGB格式：绿色
+                'thickness': 2,
+                'is_dashed': True,  # 使用虚线
+                'show_distance': True,  # 显示距离
+                'radius': 5  # 点的半径
+            }
+            
+            # 获取直线和圆的坐标
+            line_p1, line_p2 = line.points[0], line.points[1]
+            circle_center = circle.points[0]
+            # 对于圆，我们需要一个圆上的点来计算半径
+            circle_radius_point = circle.points[1] if len(circle.points) > 1 else None
+            
+            if circle_radius_point is None:
+                # 如果没有圆上的点，可能是使用了其他方式定义的圆
+                # 尝试从属性中获取半径和中心点
+                if 'radius' in circle.properties and 'center' in circle.properties:
+                    # 创建一个圆上的点
+                    radius = circle.properties['radius']
+                    circle_radius_point = QPoint(circle_center.x() + radius, circle_center.y())
+                else:
+                    # 无法确定圆的信息，返回
+                    return
+            
+            new_obj = DrawingObject(
+                type=DrawingType.LINE_TO_CIRCLE,
+                points=[line_p1, line_p2, circle_center, circle_radius_point],  # 直线和圆的坐标
+                properties=properties
+            )
+            
+            # 添加到绘制列表
+            manager.layer_manager.drawing_objects.append(new_obj)
+            # 清除选择
+            manager.layer_manager.clear_selection()
+            # 更新视图
+            current_frame = self.parent().get_current_frame_for_view(label)
+            if current_frame is not None:
+                # 使缓存无效
+                self._invalidate_cache(label)
+                # 获取新的渲染帧
+                display_frame = self._get_cached_frame(label, current_frame)
+                if display_frame is not None:
+                    self.parent().update_view(label, display_frame)
+                    
+                    # 同步到对应的视图
+                    paired_view = self.get_paired_view(label)
+                    if paired_view:
+                        self.sync_drawings(label, paired_view)

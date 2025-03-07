@@ -21,6 +21,9 @@ class DrawingType(Enum):
     POINT = "点"
     POINT_TO_POINT = "点与点"  # 添加点与点类型
     POINT_TO_LINE = "点与线"   # 添加点与线类型
+    POINT_TO_CIRCLE = "点与圆"  # 添加点与圆类型
+    LINE_SEGMENT_TO_CIRCLE = "线段与圆"  # 添加线段与圆类型
+    LINE_TO_CIRCLE = "直线与圆"  # 添加直线与圆类型
     SIMPLE_CIRCLE = "简单圆"  # 添加新类型
     FINE_CIRCLE = "精细圆"  # 添加新类型
 
@@ -84,18 +87,21 @@ class LayerManager:
             
         # 根据对象类型调用相应的绘制方法
         draw_methods = {
-            DrawingType.LINE: self._draw_line,
-            DrawingType.CIRCLE: self._draw_circle,
-            DrawingType.LINE_SEGMENT: self._draw_line_segment,
-            DrawingType.PARALLEL: self._draw_parallel,
-            DrawingType.CIRCLE_LINE: self._draw_circle_line,
-            DrawingType.TWO_LINES: self._draw_two_lines,
-            DrawingType.LINE_DETECT: self._draw_line_detect,
-            DrawingType.CIRCLE_DETECT: self._draw_circle_detect,
-            DrawingType.POINT: self._draw_point,
-            DrawingType.POINT_TO_LINE: self._draw_point_to_line,  # 添加点到线的绘制方法
-            DrawingType.SIMPLE_CIRCLE: self._draw_simple_circle,  # 添加简单圆的绘制方法
-            DrawingType.FINE_CIRCLE: self._draw_fine_circle,  # 添加精细圆的绘制方法
+            DrawingType.CIRCLE: self._draw_circle,  # 圆，简单圆、精细圆的基础
+            DrawingType.LINE_SEGMENT: self._draw_line_segment,  # 线段，右键点到点
+            DrawingType.POINT: self._draw_point,  # 点
+            DrawingType.LINE: self._draw_line,  # 直线
+            DrawingType.SIMPLE_CIRCLE: self._draw_simple_circle,  # 简单圆
+            DrawingType.FINE_CIRCLE: self._draw_fine_circle,  # 精细圆
+            DrawingType.PARALLEL: self._draw_parallel,  # 平行线
+            DrawingType.CIRCLE_LINE: self._draw_circle_line,  # 圆线
+            DrawingType.TWO_LINES: self._draw_two_lines,  # 两线
+            DrawingType.LINE_DETECT: self._draw_line_detect,  # 直线检测
+            DrawingType.CIRCLE_DETECT: self._draw_circle_detect,  # 圆检测
+            DrawingType.POINT_TO_LINE: self._draw_point_to_line,  # 右键点到线，生成垂直虚线
+            DrawingType.LINE_SEGMENT_TO_CIRCLE: self._draw_line_segment_to_circle,  # 右键线段到圆，生成垂直虚线
+            DrawingType.POINT_TO_CIRCLE: self._draw_point_to_circle,  # 右键点到圆，生成垂直虚线
+            DrawingType.LINE_TO_CIRCLE: self._draw_line_to_circle,  # 右键直线到圆，生成垂直虚线
         }
         
         try:
@@ -864,13 +870,46 @@ class LayerManager:
 
     def _draw_circle_line(self, frame, obj: DrawingObject):
         """绘制圆与线的距离测量"""
+        # 如果是圆绘制阶段，绘制临时点
+        if obj.properties.get('drawing_stage') == 'circle':
+            temp_points = obj.properties.get('temp_points', [])
+            # 绘制所有临时点
+            for point in temp_points:
+                cv2.circle(frame, 
+                          (point.x(), point.y()), 
+                          5,  # 点的半径
+                          obj.properties.get('color', (0, 255, 0)), 
+                          -1)  # 填充圆
+                
+            # 如果有两个或更多点，绘制连接线
+            if len(temp_points) >= 2:
+                for i in range(len(temp_points) - 1):
+                    cv2.line(frame,
+                            (temp_points[i].x(), temp_points[i].y()),
+                            (temp_points[i+1].x(), temp_points[i+1].y()),
+                            obj.properties.get('color', (0, 255, 0)),
+                            obj.properties.get('thickness', 2),
+                            cv2.LINE_AA)
+                
+                # 如果有三个点，连接第三个点和第一个点，形成闭合三角形
+                if len(temp_points) == 3:
+                    cv2.line(frame,
+                            (temp_points[2].x(), temp_points[2].y()),
+                            (temp_points[0].x(), temp_points[0].y()),
+                            obj.properties.get('color', (0, 255, 0)),
+                            obj.properties.get('thickness', 2),
+                            cv2.LINE_AA)
+            
+            return
+            
+        # 正常绘制阶段（圆已确定）
         if len(obj.points) >= 1:
             # 绘制圆心
             center = obj.points[0]
             cv2.circle(frame, 
                       (center.x(), center.y()), 
                       3, 
-                      obj.properties['color'], 
+                      obj.properties.get('color', (0, 255, 0)), 
                       -1)
             
             # 如果有第二个点，绘制圆
@@ -885,8 +924,8 @@ class LayerManager:
                 cv2.circle(frame, 
                           (center.x(), center.y()), 
                           radius, 
-                          obj.properties['color'], 
-                          obj.properties['thickness'],
+                          obj.properties.get('color', (0, 255, 0)), 
+                          obj.properties.get('thickness', 2),
                           cv2.LINE_AA)
                 
                 # 如果有第三个点和第四个点，绘制直线和垂线
@@ -912,8 +951,8 @@ class LayerManager:
                         cv2.line(frame,
                                 (start_x, start_y),
                                 (end_x, end_y),
-                                obj.properties['color'],
-                                obj.properties['thickness'],
+                                obj.properties.get('color', (0, 255, 0)),
+                                obj.properties.get('thickness', 2),
                                 cv2.LINE_AA)
                         
                         # 计算圆心到直线的垂直距离
@@ -950,8 +989,8 @@ class LayerManager:
                             cv2.line(frame,
                                     (dash_start_x, dash_start_y),
                                     (dash_end_x, dash_end_y),
-                                    obj.properties['color'],
-                                    obj.properties['thickness'],
+                                    obj.properties.get('color', (0, 255, 0)),
+                                    obj.properties.get('thickness', 2),
                                     cv2.LINE_AA)
                         
                         # 显示距离信息
@@ -984,7 +1023,7 @@ class LayerManager:
                                   (int(text_x - text_width//2), int(text_y + text_height//2)),
                                   font,
                                   font_scale,
-                                  obj.properties['color'],
+                                  obj.properties.get('color', (0, 255, 0)),
                                   thickness,
                                   cv2.LINE_AA)
 
@@ -1738,6 +1777,195 @@ class LayerManager:
                     if len(obj.points) >= 2:
                         if self._hit_test_circle(point, obj.points[0], obj.points[1], tolerance):
                             hit_objects.append(obj)
+                elif obj.type == DrawingType.POINT_TO_LINE:
+                    # 点到线的垂直距离测量
+                    if len(obj.points) >= 3:
+                        # 检查是否点击了点
+                        if self._hit_test_point(point, obj.points[0], tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 检查是否点击了线
+                        line_p1, line_p2 = obj.points[1], obj.points[2]
+                        if self._hit_test_line(point, line_p1, line_p2, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 计算点到线的垂足
+                        A = line_p2.y() - line_p1.y()
+                        B = line_p1.x() - line_p2.x()
+                        C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+                        
+                        foot_x = (B * B * obj.points[0].x() - A * B * obj.points[0].y() - A * C) / (A * A + B * B)
+                        foot_y = (A * A * obj.points[0].y() - A * B * obj.points[0].x() - B * C) / (A * A + B * B)
+                        
+                        # 检查是否点击了垂直距离线
+                        foot_point = QPoint(int(foot_x), int(foot_y))
+                        if self._hit_test_line(point, obj.points[0], foot_point, tolerance * 2):
+                            hit_objects.append(obj)
+                elif obj.type == DrawingType.POINT_TO_CIRCLE:
+                    # 点到圆的垂直距离测量
+                    if len(obj.points) >= 3:
+                        # 检查是否点击了点
+                        if self._hit_test_point(point, obj.points[0], tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 检查是否点击了圆
+                        circle_center = obj.points[1]
+                        circle_radius_point = obj.points[2]
+                        if self._hit_test_circle(point, circle_center, circle_radius_point, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 检查是否点击了垂直距离线
+                        # 计算圆的半径
+                        dx = circle_radius_point.x() - circle_center.x()
+                        dy = circle_radius_point.y() - circle_center.y()
+                        radius = np.sqrt(dx * dx + dy * dy)
+                        
+                        # 计算点到圆心的距离
+                        dx_point = obj.points[0].x() - circle_center.x()
+                        dy_point = obj.points[0].y() - circle_center.y()
+                        distance_to_center = np.sqrt(dx_point * dx_point + dy_point * dy_point)
+                        
+                        # 计算垂足坐标
+                        if distance_to_center > 0:
+                            unit_x = dx_point / distance_to_center
+                            unit_y = dy_point / distance_to_center
+                            foot_x = circle_center.x() + unit_x * radius
+                            foot_y = circle_center.y() + unit_y * radius
+                            
+                            # 检查是否点击了垂直距离线
+                            if self._hit_test_line(point, obj.points[0], QPoint(int(foot_x), int(foot_y)), tolerance * 2):
+                                hit_objects.append(obj)
+                elif obj.type == DrawingType.LINE_SEGMENT_TO_CIRCLE:
+                    # 线段到圆的垂直距离测量
+                    if len(obj.points) >= 4:
+                        # 检查是否点击了线段
+                        line_p1, line_p2 = obj.points[0], obj.points[1]
+                        if self._hit_test_line(point, line_p1, line_p2, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 检查是否点击了圆
+                        circle_center = obj.points[2]
+                        circle_radius_point = obj.points[3]
+                        if self._hit_test_circle(point, circle_center, circle_radius_point, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 计算圆的半径
+                        dx = circle_radius_point.x() - circle_center.x()
+                        dy = circle_radius_point.y() - circle_center.y()
+                        radius = np.sqrt(dx * dx + dy * dy)
+                        
+                        # 计算线段的方向向量
+                        line_dx = line_p2.x() - line_p1.x()
+                        line_dy = line_p2.y() - line_p1.y()
+                        
+                        # 计算圆心到线段的垂直距离
+                        A = line_p2.y() - line_p1.y()
+                        B = line_p1.x() - line_p2.x()
+                        C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+                        
+                        # 计算圆心到线段的垂足
+                        foot_x = (B * B * circle_center.x() - A * B * circle_center.y() - A * C) / (A * A + B * B)
+                        foot_y = (A * A * circle_center.y() - A * B * circle_center.x() - B * C) / (A * A + B * B)
+                        
+                        # 检查垂足是否在线段上
+                        on_segment = False
+                        if min(line_p1.x(), line_p2.x()) <= foot_x <= max(line_p1.x(), line_p2.x()) and \
+                           min(line_p1.y(), line_p2.y()) <= foot_y <= max(line_p1.y(), line_p2.y()):
+                            if abs((foot_x - line_p1.x()) * line_dy - (foot_y - line_p1.y()) * line_dx) < 1e-6:
+                                on_segment = True
+                        
+                        # 如果垂足不在线段上，检查是否点击了延长线
+                        if not on_segment:
+                            # 计算延长线的起点和终点
+                            line_length = np.sqrt(line_dx * line_dx + line_dy * line_dy)
+                            if line_length > 0:
+                                unit_dx = line_dx / line_length
+                                unit_dy = line_dy / line_length
+                                
+                                if np.dot([foot_x - line_p1.x(), foot_y - line_p1.y()], [unit_dx, unit_dy]) < 0:
+                                    # 垂足在线段p1的反方向
+                                    ext_line_start = line_p1
+                                    ext_line_end = QPoint(int(foot_x), int(foot_y))
+                                else:
+                                    # 垂足在线段p2的方向
+                                    ext_line_start = line_p2
+                                    ext_line_end = QPoint(int(foot_x), int(foot_y))
+                                
+                                # 检查是否点击了延长线
+                                if self._hit_test_line(point, ext_line_start, ext_line_end, tolerance * 2):
+                                    hit_objects.append(obj)
+                                    continue
+                        
+                        # 计算圆上的垂足点
+                        dir_x = foot_x - circle_center.x()
+                        dir_y = foot_y - circle_center.y()
+                        dir_length = np.sqrt(dir_x * dir_x + dir_y * dir_y)
+                        
+                        if dir_length > 0:
+                            dir_x, dir_y = dir_x / dir_length, dir_y / dir_length
+                            circle_foot_x = circle_center.x() + dir_x * radius
+                            circle_foot_y = circle_center.y() + dir_y * radius
+                            
+                            # 检查是否点击了垂直距离线
+                            foot_point = QPoint(int(foot_x), int(foot_y))
+                            circle_foot_point = QPoint(int(circle_foot_x), int(circle_foot_y))
+                            if self._hit_test_line(point, foot_point, circle_foot_point, tolerance * 2):
+                                hit_objects.append(obj)
+                elif obj.type == DrawingType.LINE_TO_CIRCLE:
+                    # 直线到圆的垂直距离测量
+                    if len(obj.points) >= 4:
+                        # 检查是否点击了直线
+                        line_p1, line_p2 = obj.points[0], obj.points[1]
+                        if self._hit_test_line(point, line_p1, line_p2, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 检查是否点击了圆
+                        circle_center = obj.points[2]
+                        circle_radius_point = obj.points[3]
+                        if self._hit_test_circle(point, circle_center, circle_radius_point, tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 计算圆的半径
+                        dx = circle_radius_point.x() - circle_center.x()
+                        dy = circle_radius_point.y() - circle_center.y()
+                        radius = np.sqrt(dx * dx + dy * dy)
+                        
+                        # 计算直线的方向向量
+                        line_dx = line_p2.x() - line_p1.x()
+                        line_dy = line_p2.y() - line_p1.y()
+                        
+                        # 计算圆心到直线的垂直距离
+                        A = line_p2.y() - line_p1.y()
+                        B = line_p1.x() - line_p2.x()
+                        C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+                        
+                        # 计算圆心到直线的垂足
+                        foot_x = (B * B * circle_center.x() - A * B * circle_center.y() - A * C) / (A * A + B * B)
+                        foot_y = (A * A * circle_center.y() - A * B * circle_center.x() - B * C) / (A * A + B * B)
+                        
+                        # 计算圆上的垂足点
+                        dir_x = foot_x - circle_center.x()
+                        dir_y = foot_y - circle_center.y()
+                        dir_length = np.sqrt(dir_x * dir_x + dir_y * dir_y)
+                        
+                        if dir_length > 0:
+                            dir_x, dir_y = dir_x / dir_length, dir_y / dir_length
+                            circle_foot_x = circle_center.x() + dir_x * radius
+                            circle_foot_y = circle_center.y() + dir_y * radius
+                            
+                            # 检查是否点击了垂直距离线
+                            foot_point = QPoint(int(foot_x), int(foot_y))
+                            circle_foot_point = QPoint(int(circle_foot_x), int(circle_foot_y))
+                            if self._hit_test_line(point, foot_point, circle_foot_point, tolerance * 2):
+                                hit_objects.append(obj)
                             
             except Exception as e:
                 print(f"Hit test error for object {obj.type}: {str(e)}")
@@ -1869,6 +2097,462 @@ class LayerManager:
         except Exception as e:
             print(f"拟合圆参数时出错: {str(e)}")
             return None
+
+    def _draw_point_to_circle(self, frame, obj: DrawingObject):
+        """绘制点到圆的垂直距离"""
+        try:
+            if len(obj.points) >= 3:
+                point = obj.points[0]  # 点的坐标
+                circle_center = obj.points[1]  # 圆心坐标
+                circle_radius_point = obj.points[2]  # 圆上一点，用于计算半径
+                
+                # 计算圆的半径
+                dx = circle_radius_point.x() - circle_center.x()
+                dy = circle_radius_point.y() - circle_center.y()
+                radius = np.sqrt(dx * dx + dy * dy)
+                
+                # 计算点到圆心的距离
+                dx_point = point.x() - circle_center.x()
+                dy_point = point.y() - circle_center.y()
+                distance_to_center = np.sqrt(dx_point * dx_point + dy_point * dy_point)
+                
+                # 计算点到圆的垂直距离
+                distance_to_circle = abs(distance_to_center - radius)
+                
+                # 计算点到圆心的单位向量
+                if distance_to_center > 0:
+                    unit_x = dx_point / distance_to_center
+                    unit_y = dy_point / distance_to_center
+                else:
+                    unit_x, unit_y = 0, 0
+                
+                # 计算垂足坐标（点在圆内或圆外）
+                if distance_to_center > radius:  # 点在圆外
+                    # 垂足在圆上，沿着点到圆心的方向
+                    foot_x = circle_center.x() + unit_x * radius
+                    foot_y = circle_center.y() + unit_y * radius
+                else:  # 点在圆内或圆上
+                    # 垂足在圆上，沿着圆心到点的方向
+                    foot_x = circle_center.x() + unit_x * radius
+                    foot_y = circle_center.y() + unit_y * radius
+                
+                # 绘制虚线
+                if obj.properties.get('is_dashed', True):  # 默认使用虚线
+                    # 绘制虚线效果
+                    dash_length = 10
+                    gap_length = 10
+                    total_length = int(distance_to_circle)
+                    num_segments = max(1, total_length // (dash_length + gap_length))
+                    
+                    # 计算单位向量（从点到垂足）
+                    dx_line = foot_x - point.x()
+                    dy_line = foot_y - point.y()
+                    line_length = np.sqrt(dx_line * dx_line + dy_line * dy_line)
+                    
+                    if line_length > 0:
+                        dx_line, dy_line = dx_line / line_length, dy_line / line_length
+                        
+                        for i in range(num_segments):
+                            start_dist = i * (dash_length + gap_length)
+                            end_dist = min(start_dist + dash_length, line_length)
+                            
+                            if end_dist <= start_dist:
+                                break
+                                
+                            start_x = int(point.x() + dx_line * start_dist)
+                            start_y = int(point.y() + dy_line * start_dist)
+                            end_x = int(point.x() + dx_line * end_dist)
+                            end_y = int(point.y() + dy_line * end_dist)
+                            
+                            cv2.line(frame, (start_x, start_y), (end_x, end_y), 
+                                    obj.properties.get('color', (0, 255, 0)), 
+                                    obj.properties.get('thickness', 2))
+                else:
+                    # 绘制实线
+                    cv2.line(frame, 
+                            (point.x(), point.y()), 
+                            (int(foot_x), int(foot_y)), 
+                            obj.properties.get('color', (0, 255, 0)), 
+                            obj.properties.get('thickness', 2))
+                
+                # 显示距离信息
+                if obj.properties.get('show_distance', True):
+                    # 计算文本位置（在连线中点附近）
+                    text_x = int((point.x() + foot_x) / 2)
+                    text_y = int((point.y() + foot_y) / 2)
+                    
+                    # 格式化距离文本
+                    distance_text = f"{distance_to_circle:.2f}px"
+                    
+                    # 绘制文本（带背景）
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 1
+                    thickness = 2
+                    padding = 5
+                    
+                    # 获取文本大小
+                    (text_width, text_height), baseline = cv2.getTextSize(distance_text, font, font_scale, thickness)
+                    
+                    # 绘制文本背景
+                    cv2.rectangle(frame,
+                                (text_x - padding, text_y - text_height - padding),
+                                (text_x + text_width + padding, text_y + padding),
+                                (0, 0, 0),
+                                -1)
+                    
+                    # 绘制文本
+                    cv2.putText(frame,
+                              distance_text,
+                              (text_x, text_y),
+                              font,
+                              font_scale,
+                              obj.properties.get('color', (0, 255, 0)),
+                              thickness,
+                              cv2.LINE_AA)
+        except Exception as e:
+            print(f"绘制点到圆的垂直距离时出错: {str(e)}")
+
+    def _draw_line_segment_to_circle(self, frame, obj: DrawingObject):
+        """绘制线段到圆的垂直距离"""
+        try:
+            if len(obj.points) >= 4:
+                # 线段的两个端点
+                line_p1, line_p2 = obj.points[0], obj.points[1]
+                # 圆心和圆上一点
+                circle_center = obj.points[2]
+                circle_radius_point = obj.points[3]
+                
+                # 计算圆的半径
+                dx = circle_radius_point.x() - circle_center.x()
+                dy = circle_radius_point.y() - circle_center.y()
+                radius = np.sqrt(dx * dx + dy * dy)
+                
+                # 绘制圆
+                cv2.circle(frame, 
+                          (circle_center.x(), circle_center.y()), 
+                          int(radius), 
+                          obj.properties.get('color', (0, 255, 0)), 
+                          obj.properties.get('thickness', 2))
+                
+                # 绘制线段
+                cv2.line(frame, 
+                        (line_p1.x(), line_p1.y()), 
+                        (line_p2.x(), line_p2.y()), 
+                        obj.properties.get('color', (0, 255, 0)), 
+                        obj.properties.get('thickness', 2))
+                
+                # 计算线段的方向向量
+                line_dx = line_p2.x() - line_p1.x()
+                line_dy = line_p2.y() - line_p1.y()
+                line_length = np.sqrt(line_dx * line_dx + line_dy * line_dy)
+                
+                if line_length > 0:
+                    # 单位方向向量
+                    unit_dx = line_dx / line_length
+                    unit_dy = line_dy / line_length
+                    
+                    # 计算圆心到线段的垂直距离
+                    # 使用点到直线距离公式：|Ax + By + C|/sqrt(A^2 + B^2)
+                    # 其中 Ax + By + C = 0 是直线方程
+                    A = line_p2.y() - line_p1.y()
+                    B = line_p1.x() - line_p2.x()
+                    C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+                    
+                    distance_to_line = abs(A * circle_center.x() + B * circle_center.y() + C) / np.sqrt(A * A + B * B)
+                    
+                    # 计算圆心到线段的垂足
+                    # 垂足公式：x = (B^2*x0 - A*B*y0 - A*C)/(A^2 + B^2)
+                    #          y = (A^2*y0 - A*B*x0 - B*C)/(A^2 + B^2)
+                    foot_x = (B * B * circle_center.x() - A * B * circle_center.y() - A * C) / (A * A + B * B)
+                    foot_y = (A * A * circle_center.y() - A * B * circle_center.x() - B * C) / (A * A + B * B)
+                    
+                    # 检查垂足是否在线段上
+                    # 如果不在线段上，找到最近的线段端点
+                    on_segment = False
+                    
+                    # 检查垂足是否在线段上
+                    if min(line_p1.x(), line_p2.x()) <= foot_x <= max(line_p1.x(), line_p2.x()) and \
+                       min(line_p1.y(), line_p2.y()) <= foot_y <= max(line_p1.y(), line_p2.y()):
+                        # 额外检查垂足是否真的在线段上（处理斜线情况）
+                        if abs((foot_x - line_p1.x()) * line_dy - (foot_y - line_p1.y()) * line_dx) < 1e-6:
+                            on_segment = True
+                    
+                    # 如果垂足不在线段上，延长线段
+                    if not on_segment:
+                        # 绘制延长线（虚线）
+                        # 计算延长线的起点和终点
+                        if np.dot([foot_x - line_p1.x(), foot_y - line_p1.y()], [unit_dx, unit_dy]) < 0:
+                            # 垂足在线段p1的反方向，从p1延长
+                            ext_line_start = (line_p1.x(), line_p1.y())
+                            ext_line_end = (int(foot_x), int(foot_y))
+                        else:
+                            # 垂足在线段p2的方向，从p2延长
+                            ext_line_start = (line_p2.x(), line_p2.y())
+                            ext_line_end = (int(foot_x), int(foot_y))
+                        
+                        # 绘制延长线（虚线）
+                        dash_length = 5
+                        gap_length = 5
+                        ext_dx = ext_line_end[0] - ext_line_start[0]
+                        ext_dy = ext_line_end[1] - ext_line_start[1]
+                        ext_length = np.sqrt(ext_dx * ext_dx + ext_dy * ext_dy)
+                        
+                        if ext_length > 0:
+                            ext_unit_dx = ext_dx / ext_length
+                            ext_unit_dy = ext_dy / ext_length
+                            
+                            num_segments = int(ext_length / (dash_length + gap_length)) + 1
+                            
+                            for i in range(num_segments):
+                                start_dist = i * (dash_length + gap_length)
+                                end_dist = min(start_dist + dash_length, ext_length)
+                                
+                                if end_dist <= start_dist:
+                                    break
+                                    
+                                dash_start_x = int(ext_line_start[0] + ext_unit_dx * start_dist)
+                                dash_start_y = int(ext_line_start[1] + ext_unit_dy * start_dist)
+                                dash_end_x = int(ext_line_start[0] + ext_unit_dx * end_dist)
+                                dash_end_y = int(ext_line_start[1] + ext_unit_dy * end_dist)
+                                
+                                cv2.line(frame, 
+                                        (dash_start_x, dash_start_y), 
+                                        (dash_end_x, dash_end_y), 
+                                        obj.properties.get('color', (0, 255, 0)), 
+                                        obj.properties.get('thickness', 1),
+                                        cv2.LINE_AA)
+                    
+                    # 计算圆上的垂足点
+                    # 从圆心到线段垂足的方向向量
+                    dir_x = foot_x - circle_center.x()
+                    dir_y = foot_y - circle_center.y()
+                    dir_length = np.sqrt(dir_x * dir_x + dir_y * dir_y)
+                    
+                    if dir_length > 0:
+                        dir_x, dir_y = dir_x / dir_length, dir_y / dir_length
+                        
+                        # 计算圆上的垂足点
+                        circle_foot_x = circle_center.x() + dir_x * radius
+                        circle_foot_y = circle_center.y() + dir_y * radius
+                        
+                        # 计算线段到圆的垂直距离
+                        distance_to_circle = abs(distance_to_line - radius)
+                        
+                        # 绘制垂足点
+                        cv2.circle(frame,
+                                  (int(foot_x), int(foot_y)),
+                                  obj.properties.get('radius', 5),
+                                  obj.properties.get('color', (0, 255, 0)),
+                                  -1)  # 填充圆
+                        
+                        # 绘制圆上的垂足点
+                        cv2.circle(frame,
+                                  (int(circle_foot_x), int(circle_foot_y)),
+                                  obj.properties.get('radius', 5),
+                                  obj.properties.get('color', (0, 255, 0)),
+                                  -1)  # 填充圆
+                        
+                        # 绘制垂线（从线段垂足到圆上垂足）
+                        if obj.properties.get('is_dashed', True):
+                            # 绘制虚线效果
+                            dash_length = 10
+                            gap_length = 10
+                            total_length = int(distance_to_circle)
+                            num_segments = max(1, total_length // (dash_length + gap_length))
+                            
+                            # 计算单位向量（从线段垂足到圆上垂足）
+                            perp_dx = circle_foot_x - foot_x
+                            perp_dy = circle_foot_y - foot_y
+                            perp_length = np.sqrt(perp_dx * perp_dx + perp_dy * perp_dy)
+                            
+                            if perp_length > 0:
+                                perp_dx, perp_dy = perp_dx / perp_length, perp_dy / perp_length
+                                
+                                for i in range(num_segments):
+                                    start_dist = i * (dash_length + gap_length)
+                                    end_dist = min(start_dist + dash_length, perp_length)
+                                    
+                                    if end_dist <= start_dist:
+                                        break
+                                        
+                                    start_x = int(foot_x + perp_dx * start_dist)
+                                    start_y = int(foot_y + perp_dy * start_dist)
+                                    end_x = int(foot_x + perp_dx * end_dist)
+                                    end_y = int(foot_y + perp_dy * end_dist)
+                                    
+                                    cv2.line(frame, (start_x, start_y), (end_x, end_y), 
+                                            obj.properties.get('color', (0, 255, 0)), 
+                                            obj.properties.get('thickness', 2))
+                        else:
+                            # 绘制实线
+                            cv2.line(frame, 
+                                    (int(foot_x), int(foot_y)), 
+                                    (int(circle_foot_x), int(circle_foot_y)), 
+                                    obj.properties.get('color', (0, 255, 0)), 
+                                    obj.properties.get('thickness', 2))
+                        
+                        # 显示距离信息
+                        if obj.properties.get('show_distance', True):
+                            # 计算文本位置（在连线中点附近）
+                            text_x = int((foot_x + circle_foot_x) / 2)
+                            text_y = int((foot_y + circle_foot_y) / 2)
+                            
+                            # 格式化距离文本
+                            distance_text = f"{distance_to_circle:.2f}px"
+                            
+                            # 绘制文本（带背景）
+                            font = cv2.FONT_HERSHEY_SIMPLEX
+                            font_scale = 1
+                            thickness = 2
+                            padding = 5
+                            
+                            # 获取文本大小
+                            (text_width, text_height), baseline = cv2.getTextSize(distance_text, font, font_scale, thickness)
+                            
+                            # 绘制文本背景
+                            cv2.rectangle(frame,
+                                        (text_x - padding, text_y - text_height - padding),
+                                        (text_x + text_width + padding, text_y + padding),
+                                        (0, 0, 0),
+                                        -1)
+                            
+                            # 绘制文本
+                            cv2.putText(frame,
+                                      distance_text,
+                                      (text_x, text_y),
+                                      font,
+                                      font_scale,
+                                      obj.properties.get('color', (0, 255, 0)),
+                                      thickness,
+                                      cv2.LINE_AA)
+        except Exception as e:
+            print(f"绘制线段到圆的垂直距离时出错: {str(e)}")
+
+    def _draw_line_to_circle(self, frame, obj: DrawingObject):
+        """绘制直线到圆的垂直距离虚线"""
+        try:
+            if len(obj.points) >= 4:
+                # 直线的两个端点
+                line_p1, line_p2 = obj.points[0], obj.points[1]
+                # 圆心和圆上一点
+                circle_center = obj.points[2]
+                circle_radius_point = obj.points[3]
+                
+                # 计算圆的半径
+                dx = circle_radius_point.x() - circle_center.x()
+                dy = circle_radius_point.y() - circle_center.y()
+                radius = np.sqrt(dx * dx + dy * dy)
+                
+                # 计算直线的方向向量
+                line_dx = line_p2.x() - line_p1.x()
+                line_dy = line_p2.y() - line_p1.y()
+                
+                # 计算圆心到直线的垂直距离
+                # 使用点到直线距离公式：|Ax + By + C|/sqrt(A^2 + B^2)
+                # 其中 Ax + By + C = 0 是直线方程
+                A = line_p2.y() - line_p1.y()
+                B = line_p1.x() - line_p2.x()
+                C = line_p2.x() * line_p1.y() - line_p1.x() * line_p2.y()
+                
+                distance_to_line = abs(A * circle_center.x() + B * circle_center.y() + C) / np.sqrt(A * A + B * B)
+                
+                # 计算圆心到直线的垂足
+                # 垂足公式：x = (B^2*x0 - A*B*y0 - A*C)/(A^2 + B^2)
+                #          y = (A^2*y0 - A*B*x0 - B*C)/(A^2 + B^2)
+                foot_x = (B * B * circle_center.x() - A * B * circle_center.y() - A * C) / (A * A + B * B)
+                foot_y = (A * A * circle_center.y() - A * B * circle_center.x() - B * C) / (A * A + B * B)
+                
+                # 计算圆上的垂足点
+                # 从圆心到直线垂足的方向向量
+                dir_x = foot_x - circle_center.x()
+                dir_y = foot_y - circle_center.y()
+                dir_length = np.sqrt(dir_x * dir_x + dir_y * dir_y)
+                
+                if dir_length > 0:
+                    dir_x, dir_y = dir_x / dir_length, dir_y / dir_length
+                    
+                    # 计算圆上的垂足点
+                    circle_foot_x = circle_center.x() + dir_x * radius
+                    circle_foot_y = circle_center.y() + dir_y * radius
+                    
+                    # 计算直线到圆的垂直距离
+                    distance_to_circle = abs(distance_to_line - radius)
+                    
+                    # 绘制垂直距离虚线
+                    if obj.properties.get('is_dashed', True):  # 默认使用虚线
+                        # 绘制虚线效果
+                        dash_length = 10
+                        gap_length = 10
+                        total_length = int(distance_to_circle)
+                        num_segments = max(1, total_length // (dash_length + gap_length))
+                        
+                        # 计算单位向量（从直线垂足到圆上垂足）
+                        perp_dx = circle_foot_x - foot_x
+                        perp_dy = circle_foot_y - foot_y
+                        perp_length = np.sqrt(perp_dx * perp_dx + perp_dy * perp_dy)
+                        
+                        if perp_length > 0:
+                            perp_dx, perp_dy = perp_dx / perp_length, perp_dy / perp_length
+                            
+                            for i in range(num_segments):
+                                start_dist = i * (dash_length + gap_length)
+                                end_dist = min(start_dist + dash_length, perp_length)
+                                
+                                if end_dist <= start_dist:
+                                    break
+                                    
+                                start_x = int(foot_x + perp_dx * start_dist)
+                                start_y = int(foot_y + perp_dy * start_dist)
+                                end_x = int(foot_x + perp_dx * end_dist)
+                                end_y = int(foot_y + perp_dy * end_dist)
+                                
+                                cv2.line(frame, (start_x, start_y), (end_x, end_y), 
+                                        obj.properties.get('color', (0, 255, 0)), 
+                                        obj.properties.get('thickness', 2))
+                    else:
+                        # 绘制实线
+                        cv2.line(frame, 
+                                (int(foot_x), int(foot_y)), 
+                                (int(circle_foot_x), int(circle_foot_y)), 
+                                obj.properties.get('color', (0, 255, 0)), 
+                                obj.properties.get('thickness', 2))
+                    
+                    # 显示距离信息
+                    if obj.properties.get('show_distance', True):
+                        # 计算文本位置（在连线中点附近）
+                        text_x = int((foot_x + circle_foot_x) / 2)
+                        text_y = int((foot_y + circle_foot_y) / 2)
+                        
+                        # 格式化距离文本
+                        distance_text = f"{distance_to_circle:.2f}px"
+                        
+                        # 绘制文本（带背景）
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        font_scale = 1
+                        thickness = 2
+                        padding = 5
+                        
+                        # 获取文本大小
+                        (text_width, text_height), baseline = cv2.getTextSize(distance_text, font, font_scale, thickness)
+                        
+                        # 绘制文本背景
+                        cv2.rectangle(frame,
+                                    (text_x - padding, text_y - text_height - padding),
+                                    (text_x + text_width + padding, text_y + padding),
+                                    (0, 0, 0),
+                                    -1)
+                        
+                        # 绘制文本
+                        cv2.putText(frame,
+                                  distance_text,
+                                  (text_x, text_y),
+                                  font,
+                                  font_scale,
+                                  obj.properties.get('color', (0, 255, 0)),
+                                  thickness,
+                                  cv2.LINE_AA)
+        except Exception as e:
+            print(f"绘制直线到圆的垂直距离时出错: {str(e)}")
 
 class MeasurementManager(QObject):
     def __init__(self, parent=None):
@@ -2024,18 +2708,47 @@ class MeasurementManager(QObject):
             elif self.draw_mode == DrawingType.CIRCLE_LINE:
                 # 圆线距离测量模式
                 if not self.layer_manager.current_object:
-                    # 第一次按下：开始绘制圆
+                    # 第一次按下：开始绘制圆（三点法）
                     self.drawing = True
                     properties = {
                         'color': (0, 255, 0),  # RGB格式：绿色
-                        'thickness': 2
+                        'thickness': 2,
+                        'temp_points': [],  # 临时存储三个点
+                        'drawing_stage': 'circle'  # 标记当前是圆绘制阶段
                     }
                     self.layer_manager.start_drawing(self.draw_mode, properties)
-                    self.layer_manager.current_object.points.append(event_pos)
-                elif len(self.layer_manager.current_object.points) == 2:
-                    # 第二次按下：开始绘制直线
+                    # 添加第一个点
+                    self.layer_manager.current_object.properties['temp_points'].append(event_pos)
+                elif self.layer_manager.current_object.properties.get('drawing_stage') == 'circle':
+                    # 圆绘制阶段
+                    temp_points = self.layer_manager.current_object.properties.get('temp_points', [])
+                    if len(temp_points) < 3:
+                        # 添加第二个或第三个点
+                        temp_points.append(event_pos)
+                        
+                        # 如果已经有三个点，计算圆并更新当前对象
+                        if len(temp_points) == 3:
+                            circle_params = self.layer_manager._calculate_circle_from_three_points(temp_points)
+                            if circle_params:
+                                center, radius = circle_params
+                                # 更新当前对象的点列表，使用计算出的圆心和半径点
+                                self.layer_manager.current_object.points = [
+                                    QPoint(int(center[0]), int(center[1])),  # 圆心
+                                    QPoint(int(center[0] + radius), int(center[1]))  # 半径点
+                                ]
+                                # 切换到直线绘制阶段
+                                self.layer_manager.current_object.properties['drawing_stage'] = 'line'
+                                # 清除临时点
+                                self.layer_manager.current_object.properties['temp_points'] = []
+                            else:
+                                # 如果计算失败，清除所有临时点，重新开始
+                                self.layer_manager.current_object.properties['temp_points'] = []
+                    
+                elif self.layer_manager.current_object.properties.get('drawing_stage') == 'line':
+                    # 直线绘制阶段
                     self.drawing = True
-                    self.layer_manager.current_object.points.append(event_pos)  # 添加直线起点
+                    # 添加直线起点
+                    self.layer_manager.current_object.points.append(event_pos)
                 return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.PARALLEL:
                 # 平行线测量模式
@@ -2115,18 +2828,18 @@ class MeasurementManager(QObject):
                         current_obj.points[3] = event_pos
             elif self.draw_mode == DrawingType.CIRCLE_LINE:
                 # 圆线距离测量模式
-                if len(self.layer_manager.current_object.points) <= 2:
-                    # 第一阶段：绘制圆时的拖动
-                    if len(self.layer_manager.current_object.points) == 1:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[1] = event_pos
-                elif len(self.layer_manager.current_object.points) >= 3:
-                    # 第二阶段：绘制直线时的拖动
-                    if len(self.layer_manager.current_object.points) == 3:
-                        self.layer_manager.current_object.points.append(event_pos)
-                    else:
-                        self.layer_manager.current_object.points[3] = event_pos
+                current_obj = self.layer_manager.current_object
+                if current_obj.properties.get('drawing_stage') == 'circle':
+                    # 圆绘制阶段，不需要在移动时更新
+                    return None
+                elif current_obj.properties.get('drawing_stage') == 'line':
+                    # 直线绘制阶段
+                    if len(current_obj.points) >= 3:
+                        # 第二阶段：绘制直线时的拖动
+                        if len(current_obj.points) == 3:
+                            current_obj.points.append(event_pos)
+                        else:
+                            current_obj.points[3] = event_pos
                 return self.layer_manager.render_frame(current_frame)
             elif self.draw_mode == DrawingType.PARALLEL:
                 # 平行线测量模式
@@ -2349,27 +3062,25 @@ class MeasurementManager(QObject):
                         return self.layer_manager.render_frame(current_frame)
                 elif self.draw_mode == DrawingType.CIRCLE_LINE:
                     # 圆线距离测量模式
-                    if len(self.layer_manager.current_object.points) <= 2:
-                        # 第一阶段：圆绘制完成
-                        if len(self.layer_manager.current_object.points) == 1:
-                            self.layer_manager.current_object.points.append(event_pos)
-                        else:
-                            self.layer_manager.current_object.points[1] = event_pos
-                        self.drawing = False
+                    current_obj = self.layer_manager.current_object
+                    if current_obj.properties.get('drawing_stage') == 'circle':
+                        # 圆绘制阶段，在handle_mouse_press中已处理
                         return self.layer_manager.render_frame(current_frame)
-                    elif len(self.layer_manager.current_object.points) <= 4:
-                        # 第二阶段：直线绘制完成
-                        if len(self.layer_manager.current_object.points) == 3:
-                            self.layer_manager.current_object.points.append(event_pos)
-                        else:
-                            self.layer_manager.current_object.points[3] = event_pos
-                        self.layer_manager.commit_drawing()
-                        self.drawing = False
-                        if self.log_manager:
-                            self.log_manager.log_measurement_operation(
-                                f"圆线距离测量完成 - {view_name}", 
-                                f"圆线距离测量完成 - 视图: {view_name}"
-                            )
+                    elif current_obj.properties.get('drawing_stage') == 'line':
+                        # 直线绘制阶段
+                        if len(current_obj.points) >= 3:
+                            # 完成直线绘制
+                            if len(current_obj.points) == 3:
+                                current_obj.points.append(event_pos)
+                            else:
+                                current_obj.points[3] = event_pos
+                            self.layer_manager.commit_drawing()
+                            self.drawing = False
+                            if self.log_manager:
+                                self.log_manager.log_measurement_operation(
+                                    f"圆线距离测量完成 - {view_name}", 
+                                    f"圆线距离测量完成 - 视图: {view_name}"
+                                )
                         return self.layer_manager.render_frame(current_frame)
                 elif self.draw_mode == DrawingType.PARALLEL:
                     # 平行线测量模式

@@ -162,8 +162,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.delete_action = QAction("删除", self) # type: ignore
         self.delete_action.triggered.connect(self.delete_selected_objects)
         
-        self.circle_line_action = QAction("线与圆测量", self) # type: ignore
-        self.circle_line_action.triggered.connect(self.measure_circle_line)
         
         self.two_lines_action = QAction("线与线测量", self)  # type: ignore # 添加线与线选项
         self.two_lines_action.triggered.connect(self.measure_two_lines)
@@ -171,7 +169,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         # 直接添加所有菜单项
         self.context_menu.addAction(self.delete_action)
         self.context_menu.addSeparator()
-        self.context_menu.addAction(self.circle_line_action)
         self.context_menu.addAction(self.two_lines_action)
 
         # 添加主界面保存图像按钮信号连接
@@ -696,15 +693,14 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def label_mouseDoubleClickEvent(self, event, label):
         """处理标签的双击事件"""
         if event.button() == Qt.LeftButton:
-            # 根据当前视图设置目标标签页
+            # 只处理主界面视图的双击事件，跳转到对应的选项卡
             if label == self.lbVerticalView:
                 self.tabWidget.setCurrentIndex(1)
             elif label == self.lbLeftView:
                 self.tabWidget.setCurrentIndex(2)
             elif label == self.lbFrontView:
                 self.tabWidget.setCurrentIndex(3)
-            elif label in [self.lbVerticalView_2, self.lbLeftView_2, self.lbFrontView_2]:
-                self.tabWidget.setCurrentIndex(0)
+            # 移除选项卡视图双击跳转到主界面的功能
             
             # 记录最后操作的视图
             self.last_active_view = label
@@ -941,24 +937,56 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 获取选中图元的类型
                 types = [obj.type for obj in selected]
                 
-                # 把LINE和LINE_SEGMENT都当作直线处理
-                is_line = lambda t: t in [DrawingType.LINE, DrawingType.LINE_SEGMENT]
+                # 区分直线和线段
+                is_line = lambda t: t == DrawingType.LINE  # 只匹配直线
+                is_line_segment = lambda t: t == DrawingType.LINE_SEGMENT  # 只匹配线段
+                is_circle = lambda t: t in [DrawingType.CIRCLE, DrawingType.CIRCLE_DETECT, DrawingType.SIMPLE_CIRCLE, DrawingType.FINE_CIRCLE]
                 
                 # 添加分隔线
                 self.context_menu.addSeparator()
                 
-                # 圆和直线（或线段）的选项
-                is_circle_line = ((types[0] == DrawingType.CIRCLE and is_line(types[1])) or
-                                (types[1] == DrawingType.CIRCLE and is_line(types[0])))
-                if is_circle_line:
-                    self.circle_line_action = QAction("线与圆测量", self)
-                    self.circle_line_action.triggered.connect(self.measure_circle_line)
-                    self.context_menu.addAction(self.circle_line_action)
+                # 圆和直线的选项
+                is_circle_and_line = ((types[0] == DrawingType.CIRCLE and is_line(types[1])) or
+                                    (types[1] == DrawingType.CIRCLE and is_line(types[0])))
+                if is_circle_and_line:
+                    # 使用DrawingManager的handle_context_menu方法获取菜单项
+                    menu_items = self.drawing_manager.handle_context_menu(label)
+                    for item_text, item_handler in menu_items:
+                        if item_text == "直线与圆":  # 只添加直线与圆选项
+                            action = QAction(item_text, self)
+                            action.triggered.connect(item_handler)
+                            self.context_menu.addAction(action)
                 
-                # 两条直线（或线段）的选项
+                # 圆和线段的选项
+                is_circle_and_line_segment = ((types[0] == DrawingType.CIRCLE and is_line_segment(types[1])) or
+                                           (types[1] == DrawingType.CIRCLE and is_line_segment(types[0])))
+                if is_circle_and_line_segment:
+                    menu_items = self.drawing_manager.handle_context_menu(label)
+                    for item_text, item_handler in menu_items:
+                        if item_text == "线段与圆":  # 只添加线段与圆选项
+                            action = QAction(item_text, self)
+                            action.triggered.connect(item_handler)
+                            self.context_menu.addAction(action)
+                
+                # 两条直线的选项
                 is_two_lines = all(is_line(t) for t in types)
                 if is_two_lines:
                     self.two_lines_action = QAction("线与线测量", self)
+                    self.two_lines_action.triggered.connect(self.measure_two_lines)
+                    self.context_menu.addAction(self.two_lines_action)
+                
+                # 两条线段的选项
+                is_two_line_segments = all(is_line_segment(t) for t in types)
+                if is_two_line_segments:
+                    self.two_lines_action = QAction("线段与线段测量", self)
+                    self.two_lines_action.triggered.connect(self.measure_two_lines)
+                    self.context_menu.addAction(self.two_lines_action)
+                
+                # 直线和线段的选项
+                is_line_and_segment = ((is_line(types[0]) and is_line_segment(types[1])) or
+                                     (is_line_segment(types[0]) and is_line(types[1])))
+                if is_line_and_segment:
+                    self.two_lines_action = QAction("线与线段测量", self)
                     self.two_lines_action.triggered.connect(self.measure_two_lines)
                     self.context_menu.addAction(self.two_lines_action)
                 
@@ -971,15 +999,38 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                         action.triggered.connect(item_handler)
                         self.context_menu.addAction(action)
                 
-                # 点和线的选项
+                # 点和直线的选项
                 is_point_and_line = ((types[0] == DrawingType.POINT and is_line(types[1])) or
                                    (types[1] == DrawingType.POINT and is_line(types[0])))
                 if is_point_and_line:
                     menu_items = self.drawing_manager.handle_context_menu(label)
                     for item_text, item_handler in menu_items:
-                        action = QAction(item_text, self)
-                        action.triggered.connect(item_handler)
-                        self.context_menu.addAction(action)
+                        if item_text == "点与线":
+                            action = QAction(item_text, self)
+                            action.triggered.connect(item_handler)
+                            self.context_menu.addAction(action)
+                
+                # 点和线段的选项
+                is_point_and_line_segment = ((types[0] == DrawingType.POINT and is_line_segment(types[1])) or
+                                          (types[1] == DrawingType.POINT and is_line_segment(types[0])))
+                if is_point_and_line_segment:
+                    menu_items = self.drawing_manager.handle_context_menu(label)
+                    for item_text, item_handler in menu_items:
+                        if item_text == "点与线":
+                            action = QAction("点与线段", self)
+                            action.triggered.connect(item_handler)
+                            self.context_menu.addAction(action)
+                
+                # 点和圆的选项
+                is_point_and_circle = ((types[0] == DrawingType.POINT and is_circle(types[1])) or
+                                     (types[1] == DrawingType.POINT and is_circle(types[0])))
+                if is_point_and_circle:
+                    menu_items = self.drawing_manager.handle_context_menu(label)
+                    for item_text, item_handler in menu_items:
+                        if item_text == "点与圆":
+                            action = QAction(item_text, self)
+                            action.triggered.connect(item_handler)
+                            self.context_menu.addAction(action)
             
             # 显示菜单
             self.context_menu.exec_(label.mapToGlobal(pos))
