@@ -394,6 +394,15 @@ class DrawingManager(QObject):
         is_line = lambda t: t == DrawingType.LINE  # 只匹配直线
         is_line_segment = lambda t: t == DrawingType.LINE_SEGMENT  # 只匹配线段
         is_circle = lambda t: t in [DrawingType.CIRCLE, DrawingType.CIRCLE_DETECT, DrawingType.SIMPLE_CIRCLE, DrawingType.FINE_CIRCLE]
+        
+        # 检查是否有中线对象
+        has_midline = False
+        midline_obj = None
+        for obj in selected:
+            if obj.properties.get('is_midline', False):
+                has_midline = True
+                midline_obj = obj
+                break
             
         # 如果选中了一个点和一条直线
         if len(types) == 2 and ((types[0] == DrawingType.POINT and is_line(types[1])) or
@@ -429,6 +438,13 @@ class DrawingManager(QObject):
             line = selected[0] if is_line(types[0]) else selected[1]
             circle = selected[1] if is_line(types[0]) else selected[0]
             menu_items.append(("直线与圆", lambda: self._create_line_to_circle(label, line, circle)))
+            
+        # 如果选中了一条中线和一个圆
+        if has_midline and len(types) == 2:
+            # 找出另一个对象
+            other_obj = selected[0] if selected[1] == midline_obj else selected[1]
+            if is_circle(other_obj.type):
+                menu_items.append(("中线与圆", lambda: self._create_line_to_circle(label, midline_obj, other_obj)))
             
         return menu_items
 

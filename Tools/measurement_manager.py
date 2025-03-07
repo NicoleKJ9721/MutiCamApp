@@ -286,7 +286,7 @@ class LayerManager:
                     cv2.line(frame,
                             (start_x, start_y),
                             (end_x, end_y),
-                            (0, 0, 255),  # 红色高亮
+                            (0, 0, 255),  # 蓝色高亮
                             obj.properties['thickness'] + 8,
                             cv2.LINE_AA)
                 
@@ -386,13 +386,13 @@ class LayerManager:
             radius = int(np.sqrt((radius_point.x() - center.x())**2 + 
                                (radius_point.y() - center.y())**2))
             
-            # 如果图元被选中，先绘制红色高亮轮廓
+            # 如果图元被选中，先绘制蓝色高亮轮廓
             if obj.selected:
                 cv2.circle(frame,
                           (center.x(), center.y()),
                           radius,
-                          (0, 0, 255),  # 红色高亮
-                          obj.properties['thickness'] + 4,
+                          (0, 0, 255),  # 蓝色高亮
+                          obj.properties['thickness'] + 8,
                           cv2.LINE_AA)
             
             # 绘制正常圆形
@@ -475,7 +475,7 @@ class LayerManager:
                 cv2.line(frame,
                         (p1.x(), p1.y()),
                         (p2.x(), p2.y()),
-                        (0, 0, 255),  # 红色高亮
+                        (0, 0, 255),  # 蓝色高亮
                         obj.properties['thickness'] + 8,  # 加粗
                         cv2.LINE_AA)
             
@@ -767,7 +767,16 @@ class LayerManager:
                     end_x_mid = int(mid_x + dx * max_length)
                     end_y_mid = int(mid_y + dy * max_length)
                     
+                    # 检查中线是否被选中
+                    midline_selected = False
+                    if 'midline_object' in obj.properties:
+                        midline_selected = obj.properties['midline_object'].selected
+                    
                     # 绘制中线（虚线）
+                    # 如果中线被选中，使用蓝色高亮显示
+                    midline_color = (0, 0, 255) if midline_selected else (255, 0, 0)
+                    midline_thickness = 4 if midline_selected else 4
+                    
                     dash_length = 10
                     gap_length = 10
                     segment_length = dash_length + gap_length
@@ -789,8 +798,8 @@ class LayerManager:
                             cv2.line(frame,
                                     (dash_start_x, dash_start_y),
                                     (dash_end_x, dash_end_y),
-                                    (255, 0, 0),
-                                    4,
+                                    midline_color,
+                                    midline_thickness,
                                     cv2.LINE_AA)
                     
                     # 显示距离和角度信息（分两行显示）
@@ -1549,8 +1558,8 @@ class LayerManager:
             if obj.selected:
                 cv2.circle(frame,
                           (p.x(), p.y()),
-                          obj.properties.get('radius', 10) + 4,  # 增加高亮边缘的宽度
-                          (0, 0, 255),  # 红色高亮
+                          obj.properties.get('radius', 10) + 8,  # 增加高亮边缘的宽度
+                          (0, 0, 255),  # 蓝色高亮
                           -1)  # 填充圆
             
             # 绘制点（实心圆）
@@ -1777,6 +1786,77 @@ class LayerManager:
                     if len(obj.points) >= 2:
                         if self._hit_test_circle(point, obj.points[0], obj.points[1], tolerance):
                             hit_objects.append(obj)
+                elif obj.type == DrawingType.PARALLEL:
+                    # 平行线测试
+                    if len(obj.points) >= 2:
+                        # 测试第一条线
+                        if self._hit_test_line(point, obj.points[0], obj.points[1], tolerance):
+                            hit_objects.append(obj)
+                            continue
+                            
+                        # 如果有第二条线，测试第二条线
+                        if len(obj.points) >= 3:
+                            # 测试第二条线
+                            p1, p2 = obj.points[0], obj.points[1]
+                            p3 = obj.points[2]
+                            
+                            # 计算第二条线的方向向量（与第一条线平行）
+                            dx = p2.x() - p1.x()
+                            dy = p2.y() - p1.y()
+                            
+                            if dx != 0 or dy != 0:
+                                # 计算单位向量
+                                length = np.sqrt(dx*dx + dy*dy)
+                                dx, dy = dx/length, dy/length
+                                
+                                # 计算第二条线的起点和终点
+                                height, width = 10000, 10000  # 使用一个足够大的值
+                                max_length = int(np.sqrt(width**2 + height**2))
+                                
+                                start_x2 = int(p3.x() - dx * max_length)
+                                start_y2 = int(p3.y() - dy * max_length)
+                                end_x2 = int(p3.x() + dx * max_length)
+                                end_y2 = int(p3.y() + dy * max_length)
+                                
+                                # 测试第二条线
+                                if self._hit_test_line(point, 
+                                                     QPoint(start_x2, start_y2), 
+                                                     QPoint(end_x2, end_y2), 
+                                                     tolerance):
+                                    hit_objects.append(obj)
+                                    continue
+                                
+                                # 测试中线
+                                # 计算中点
+                                mid_x = (p1.x() + p3.x()) // 2
+                                mid_y = (p1.y() + p3.y()) // 2
+                                
+                                # 计算中线的起点和终点
+                                start_x_mid = int(mid_x - dx * max_length)
+                                start_y_mid = int(mid_y - dy * max_length)
+                                end_x_mid = int(mid_x + dx * max_length)
+                                end_y_mid = int(mid_y + dy * max_length)
+                                
+                                # 测试中线
+                                if self._hit_test_line(point, 
+                                                     QPoint(start_x_mid, start_y_mid), 
+                                                     QPoint(end_x_mid, end_y_mid), 
+                                                     tolerance):
+                                    # 如果点击了中线，创建一个虚拟的直线对象
+                                    if 'midline_object' not in obj.properties:
+                                        # 创建一个虚拟的直线对象，用于与其他图元交互
+                                        midline_obj = DrawingObject(
+                                            type=DrawingType.LINE,
+                                            points=[QPoint(mid_x, mid_y), 
+                                                   QPoint(mid_x + int(dx * 100), mid_y + int(dy * 100))],
+                                            properties={'color': (255, 0, 0), 'thickness': 2, 
+                                                       'is_midline': True, 'parent_object': obj}
+                                        )
+                                        obj.properties['midline_object'] = midline_obj
+                                    
+                                    # 返回中线对象
+                                    hit_objects.append(obj.properties['midline_object'])
+                                    continue
                 elif obj.type == DrawingType.POINT_TO_LINE:
                     # 点到线的垂直距离测量
                     if len(obj.points) >= 3:
@@ -2035,11 +2115,21 @@ class LayerManager:
                 o.selected = False
             self.selected_objects.clear()
             
-        if obj not in self.selected_objects:
+        # 检查是否是中线对象
+        if obj.properties.get('is_midline', False):
+            # 如果是中线对象，标记为选中
             obj.selected = True
-            self.selected_objects.append(obj)
-            # 打印选中的图元类型
-            print(f"选中了: {obj.type.value}")  # .value 获取枚举的字符串值
+            if obj not in self.selected_objects:
+                self.selected_objects.append(obj)
+                # 打印选中的图元类型
+                print(f"选中了: 平行线中线")
+        else:
+            # 普通对象
+            if obj not in self.selected_objects:
+                obj.selected = True
+                self.selected_objects.append(obj)
+                # 打印选中的图元类型
+                print(f"选中了: {obj.type.value}")  # .value 获取枚举的字符串值
 
     def delete_selected_objects(self):
         """删除选中的图元"""
