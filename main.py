@@ -11,7 +11,7 @@ import cv2
 from typing import List
 from datetime import datetime
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QIntValidator
 from PyQt5.QtCore import Qt, QThread, QPoint, QTimer
 from mainwindow import Ui_MainWindow
 from Tools.camera_thread import CameraThread
@@ -19,6 +19,7 @@ from Tools.settings_manager import SettingsManager
 from Tools.log_manager import LogManager
 from Tools.measurement_manager import MeasurementManager, DrawingType, DrawingObject
 from Tools.drawing_manager import DrawingManager
+from Tools.grid_container import GridContainer
 
 class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def __init__(self):
@@ -84,7 +85,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         # 初始化绘画管理器
         self.drawing_manager = DrawingManager(self)
         
-        # 设置主界面视图的绘画功能
+        # 先设置主界面视图的绘画功能
         self.drawing_manager.setup_view(self.lbVerticalView, "vertical")
         self.drawing_manager.setup_view(self.lbLeftView, "left")      # 主界面左视图
         self.drawing_manager.setup_view(self.lbFrontView, "front")
@@ -93,6 +94,56 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.drawing_manager.setup_view(self.lbVerticalView_2, "vertical_2")
         self.drawing_manager.setup_view(self.lbLeftView_2, "left_2")  # 选项卡左视图
         self.drawing_manager.setup_view(self.lbFrontView_2, "front_2")
+        
+        # 为网格密度输入框添加整数验证器
+        int_validator = QIntValidator()
+        int_validator.setBottom(1)  # 设置最小值为1
+        self.leGridDens.setValidator(int_validator)
+        self.leGridDens_Ver.setValidator(int_validator)
+        self.leGridDens_Left.setValidator(int_validator)
+        self.leGridDens_Front.setValidator(int_validator)
+        
+        # 创建网格容器并包装主界面垂直视图
+        self.vertical_grid_container = GridContainer(self)
+        parent_layout = self.lbVerticalView.parent().layout()
+        parent_layout.removeWidget(self.lbVerticalView)
+        self.vertical_grid_container.addWidget(self.lbVerticalView)
+        parent_layout.addWidget(self.vertical_grid_container, 0, 0, 1, 1)
+        
+        # 创建网格容器并包装主界面左侧视图
+        self.left_grid_container = GridContainer(self)
+        parent_layout = self.lbLeftView.parent().layout()
+        parent_layout.removeWidget(self.lbLeftView)
+        self.left_grid_container.addWidget(self.lbLeftView)
+        parent_layout.addWidget(self.left_grid_container, 0, 0, 1, 1)
+        
+        # 创建网格容器并包装主界面对向视图
+        self.front_grid_container = GridContainer(self)
+        parent_layout = self.lbFrontView.parent().layout()
+        parent_layout.removeWidget(self.lbFrontView)
+        self.front_grid_container.addWidget(self.lbFrontView)
+        parent_layout.addWidget(self.front_grid_container, 0, 0, 1, 1)
+        
+        # 创建网格容器并包装垂直视图选项卡
+        self.vertical_grid_container_2 = GridContainer(self)
+        parent_layout_2 = self.lbVerticalView_2.parent().layout()
+        parent_layout_2.removeWidget(self.lbVerticalView_2)
+        self.vertical_grid_container_2.addWidget(self.lbVerticalView_2)
+        parent_layout_2.addWidget(self.vertical_grid_container_2, 0, 0, 1, 1)
+        
+        # 创建网格容器并包装左侧视图选项卡
+        self.left_grid_container_2 = GridContainer(self)
+        parent_layout_2 = self.lbLeftView_2.parent().layout()
+        parent_layout_2.removeWidget(self.lbLeftView_2)
+        self.left_grid_container_2.addWidget(self.lbLeftView_2)
+        parent_layout_2.addWidget(self.left_grid_container_2, 0, 0, 1, 1)
+        
+        # 创建网格容器并包装对向视图选项卡
+        self.front_grid_container_2 = GridContainer(self)
+        parent_layout_2 = self.lbFrontView_2.parent().layout()
+        parent_layout_2.removeWidget(self.lbFrontView_2)
+        self.front_grid_container_2.addWidget(self.lbFrontView_2)
+        parent_layout_2.addWidget(self.front_grid_container_2, 0, 0, 1, 1)
 
         # 启用按键事件
         self.lbVerticalView.setFocusPolicy(Qt.StrongFocus)
@@ -127,7 +178,31 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnSaveImage.clicked.connect(self.save_all_views)
 
     def _connect_signals(self):
-        """连接信号槽"""
+        """连接信号和槽"""
+        # 连接相机控制按钮
+        # 相机控制信号
+        self.btnStartMeasure.clicked.connect(self.start_cameras)
+        self.btnStopMeasure.clicked.connect(self.stop_cameras)
+        
+        # 连接选项卡切换信号
+        self.tabWidget.currentChanged.connect(self.handle_tab_change)
+        
+        # 连接网格控制按钮 - 主界面
+        self.btnCancelGrids.clicked.connect(lambda: self.clear_grid(0))
+        self.leGridDens.editingFinished.connect(lambda: self.apply_grid_spacing(0))
+        
+        # 连接网格控制按钮 - 垂直视图选项卡
+        self.btnCancelGrids_Ver.clicked.connect(lambda: self.clear_grid(1))
+        self.leGridDens_Ver.editingFinished.connect(lambda: self.apply_grid_spacing(1))
+        
+        # 连接网格控制按钮 - 左视图选项卡
+        self.btnCancelGrids_Left.clicked.connect(lambda: self.clear_grid(2))
+        self.leGridDens_Left.editingFinished.connect(lambda: self.apply_grid_spacing(2))
+        
+        # 连接网格控制按钮 - 前视图选项卡
+        self.btnCancelGrids_Front.clicked.connect(lambda: self.clear_grid(3))
+        self.leGridDens_Front.editingFinished.connect(lambda: self.apply_grid_spacing(3))
+
         # 相机参数 修改为 editingFinished 信号，只在用户编辑完成时触发
         self.ledVerCamSN.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledLeftCamSN.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
@@ -152,10 +227,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         # UI尺寸修改信号 在编辑完成时保存设置
         self.ledUIWidth.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
         self.ledUIHeight.editingFinished.connect(lambda: self.settings_manager.save_settings(self))
-
-        # 相机控制信号
-        self.btnStartMeasure.clicked.connect(self.start_cameras)
-        self.btnStopMeasure.clicked.connect(self.stop_cameras)
 
         # 主界面绘画功能按钮信号连接
         self.btnDrawPoint.clicked.connect(self.drawing_manager.start_point_measurement)  # 点按钮
@@ -224,25 +295,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnClearDrawings_Front.clicked.connect(                         # 清空按钮
             lambda: self.drawing_manager.clear_drawings(self.lbFrontView_2))
         self.btnSaveImage_Front.clicked.connect(lambda: self.save_images('front'))
-
-        # 添加选项卡切换信号连接
-        self.tabWidget.currentChanged.connect(self.handle_tab_change)
-
-        # 连接网格相关的信号
-        # self.leGridDens.editingFinished.connect()  # 主界面
-        # self.btnCancelGrids.clicked.connect()
-
-        # # 连接垂直选项卡网格相关的信号
-        # self.leGridDens_Ver.editingFinished.connect()  # 垂直选项卡
-        # self.btnCancelGrids_Ver.clicked.connect()
-
-        # # 连接左侧选项卡网格相关的信号
-        # self.leGridDens_Left.editingFinished.connect()  # 左视图选项卡
-        # self.btnCancelGrids_Left.clicked.connect()
-
-        # # 连接前视图选项卡网格相关的信号
-        # self.leGridDens_Front.editingFinished.connect()  # 前视图选项卡
-        # self.btnCancelGrids_Front.clicked.connect()
 
     def handle_tab_change(self, index):
         """处理选项卡切换事件"""
@@ -403,15 +455,17 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 保存当前帧的引用而不是拷贝
             self.current_frame_vertical = frame
             
-            # 更新主界面的垂直视图（主界面总是需要更新）
-            main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
-            if main_measurement:
-                main_display_frame = main_measurement.layer_manager.render_frame(frame)
-                if main_display_frame is not None:
-                    self.display_image(main_display_frame, self.lbVerticalView)
+            # 更新主界面的垂直视图（当选项卡索引为0时）
+            if self.tabWidget.currentIndex() == 0 and self.lbVerticalView.isVisible():
+                # 更新主界面的垂直视图
+                main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
+                if main_measurement:
+                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
+                    if main_display_frame is not None:
+                        self.display_image(main_display_frame, self.lbVerticalView)
             
             # 更新垂直选项卡的视图（当选项卡索引为1时）
-            if self.tabWidget.currentIndex() == 1:
+            if self.tabWidget.currentIndex() == 1 and self.lbVerticalView_2.isVisible():
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
                 if tab_measurement:
                     tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
@@ -427,15 +481,16 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 保存当前帧的引用而不是拷贝
             self.current_frame_left = frame
             
-            # 更新主界面的左侧视图（主界面总是需要更新）
-            main_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
-            if main_measurement:
-                main_display_frame = main_measurement.layer_manager.render_frame(frame)
-                if main_display_frame is not None:
-                    self.display_image(main_display_frame, self.lbLeftView)
+            # 更新主界面的左侧视图（当选项卡索引为0时）
+            if self.tabWidget.currentIndex() == 0 and self.lbLeftView.isVisible():
+                main_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
+                if main_measurement:
+                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
+                    if main_display_frame is not None:
+                        self.display_image(main_display_frame, self.lbLeftView)
             
             # 更新左侧选项卡的视图（当选项卡索引为2时）
-            if self.tabWidget.currentIndex() == 2:
+            if self.tabWidget.currentIndex() == 2 and self.lbLeftView_2.isVisible():
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
                 if tab_measurement:
                     tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
@@ -451,15 +506,16 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 保存当前帧的引用而不是拷贝
             self.current_frame_front = frame
             
-            # 更新主界面的前视图（主界面总是需要更新）
-            main_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
-            if main_measurement:
-                main_display_frame = main_measurement.layer_manager.render_frame(frame)
+            # 更新主界面的前视图（当选项卡索引为0时）
+            if self.tabWidget.currentIndex() == 0 and self.lbFrontView.isVisible():
+                main_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
+                if main_measurement:
+                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
                 if main_display_frame is not None:
                     self.display_image(main_display_frame, self.lbFrontView)
             
             # 更新对向选项卡的视图（当选项卡索引为3时）
-            if self.tabWidget.currentIndex() == 3:
+            if self.tabWidget.currentIndex() == 3 and self.lbFrontView_2.isVisible():
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
                 if tab_measurement:
                     tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
@@ -500,19 +556,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 创建QPixmap并设置
             pixmap = QPixmap.fromImage(q_img)
             label.setPixmap(pixmap)
-            
-            
-            # 恢复网格间隔
-            if isinstance(label, GridLabel) and grid_spacing > 0:
-                label.setGridSpacing(grid_spacing)
-            
-            # 强制更新显示
-            label.update()
-
-
-            # 恢复网格间隔
-            if isinstance(label, GridLabel) and grid_spacing > 0:
-                label.setGridSpacing(grid_spacing)
             
             # 强制更新显示
             label.update()
@@ -1123,6 +1166,85 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         """强制进行垃圾回收"""
         import gc
         gc.collect()
+
+    def apply_grid_spacing(self, current_tab):
+        """应用网格间距"""
+        # 根据当前选项卡获取对应的网格密度输入框
+        if current_tab == 0:  # 主界面
+            grid_input = self.leGridDens
+            containers = [self.vertical_grid_container, self.left_grid_container, self.front_grid_container]
+        elif current_tab == 1:  # 垂直视图选项卡
+            grid_input = self.leGridDens_Ver
+            containers = [self.vertical_grid_container_2, self.vertical_grid_container]  # 包括主界面对应视图
+        elif current_tab == 2:  # 左视图选项卡
+            grid_input = self.leGridDens_Left
+            containers = [self.left_grid_container_2, self.left_grid_container]  # 包括主界面对应视图
+        elif current_tab == 3:  # 前视图选项卡
+            grid_input = self.leGridDens_Front
+            containers = [self.front_grid_container_2, self.front_grid_container]  # 包括主界面对应视图
+        else:
+            return
+        
+        grid_spacing_text = grid_input.text()
+        if not grid_spacing_text:
+            return
+        
+        grid_spacing = int(grid_spacing_text)
+        if grid_spacing <= 0:
+                return
+        
+        # 确保网格间距至少为10
+        if grid_spacing < 10:
+            grid_spacing = 10
+            
+            # 更新输入框显示
+            if current_tab == 0:  # 主界面
+                self.leGridDens.setText(str(grid_spacing))
+            elif current_tab == 1:  # 垂直视图选项卡
+                self.leGridDens_Ver.setText(str(grid_spacing))
+            elif current_tab == 2:  # 左视图选项卡
+                self.leGridDens_Left.setText(str(grid_spacing))
+            elif current_tab == 3:  # 前视图选项卡
+                self.leGridDens_Front.setText(str(grid_spacing))
+        
+
+        for container in containers:
+            if isinstance(container, GridContainer):
+                container.setGridSpacing(grid_spacing)
+
+        # 记录操作
+        if grid_spacing > 0:
+            self.log_manager.log_ui_operation(f"设置网格间距为 {grid_spacing} 像素")
+        else:
+            self.log_manager.log_ui_operation("取消网格显示")
+            
+    def clear_grid(self, tab_index):
+        """清除网格显示"""
+        # 根据选项卡索引获取对应的输入框和标签
+        if tab_index == 0:  # 主界面
+            grid_input = self.leGridDens
+            containers = [self.vertical_grid_container, self.left_grid_container, self.front_grid_container]
+        elif tab_index == 1:  # 垂直选项卡
+            grid_input = self.leGridDens_Ver
+            containers = [self.vertical_grid_container_2, self.vertical_grid_container]  # 包括主界面对应视图
+        elif tab_index == 2:  # 左视图选项卡
+            grid_input = self.leGridDens_Left
+            containers = [self.left_grid_container_2, self.left_grid_container]  # 包括主界面对应视图
+        elif tab_index == 3:  # 前视图选项卡
+            grid_input = self.leGridDens_Front
+            containers = [self.front_grid_container_2, self.front_grid_container]  # 包括主界面对应视图
+        else:
+            return
+
+        # 清除所有相关标签的网格
+        for container in containers:
+            if isinstance(container, GridContainer):
+                container.setGridSpacing(0)
+        
+        # 清除网格间隔输入框
+        grid_input.clear()
+        
+        self.log_manager.log_ui_operation("清除网格显示")
 
 def main():
     app = QApplication(sys.argv)
