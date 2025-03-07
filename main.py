@@ -10,94 +10,15 @@ import numpy as np
 import cv2
 from typing import List
 from datetime import datetime
-import time
-from PyQt5.QtWidgets import *  # QSizePolicy 在 QtWidgets 中
-from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor, QIntValidator
-from PyQt5.QtCore import Qt, QThread, QPoint, QRect
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import Qt, QThread, QPoint, QTimer
 from mainwindow import Ui_MainWindow
 from Tools.camera_thread import CameraThread
 from Tools.settings_manager import SettingsManager
 from Tools.log_manager import LogManager
 from Tools.measurement_manager import MeasurementManager, DrawingType, DrawingObject
 from Tools.drawing_manager import DrawingManager
-
-class GridLabel(QLabel):
-    """带网格功能的标签控件"""
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.grid_spacing = 0  # 网格间隔，0表示不显示网格
-        self.grid_color = QColor(255, 0, 0)  # 网格颜色，默认红色
-        self.grid_style = Qt.DashLine  # 网格线型，默认虚线
-        self.grid_width = 1  # 网格线宽，默认2像素
-        
-        # 图像显示相关属性
-        self.setMinimumSize(300, 300)  # 设置更大的最小尺寸
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # 设置尺寸策略为扩展
-        self.setAlignment(Qt.AlignCenter)  # 居中对齐
-        self.setScaledContents(False)  # 不自动缩放内容，我们在paintEvent中手动处理
-    
-    def setGridSpacing(self, spacing):
-        """设置网格间隔"""
-        self.grid_spacing = spacing
-        self.update()  # 更新显示
-    
-    def clearGrid(self):
-        """清除网格"""
-        self.grid_spacing = 0
-        self.update()  # 更新显示
-    
-    def paintEvent(self, event):
-        """重写绘制事件"""
-        # 首先绘制图像
-        painter = QPainter(self)
-        
-        # 绘制图像
-        pixmap = self.pixmap()
-        if pixmap and not pixmap.isNull():
-            # 获取标签和图像的尺寸
-            label_width = self.width()
-            label_height = self.height()
-            pixmap_width = pixmap.width()
-            pixmap_height = pixmap.height()
-            
-            # 计算缩放比例，使图像高度与标签高度完全一致
-            scale = label_height / pixmap_height
-            
-            # 计算缩放后的宽度
-            scaled_width = int(pixmap_width * scale)
-            
-            # 计算居中显示的位置
-            x = int((label_width - scaled_width) / 2)
-            
-            # 绘制缩放后的图像
-            target_rect = QRect(x, 0, scaled_width, label_height)
-            painter.drawPixmap(target_rect, pixmap)
-        
-        # 如果设置了网格间隔且大于0，则绘制网格
-        if self.grid_spacing > 0:
-            pen = QPen(self.grid_color)
-            pen.setStyle(self.grid_style)
-            pen.setWidth(self.grid_width)
-            painter.setPen(pen)
-            
-            # 获取标签的大小
-            width = self.width()
-            height = self.height()
-            
-            # 绘制水平线
-            y = 0
-            while y < height:
-                painter.drawLine(0, y, width, y)
-                y += self.grid_spacing
-            
-            # 绘制垂直线
-            x = 0
-            while x < width:
-                painter.drawLine(x, 0, x, height)
-                x += self.grid_spacing
-        
-        painter.end()
 
 class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def __init__(self):
@@ -154,171 +75,8 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         # 添加标志位
         self.is_undoing = False
         
-        # 添加一个标志位来控制是否应该触发网格更新
-        self._is_programmatic_text_change = False
-
     def _init_ui(self):
         """初始化UI控件"""
-        # 替换原有的QLabel为GridLabel
-        self.grid_labels = []
-        
-        # 替换主界面的三个视图标签
-        for old_label_name in ['lbVerticalView', 'lbLeftView', 'lbFrontView']:
-            old_label = getattr(self, old_label_name)
-            parent = old_label.parent()
-            
-            # 获取原标签的布局信息
-            geometry = old_label.geometry()
-            
-            # 创建新的GridLabel
-            grid_label = GridLabel(parent)
-            
-            # 复制原标签的属性
-            grid_label.setObjectName(old_label_name)
-            grid_label.setGeometry(geometry)
-            grid_label.setStyleSheet(old_label.styleSheet())
-            
-            # 如果原标签在布局中，需要保持布局
-            layout = None
-            layout_position = None
-            
-            # 查找标签所在的布局
-            for parent_layout in parent.findChildren(QLayout):
-                # 处理不同类型的布局
-                if isinstance(parent_layout, QGridLayout):
-                    # 对于QGridLayout，需要找到行和列位置
-                    for row in range(parent_layout.rowCount()):
-                        for col in range(parent_layout.columnCount()):
-                            item = parent_layout.itemAtPosition(row, col)
-                            if item and item.widget() == old_label:
-                                layout = parent_layout
-                                layout_position = (row, col)
-                                break
-                        if layout:
-                            break
-                else:
-                    # 对于其他布局，如QVBoxLayout, QHBoxLayout等
-                    for i in range(parent_layout.count()):
-                        if parent_layout.itemAt(i).widget() == old_label:
-                            layout = parent_layout
-                            layout_position = i
-                            break
-                if layout:
-                    break
-            
-            # 保存原有的鼠标事件处理
-            grid_label.mousePressEvent = lambda event, label=grid_label: self.label_mousePressEvent(event, label)
-            grid_label.mouseMoveEvent = lambda event, label=grid_label: self.label_mouseMoveEvent(event, label)
-            grid_label.mouseReleaseEvent = lambda event, label=grid_label: self.label_mouseReleaseEvent(event, label)
-            grid_label.mouseDoubleClickEvent = lambda event, label=grid_label: self.label_mouseDoubleClickEvent(event, label)
-            grid_label.contextMenuEvent = lambda event, label=grid_label: self.label_contextMenuEvent(event, label)
-            
-            # 替换原有标签
-            if layout:
-                old_label.setParent(None)
-                if isinstance(layout, QGridLayout) and isinstance(layout_position, tuple):
-                    # 对于QGridLayout，使用addWidget并指定行列
-                    row, col = layout_position
-                    layout.addWidget(grid_label, row, col)
-                else:
-                    # 对于其他布局，如QVBoxLayout, QHBoxLayout等
-                    layout.removeItem(layout.itemAt(layout_position))
-                    if isinstance(layout, QBoxLayout):  # QVBoxLayout和QHBoxLayout都是QBoxLayout的子类
-                        layout.insertWidget(layout_position, grid_label)
-                    else:
-                        # 对于其他类型的布局，简单地添加
-                        layout.addWidget(grid_label)
-            else:
-                old_label.setParent(None)
-                grid_label.setGeometry(geometry)
-            
-            setattr(self, old_label_name, grid_label)
-            self.grid_labels.append(grid_label)
-            
-            # 确保标签可见
-            grid_label.show()
-        
-        # 替换选项卡的三个视图标签
-        for old_label_name in ['lbVerticalView_2', 'lbLeftView_2', 'lbFrontView_2']:
-            old_label = getattr(self, old_label_name)
-            parent = old_label.parent()
-            
-            # 获取原标签的布局信息
-            geometry = old_label.geometry()
-            
-            # 创建新的GridLabel
-            grid_label = GridLabel(parent)
-            
-            # 复制原标签的属性
-            grid_label.setObjectName(old_label_name)
-            grid_label.setGeometry(geometry)
-            grid_label.setStyleSheet(old_label.styleSheet())
-            
-            # 如果原标签在布局中，需要保持布局
-            layout = None
-            layout_position = None
-            
-            # 查找标签所在的布局
-            for parent_layout in parent.findChildren(QLayout):
-                # 处理不同类型的布局
-                if isinstance(parent_layout, QGridLayout):
-                    # 对于QGridLayout，需要找到行和列位置
-                    for row in range(parent_layout.rowCount()):
-                        for col in range(parent_layout.columnCount()):
-                            item = parent_layout.itemAtPosition(row, col)
-                            if item and item.widget() == old_label:
-                                layout = parent_layout
-                                layout_position = (row, col)
-                                break
-                        if layout:
-                            break
-                else:
-                    # 对于其他布局，如QVBoxLayout, QHBoxLayout等
-                    for i in range(parent_layout.count()):
-                        if parent_layout.itemAt(i).widget() == old_label:
-                            layout = parent_layout
-                            layout_position = i
-                            break
-                if layout:
-                    break
-            
-            # 保存原有的鼠标事件处理
-            grid_label.mousePressEvent = lambda event, label=grid_label: self.label_mousePressEvent(event, label)
-            grid_label.mouseMoveEvent = lambda event, label=grid_label: self.label_mouseMoveEvent(event, label)
-            grid_label.mouseReleaseEvent = lambda event, label=grid_label: self.label_mouseReleaseEvent(event, label)
-            grid_label.mouseDoubleClickEvent = lambda event, label=grid_label: self.label_mouseDoubleClickEvent(event, label)
-            grid_label.contextMenuEvent = lambda event, label=grid_label: self.label_contextMenuEvent(event, label)
-            
-            # 替换原有标签
-            if layout:
-                old_label.setParent(None)
-                if isinstance(layout, QGridLayout) and isinstance(layout_position, tuple):
-                    # 对于QGridLayout，使用addWidget并指定行列
-                    row, col = layout_position
-                    layout.addWidget(grid_label, row, col)
-                else:
-                    # 对于其他布局，如QVBoxLayout, QHBoxLayout等
-                    layout.removeItem(layout.itemAt(layout_position))
-                    if isinstance(layout, QBoxLayout):  # QVBoxLayout和QHBoxLayout都是QBoxLayout的子类
-                        layout.insertWidget(layout_position, grid_label)
-                    else:
-                        # 对于其他类型的布局，简单地添加
-                        layout.addWidget(grid_label)
-            else:
-                old_label.setParent(None)
-                grid_label.setGeometry(geometry)
-            
-            setattr(self, old_label_name, grid_label)
-            self.grid_labels.append(grid_label)
-            
-            # 确保标签可见
-            grid_label.show()
-        
-        # 设置网格密度输入框的验证器，只允许输入整数
-        self.leGridDens.setValidator(QIntValidator(10, 10000, self))
-        self.leGridDens_Ver.setValidator(QIntValidator(10, 10000, self))
-        self.leGridDens_Left.setValidator(QIntValidator(10, 10000, self))
-        self.leGridDens_Front.setValidator(QIntValidator(10, 10000, self))
         
         # 初始化按钮状态
         self.btnStopMeasure.setEnabled(False)
@@ -471,27 +229,27 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.tabWidget.currentChanged.connect(self.handle_tab_change)
 
         # 连接网格相关的信号
-        self.leGridDens.editingFinished.connect(lambda: self.update_grid(0))  # 主界面
-        self.btnCancelGrids.clicked.connect(lambda: self.clear_grid(0))
+        # self.leGridDens.editingFinished.connect()  # 主界面
+        # self.btnCancelGrids.clicked.connect()
 
-        # 连接垂直选项卡网格相关的信号
-        self.leGridDens_Ver.editingFinished.connect(lambda: self.update_grid(1))  # 垂直选项卡
-        self.btnCancelGrids_Ver.clicked.connect(lambda: self.clear_grid(1))
+        # # 连接垂直选项卡网格相关的信号
+        # self.leGridDens_Ver.editingFinished.connect()  # 垂直选项卡
+        # self.btnCancelGrids_Ver.clicked.connect()
 
-        # 连接左侧选项卡网格相关的信号
-        self.leGridDens_Left.editingFinished.connect(lambda: self.update_grid(2))  # 左视图选项卡
-        self.btnCancelGrids_Left.clicked.connect(lambda: self.clear_grid(2))
+        # # 连接左侧选项卡网格相关的信号
+        # self.leGridDens_Left.editingFinished.connect()  # 左视图选项卡
+        # self.btnCancelGrids_Left.clicked.connect()
 
-        # 连接前视图选项卡网格相关的信号
-        self.leGridDens_Front.editingFinished.connect(lambda: self.update_grid(3))  # 前视图选项卡
-        self.btnCancelGrids_Front.clicked.connect(lambda: self.clear_grid(3))
+        # # 连接前视图选项卡网格相关的信号
+        # self.leGridDens_Front.editingFinished.connect()  # 前视图选项卡
+        # self.btnCancelGrids_Front.clicked.connect()
 
     def handle_tab_change(self, index):
         """处理选项卡切换事件"""
         print(f"切换到选项卡: {index}")  # 添加调试信息
         if index == 0:  # 主界面
             self.last_active_view = self.lbVerticalView  # 默认设置为垂直视图
-            
+
         elif index == 1:  # 垂直选项卡
             self.last_active_view = self.lbVerticalView_2
             # 立即更新垂直选项卡视图
@@ -501,7 +259,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                     display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_vertical)
                     if display_frame is not None:
                         self.display_image(display_frame, self.lbVerticalView_2)
-                
+
         elif index == 2:  # 左视图选项卡
             self.last_active_view = self.lbLeftView_2
             # 立即更新左视图选项卡
@@ -511,7 +269,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                     display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_left)
                     if display_frame is not None:
                         self.display_image(display_frame, self.lbLeftView_2)
-                
+
         elif index == 3:  # 前视图选项卡
             self.last_active_view = self.lbFrontView_2
             # 立即更新前视图选项卡
@@ -521,75 +279,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                     display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_front)
                     if display_frame is not None:
                         self.display_image(display_frame, self.lbFrontView_2)
-
-    def update_grid(self, tab_index):
-        """更新网格显示"""
-        try:
-            # 根据选项卡索引获取对应的输入框和标签
-            if tab_index == 0:  # 主界面
-                grid_input = self.leGridDens
-                labels = [self.lbVerticalView, self.lbLeftView, self.lbFrontView]
-            elif tab_index == 1:  # 垂直选项卡
-                grid_input = self.leGridDens_Ver
-                labels = [self.lbVerticalView_2, self.lbVerticalView]  # 包括主界面对应视图
-            elif tab_index == 2:  # 左视图选项卡
-                grid_input = self.leGridDens_Left
-                labels = [self.lbLeftView_2, self.lbLeftView]  # 包括主界面对应视图
-            elif tab_index == 3:  # 前视图选项卡
-                grid_input = self.leGridDens_Front
-                labels = [self.lbFrontView_2, self.lbFrontView]  # 包括主界面对应视图
-            else:
-                return
-
-            # 获取网格间隔
-            grid_spacing_text = grid_input.text()
-            if not grid_spacing_text:
-                return
-                
-            grid_spacing = int(grid_spacing_text)
-            if grid_spacing <= 0:
-                return
-
-            # 更新所有相关标签的网格
-            for label in labels:
-                if isinstance(label, GridLabel):
-                    label.setGridSpacing(grid_spacing)
-                    label.update()  # 强制重绘
-            
-            self.log_manager.log_ui_operation(f"设置网格间隔为 {grid_spacing} 像素")
-        except ValueError:
-            # 输入不是有效的整数
-            grid_input.clear()
-            self.log_manager.log_warning("网格间隔必须是有效的整数")
-
-    def clear_grid(self, tab_index):
-        """清除网格显示"""
-        # 根据选项卡索引获取对应的输入框和标签
-        if tab_index == 0:  # 主界面
-            grid_input = self.leGridDens
-            labels = [self.lbVerticalView, self.lbLeftView, self.lbFrontView]
-        elif tab_index == 1:  # 垂直选项卡
-            grid_input = self.leGridDens_Ver
-            labels = [self.lbVerticalView_2, self.lbVerticalView]  # 包括主界面对应视图
-        elif tab_index == 2:  # 左视图选项卡
-            grid_input = self.leGridDens_Left
-            labels = [self.lbLeftView_2, self.lbLeftView]  # 包括主界面对应视图
-        elif tab_index == 3:  # 前视图选项卡
-            grid_input = self.leGridDens_Front
-            labels = [self.lbFrontView_2, self.lbFrontView]  # 包括主界面对应视图
-        else:
-            return
-
-        # 清除所有相关标签的网格
-        for label in labels:
-            if isinstance(label, GridLabel):
-                label.clearGrid()
-                label.update()  # 强制重绘
-        
-        # 清除网格间隔输入框
-        grid_input.clear()
-        
-        self.log_manager.log_ui_operation("清除网格显示")
 
     def start_drawing_mode(self):
         """启动绘画模式"""
@@ -786,11 +475,19 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             if frame is None or label is None:
                 return
                 
-            # 确保保存当前的网格间隔
-            grid_spacing = 0
-            if isinstance(label, GridLabel):
-                grid_spacing = label.grid_spacing
+            height, width = frame.shape[:2]
+            label_size = label.size()
             
+            # 计算缩放比例
+            scale = min(label_size.width() / width, label_size.height() / height)
+            
+            # 只有当需要缩放时才进行缩放，并使用更快的INTER_NEAREST方法
+            if abs(scale - 1.0) > 0.01:  # 添加一个小的阈值
+                new_width = int(width * scale)
+                new_height = int(height * scale)
+                # 使用INTER_NEAREST进行快速缩放
+                frame = cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_NEAREST)
+                
             # 转换为QImage，避免复制数据
             if len(frame.shape) == 2:  # Mono8
                 # 对于灰度图像，直接使用Format_Grayscale8
@@ -802,10 +499,17 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             
             # 创建QPixmap并设置
             pixmap = QPixmap.fromImage(q_img)
-            
-            # 设置图像
             label.setPixmap(pixmap)
             
+            
+            # 恢复网格间隔
+            if isinstance(label, GridLabel) and grid_spacing > 0:
+                label.setGridSpacing(grid_spacing)
+            
+            # 强制更新显示
+            label.update()
+
+
             # 恢复网格间隔
             if isinstance(label, GridLabel) and grid_spacing > 0:
                 label.setGridSpacing(grid_spacing)
@@ -1200,6 +904,13 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 添加分隔线
                 self.context_menu.addSeparator()
                 
+                # 圆和直线（或线段）的选项
+                is_circle_line = ((types[0] == DrawingType.CIRCLE and is_line(types[1])) or
+                                (types[1] == DrawingType.CIRCLE and is_line(types[0])))
+                if is_circle_line:
+                    self.circle_line_action = QAction("线与圆测量", self)
+                    self.circle_line_action.triggered.connect(self.measure_circle_line)
+                    self.context_menu.addAction(self.circle_line_action)
                 
                 # 两条直线（或线段）的选项
                 is_two_lines = all(is_line(t) for t in types)
@@ -1412,77 +1123,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         """强制进行垃圾回收"""
         import gc
         gc.collect()
-
-    def label_mousePressEvent(self, event, label):
-        """标签鼠标按下事件"""
-        if event.button() == Qt.LeftButton:
-            # 设置当前活动视图
-            self.active_view = label
-            
-            # 获取当前帧
-            current_frame = self.get_current_frame_for_view(label)
-            if current_frame is None:
-                return
-            
-            # 获取图像坐标
-            image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-            if image_pos is None:
-                return
-            
-            # 获取测量管理器
-            measurement = self.drawing_manager.get_measurement_manager(label)
-            if measurement:
-                self.active_measurement = measurement
-                # 处理鼠标按下事件
-                display_frame = measurement.handle_mouse_press(image_pos, current_frame)
-                if display_frame is not None:
-                    self.display_image(display_frame, label)
-    
-    def label_mouseMoveEvent(self, event, label):
-        """标签鼠标移动事件"""
-        if event.buttons() & Qt.LeftButton and self.active_view == label:
-            # 获取当前帧
-            current_frame = self.get_current_frame_for_view(label)
-            if current_frame is None:
-                return
-            
-            # 获取图像坐标
-            image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-            if image_pos is None:
-                return
-            
-            # 获取测量管理器
-            measurement = self.drawing_manager.get_measurement_manager(label)
-            if measurement:
-                # 处理鼠标移动事件
-                display_frame = measurement.handle_mouse_move(image_pos, current_frame)
-                if display_frame is not None:
-                    self.display_image(display_frame, label)
-    
-    def label_mouseReleaseEvent(self, event, label):
-        """标签鼠标释放事件"""
-        if event.button() == Qt.LeftButton and self.active_view == label:
-            # 获取当前帧
-            current_frame = self.get_current_frame_for_view(label)
-            if current_frame is None:
-                return
-            
-            # 获取图像坐标
-            image_pos = self.convert_mouse_to_image_coords(event.pos(), label)
-            if image_pos is None:
-                return
-            
-            # 获取测量管理器
-            measurement = self.drawing_manager.get_measurement_manager(label)
-            if measurement:
-                # 处理鼠标释放事件
-                display_frame = measurement.handle_mouse_release(image_pos, current_frame)
-                if display_frame is not None:
-                    self.display_image(display_frame, label)
-    
-    def label_contextMenuEvent(self, event, label):
-        """标签上下文菜单事件"""
-        self.show_context_menu(event.globalPos(), label)
 
 def main():
     app = QApplication(sys.argv)
