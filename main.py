@@ -366,7 +366,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.context_menu.addAction(self.two_lines_action)
 
         # 添加主界面保存图像按钮信号连接
-        self.btnSaveImage.clicked.connect(self.save_images)
+        self.btnSaveImage.clicked.connect(self.save_all_views)
 
     def _connect_signals(self):
         """连接信号槽"""
@@ -949,9 +949,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def label_mouseDoubleClickEvent(self, event, label):
         """处理标签的双击事件"""
         if event.button() == Qt.LeftButton:
-            # 获取当前标签页索引
-            current_tab = self.tabWidget.currentIndex()
-            
             # 根据当前视图设置目标标签页
             if label == self.lbVerticalView:
                 self.tabWidget.setCurrentIndex(1)
@@ -982,57 +979,127 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.drawing_manager.start_two_lines_measurement()
 
     def save_images(self, view_type=None):
-        """保存图像"""
+        """保存原始图像和可视化图像"""
         try:
-            # 获取保存路径
-            save_dir = QFileDialog.getExistingDirectory(self, "选择保存目录", "")
-            if not save_dir:
+            # 根据当前标签页或传入的view_type确定要保存的视图
+            if view_type is None:
+                current_tab = self.tabWidget.currentIndex()
+                view_type = {
+                    1: 'vertical',
+                    2: 'left',
+                    3: 'front'
+                }.get(current_tab, 'vertical')
+            
+            # 获取对应视图的标签和测量管理器
+            view_map = {
+                'vertical': (self.lbVerticalView_2, self.ver_camera_thread, "垂直"),
+                'left': (self.lbLeftView_2, self.left_camera_thread, "左侧"),
+                'front': (self.lbFrontView_2, self.front_camera_thread, "对向")
+            }
+            
+            view_label, camera_thread, view_name = view_map.get(view_type)
+            
+            # 检查相机帧
+            if camera_thread is None or camera_thread.current_frame is None:
+                print(f"{view_name}视图没有可用的相机图像")
                 return
             
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            current_frame = camera_thread.current_frame.copy()  # 创建副本
             
-            if view_type == 'vertical':
-                # 保存垂直视图
-                if self.current_frame_vertical is not None:
-                    # 获取带有测量结果的帧
-                    measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
-                    if measurement:
-                        display_frame = measurement.layer_manager.render_frame(self.current_frame_vertical)
-                        if display_frame is not None:
-                            # 保存图像（不包含网格）
-                            save_path = os.path.join(save_dir, f"vertical_{timestamp}.png")
-                            cv2.imwrite(save_path, display_frame)
-                            self.log_manager.log_ui_operation(f"保存垂直视图到 {save_path}")
-            elif view_type == 'left':
-                # 保存左视图
-                if self.current_frame_left is not None:
-                    # 获取带有测量结果的帧
-                    measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
-                    if measurement:
-                        display_frame = measurement.layer_manager.render_frame(self.current_frame_left)
-                        if display_frame is not None:
-                            # 保存图像（不包含网格）
-                            save_path = os.path.join(save_dir, f"left_{timestamp}.png")
-                            cv2.imwrite(save_path, display_frame)
-                            self.log_manager.log_ui_operation(f"保存左视图到 {save_path}")
-            elif view_type == 'front':
-                # 保存前视图
-                if self.current_frame_front is not None:
-                    # 获取带有测量结果的帧
-                    measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
-                    if measurement:
-                        display_frame = measurement.layer_manager.render_frame(self.current_frame_front)
-                        if display_frame is not None:
-                            # 保存图像（不包含网格）
-                            save_path = os.path.join(save_dir, f"front_{timestamp}.png")
-                            cv2.imwrite(save_path, display_frame)
-                            self.log_manager.log_ui_operation(f"保存前视图到 {save_path}")
-            else:
-                # 保存所有视图
-                self.save_all_views()
+            # 检查图像数据
+            if current_frame is None or current_frame.size == 0:
+                print(f"{view_name}视图的图像帧无效")
+                return
+                
+            # 打印图像信息用于调试
+            print(f"图像信息: shape={current_frame.shape}, dtype={current_frame.dtype}")
+            
+            # 修改路径创建部分
+            import os
+            from datetime import datetime
+            
+            # 基础路径 - 使用正斜杠
+            base_path = "D:/CamImage"
+            today = datetime.now().strftime("%Y.%m.%d")
+            
+            # 使用 os.path.join 并替换反斜杠为正斜杠
+            date_dir = os.path.join(base_path, today).replace('\\', '/')
+            view_dir = os.path.join(date_dir, view_name).replace('\\', '/')
+            
+            # 确保目录存在
+            os.makedirs(view_dir, exist_ok=True)
+            
+            current_time = datetime.now().strftime("%H-%M-%S")
+            
+            try:
+                # 保存原始图像
+                origin_filename = f"{current_time}_origin.jpg"
+                origin_path = os.path.join(view_dir, origin_filename).replace('\\', '/')
+                
+                # 检查图像格式并进行必要的转换
+                if len(current_frame.shape) == 2:  # 如果是灰度图
+                    save_frame = current_frame
+                else:  # 如果是RGB图像，需要转换为BGR格式
+                    save_frame = cv2.cvtColor(current_frame, cv2.COLOR_RGB2BGR)
+                
+                # 确保图像数据类型正确
+                if save_frame.dtype != np.uint8:
+                    save_frame = (save_frame * 255).astype(np.uint8)
+                
+                # 打印保存路径和图像信息
+                print(f"尝试保存原始图像到: {origin_path}")
+                print(f"图像信息: shape={save_frame.shape}, dtype={save_frame.dtype}")
+                
+                # 使用 imencode 和 文件写入的方式保存图像
+                is_success, buffer = cv2.imencode(".jpg", save_frame, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                if is_success:
+                    with open(origin_path, "wb") as f:
+                        f.write(buffer.tobytes())
+                    print(f"原始图像已保存: {origin_filename}")
+                    self.log_manager.log_ui_operation(
+                        "保存原始图像成功",
+                        f"文件路径: {origin_path}"
+                    )
+                else:
+                    raise Exception("图像编码失败")
+                
+                # 保存可视化图像
+                measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
+                if measurement_manager:
+                    # 获取可视化帧
+                    visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
                     
+                    if visual_frame is not None:
+                        # 如果是RGB图像,需要转换为BGR格式
+                        if len(visual_frame.shape) == 3:
+                            visual_frame = cv2.cvtColor(visual_frame, cv2.COLOR_RGB2BGR)
+                            
+                        visual_filename = f"{current_time}_visual.jpg"
+                        visual_path = os.path.join(view_dir, visual_filename).replace('\\', '/')
+                        
+                        # 保存可视化图像
+                        is_success, buffer = cv2.imencode(".jpg", visual_frame, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                        if is_success:
+                            with open(visual_path, "wb") as f:
+                                f.write(buffer.tobytes())
+                            print(f"可视化图像已保存: {visual_filename}")
+                            self.log_manager.log_ui_operation(
+                                "保存可视化图像成功",
+                                f"文件路径: {visual_path}"
+                            )
+                    
+                    # 重新渲染视图
+                    self.update_view_with_current_frame(view_label)
+                    
+            except Exception as e:
+                error_msg = f"保存图像过程中出错: {str(e)}"
+                print(error_msg)
+                self.log_manager.log_error(error_msg)
+                self.show_error(error_msg)
+                
         except Exception as e:
-            error_msg = f"保存图像失败: {str(e)}"
+            error_msg = f"保存图像时出错: {str(e)}"
+            print(error_msg)
             self.log_manager.log_error(error_msg)
             self.show_error(error_msg)
 
@@ -1133,9 +1200,6 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 添加分隔线
                 self.context_menu.addSeparator()
                 
-                # 圆和直线（或线段）的选项
-                is_circle_line = ((types[0] == DrawingType.CIRCLE and is_line(types[1])) or
-                                (types[1] == DrawingType.CIRCLE and is_line(types[0])))
                 
                 # 两条直线（或线段）的选项
                 is_two_lines = all(is_line(t) for t in types)
@@ -1257,53 +1321,90 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                         self.update_view(active_label, display_frame)
 
     def save_all_views(self):
-        """保存所有视图"""
+        """保存主界面所有可用视图的图像"""
         try:
-            # 获取保存路径
-            save_dir = QFileDialog.getExistingDirectory(self, "选择保存目录", "")
-            if not save_dir:
-                return
-                
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            # 获取主界面的视图和对应的相机线程
+            views = [
+                (self.lbVerticalView, self.ver_camera_thread, "垂直"),  # 主界面的垂直视图
+                (self.lbLeftView, self.left_camera_thread, "左侧"),     # 主界面的左侧视图
+                (self.lbFrontView, self.front_camera_thread, "对向")    # 主界面的前视图
+            ]
             
-            # 保存垂直视图
-            if self.current_frame_vertical is not None:
-                # 获取带有测量结果的帧
-                measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
-                if measurement:
-                    display_frame = measurement.layer_manager.render_frame(self.current_frame_vertical)
-                    if display_frame is not None:
-                        # 保存图像（不包含网格）
-                        save_path = os.path.join(save_dir, f"vertical_{timestamp}.png")
-                        cv2.imwrite(save_path, display_frame)
-                        self.log_manager.log_ui_operation(f"保存垂直视图到 {save_path}")
-            
-            # 保存左视图
-            if self.current_frame_left is not None:
-                # 获取带有测量结果的帧
-                measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
-                if measurement:
-                    display_frame = measurement.layer_manager.render_frame(self.current_frame_left)
-                    if display_frame is not None:
-                        # 保存图像（不包含网格）
-                        save_path = os.path.join(save_dir, f"left_{timestamp}.png")
-                        cv2.imwrite(save_path, display_frame)
-                        self.log_manager.log_ui_operation(f"保存左视图到 {save_path}")
-            
-            # 保存前视图
-            if self.current_frame_front is not None:
-                # 获取带有测量结果的帧
-                measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
-                if measurement:
-                    display_frame = measurement.layer_manager.render_frame(self.current_frame_front)
-                    if display_frame is not None:
-                        # 保存图像（不包含网格）
-                        save_path = os.path.join(save_dir, f"front_{timestamp}.png")
-                        cv2.imwrite(save_path, display_frame)
-                        self.log_manager.log_ui_operation(f"保存前视图到 {save_path}")
+            saved_count = 0
+            for view_label, camera_thread, view_name in views:
+                try:
+                    # 检查相机是否可用
+                    if camera_thread is None or camera_thread.current_frame is None:
+                        print(f"{view_name}视图没有可用的相机图像")
+                        continue
+                    
+                    current_frame = camera_thread.current_frame.copy()
+                    if current_frame is None or current_frame.size == 0:
+                        print(f"{view_name}视图的图像帧无效")
+                        continue
+                    
+                    # 创建保存路径
+                    base_path = "D:/CamImage"
+                    today = datetime.now().strftime("%Y.%m.%d")
+                    date_dir = os.path.join(base_path, today).replace('\\', '/')
+                    view_dir = os.path.join(date_dir, view_name).replace('\\', '/')
+                    os.makedirs(view_dir, exist_ok=True)
+                    
+                    current_time = datetime.now().strftime("%H-%M-%S")
+                    
+                    # 保存原始图像
+                    origin_filename = f"{current_time}_origin.jpg"
+                    origin_path = os.path.join(view_dir, origin_filename).replace('\\', '/')
+                    
+                    # 将BGR转换为RGB后保存原始图像
+                    rgb_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGR2RGB)
+                    is_success, buffer = cv2.imencode(".jpg", rgb_frame, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                    if is_success:
+                        with open(origin_path, "wb") as f:
+                            f.write(buffer.tobytes())
+                        print(f"原始图像已保存: {origin_filename}")
                         
+                        # 保存可视化图像
+                        measurement_manager = self.drawing_manager.get_measurement_manager(view_label)
+                        if measurement_manager:
+                            
+                            # 获取可视化帧
+                            visual_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                            
+                            if visual_frame is not None:
+                                visual_filename = f"{current_time}_visual.jpg"
+                                visual_path = os.path.join(view_dir, visual_filename).replace('\\', '/')
+                                
+                                # 将BGR转换为RGB后保存可视化图像
+                                rgb_visual = cv2.cvtColor(visual_frame, cv2.COLOR_BGR2RGB)
+                                is_success, buffer = cv2.imencode(".jpg", rgb_visual, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                                if is_success:
+                                    with open(visual_path, "wb") as f:
+                                        f.write(buffer.tobytes())
+                                    print(f"可视化图像已保存: {visual_filename}")
+                    
+                    saved_count += 1
+                    self.log_manager.log_ui_operation(
+                        f"保存{view_name}视图成功",
+                        f"原始图像: {origin_path}\n可视化图像: {visual_path if 'visual_path' in locals() else '无'}"
+                    )
+                
+                except Exception as e:
+                    print(f"{view_name}视图保存失败: {str(e)}")
+                    continue
+            
+            # 显示保存结果
+            if saved_count > 0:
+                self.log_manager.log_ui_operation(
+                    "保存完成",
+                    f"成功保存了 {saved_count} 个视图的图像"
+                )
+            else:
+                self.show_error("没有可用的相机视图可以保存")
+                
         except Exception as e:
-            error_msg = f"保存所有视图失败: {str(e)}"
+            error_msg = f"保存图像时出错: {str(e)}"
+            print(error_msg)
             self.log_manager.log_error(error_msg)
             self.show_error(error_msg)
 
