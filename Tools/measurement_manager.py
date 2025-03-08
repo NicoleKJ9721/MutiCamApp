@@ -1420,6 +1420,8 @@ class LayerManager:
             min_line_length = int(settings_dict.get('LineDetMinLength', 50))
             max_line_gap = int(settings_dict.get('LineDetMaxGap', 10))
             
+            print(f"直线检测参数: canny_low={canny_low}, canny_high={canny_high}, line_threshold={line_threshold}, min_line_length={min_line_length}, max_line_gap={max_line_gap}")
+            
             # 获取ROI区域的坐标
             x1, y1 = roi_points[0].x(), roi_points[0].y()
             x2, y2 = roi_points[1].x(), roi_points[1].y()
@@ -1428,22 +1430,48 @@ class LayerManager:
             x_min, x_max = min(x1, x2), max(x1, x2)
             y_min, y_max = min(y1, y2), max(y1, y2)
             
+            print(f"ROI区域: x_min={x_min}, x_max={x_max}, y_min={y_min}, y_max={y_max}")
+            
             # 提取ROI区域
             roi = frame[y_min:y_max, x_min:x_max]
             if roi.size == 0:
+                print("ROI区域为空")
                 return None
             
-            # 转换为灰度图
-            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            print(f"ROI形状: {roi.shape}")
+            
+            # 检查图像通道数
+            gray = None
+            if len(roi.shape) == 2:
+                # 已经是灰度图
+                gray = roi
+                print("输入图像已经是灰度图")
+            elif len(roi.shape) == 3 and roi.shape[2] == 3:
+                # 彩色图转灰度图
+                gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                print("已将彩色图转换为灰度图")
+            else:
+                print(f"不支持的图像格式: shape={roi.shape}")
+                return None
             
             # 边缘检测 - 使用设置的参数
             edges = cv2.Canny(gray, canny_low, canny_high, apertureSize=3)
+            print(f"边缘检测完成，edges形状: {edges.shape}")
             
             # 霍夫变换检测直线 - 使用设置的参数
-            lines = cv2.HoughLinesP(edges, 1, np.pi/180, 
-                                   threshold=line_threshold,
-                                   minLineLength=min_line_length,
-                                   maxLineGap=max_line_gap)
+            try:
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 
+                                       threshold=line_threshold,
+                                       minLineLength=min_line_length,
+                                       maxLineGap=max_line_gap)
+                
+                if lines is not None:
+                    print(f"检测到 {len(lines)} 条线")
+                else:
+                    print("未检测到直线")
+            except Exception as e:
+                print(f"直线检测失败: {str(e)}")
+                return None
             
             if lines is not None and len(lines) > 0:
                 # 找到最长的线段
@@ -1585,6 +1613,8 @@ class LayerManager:
             canny_high = int(settings_dict.get('CannyCircleHigh', 200))
             circle_threshold = int(settings_dict.get('CircleDetParam2', 15))
             
+            print(f"圆检测参数: canny_low={canny_low}, canny_high={canny_high}, circle_threshold={circle_threshold}")
+            
             # 获取ROI区域的坐标
             x1, y1 = roi_points[0].x(), roi_points[0].y()
             x2, y2 = roi_points[1].x(), roi_points[1].y()
@@ -1598,6 +1628,8 @@ class LayerManager:
             roi_height = abs(y_max - y_min)
             roi_radius = min(roi_width, roi_height) // 2
             
+            print(f"ROI区域: x_min={x_min}, x_max={x_max}, y_min={y_min}, y_max={y_max}, roi_radius={roi_radius}")
+            
             # 确保ROI区域有效
             if roi_width < 10 or roi_height < 10:
                 print("ROI区域太小")
@@ -1609,18 +1641,69 @@ class LayerManager:
                 print("ROI区域无效")
                 return None
             
-            # 转换为灰度图
-            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            print(f"ROI形状: {roi.shape}")
             
+            # 检查图像通道数
+            gray = None
+            if len(roi.shape) == 2:
+                # 已经是灰度图
+                gray = roi
+                print("输入图像已经是灰度图")
+            elif len(roi.shape) == 3 and roi.shape[2] == 3:
+                # 彩色图转灰度图
+                gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                print("已将彩色图转换为灰度图")
+            else:
+                print(f"不支持的图像格式: shape={roi.shape}")
+                return None
+            
+            # 尝试直接使用灰度图进行霍夫圆检测
+            try:
+                print("尝试直接使用灰度图进行霍夫圆检测")
+                # 确保gray是单通道图像
+                if len(gray.shape) != 2:
+                    print(f"警告：gray不是单通道图像，shape={gray.shape}")
+                    if len(gray.shape) == 3 and gray.shape[2] == 3:
+                        gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+                        print("已将gray转换为单通道图像")
+                
+                circles = cv2.HoughCircles(
+                    gray,
+                    cv2.HOUGH_GRADIENT,
+                    dp=1,
+                    minDist=roi_radius,
+                    param1=canny_high,
+                    param2=circle_threshold,
+                    minRadius=10,
+                    maxRadius=roi_radius
+                )
+                
+                if circles is not None:
+                    print(f"直接检测到 {len(circles[0])} 个圆")
+                    # 只取准确率最高的一个圆
+                    best_circle = circles[0][0]
+                    center_x = int(best_circle[0]) + x_min
+                    center_y = int(best_circle[1]) + y_min
+                    radius = int(best_circle[2])
+                    return {'center_x': center_x, 'center_y': center_y, 'radius': radius}
+            except Exception as e:
+                print(f"直接使用灰度图检测圆形失败: {str(e)}")
+                # 继续尝试使用边缘检测方法
+            
+            # 如果直接检测失败，尝试使用边缘检测方法
+            print("尝试使用边缘检测方法进行圆检测")
             # 二值化处理
             _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+            print("二值化处理完成")
             
             # 形态学操作改善圆形
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
             binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+            print("形态学处理完成")
             
             # 边缘检测
             edges = cv2.Canny(binary, canny_low, canny_high)
+            print(f"边缘检测完成，edges形状: {edges.shape}")
             
             # 霍夫圆变换检测圆形
             circles = cv2.HoughCircles(
