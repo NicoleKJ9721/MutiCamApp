@@ -26,6 +26,7 @@ class DrawingType(Enum):
     LINE_TO_CIRCLE = "直线与圆"  # 添加直线与圆类型
     SIMPLE_CIRCLE = "简单圆"  # 添加新类型
     FINE_CIRCLE = "精细圆"  # 添加新类型
+    LINE_SEGMENT_ANGLE = "线段角度"  # 添加线段角度测量类型
 
 @dataclass
 class DrawingObject:
@@ -102,6 +103,7 @@ class LayerManager:
             DrawingType.LINE_SEGMENT_TO_CIRCLE: self._draw_line_segment_to_circle,  # 右键线段到圆，生成垂直虚线
             DrawingType.POINT_TO_CIRCLE: self._draw_point_to_circle,  # 右键点到圆，生成垂直虚线
             DrawingType.LINE_TO_CIRCLE: self._draw_line_to_circle,  # 右键直线到圆，生成垂直虚线
+            DrawingType.LINE_SEGMENT_ANGLE: self._draw_line_segment_angle,  # 线段角度测量
         }
         
         try:
@@ -163,6 +165,20 @@ class LayerManager:
                         self.current_object.points[1] = point
                 elif len(self.current_object.points) >= 2 and len(self.current_object.points) < 4:
                     # 第二阶段：绘制第二条线
+                    if len(self.current_object.points) == 2:
+                        self.current_object.points.append(point)
+                    elif len(self.current_object.points) == 3:
+                        self.current_object.points[3] = point
+            elif self.current_object.type == DrawingType.LINE_SEGMENT_ANGLE:
+                # 线段角度测量模式处理
+                if len(self.current_object.points) < 2:
+                    # 第一阶段：绘制第一条线段
+                    if len(self.current_object.points) == 0:
+                        self.current_object.points.append(point)
+                    else:
+                        self.current_object.points[1] = point
+                elif len(self.current_object.points) >= 2 and len(self.current_object.points) < 4:
+                    # 第二阶段：绘制第二条线段
                     if len(self.current_object.points) == 2:
                         self.current_object.points.append(point)
                     elif len(self.current_object.points) == 3:
@@ -1228,6 +1244,105 @@ class LayerManager:
                       obj.properties['color'],
                       thickness,
                       cv2.LINE_AA)
+
+    def _draw_line_segment_angle(self, frame, obj: DrawingObject):
+        """绘制两线段的角度测量"""
+        # 首先检查是否有足够的点
+        if len(obj.points) < 4:
+            return  # 如果点数不足，直接返回
+        
+        # 获取两条线段的四个点
+        p1 = obj.points[0]  # 第一条线段的起点
+        p2 = obj.points[1]  # 第一条线段的终点
+        p3 = obj.points[2]  # 第二条线段的起点
+        p4 = obj.points[3]  # 第二条线段的终点
+        
+        # 不再重新绘制线段，只计算和显示角度
+        
+        # 计算第一条线段的方向向量
+        dx1 = p2.x() - p1.x()
+        dy1 = p2.y() - p1.y()
+        
+        # 计算第二条线段的方向向量
+        dx2 = p4.x() - p3.x()
+        dy2 = p4.y() - p3.y()
+        
+        # 计算向量长度
+        length1 = np.sqrt(dx1*dx1 + dy1*dy1)
+        length2 = np.sqrt(dx2*dx2 + dy2*dy2)
+        
+        # 检查线段长度是否为零
+        if length1 < 1e-10 or length2 < 1e-10:
+            return
+        
+        # 计算单位向量
+        dx1, dy1 = dx1/length1, dy1/length1
+        dx2, dy2 = dx2/length2, dy2/length2
+        
+        # 计算夹角（点积公式）
+        dot_product = dx1*dx2 + dy1*dy2
+        angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
+        
+        # 计算两线段的中点
+        mid1_x = (p1.x() + p2.x()) // 2
+        mid1_y = (p1.y() + p2.y()) // 2
+        mid2_x = (p3.x() + p4.x()) // 2
+        mid2_y = (p3.y() + p4.y()) // 2
+        
+        # 计算两线段中点的中点作为显示角度的位置
+        display_x = (mid1_x + mid2_x) // 2
+        display_y = (mid1_y + mid2_y) // 2
+        
+        # 在显示位置画一个小圆点
+        cv2.circle(frame, (display_x, display_y), 6, obj.properties['color'], -1)
+        
+        # 准备显示的文本
+        angle_text = f"{angle:.1f}"  # 角度值，保留一位小数
+        
+        # 设置文本参数
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
+        thickness = 2
+        padding = 10
+        
+        # 获取文本尺寸
+        (angle_width, text_height), _ = cv2.getTextSize(angle_text, font, font_scale, thickness)
+        
+        # 计算文本位置
+        text_x = display_x + 20
+        text_y = display_y + text_height
+        
+        # 计算背景矩形的尺寸
+        rect_width = angle_width + 15  # 增加空间给度数符号
+        
+        # 绘制文本背景
+        cv2.rectangle(frame,
+                    (int(text_x - padding), 
+                     int(text_y - text_height - padding)),
+                    (int(text_x + rect_width + padding), 
+                     int(text_y + padding)),
+                    (0, 0, 0),
+                    -1)
+        
+        # 绘制角度文本
+        cv2.putText(frame,
+                  angle_text,
+                  (text_x, text_y),
+                  font,
+                  font_scale,
+                  obj.properties['color'],
+                  thickness,
+                  cv2.LINE_AA)
+                  
+        # 绘制度数符号（空心圆）
+        dot_x = text_x + angle_width + 8
+        dot_y = text_y - text_height//2
+        cv2.circle(frame,
+                  (int(dot_x), int(dot_y)),
+                  6*int(font_scale),  # 圆的半径
+                  obj.properties['color'],
+                  2,  # 2表示空心圆
+                  cv2.LINE_AA)
 
     def _detect_line_in_roi(self, frame, roi_points):
         """在ROI区域内检测直线"""
@@ -2734,6 +2849,11 @@ class MeasurementManager(QObject):
     def start_fine_circle_measurement(self):
         """启动精细圆测量模式"""
         self.draw_mode = DrawingType.FINE_CIRCLE
+        self.drawing = False
+
+    def start_line_segment_angle_measurement(self):
+        """启动线段角度测量模式"""
+        self.draw_mode = DrawingType.LINE_SEGMENT_ANGLE
         self.drawing = False
 
     def clear_measurements(self):

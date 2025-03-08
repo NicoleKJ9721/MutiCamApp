@@ -983,17 +983,10 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 两条线段的选项
                 is_two_line_segments = all(is_line_segment(t) for t in types)
                 if is_two_line_segments:
-                    self.two_lines_action = QAction("线段与线段测量", self)
-                    self.two_lines_action.triggered.connect(self.measure_two_lines)
-                    self.context_menu.addAction(self.two_lines_action)
-                
-                # 直线和线段的选项
-                is_line_and_segment = ((is_line(types[0]) and is_line_segment(types[1])) or
-                                     (is_line_segment(types[0]) and is_line(types[1])))
-                if is_line_and_segment:
-                    self.two_lines_action = QAction("线与线段测量", self)
-                    self.two_lines_action.triggered.connect(self.measure_two_lines)
-                    self.context_menu.addAction(self.two_lines_action)
+                    # 添加线段角度测量选项
+                    self.line_segment_angle_action = QAction("线段角度测量", self)
+                    self.line_segment_angle_action.triggered.connect(self.measure_line_segment_angle)
+                    self.context_menu.addAction(self.line_segment_angle_action)
                 
                 # 两个点的选项
                 is_two_points = all(t == DrawingType.POINT for t in types)
@@ -1123,6 +1116,40 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 manager.layer_manager.drawing_objects.append(new_obj)
                 # 清除选择
                 manager.layer_manager.clear_selection()
+                # 更新视图
+                current_frame = self.get_current_frame_for_view(active_label)
+                if current_frame is not None:
+                    display_frame = manager.layer_manager.render_frame(current_frame)
+                    if display_frame is not None:
+                        self.update_view(active_label, display_frame)
+
+    def measure_line_segment_angle(self):
+        """线段角度测量"""
+        active_label = QApplication.focusWidget()
+        if active_label in self.drawing_manager.measurement_managers:
+            manager = self.drawing_manager.measurement_managers[active_label]
+            selected = manager.layer_manager.selected_objects
+            if len(selected) == 2 and all(obj.type == DrawingType.LINE_SEGMENT for obj in selected):
+                # 获取两条线段的点
+                line1_p1, line1_p2 = selected[0].points
+                line2_p1, line2_p2 = selected[1].points
+                
+                # 创建新的线段角度测量对象
+                properties = {
+                    'color': (0, 255, 0),  # RGB格式：绿色
+                    'thickness': 2
+                }
+                new_obj = DrawingObject(
+                    type=DrawingType.LINE_SEGMENT_ANGLE,
+                    points=[line1_p1, line1_p2, line2_p1, line2_p2],  # 合并两条线段的点
+                    properties=properties
+                )
+                # 添加到绘制列表
+                manager.layer_manager.drawing_objects.append(new_obj)
+                # 清除选择但保持原始线段可见
+                for obj in selected:
+                    obj.selected = False
+                manager.layer_manager.selected_objects = []
                 # 更新视图
                 current_frame = self.get_current_frame_for_view(active_label)
                 if current_frame is not None:
