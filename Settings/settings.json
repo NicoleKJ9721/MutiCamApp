@@ -10,6 +10,6 @@
     "CannyCircleLow": 50,
     "CannyCircleHigh": 150,
     "CircleDetParam2": 50,
-    "UIWidth": 1888,
-    "UIHeight": 1010
+    "UIWidth": 1022,
+    "UIHeight": 815
 }

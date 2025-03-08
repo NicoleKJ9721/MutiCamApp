@@ -883,10 +883,25 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             if width_text and height_text:
                 width = int(width_text)
                 height = int(height_text)
+                # if width < 1000:
+                #     width = 1000
+                # if height < 600:
+                #     height = 600
+                # 限制窗口最大尺寸为4K分辨率（3840x2160）
+                # 限制窗口最大尺寸为屏幕分辨率
+                screen = QApplication.primaryScreen()
+                screen_geometry = screen.availableGeometry()
+                max_width = screen_geometry.width()
+                max_height = screen_geometry.height()
                 
-                # 设置合理的最小值
-                width = max(800, width)
-                height = max(600, height)
+                if width > max_width:
+                    width = max_width
+                    self.ledUIWidth.setText(str(width))
+                if height > max_height:
+                    height = max_height
+                    self.ledUIHeight.setText(str(height))
+                    
+                print(f"窗口大小: {width}x{height}")
                 
                 # 调整窗口大小
                 self.resize(width, height)
