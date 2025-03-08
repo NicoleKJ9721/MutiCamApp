@@ -260,6 +260,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnClearDrawings_Ver.clicked.connect(                         # 清空按钮
             lambda: self.drawing_manager.clear_drawings(self.lbVerticalView_2))
         self.btnSaveImage_Ver.clicked.connect(lambda: self.save_images('vertical'))
+        self.btnCalibration_Ver.clicked.connect(self.start_calibration)
 
         # 左侧选项卡绘画功能按钮信号连接
         self.btnLineDet_Left.clicked.connect(self.start_line_detection)  # 直线检测按钮
@@ -276,6 +277,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnClearDrawings_Left.clicked.connect(                         # 清空按钮
             lambda: self.drawing_manager.clear_drawings(self.lbLeftView_2))
         self.btnSaveImage_Left.clicked.connect(lambda: self.save_images('left'))
+        self.btnCalibration_Left.clicked.connect(self.start_calibration)
 
         # 对向选项卡绘画功能按钮信号连接
         self.btnLineDet_Front.clicked.connect(self.start_line_detection)  # 直线检测按钮
@@ -292,6 +294,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnClearDrawings_Front.clicked.connect(                         # 清空按钮
             lambda: self.drawing_manager.clear_drawings(self.lbFrontView_2))
         self.btnSaveImage_Front.clicked.connect(lambda: self.save_images('front'))
+        self.btnCalibration_Front.clicked.connect(self.start_calibration)
 
     def handle_tab_change(self, index):
         """处理选项卡切换事件"""
@@ -860,6 +863,11 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         """启动圆形检测模式"""
         print("开始圆形检测")
         self.drawing_manager.start_circle_detection()
+
+    def start_calibration(self):
+        """启动标定模式"""
+        print("开始标定")
+        self.drawing_manager.start_calibration()
     
     def update_window_size(self):
         """更新窗口大小"""

@@ -382,7 +382,41 @@ class DrawingManager(QObject):
         print("启动圆形检测")
         for label, manager in self.measurement_managers.items():
             manager.start_circle_detection()
-            label.setCursor(Qt.CrossCursor) 
+            label.setCursor(Qt.CrossCursor)
+
+    def start_calibration(self):
+        """启动标定模式"""
+        print("启动标定")
+        
+        # 获取当前活动视图
+        active_view = None
+        
+        # 如果self.active_view已设置，则使用它
+        if hasattr(self, 'active_view') and self.active_view:
+            active_view = self.active_view
+        # 否则，尝试从父窗口获取当前活动视图
+        elif hasattr(self.parent(), 'last_active_view') and self.parent().last_active_view:
+            active_view = self.parent().last_active_view
+        # 如果仍然没有找到活动视图，使用第一个可用的视图
+        elif self.measurement_managers:
+            active_view = list(self.measurement_managers.keys())[0]
+            
+        # 如果找到了活动视图，启动标定模式
+        if active_view:
+            manager = self.measurement_managers.get(active_view)
+            if manager:
+                # 设置为当前活动视图
+                self.active_view = active_view
+                
+                # 启动标定模式
+                manager.start_calibration()
+                active_view.setCursor(Qt.CrossCursor)
+                
+                # 记录最后操作的视图
+                if hasattr(self.parent(), 'last_active_view'):
+                    self.parent().last_active_view = active_view
+        else:
+            print("无法找到活动视图，标定模式启动失败")
 
     def handle_context_menu(self, label):
         """处理右键菜单"""

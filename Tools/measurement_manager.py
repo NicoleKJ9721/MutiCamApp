@@ -43,7 +43,16 @@ class LayerManager:
         self.current_object: Optional[DrawingObject] = None
         self.base_frame = None
         self.selected_objects = []  # 存储选中的图元
+        self.pixel_scale = 1.0  # 默认像素比例（1像素 = 1微米）
         
+    def set_pixel_scale(self, scale):
+        """设置像素比例"""
+        self.pixel_scale = scale
+        
+    def get_pixel_scale(self):
+        """获取像素比例"""
+        return self.pixel_scale
+    
     def clear(self):
         """清空所有绘制对象"""
         self.drawing_objects = []
@@ -399,14 +408,22 @@ class LayerManager:
         if len(obj.points) >= 2:
             center = obj.points[0]
             radius_point = obj.points[1]
-            radius = int(np.sqrt((radius_point.x() - center.x())**2 + 
+            radius_pixels = int(np.sqrt((radius_point.x() - center.x())**2 + 
                                (radius_point.y() - center.y())**2))
+            
+            # 保存像素半径到属性中
+            obj.properties['pixel_radius'] = radius_pixels
+            
+            # 获取像素比例并计算实际半径和直径
+            pixel_scale = self.get_pixel_scale()
+            real_radius = radius_pixels * pixel_scale
+            obj.properties['radius'] = real_radius
             
             # 如果图元被选中，先绘制蓝色高亮轮廓
             if obj.selected:
                 cv2.circle(frame,
                           (center.x(), center.y()),
-                          radius,
+                          radius_pixels,
                           (0, 0, 255),  # 蓝色高亮
                           obj.properties['thickness'] + 8,
                           cv2.LINE_AA)
@@ -414,7 +431,7 @@ class LayerManager:
             # 绘制正常圆形
             cv2.circle(frame,
                       (center.x(), center.y()),
-                      radius,
+                      radius_pixels,
                       obj.properties['color'],
                       obj.properties['thickness'],
                       cv2.LINE_AA)
@@ -428,7 +445,16 @@ class LayerManager:
             
             # 准备显示文本
             coord_text = f"({center.x()}, {center.y()})"
-            radius_text = f"R={radius:.1f}px"
+            
+            # 如果有像素比例，显示实际尺寸，否则显示像素尺寸
+            if 'display_text' in obj.properties:
+                radius_text = obj.properties['display_text']
+            else:
+                if pixel_scale != 1.0:
+                    radius_text = f"R={radius_pixels:.1f}um"
+                    obj.properties['display_text'] = radius_text
+                else:
+                    radius_text = f"R={radius_pixels:.1f}px"
             
             # 设置文本参数
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -516,15 +542,32 @@ class LayerManager:
                       -1)
             
             # 计算长度和角度
-            length = np.sqrt((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)
+            length_pixels = np.sqrt((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)
             dx = p2.x() - p1.x()
             dy = p2.y() - p1.y()
             angle = np.degrees(np.arctan2(-dy, dx))
             if angle < 0:
                 angle += 180
+                
+            # 保存像素长度到属性中
+            obj.properties['pixel_length'] = length_pixels
+            
+            # 获取像素比例并计算实际长度
+            pixel_scale = self.get_pixel_scale()
+            real_length = length_pixels * pixel_scale
+            obj.properties['length'] = real_length
 
             # 准备显示文本（分两行显示）
-            dist_text = f"{length:.1f}px"
+            if 'display_text' in obj.properties:
+                dist_text = obj.properties['display_text']
+            else:
+                # 如果有像素比例，显示实际长度，否则显示像素长度
+                if pixel_scale != 1.0:
+                    dist_text = f"{real_length:.1f}um"
+                    obj.properties['display_text'] = dist_text
+                else:
+                    dist_text = f"{length_pixels:.1f}px"
+            
             angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
 
             # 计算文本位置（在线段中点）
@@ -717,6 +760,15 @@ class LayerManager:
                 end_x1 = int(p1.x() + dx * max_length)
                 end_y1 = int(p1.y() + dy * max_length)
                 
+                # 如果图元被选中，先绘制蓝色高亮轮廓
+                if obj.selected:
+                    cv2.line(frame,
+                            (start_x1, start_y1),
+                            (end_x1, end_y1),
+                            (0, 0, 255),  # 蓝色高亮
+                            obj.properties['thickness'] + 8,
+                            cv2.LINE_AA)
+                
                 # 绘制第一条线
                 if obj == self.current_object and len(obj.points) == 2:
                     # 正在绘制第一条线时显示虚线
@@ -761,6 +813,15 @@ class LayerManager:
                     start_y2 = int(p3.y() - dy * max_length)
                     end_x2 = int(p3.x() + dx * max_length)
                     end_y2 = int(p3.y() + dy * max_length)
+                    
+                    # 如果图元被选中，先绘制蓝色高亮轮廓
+                    if obj.selected:
+                        cv2.line(frame,
+                                (start_x2, start_y2),
+                                (end_x2, end_y2),
+                                (0, 0, 255),  # 蓝色高亮
+                                obj.properties['thickness'] + 8,
+                                cv2.LINE_AA)
                     
                     # 绘制第二条平行线
                     cv2.line(frame,
@@ -3391,6 +3452,19 @@ class MeasurementManager(QObject):
                             f"线段测量完成 - {view_name}", 
                             f"线段测量完成 - 视图: {view_name}"
                         )
+                    
+                    # 检查是否是从标定功能启动的线段绘制
+                    # 如果是标定模式启动的，则在完成线段绘制后自动退出绘画模式
+                    if hasattr(self, '_is_calibration_mode') and self._is_calibration_mode:
+                        self.layer_manager.commit_drawing()
+                        self.exit_drawing_mode()
+                        if self.log_manager:
+                            self.log_manager.log_measurement_operation("标定线段绘制完成，退出绘画模式")
+                        self._is_calibration_mode = False
+                        
+                        # 弹出标定输入对话框
+                        self._show_calibration_dialog()
+                        
                 elif self.draw_mode == DrawingType.CIRCLE:
                     # 圆形测量模式
                     if self.log_manager:
@@ -3410,6 +3484,9 @@ class MeasurementManager(QObject):
         """退出绘画状态"""
         self.draw_mode = None
         self.drawing = False
+        if hasattr(self, '_is_calibration_mode'):
+            self._is_calibration_mode = False  # 清除标定模式标志
+        
         if self.layer_manager.current_object:
             # 如果有未完成的绘制，取消它
             self.layer_manager.current_object = None
@@ -3435,3 +3512,181 @@ class MeasurementManager(QObject):
                 self.exit_drawing_mode()
                 return self.layer_manager.render_frame(current_frame)
         return None
+
+    def start_calibration(self):
+        """启动像素标定模式，使用线段进行标定"""
+        self.draw_mode = DrawingType.LINE_SEGMENT
+        self.drawing = False  # 初始设置为False，等待鼠标按下时设置为True
+        self._is_calibration_mode = True  # 设置标定模式标志
+        
+        if self.log_manager:
+            self.log_manager.log_drawing_operation("启动像素标定模式")
+            print("启动像素标定模式，请在视图上绘制一条线段")
+            
+    def _show_calibration_dialog(self):
+        """显示标定输入对话框"""
+        from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+        
+        # 获取最后绘制的线段对象
+        if not self.layer_manager.drawing_objects:
+            return
+            
+        line_segment = self.layer_manager.drawing_objects[-1]
+        if line_segment.type != DrawingType.LINE_SEGMENT or len(line_segment.points) < 2:
+            return
+            
+        # 计算线段像素长度
+        p1, p2 = line_segment.points[0], line_segment.points[1]
+        pixel_length = ((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)**0.5
+        
+        # 创建对话框
+        dialog = QDialog()
+        dialog.setWindowTitle("像素标定")
+        dialog.setMinimumWidth(300)
+        
+        # 创建布局
+        layout = QVBoxLayout()
+        
+        # 添加说明标签
+        info_label = QLabel(f"线段像素长度: {pixel_length:.2f}像素")
+        layout.addWidget(info_label)
+        
+        # 添加输入提示和文本框
+        input_layout = QHBoxLayout()
+        input_label = QLabel("请输入实际长度(μm):")
+        input_layout.addWidget(input_label)
+        
+        input_edit = QLineEdit()
+        input_edit.setPlaceholderText("输入数值")
+        input_layout.addWidget(input_edit)
+        
+        layout.addLayout(input_layout)
+        
+        # 添加确定按钮
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        ok_button = QPushButton("确定")
+        
+        def handle_input():
+            try:
+                # 尝试将输入转换为浮点数
+                value_text = input_edit.text()
+                real_length = float(value_text)
+                if real_length <= 0:
+                    raise ValueError("长度必须大于0")
+                    
+                # 计算像素比例 (μm/pixel)
+                scale = real_length / pixel_length
+                
+                # 记录标定结果
+                if self.log_manager:
+                    self.log_manager.log_measurement_operation(
+                        "像素标定完成", 
+                        f"标定结果: {scale:.6f} μm/pixel (像素长度: {pixel_length:.2f}px, 实际长度: {real_length:.2f}μm)"
+                    )
+                    
+                # 只更新当前视图的像素比例，不保存到设置中
+                self.layer_manager.set_pixel_scale(scale)
+                
+                # 更新当前视图中已存在图元的长度数值
+                self._update_existing_measurements(scale)
+                
+                # 关闭对话框
+                dialog.accept()
+                
+            except ValueError as e:
+                # 输入无效，显示错误消息
+                QMessageBox.warning(dialog, "输入错误", f"请输入有效的数值: {str(e)}")
+        
+        ok_button.clicked.connect(handle_input)
+        button_layout.addWidget(ok_button)
+        
+        layout.addLayout(button_layout)
+        
+        # 设置对话框布局
+        dialog.setLayout(layout)
+        
+        # 显示对话框
+        dialog.exec_()
+        
+    def get_pixel_scale(self):
+        """获取当前的像素比例（μm/pixel）"""
+        # 只从LayerManager获取像素比例，不依赖settings_manager
+        if hasattr(self, 'layer_manager') and self.layer_manager:
+            return self.layer_manager.get_pixel_scale()
+        
+        # 默认返回1.0（1像素 = 1微米）
+        return 1.0
+        
+    def _update_existing_measurements(self, new_scale):
+        """更新当前视图中已存在图元的长度数值
+        
+        Args:
+            new_scale: 新的像素比例（μm/pixel）
+        """
+        # 设置LayerManager的像素比例
+        self.layer_manager.set_pixel_scale(new_scale)
+        
+        # 遍历所有绘制对象和检测对象
+        all_objects = self.layer_manager.drawing_objects + self.layer_manager.detection_objects
+        
+        for obj in all_objects:
+            # 跳过当前刚绘制的标定线段
+            if obj.type == DrawingType.LINE_SEGMENT and obj == self.layer_manager.drawing_objects[-1]:
+                continue
+                
+            # 根据图元类型更新长度数值
+            if obj.type == DrawingType.LINE_SEGMENT:
+                # 线段
+                if len(obj.points) >= 2:
+                    p1, p2 = obj.points[0], obj.points[1]
+                    pixel_length = ((p2.x() - p1.x())**2 + (p2.y() - p1.y())**2)**0.5
+                    real_length = pixel_length * new_scale
+                    
+                    # 更新属性
+                    if 'length' in obj.properties:
+                        obj.properties['length'] = real_length
+                    else:
+                        obj.properties['length'] = real_length
+                    
+                    # 更新显示文本
+                    obj.properties['display_text'] = f"{real_length:.2f}um"
+                    
+            elif obj.type == DrawingType.LINE:
+                # 直线
+                if len(obj.points) >= 2:
+                    # 直线没有固定长度，可能需要更新其他属性
+                    pass
+                    
+            elif obj.type == DrawingType.CIRCLE:
+                # 圆形
+                if len(obj.points) >= 2:
+                    center, radius_point = obj.points[0], obj.points[1]
+                    radius_pixels = ((radius_point.x() - center.x())**2 + (radius_point.y() - center.y())**2)**0.5
+                    radius_real = radius_pixels * new_scale
+                    
+                    # 更新属性
+                    if 'radius' in obj.properties:
+                        obj.properties['radius'] = radius_real
+                    
+                    # 更新显示文本
+                    obj.properties['display_text'] = f"R={radius_real:.2f}um"
+                    
+            elif obj.type == DrawingType.PARALLEL:
+                # 平行线
+                if len(obj.points) >= 4:  # 两条线四个点
+                    # 计算两条平行线之间的距离
+                    # 这里简化处理，假设平行线是水平或垂直的
+                    if 'distance' in obj.properties:
+                        pixel_distance = obj.properties.get('pixel_distance', 0)
+                        real_distance = pixel_distance * new_scale
+                        obj.properties['distance'] = real_distance
+                        obj.properties['display_text'] = f"{real_distance:.2f}um"
+        
+        # 重新渲染视图
+        parent = self.parent()
+        if parent and hasattr(parent, 'active_view'):
+            active_view = parent.active_view
+            if active_view:
+                active_view.update()
