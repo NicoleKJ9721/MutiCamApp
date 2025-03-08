@@ -229,7 +229,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnDrawPoint.clicked.connect(self.drawing_manager.start_point_measurement)  # 点按钮
         self.btnDrawStraight.clicked.connect(self.start_drawing_mode) # 直线按钮
         self.btnDrawParallel.clicked.connect(self.start_drawing_mode) # 平行线按钮
-        self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        # self.btnDrawLine_Circle.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
         self.btnDraw2Line.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
         self.btnDrawSimpleCircle.clicked.connect(self.drawing_manager.start_simple_circle_measurement)  # 简单圆按钮
         self.btnDrawFineCircle.clicked.connect(self.drawing_manager.start_fine_circle_measurement)  # 精细圆按钮
@@ -251,7 +251,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnDrawPoint_Ver.clicked.connect(self.drawing_manager.start_point_measurement)  # 点按钮
         self.btnDrawStraight_Ver.clicked.connect(self.start_drawing_mode)  # 直线按钮
         self.btnDrawParallel_Ver.clicked.connect(self.start_drawing_mode) # 平行线按钮
-        self.btnDrawLine_Circle_Ver.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        # self.btnDrawLine_Circle_Ver.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
         self.btnDraw2Line_Ver.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
         self.btnDrawSimpleCircle_Ver.clicked.connect(self.drawing_manager.start_simple_circle_measurement)  # 简单圆按钮
         self.btnDrawFineCircle_Ver.clicked.connect(self.drawing_manager.start_fine_circle_measurement)  # 精细圆按钮
@@ -268,7 +268,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnDrawPoint_Left.clicked.connect(self.drawing_manager.start_point_measurement)  # 点按钮
         self.btnDrawStraight_Left.clicked.connect(self.start_drawing_mode)  # 直线按钮
         self.btnDrawParallel_Left.clicked.connect(self.start_drawing_mode) # 平行线按钮
-        self.btnDrawLine_Circle_Left.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        # self.btnDrawLine_Circle_Left.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
         self.btnDraw2Line_Left.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
         self.btnDrawSimpleCircle_Left.clicked.connect(self.drawing_manager.start_simple_circle_measurement)  # 简单圆按钮
         self.btnDrawFineCircle_Left.clicked.connect(self.drawing_manager.start_fine_circle_measurement)  # 精细圆按钮
@@ -285,7 +285,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         self.btnDrawPoint_Front.clicked.connect(self.drawing_manager.start_point_measurement)  # 点按钮
         self.btnDrawStraight_Front.clicked.connect(self.start_drawing_mode)  # 直线按钮
         self.btnDrawParallel_Front.clicked.connect(self.start_drawing_mode) # 平行线按钮
-        self.btnDrawLine_Circle_Front.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
+        # self.btnDrawLine_Circle_Front.clicked.connect(self.start_circle_line_measurement) # 线与圆测量按钮
         self.btnDraw2Line_Front.clicked.connect(self.start_two_lines_measurement) # 线与线测量按钮
         self.btnDrawSimpleCircle_Front.clicked.connect(self.drawing_manager.start_simple_circle_measurement)  # 简单圆按钮
         self.btnDrawFineCircle_Front.clicked.connect(self.drawing_manager.start_fine_circle_measurement)  # 精细圆按钮

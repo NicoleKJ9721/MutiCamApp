@@ -318,21 +318,6 @@
                     </property>
                    </widget>
                   </item>
-                  <item>
-                   <widget class="QPushButton" name="btnDrawFineCircle">
-                    <property name="font">
-                     <font>
-                      <family>Agency FB</family>
-                      <pointsize>9</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>精细圆</string>
-                    </property>
-                   </widget>
-                  </item>
                  </layout>
                 </item>
                 <item>
@@ -352,20 +337,6 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="btnDrawLine_Circle">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>线与圆</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QPushButton" name="btnDraw2Line">
                     <property name="font">
                      <font>
@@ -376,6 +347,21 @@
                     </property>
                     <property name="text">
                      <string>线与线</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btnDrawFineCircle">
+                    <property name="font">
+                     <font>
+                      <family>Agency FB</family>
+                      <pointsize>9</pointsize>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>精细圆</string>
                     </property>
                    </widget>
                   </item>
@@ -908,15 +894,8 @@
               <bool>false</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_19">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="btnDrawPoint_Ver">
-                <property name="text">
-                 <string>点</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="btnDrawStraight_Ver">
+              <item row="4" column="0">
+               <widget class="QPushButton" name="btnDrawParallel_Ver">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -925,22 +904,14 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>直线</string>
+                 <string>平行线</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QPushButton" name="btnDrawSimpleCircle_Ver">
-                <property name="font">
-                 <font>
-                  <family>Agency FB</family>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
+              <item row="8" column="0">
+               <widget class="QPushButton" name="btnCalibration_Ver">
                 <property name="text">
-                 <string>简单圆</string>
+                 <string>像素距离标定</string>
                 </property>
                </widget>
               </item>
@@ -959,49 +930,7 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QPushButton" name="btnDrawParallel_Ver">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>平行线</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QPushButton" name="btnDrawLine_Circle_Ver">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>线与圆</string>
-                </property>
-               </widget>
-              </item>
               <item row="6" column="0">
-               <widget class="QPushButton" name="btnDraw2Line_Ver">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>线与线</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
                <widget class="QPushButton" name="btnCan1StepDraw_Ver">
                 <property name="font">
                  <font>
@@ -1015,7 +944,21 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
+              <item row="1" column="0">
+               <widget class="QPushButton" name="btnDrawStraight_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>直线</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
                <widget class="QPushButton" name="btnClearDrawings_Ver">
                 <property name="font">
                  <font>
@@ -1029,10 +972,39 @@
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
-               <widget class="QPushButton" name="btnCalibration_Ver">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="btnDrawPoint_Ver">
                 <property name="text">
-                 <string>像素距离标定</string>
+                 <string>点</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QPushButton" name="btnDraw2Line_Ver">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="btnDrawSimpleCircle_Ver">
+                <property name="font">
+                 <font>
+                  <family>Agency FB</family>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>简单圆</string>
                 </property>
                </widget>
               </item>
@@ -1338,15 +1310,8 @@
               <bool>false</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_20">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="btnDrawPoint_Left">
-                <property name="text">
-                 <string>点</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="btnDrawStraight_Left">
+              <item row="7" column="0">
+               <widget class="QPushButton" name="btnClearDrawings_Left">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1355,22 +1320,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>直线</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QPushButton" name="btnDrawSimpleCircle_Left">
-                <property name="font">
-                 <font>
-                  <family>Agency FB</family>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>简单圆</string>
+                 <string>清空绘画</string>
                 </property>
                </widget>
               </item>
@@ -1403,35 +1353,7 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
-               <widget class="QPushButton" name="btnDrawLine_Circle_Left">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>线与圆</string>
-                </property>
-               </widget>
-              </item>
               <item row="6" column="0">
-               <widget class="QPushButton" name="btnDraw2Line_Left">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>线与线</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
                <widget class="QPushButton" name="btnCan1StepDraw_Left">
                 <property name="font">
                  <font>
@@ -1445,8 +1367,8 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
-               <widget class="QPushButton" name="btnClearDrawings_Left">
+              <item row="1" column="0">
+               <widget class="QPushButton" name="btnDrawStraight_Left">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1455,11 +1377,47 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>清空绘画</string>
+                 <string>直线</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="btnDrawPoint_Left">
+                <property name="text">
+                 <string>点</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="btnDrawSimpleCircle_Left">
+                <property name="font">
+                 <font>
+                  <family>Agency FB</family>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>简单圆</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QPushButton" name="btnDraw2Line_Left">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>线与线</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
                <widget class="QPushButton" name="btnCalibration_Left">
                 <property name="text">
                  <string>像素距离标定</string>
@@ -1781,8 +1739,8 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="btnDrawStraight_Front">
+              <item row="5" column="0">
+               <widget class="QPushButton" name="btnDraw2Line_Front">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1791,7 +1749,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>直线</string>
+                 <string>线与线</string>
                 </property>
                </widget>
               </item>
@@ -1839,8 +1797,8 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
-               <widget class="QPushButton" name="btnDrawLine_Circle_Front">
+              <item row="1" column="0">
+               <widget class="QPushButton" name="btnDrawStraight_Front">
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1849,25 +1807,25 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>线与圆</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QPushButton" name="btnDraw2Line_Front">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>线与线</string>
+                 <string>直线</string>
                 </property>
                </widget>
               </item>
               <item row="7" column="0">
+               <widget class="QPushButton" name="btnClearDrawings_Front">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>清空绘画</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
                <widget class="QPushButton" name="btnCan1StepDraw_Front">
                 <property name="font">
                  <font>
@@ -1882,20 +1840,6 @@
                </widget>
               </item>
               <item row="8" column="0">
-               <widget class="QPushButton" name="btnClearDrawings_Front">
-                <property name="font">
-                 <font>
-                  <pointsize>9</pointsize>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>清空绘画</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="0">
                <widget class="QPushButton" name="btnCalibration_Front">
                 <property name="text">
                  <string>像素距离标定</string>
