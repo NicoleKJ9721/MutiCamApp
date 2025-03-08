@@ -5,11 +5,11 @@
     "CannyLineLow": 50,
     "CannyLineHigh": 150,
     "LineDetThreshold": 50,
-    "LineDetMinLength": 50,
+    "LineDetMinLength": 20,
     "LineDetMaxGap": 10,
     "CannyCircleLow": 50,
     "CannyCircleHigh": 150,
-    "CircleDetParam2": 20,
-    "UIWidth": 2800,
-    "UIHeight": 1600
+    "CircleDetParam2": 50,
+    "UIWidth": 1888,
+    "UIHeight": 1010
 }

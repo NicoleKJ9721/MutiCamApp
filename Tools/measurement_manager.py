@@ -3360,8 +3360,21 @@ class MeasurementManager(QObject):
                     detected_points = self.layer_manager._detect_line_in_roi(current_frame, 
                                                                            self.layer_manager.current_object.points)
                     if detected_points:
-                        self.layer_manager.current_object.points = detected_points
-                        self.layer_manager.current_object.properties['line_detected'] = True
+                        # 创建新的直线对象，类型为DrawingType.LINE而不是LINE_DETECT
+                        line_obj = DrawingObject(
+                            type=DrawingType.LINE,  # 将类型设置为LINE而不是LINE_DETECT
+                            points=detected_points,
+                            properties={
+                                'color': (255, 0, 255),  # 紫色
+                                'thickness': 2,
+                                'line_detected': True
+                            }
+                        )
+                        # 添加直线对象到绘制列表
+                        self.layer_manager.drawing_objects.append(line_obj)
+                        # 删除当前的ROI对象
+                        self.layer_manager.current_object = None
+                        
                         if self.log_manager:
                             self.log_manager.log_measurement_operation(
                                 f"直线检测成功 - 视图: {view_name}",
@@ -3375,7 +3388,6 @@ class MeasurementManager(QObject):
                                 "未在ROI区域内检测到直线"
                             )
                     
-                    self.layer_manager.commit_drawing()
                     self.drawing = False
                     return self.layer_manager.render_frame(current_frame)
                 elif self.draw_mode == DrawingType.CIRCLE_DETECT:
@@ -3392,17 +3404,28 @@ class MeasurementManager(QObject):
                     detected_circle = self.layer_manager._detect_circle_in_roi(current_frame, 
                                                                                self.layer_manager.current_object.points)
                     if detected_circle:
-                        # 更新当前对象的属性
-                        self.layer_manager.current_object.properties.update(detected_circle)
-                        self.layer_manager.current_object.properties['circle_detected'] = True
-                        
-                        # 创建新的点列表,使用检测到的圆心
+                        # 创建新的圆对象，类型为DrawingType.CIRCLE而不是CIRCLE_DETECT
                         center_x = detected_circle['center_x']
                         center_y = detected_circle['center_y']
-                        self.layer_manager.current_object.points = [
-                            QPoint(center_x, center_y),
-                            QPoint(center_x + detected_circle['radius'], center_y)  # 用于确定半径的点
-                        ]
+                        radius = detected_circle['radius']
+                        
+                        circle_obj = DrawingObject(
+                            type=DrawingType.CIRCLE,  # 将类型设置为CIRCLE而不是CIRCLE_DETECT
+                            points=[
+                                QPoint(center_x, center_y),
+                                QPoint(center_x + radius, center_y)  # 用于确定半径的点
+                            ],
+                            properties={
+                                'color': (255, 0, 255),  # 紫色
+                                'thickness': 2,
+                                'radius': radius,
+                                'circle_detected': True
+                            }
+                        )
+                        # 添加圆对象到绘制列表
+                        self.layer_manager.drawing_objects.append(circle_obj)
+                        # 删除当前的ROI对象
+                        self.layer_manager.current_object = None
 
                         if self.log_manager:
                             self.log_manager.log_measurement_operation(
@@ -3419,7 +3442,6 @@ class MeasurementManager(QObject):
                                 "未在ROI区域内检测到圆形"
                             )
                 
-                    self.layer_manager.commit_drawing()
                     self.drawing = False
                     return self.layer_manager.render_frame(current_frame)
                 elif self.draw_mode == DrawingType.TWO_LINES:

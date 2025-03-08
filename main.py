@@ -973,7 +973,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 区分直线和线段
                 is_line = lambda t: t == DrawingType.LINE  # 只匹配直线
                 is_line_segment = lambda t: t == DrawingType.LINE_SEGMENT  # 只匹配线段
-                is_circle = lambda t: t in [DrawingType.CIRCLE, DrawingType.CIRCLE_DETECT, DrawingType.SIMPLE_CIRCLE, DrawingType.FINE_CIRCLE]
+                is_circle = lambda t: t in [DrawingType.CIRCLE, DrawingType.SIMPLE_CIRCLE, DrawingType.FINE_CIRCLE]
                 
                 # 添加分隔线
                 self.context_menu.addSeparator()
