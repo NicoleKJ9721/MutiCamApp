@@ -2856,7 +2856,12 @@ class MeasurementManager(QObject):
         self.drawing = False
         self.draw_mode = None
         self.drawing_history = []  # 添加绘画历史列表
-        
+        self.is_main_view = False  # 添加标志，指示是否为主界面视图
+
+    def set_main_view(self, is_main):
+        """设置是否为主界面视图"""
+        self.is_main_view = is_main
+
     def start_line_measurement(self):
         """启动直线测量模式"""
         self.draw_mode = DrawingType.LINE
@@ -2944,7 +2949,7 @@ class MeasurementManager(QObject):
             return None
         
         # 左键点击的原有逻辑
-        if not self.draw_mode and not self.drawing:
+        if not self.draw_mode and not self.drawing and not self.is_main_view:
             hit_objects = self.layer_manager.hit_test(event_pos)
             if hit_objects:
                 ctrl_pressed = QApplication.keyboardModifiers() & Qt.ControlModifier

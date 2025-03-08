@@ -40,6 +40,9 @@ class DrawingManager(QObject):
         """为视图设置绘画功能"""
         # 创建测量管理器
         self.measurement_managers[label] = MeasurementManager(self.parent())
+
+        # 设置是否为主界面视图
+        self.measurement_managers[label].set_main_view(name in ['vertical', 'left', 'front'])
         
         # 设置视图对应关系
         if name == "vertical":
@@ -191,13 +194,6 @@ class DrawingManager(QObject):
         
         # 只处理左键点击的绘制操作
         if event.button() == Qt.LeftButton:
-            # 判断当前视图是否为主界面的三个视图
-            main_views = [self.parent().lbVerticalView, self.parent().lbLeftView, self.parent().lbFrontView]
-            
-            # 如果是主界面视图，不执行左键选择图元功能
-            if label in main_views:
-                return
-                
             # 对于点测量模式，在鼠标按下时不处理
             if self.active_measurement.draw_mode == DrawingType.POINT:
                 return
