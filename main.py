@@ -696,14 +696,19 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 只处理主界面视图的双击事件，跳转到对应的选项卡
             if label == self.lbVerticalView:
                 self.tabWidget.setCurrentIndex(1)
+                # 更新最后操作的视图为对应的选项卡视图
+                self.last_active_view = self.lbVerticalView_2
             elif label == self.lbLeftView:
                 self.tabWidget.setCurrentIndex(2)
+                # 更新最后操作的视图为对应的选项卡视图
+                self.last_active_view = self.lbLeftView_2
             elif label == self.lbFrontView:
                 self.tabWidget.setCurrentIndex(3)
-            # 移除选项卡视图双击跳转到主界面的功能
-            
-            # 记录最后操作的视图
-            self.last_active_view = label
+                # 更新最后操作的视图为对应的选项卡视图
+                self.last_active_view = self.lbFrontView_2
+            else:
+                # 对于其他视图，记录最后操作的视图
+                self.last_active_view = label
 
     def undo_last_drawing(self):
         """撤销上一步手动绘制"""

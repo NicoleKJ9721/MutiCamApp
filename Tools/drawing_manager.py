@@ -149,8 +149,13 @@ class DrawingManager(QObject):
         if label not in self.measurement_managers:
             return
         
+        # 更新活动视图和测量管理器
         self.active_view = label
         self.active_measurement = self.measurement_managers[label]
+        
+        # 同时更新父窗口的last_active_view，确保右键菜单能正确工作
+        if hasattr(self.parent(), 'last_active_view'):
+            self.parent().last_active_view = label
         
         # 获取当前帧
         current_frame = self.parent().get_current_frame_for_view(label)
@@ -162,6 +167,7 @@ class DrawingManager(QObject):
         
         # 检查是否是右键点击
         if event.button() == Qt.RightButton:
+            
             # 如果正在绘制，退出绘制状态
             if self.active_measurement.drawing or self.active_measurement.draw_mode:
                 self.active_measurement.exit_drawing_mode()
@@ -185,6 +191,13 @@ class DrawingManager(QObject):
         
         # 只处理左键点击的绘制操作
         if event.button() == Qt.LeftButton:
+            # 判断当前视图是否为主界面的三个视图
+            main_views = [self.parent().lbVerticalView, self.parent().lbLeftView, self.parent().lbFrontView]
+            
+            # 如果是主界面视图，不执行左键选择图元功能
+            if label in main_views:
+                return
+                
             # 对于点测量模式，在鼠标按下时不处理
             if self.active_measurement.draw_mode == DrawingType.POINT:
                 return
