@@ -1527,7 +1527,7 @@ class LayerManager:
                             angle += 180
                         
                         # 绘制文本（带背景）
-                        text = f"{angle:.1f}\u00B0"
+                        text = f"{angle:.1f}"
                         font = cv2.FONT_HERSHEY_SIMPLEX
                         font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                         thickness = 2     # 增加字体粗细
@@ -2844,7 +2844,7 @@ class LayerManager:
 
     def _calculate_font_scale(self, height):
         """根据图像高度计算字体大小"""
-        font_scale = max(1.2, height / 70 / 30)  # 除以30是因为OpenCV字体基础大小约为30像素
+        font_scale = max(0.9, height / 70 / 30)  # 除以30是因为OpenCV字体基础大小约为30像素
         return font_scale
 
 class MeasurementManager(QObject):

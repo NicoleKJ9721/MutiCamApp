@@ -571,6 +571,9 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         try:
             self.log_manager.log_ui_operation("关闭程序")
             
+            # 保存当前窗口大小到设置
+            self.settings_manager.save_settings(self)
+            
             # 停止所有相机线程
             if hasattr(self, 'ver_camera_thread') and self.ver_camera_thread:
                 self.ver_camera_thread.stop()
@@ -905,6 +908,23 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         """窗口大小改变事件处理"""
         super().resizeEvent(event)
         
+        # 获取当前窗口大小并更新到UI输入框
+        current_width = self.width()
+        current_height = self.height()
+        
+        # 更新UI输入框，但避免触发textChanged信号导致循环
+        # 暂时断开信号连接
+        self.ledUIWidth.blockSignals(True)
+        self.ledUIHeight.blockSignals(True)
+        
+        # 更新输入框
+        self.ledUIWidth.setText(str(current_width))
+        self.ledUIHeight.setText(str(current_height))
+        
+        # 恢复信号连接
+        self.ledUIWidth.blockSignals(False)
+        self.ledUIHeight.blockSignals(False)
+        
         # 获取所有需要更新的视图标签
         all_views = [
             self.lbVerticalView, self.lbLeftView, self.lbFrontView,  # 主界面视图
@@ -961,6 +981,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 圆和直线的选项
                 is_circle_and_line = ((types[0] == DrawingType.CIRCLE and is_line(types[1])) or
                                     (types[1] == DrawingType.CIRCLE and is_line(types[0])))
+                
                 if is_circle_and_line:
                     # 使用DrawingManager的handle_context_menu方法获取菜单项
                     menu_items = self.drawing_manager.handle_context_menu(label)
@@ -973,6 +994,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 圆和线段的选项
                 is_circle_and_line_segment = ((types[0] == DrawingType.CIRCLE and is_line_segment(types[1])) or
                                            (types[1] == DrawingType.CIRCLE and is_line_segment(types[0])))
+                
                 if is_circle_and_line_segment:
                     menu_items = self.drawing_manager.handle_context_menu(label)
                     for item_text, item_handler in menu_items:
@@ -1008,6 +1030,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 点和直线的选项
                 is_point_and_line = ((types[0] == DrawingType.POINT and is_line(types[1])) or
                                    (types[1] == DrawingType.POINT and is_line(types[0])))
+                
                 if is_point_and_line:
                     menu_items = self.drawing_manager.handle_context_menu(label)
                     for item_text, item_handler in menu_items:
@@ -1019,6 +1042,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 点和线段的选项
                 is_point_and_line_segment = ((types[0] == DrawingType.POINT and is_line_segment(types[1])) or
                                           (types[1] == DrawingType.POINT and is_line_segment(types[0])))
+                
                 if is_point_and_line_segment:
                     menu_items = self.drawing_manager.handle_context_menu(label)
                     for item_text, item_handler in menu_items:
@@ -1030,6 +1054,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                 # 点和圆的选项
                 is_point_and_circle = ((types[0] == DrawingType.POINT and is_circle(types[1])) or
                                      (types[1] == DrawingType.POINT and is_circle(types[0])))
+                
                 if is_point_and_circle:
                     menu_items = self.drawing_manager.handle_context_menu(label)
                     for item_text, item_handler in menu_items:

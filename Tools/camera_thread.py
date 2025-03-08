@@ -17,7 +17,7 @@ class CameraThread(QThread):
         self.camera_sn = camera_sn
         self.running = False
         self.current_frame = None
-        self.target_fps = 15  # 降低目标帧率到15fps，减少CPU负担
+        self.target_fps = 20  # 降低目标帧率到15fps，减少CPU负担
         self.frame_interval = 1.0 / self.target_fps  # 帧间隔时间
         self.last_frame_time = 0  # 上一帧的时间戳
         self._frame_buffer = None  # 帧缓冲
@@ -81,8 +81,6 @@ class CameraThread(QThread):
 
             frame_count = 0
             self.running = True
-            # 设置默认跳帧为1，即每两帧处理一帧
-            self._skip_frames = 1
             
             while self.running:
                 current_time = time.time()
