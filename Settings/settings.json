@@ -7,8 +7,8 @@
     "LineDetThreshold": 50,
     "LineDetMinLength": 20,
     "LineDetMaxGap": 10,
-    "CannyCircleLow": 50,
-    "CannyCircleHigh": 150,
+    "CannyCircleLow": 100,
+    "CannyCircleHigh": 200,
     "CircleDetParam2": 50,
     "UIWidth": 1280,
     "UIHeight": 953

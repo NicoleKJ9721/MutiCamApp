@@ -60,8 +60,10 @@ class LayerManager:
         self.current_object = None
 
     def clear_drawings(self):
-        """清空手动绘制"""
-        self.drawing_objects = []
+        """清除所有手动绘制"""
+        # 保留检测对象
+        self.drawing_objects = [obj for obj in self.drawing_objects if obj.properties.get('is_detection', False)]
+        self.current_object = None
         
     def clear_detections(self):
         """清空自动检测"""
@@ -70,24 +72,36 @@ class LayerManager:
     def commit_drawing(self):
         """提交当前绘制"""
         if self.current_object:
-            if self.current_object.type in [DrawingType.LINE_DETECT, DrawingType.CIRCLE_DETECT]:
+            # 通过properties中的is_detection标记判断是否为检测结果
+            if self.current_object.properties.get('is_detection', False):
+                # 将检测对象添加到检测列表
+                print(f"将检测对象添加到检测列表: {self.current_object.type}")
                 self.detection_objects.append(self.current_object)
             else:
+                # 非检测对象直接添加到绘制列表
                 self.drawing_objects.append(self.current_object)
             self.current_object = None
             
     def undo_last_drawing(self):
         """撤销最后一次手动绘制"""
         if self.drawing_objects:
-            self.drawing_objects.pop()
-            return True
+            # 从后向前遍历,找到第一个非检测对象
+            for i in range(len(self.drawing_objects) - 1, -1, -1):
+                obj = self.drawing_objects[i]
+                if not obj.properties.get('is_detection', False):
+                    self.drawing_objects.pop(i)
+                    return True
         return False
         
     def undo_last_detection(self):
-        """撤销最后一次自动检测"""
-        if self.detection_objects:
-            self.detection_objects.pop()
-            return True
+        """撤销最后一次检测结果"""
+        if self.drawing_objects:
+            # 从后向前遍历,找到第一个检测对象
+            for i in range(len(self.drawing_objects) - 1, -1, -1):
+                obj = self.drawing_objects[i]
+                if obj.properties.get('is_detection', False):
+                    self.drawing_objects.pop(i)
+                    return True
         return False
         
     def render_object(self, frame, obj: DrawingObject):
@@ -1645,9 +1659,12 @@ class LayerManager:
             # 获取参数
             canny_low = int(settings_dict.get('CannyCircleLow', 100))
             canny_high = int(settings_dict.get('CannyCircleHigh', 200))
-            circle_threshold = int(settings_dict.get('CircleDetParam2', 15))
+            circle_threshold = int(settings_dict.get('CircleDetParam2', 50))
             
-            print(f"圆检测参数: canny_low={canny_low}, canny_high={canny_high}, circle_threshold={circle_threshold}")
+            # 新增参数：最小置信度阈值
+            min_confidence = int(settings_dict.get('CircleMinConfidence', 30))
+            
+            print(f"圆检测参数: canny_low={canny_low}, canny_high={canny_high}, circle_threshold={circle_threshold}, min_confidence={min_confidence}")
             
             # 获取ROI区域的坐标
             x1, y1 = roi_points[0].x(), roi_points[0].y()
@@ -1660,14 +1677,32 @@ class LayerManager:
             # 计算ROI尺寸
             roi_width = abs(x_max - x_min)
             roi_height = abs(y_max - y_min)
-            roi_radius = min(roi_width, roi_height) // 2
+            roi_area = roi_width * roi_height
             
-            print(f"ROI区域: x_min={x_min}, x_max={x_max}, y_min={y_min}, y_max={y_max}, roi_radius={roi_radius}")
+            # 设置ROI面积的最大限制（例如：500x500像素）
+            MAX_ROI_AREA = 400000  # 500x500
+            MAX_DIMENSION = 1000    # 单边最大500像素
+            
+            # 检查ROI大小限制
+            if roi_area > MAX_ROI_AREA:
+                print(f"ROI区域太大: {roi_area}像素 > {MAX_ROI_AREA}像素")
+                return None
+                
+            if roi_width > MAX_DIMENSION or roi_height > MAX_DIMENSION:
+                print(f"ROI尺寸超出限制: {roi_width}x{roi_height} > {MAX_DIMENSION}x{MAX_DIMENSION}")
+                return None
             
             # 确保ROI区域有效
             if roi_width < 10 or roi_height < 10:
                 print("ROI区域太小")
                 return None
+            
+            # 计算合适的圆检测参数
+            roi_radius = min(roi_width, roi_height) // 2
+            min_radius = max(10, roi_radius // 10)  # 最小半径不小于10像素
+            max_radius = roi_radius  # 最大半径不超过ROI的较小边的一半
+            
+            print(f"ROI区域: {roi_width}x{roi_height}, 面积: {roi_area}像素, 半径范围: {min_radius}-{max_radius}")
             
             # 提取ROI区域
             roi = frame[y_min:y_max, x_min:x_max]
@@ -1675,9 +1710,7 @@ class LayerManager:
                 print("ROI区域无效")
                 return None
             
-            print(f"ROI形状: {roi.shape}")
-            
-            # 检查图像通道数
+            # 检查图像通道数并转换为灰度图
             gray = None
             if len(roi.shape) == 2:
                 # 已经是灰度图
@@ -1691,9 +1724,12 @@ class LayerManager:
                 print(f"不支持的图像格式: shape={roi.shape}")
                 return None
             
-            # 尝试直接使用灰度图进行霍夫圆检测
+            # 保存原始灰度图用于后续验证
+            original_gray = gray.copy()
+            
+            # 方法1: 直接使用灰度图进行霍夫圆检测
             try:
-                print("尝试直接使用灰度图进行霍夫圆检测")
+                print("方法1: 直接使用灰度图进行霍夫圆检测")
                 # 确保gray是单通道图像
                 if len(gray.shape) != 2:
                     print(f"警告：gray不是单通道图像，shape={gray.shape}")
@@ -1701,11 +1737,12 @@ class LayerManager:
                         gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
                         print("已将gray转换为单通道图像")
                 
+                # 使用固定的param2值，避免过度降低阈值
                 circles = cv2.HoughCircles(
                     gray,
                     cv2.HOUGH_GRADIENT,
                     dp=1,
-                    minDist=roi_radius,
+                    minDist=roi_radius//2,
                     param1=canny_high,
                     param2=circle_threshold,
                     minRadius=10,
@@ -1713,59 +1750,172 @@ class LayerManager:
                 )
                 
                 if circles is not None:
-                    print(f"直接检测到 {len(circles[0])} 个圆")
-                    # 只取准确率最高的一个圆
-                    best_circle = circles[0][0]
-                    center_x = int(best_circle[0]) + x_min
-                    center_y = int(best_circle[1]) + y_min
-                    radius = int(best_circle[2])
-                    return {'center_x': center_x, 'center_y': center_y, 'radius': radius}
+                    print(f"方法1: 检测到 {len(circles[0])} 个圆")
+                    # 验证检测到的圆的置信度
+                    best_circle = None
+                    best_confidence = 0
+                    
+                    for circle in circles[0]:
+                        # 计算圆的置信度
+                        confidence = self._calculate_circle_confidence(original_gray, circle)
+                        print(f"圆 ({int(circle[0])}, {int(circle[1])}, {int(circle[2])}) 的置信度: {confidence}")
+                        
+                        if confidence > best_confidence:
+                            best_confidence = confidence
+                            best_circle = circle
+                    
+                    # 只有当置信度超过阈值时才返回结果
+                    if best_confidence >= min_confidence:
+                        center_x = int(best_circle[0]) + x_min
+                        center_y = int(best_circle[1]) + y_min
+                        radius = int(best_circle[2])
+                        print(f"选择置信度为 {best_confidence} 的圆")
+                        return {'center_x': center_x, 'center_y': center_y, 'radius': radius, 'confidence': best_confidence}
+                    else:
+                        print(f"最佳圆的置信度 {best_confidence} 低于阈值 {min_confidence}，认为是误检")
+                else:
+                    print("方法1: 未检测到圆")
             except Exception as e:
-                print(f"直接使用灰度图检测圆形失败: {str(e)}")
-                # 继续尝试使用边缘检测方法
+                print(f"方法1失败: {str(e)}")
             
-            # 如果直接检测失败，尝试使用边缘检测方法
-            print("尝试使用边缘检测方法进行圆检测")
-            # 二值化处理
-            _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
-            print("二值化处理完成")
+            # 方法2: 使用自适应二值化和边缘检测
+            try:
+                print("方法2: 使用自适应二值化和边缘检测")
+                
+                # 使用自适应二值化
+                binary = cv2.adaptiveThreshold(
+                    gray, 
+                    255, 
+                    cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                    cv2.THRESH_BINARY_INV, 
+                    11, 
+                    2
+                )
+                print("自适应二值化完成")
+                
+                # 形态学操作改善圆形
+                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+                binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+                binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+                print("形态学处理完成")
+                
+                # 边缘检测
+                edges = cv2.Canny(binary, canny_low, canny_high)
+                print(f"边缘检测完成，edges形状: {edges.shape}")
+                
+                # 霍夫圆变换检测圆形
+                circles = cv2.HoughCircles(
+                    edges,
+                    cv2.HOUGH_GRADIENT,
+                    dp=1,
+                    minDist=roi_radius//2,
+                    param1=canny_high,
+                    param2=circle_threshold,
+                    minRadius=10,
+                    maxRadius=roi_radius
+                )
+                
+                if circles is not None:
+                    print(f"方法2: 检测到 {len(circles[0])} 个圆")
+                    # 验证检测到的圆的置信度
+                    best_circle = None
+                    best_confidence = 0
+                    
+                    for circle in circles[0]:
+                        # 计算圆的置信度
+                        confidence = self._calculate_circle_confidence(original_gray, circle)
+                        print(f"圆 ({int(circle[0])}, {int(circle[1])}, {int(circle[2])}) 的置信度: {confidence}")
+                        
+                        if confidence > best_confidence:
+                            best_confidence = confidence
+                            best_circle = circle
+                    
+                    # 只有当置信度超过阈值时才返回结果
+                    if best_confidence >= min_confidence:
+                        center_x = int(best_circle[0]) + x_min
+                        center_y = int(best_circle[1]) + y_min
+                        radius = int(best_circle[2])
+                        print(f"选择置信度为 {best_confidence} 的圆")
+                        return {'center_x': center_x, 'center_y': center_y, 'radius': radius, 'confidence': best_confidence}
+                    else:
+                        print(f"最佳圆的置信度 {best_confidence} 低于阈值 {min_confidence}，认为是误检")
+                else:
+                    print("方法2: 未检测到圆")
+            except Exception as e:
+                print(f"方法2失败: {str(e)}")
             
-            # 形态学操作改善圆形
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
-            binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
-            print("形态学处理完成")
-            
-            # 边缘检测
-            edges = cv2.Canny(binary, canny_low, canny_high)
-            print(f"边缘检测完成，edges形状: {edges.shape}")
-            
-            # 霍夫圆变换检测圆形
-            circles = cv2.HoughCircles(
-                edges,
-                cv2.HOUGH_GRADIENT,
-                dp=1,
-                minDist=roi_radius,
-                param1=canny_high,
-                param2=circle_threshold,
-                minRadius=10,
-                maxRadius=roi_radius
-            )
-            
-            if circles is not None:
-                print(f"检测到 {len(circles[0])} 个圆")  # 调试信息
-                # 只取准确率最高的一个圆
-                best_circle = circles[0][0]
-                center_x = int(best_circle[0]) + x_min
-                center_y = int(best_circle[1]) + y_min
-                radius = int(best_circle[2])
-                return {'center_x': center_x, 'center_y': center_y, 'radius': radius}
-            else:
-                print("未检测到圆形")
-                return None
+            print("所有方法都未能检测到有效的圆")
+            return None
             
         except Exception as e:
-            print(f"圆形检测失败: {str(e)}")
+            print(f"圆检测失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
+            
+    def _calculate_circle_confidence(self, gray_img, circle):
+        """计算检测到的圆的置信度
+        
+        参数:
+            gray_img: 灰度图像
+            circle: 检测到的圆 [x, y, r]
+            
+        返回:
+            置信度分数 (0-100)
+        """
+        try:
+            # 提取圆的参数
+            center_x, center_y, radius = int(circle[0]), int(circle[1]), int(circle[2])
+            height, width = gray_img.shape[:2]
+            
+            # 创建圆形掩码
+            mask = np.zeros((height, width), dtype=np.uint8)
+            cv2.circle(mask, (center_x, center_y), radius, 255, 1)
+            
+            # 计算边缘点数量
+            edge_points = np.sum(mask > 0)
+            if edge_points == 0:
+                return 0
+                
+            # 使用Canny检测边缘
+            edges = cv2.Canny(gray_img, 50, 150)
+            
+            # 计算圆周上有多少点与边缘重合
+            matching_points = np.sum((mask > 0) & (edges > 0))
+            
+            # 计算置信度
+            confidence = (matching_points / edge_points) * 100
+            
+            # 额外检查：圆内外的灰度差异
+            # 创建内部和外部掩码
+            inner_mask = np.zeros((height, width), dtype=np.uint8)
+            outer_mask = np.zeros((height, width), dtype=np.uint8)
+            
+            # 内部区域（略小于检测到的圆）
+            cv2.circle(inner_mask, (center_x, center_y), max(1, radius - 2), 255, -1)
+            
+            # 外部区域（略大于检测到的圆）
+            cv2.circle(outer_mask, (center_x, center_y), radius + 2, 255, -1)
+            outer_mask = outer_mask - cv2.circle(np.zeros_like(outer_mask), (center_x, center_y), radius, 255, -1)
+            
+            # 计算内部和外部区域的平均灰度
+            inner_mean = np.mean(gray_img[inner_mask > 0]) if np.sum(inner_mask > 0) > 0 else 0
+            outer_mean = np.mean(gray_img[outer_mask > 0]) if np.sum(outer_mask > 0) > 0 else 0
+            
+            # 计算灰度差异的绝对值
+            gray_diff = abs(inner_mean - outer_mean)
+            
+            # 灰度差异越大，越可能是真实的圆
+            gray_diff_score = min(100, gray_diff * 2)
+            
+            # 综合评分：边缘匹配度和灰度差异
+            final_confidence = (confidence * 0.7) + (gray_diff_score * 0.3)
+            
+            return final_confidence
+            
+        except Exception as e:
+            print(f"计算圆置信度失败: {str(e)}")
+            return 0
     
     def _draw_circle_detect(self, frame, obj: DrawingObject):
         """绘制圆形检测"""
@@ -1793,6 +1943,7 @@ class LayerManager:
                     center_x = obj.properties.get('center_x', 0)
                     center_y = obj.properties.get('center_y', 0)
                     radius = obj.properties.get('radius', 0)
+                    confidence = obj.properties.get('confidence', 0)
                     
                     # 绘制圆形
                     cv2.circle(frame,
@@ -1818,7 +1969,7 @@ class LayerManager:
                             cv2.LINE_AA)
                     
                     # 显示半径信息
-                    text = f"R={radius:.1f}"
+                    text = f"R={radius:.1f}px"
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = self._calculate_font_scale(frame.shape[0])  # 使用基于图像高度的字体大小
                     thickness = 2     # 增加字体粗细
@@ -1849,8 +2000,7 @@ class LayerManager:
                               thickness,
                               cv2.LINE_AA)
         except Exception as e:
-            if str(e) != "0":  # 只打印非0错误
-                print(f"绘制圆形检测时出错: {str(e)}")
+            print(f"绘制圆形检测时出错: {str(e)}")
 
     def _draw_point(self, frame, obj: DrawingObject):
         """绘制点"""
@@ -3093,14 +3243,16 @@ class MeasurementManager(QObject):
         self.layer_manager.clear()  # 保留此方法用于完全清空
         
     def clear_drawings(self):
-        """只清空手动绘制"""
-        self.draw_mode = None
-        self.drawing = False
-        self.layer_manager.clear_drawings()  # 只清空手动绘制
-
+        """清除所有手动绘制"""
+        # 保留检测对象
+        self.drawing_objects = [obj for obj in self.drawing_objects if obj.properties.get('is_detection', False)]
+        self.current_object = None
+        
     def undo_last_drawing(self):
         """撤销上一步绘制"""
-        return self.layer_manager.undo()
+        if self.layer_manager.undo_last_drawing():
+            return self.layer_manager.render_frame(self.parent().get_current_frame() if self.parent() else None)
+        return None
 
     def handle_mouse_press(self, event_pos, current_frame):
         """处理鼠标按下事件"""
@@ -3448,7 +3600,8 @@ class MeasurementManager(QObject):
                             properties={
                                 'color': (255, 0, 255),  # 紫色
                                 'thickness': 2,
-                                'line_detected': True
+                                'line_detected': True,
+                                'is_detection': True  # 添加检测标记
                             }
                         )
                         # 添加直线对象到绘制列表
@@ -3491,6 +3644,7 @@ class MeasurementManager(QObject):
                         center_x = detected_circle['center_x']
                         center_y = detected_circle['center_y']
                         radius = detected_circle['radius']
+                        confidence = detected_circle.get('confidence', 0)
                         
                         circle_obj = DrawingObject(
                             type=DrawingType.CIRCLE,  # 将类型设置为CIRCLE而不是CIRCLE_DETECT
@@ -3502,7 +3656,9 @@ class MeasurementManager(QObject):
                                 'color': (255, 0, 255),  # 紫色
                                 'thickness': 2,
                                 'radius': radius,
-                                'circle_detected': True
+                                'circle_detected': True,
+                                'confidence': confidence,
+                                'is_detection': True  # 添加检测标记
                             }
                         )
                         # 添加圆对象到绘制列表
@@ -3514,15 +3670,16 @@ class MeasurementManager(QObject):
                             self.log_manager.log_measurement_operation(
                                 f"圆形检测成功 - 视图: {view_name}",
                                 f"检测到圆形: 圆心({detected_circle['center_x']}, {detected_circle['center_y']}), "
-                                f"半径: {detected_circle['radius']}"
+                                f"半径: {detected_circle['radius']}, 置信度: {confidence:.1f}"
                             )
                         
-                        print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}")
+                        print(f"更新绘制属性: center=({center_x}, {center_y}), radius={detected_circle['radius']}, 置信度: {confidence:.1f}")
                     else:
+                        # 检测失败，显示提示信息
                         if self.log_manager:
                             self.log_manager.log_measurement_operation(
-                                f"圆形检测失败 - 视图: {view_name}", 
-                                "未在ROI区域内检测到圆形"
+                                f"圆形检测失败 - 视图: {view_name}",
+                                f"在选定区域内未检测到有效的圆形"
                             )
                         # 在检测失败时重置current_object，以便能够进行新的ROI框绘制
                         self.layer_manager.current_object = None

@@ -26,9 +26,9 @@ class SettingsManager:
             "LineDetMaxGap": 10,
             
             # 圆查找参数
-            "CannyCircleLow": 50,
-            "CannyCircleHigh": 150,
-            "CircleDetParam2": 30,
+            "CannyCircleLow": 100,
+            "CannyCircleHigh": 200,
+            "CircleDetParam2": 50,
 
             # UI尺寸参数
             "UIWidth": 2230,
@@ -46,6 +46,7 @@ class SettingsManager:
                 with open(self.settings_file, 'r', encoding='utf-8') as f:
                     settings = json.load(f)
             else:
+                print("设置文件不存在或为空，创建默认设置文件")
                 settings = self.default_settings
                 # 如果文件不存在或为空，创建默认设置文件
                 self.save_settings_to_file(self.default_settings)
@@ -227,8 +228,8 @@ class SettingsManager:
                     'LineDetThreshold': 50,
                     'LineDetMinLength': 50,
                     'LineDetMaxGap': 10,
-                    'CannyCircleLow': 50,
-                    'CannyCircleHigh': 150,
+                    'CannyCircleLow': 100,
+                    'CannyCircleHigh': 200,
                     'CircleDetParam2': 30,
                     'UIWidth': 1000,
                     'UIHeight': 800
@@ -242,8 +243,8 @@ class SettingsManager:
                 'LineDetThreshold': 50,
                 'LineDetMinLength': 50,
                 'LineDetMaxGap': 10,
-                'CannyCircleLow': 50,
-                'CannyCircleHigh': 150,
+                'CannyCircleLow': 100,
+                'CannyCircleHigh': 200,
                 'CircleDetParam2': 30,
                 'UIWidth': 1000,
                 'UIHeight': 800
