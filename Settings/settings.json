@@ -1,5 +1,5 @@
 {
-    "VerCamSN": "K75651644",
+    "VerCamSN": "Vir44168414",
     "LeftCamSN": "Vir44200501",
     "FrontCamSN": "Vir44200721",
     "CannyLineLow": 50,
@@ -10,6 +10,6 @@
     "CannyCircleLow": 50,
     "CannyCircleHigh": 150,
     "CircleDetParam2": 50,
-    "UIWidth": 1287,
-    "UIHeight": 945
+    "UIWidth": 1280,
+    "UIHeight": 953
 }

@@ -394,7 +394,7 @@ class LayerManager:
                 dot_y = text_y - text_height + text_height// 6
                 cv2.circle(frame,
                           (int(dot_x), int(dot_y)),
-                          6*int(font_scale),  # 圆的半径
+                          int(6 * max(0.9, int(font_scale))),  # 圆的半径
                           obj.properties['color'],
                           2,  # 1表示空心圆
                           cv2.LINE_AA)
@@ -632,7 +632,7 @@ class LayerManager:
             dot_y = angle_y - text_height + text_height//6
             cv2.circle(frame,
                       (int(dot_x), int(dot_y)),
-                      6*int(font_scale),  # 圆的半径
+                      int(6 * max(0.9, int(font_scale))),  # 圆的半径
                       obj.properties['color'],
                       2,  # 1表示空心圆
                       cv2.LINE_AA)
@@ -949,7 +949,7 @@ class LayerManager:
                     dot_y = angle_y - text_height//3
                     cv2.circle(frame,
                               (int(dot_x), int(dot_y)),
-                              6*int(font_scale),  # 圆的半径
+                              int(6 * max(0.9, int(font_scale))),  # 圆的半径
                               obj.properties['color'],
                               2,  # 线宽为1表示空心圆
                               cv2.LINE_AA)
@@ -1207,9 +1207,6 @@ class LayerManager:
                 intersection_x = int(p1.x() + dx1 * t1)
                 intersection_y = int(p1.y() + dy1 * t1)
                 
-                # 在交点处画一个小圆点
-                cv2.circle(frame, (intersection_x, intersection_y), 6, obj.properties['color'], -1)
-                
                 # 计算角平分线的方向向量（中线）
                 mid_dx = dx1 + dx2
                 mid_dy = dy1 + dy2
@@ -1266,6 +1263,9 @@ class LayerManager:
             # 计算背景矩形的尺寸
             max_width = max(angle_width + 15, coord_width)  # 增加空间给度数符号
             total_height = text_height * 2 + 20  # 两行文本的总高度加上间距
+
+            # 在交点处画一个小圆点
+            cv2.circle(frame, (intersection_x, intersection_y), 6, (255, 0, 0), -1)
             
             # 绘制文本背景
             cv2.rectangle(frame,
@@ -1282,7 +1282,7 @@ class LayerManager:
                       (text_x, angle_y + text_height),
                       font,
                       font_scale,
-                      obj.properties['color'],
+                      (255, 0, 0),
                       thickness,
                       cv2.LINE_AA)
                       
@@ -1291,8 +1291,8 @@ class LayerManager:
             dot_y = angle_y + text_height//6
             cv2.circle(frame,
                       (int(dot_x), int(dot_y)),
-                      6*int(font_scale),  # 圆的半径
-                      obj.properties['color'],
+                      int(6 * max(0.9, int(font_scale))),  # 圆的半径
+                      (255, 0, 0),
                       2,  # 1表示空心圆
                       cv2.LINE_AA)
             
@@ -1344,18 +1344,38 @@ class LayerManager:
         dot_product = dx1*dx2 + dy1*dy2
         angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
         
-        # 计算两线段的中点
-        mid1_x = (p1.x() + p2.x()) // 2
-        mid1_y = (p1.y() + p2.y()) // 2
-        mid2_x = (p3.x() + p4.x()) // 2
-        mid2_y = (p3.y() + p4.y()) // 2
+        # 计算两线段的交点作为显示角度的位置
+        # 使用线性代数求解两直线交点
+        # 线段1: p1 -> p2, 线段2: p3 -> p4
         
-        # 计算两线段中点的中点作为显示角度的位置
-        display_x = (mid1_x + mid2_x) // 2
-        display_y = (mid1_y + mid2_y) // 2
+        # 计算直线方程 Ax + By = C
+        A1 = p2.y() - p1.y()
+        B1 = p1.x() - p2.x()
+        C1 = A1 * p1.x() + B1 * p1.y()
+        
+        A2 = p4.y() - p3.y()
+        B2 = p3.x() - p4.x()
+        C2 = A2 * p3.x() + B2 * p3.y()
+        
+        # 计算行列式
+        det = A1 * B2 - A2 * B1
+        
+        # 如果行列式接近0，表示两线段平行或共线，使用中点
+        if abs(det) < 1e-10:
+            # 使用两线段中点的中点
+            mid1_x = (p1.x() + p2.x()) // 2
+            mid1_y = (p1.y() + p2.y()) // 2
+            mid2_x = (p3.x() + p4.x()) // 2
+            mid2_y = (p3.y() + p4.y()) // 2
+            display_x = (mid1_x + mid2_x) // 2
+            display_y = (mid1_y + mid2_y) // 2
+        else:
+            # 计算交点
+            display_x = int((B2 * C1 - B1 * C2) / det)
+            display_y = int((A1 * C2 - A2 * C1) / det)
         
         # 在显示位置画一个小圆点
-        cv2.circle(frame, (display_x, display_y), 6, obj.properties['color'], -1)
+        cv2.circle(frame, (display_x, display_y), 6, (255, 0, 0), -1)
         
         # 准备显示的文本
         angle_text = f"{angle:.1f}"  # 角度值，保留一位小数
@@ -1391,17 +1411,17 @@ class LayerManager:
                   (text_x, text_y),
                   font,
                   font_scale,
-                  obj.properties['color'],
+                  (255, 0, 0),
                   thickness,
                   cv2.LINE_AA)
                   
         # 绘制度数符号（空心圆）
         dot_x = text_x + angle_width + 8
-        dot_y = text_y - text_height//2
+        dot_y = text_y - text_height // 3 * 2
         cv2.circle(frame,
                   (int(dot_x), int(dot_y)),
-                  6*int(font_scale),  # 圆的半径
-                  obj.properties['color'],
+                  int(6 * max(0.9, int(font_scale))),  # 圆的半径
+                  (255, 0, 0),
                   2,  # 2表示空心圆
                   cv2.LINE_AA)
 
@@ -1848,8 +1868,8 @@ class LayerManager:
             padding = 8  # 增加内边距
             
             # 计算文本位置（移动到点的右上方）
-            text_x = p.x() + 10  # 向右偏移10像素
-            text_y = p.y() - 10  # 向上偏移10像素
+            text_x = p.x() + 15  # 向右偏移15像素
+            text_y = p.y() - 15  # 向上偏移15像素
             
             # 获取文本大小
             (text_width, text_height), baseline = cv2.getTextSize(coord_text, font, font_scale, thickness)
@@ -1926,6 +1946,13 @@ class LayerManager:
                                 obj.properties.get('thickness', 2),
                                 cv2.LINE_AA)
             
+            # 绘制垂足点
+            cv2.circle(frame,
+                      (int(foot_x), int(foot_y)),
+                      obj.properties.get('radius', 5),
+                      (255, 0, 0),
+                      -1)  # 填充圆
+
             # 显示距离文本
             if obj.properties.get('show_distance', False):
                 distance_text = f"{distance:.1f}px"
@@ -2405,9 +2432,41 @@ class LayerManager:
 
     def delete_selected_objects(self):
         """删除选中的图元"""
+        # 获取要删除的线段对象
+        selected_segments = [obj for obj in self.selected_objects if obj.type == DrawingType.LINE_SEGMENT]
+        
         # 从绘制列表中移除选中的对象
         self.drawing_objects = [obj for obj in self.drawing_objects 
                               if obj not in self.selected_objects]
+        
+        # 如果删除了线段，同时删除相关的角度测量对象
+        if selected_segments:
+            # 遍历所有绘制对象
+            remaining_objects = []
+            for obj in self.drawing_objects:
+                # 如果是线段角度测量对象
+                if obj.type == DrawingType.LINE_SEGMENT_ANGLE:
+                    # 获取该角度测量对象使用的线段点
+                    line1_p1, line1_p2 = obj.points[0], obj.points[1]  # 第一条线段
+                    line2_p1, line2_p2 = obj.points[2], obj.points[3]  # 第二条线段
+                    
+                    # 检查是否使用了被删除的线段
+                    should_keep = True
+                    for segment in selected_segments:
+                        segment_p1, segment_p2 = segment.points[0], segment.points[1]
+                        # 如果角度测量对象使用了被删除的线段，则删除该角度测量对象
+                        if ((line1_p1 == segment_p1 and line1_p2 == segment_p2) or
+                            (line2_p1 == segment_p1 and line2_p2 == segment_p2)):
+                            should_keep = False
+                            break
+                    
+                    if should_keep:
+                        remaining_objects.append(obj)
+                else:
+                    remaining_objects.append(obj)
+            
+            self.drawing_objects = remaining_objects
+        
         # 从检测列表中移除选中的对象
         self.detection_objects = [obj for obj in self.detection_objects 
                                 if obj not in self.selected_objects]
@@ -2540,6 +2599,13 @@ class LayerManager:
                             line_color, 
                             obj.properties.get('thickness', 2))
                 
+                # 绘制垂足点
+                cv2.circle(frame,
+                          (int(foot_x), int(foot_y)),
+                          obj.properties.get('radius', 5),
+                          (255, 0, 0),
+                          -1)  # 填充圆
+
                 # 显示距离信息
                 if obj.properties.get('show_distance', True):
                     # 计算文本位置（在连线中点附近）
@@ -2706,20 +2772,6 @@ class LayerManager:
                         # 计算线段到圆的垂直距离
                         distance_to_circle = abs(distance_to_line - radius)
                         
-                        # 绘制垂足点
-                        cv2.circle(frame,
-                                  (int(foot_x), int(foot_y)),
-                                  obj.properties.get('radius', 5),
-                                  line_color,
-                                  -1)  # 填充圆
-                        
-                        # 绘制圆上的垂足点
-                        cv2.circle(frame,
-                                  (int(circle_foot_x), int(circle_foot_y)),
-                                  obj.properties.get('radius', 5),
-                                  line_color,
-                                  -1)  # 填充圆
-                        
                         # 绘制垂线（从线段垂足到圆上垂足）
                         if obj.properties.get('is_dashed', True):
                             # 绘制虚线效果
@@ -2759,6 +2811,20 @@ class LayerManager:
                                     line_color, 
                                     obj.properties.get('thickness', 2))
                         
+                        # 绘制垂足点
+                        cv2.circle(frame,
+                                  (int(foot_x), int(foot_y)),
+                                  obj.properties.get('radius', 5),
+                                  (255, 0, 0),
+                                  -1)  # 填充圆
+                        
+                        # 绘制圆上的垂足点
+                        cv2.circle(frame,
+                                  (int(circle_foot_x), int(circle_foot_y)),
+                                  obj.properties.get('radius', 5),
+                                  line_color,
+                                  -1)  # 填充圆
+
                         # 显示距离信息
                         if obj.properties.get('show_distance', True):
                             # 计算文本位置（在连线中点附近）
@@ -2793,6 +2859,7 @@ class LayerManager:
                                       obj.properties.get('color', (0, 255, 0)),
                                       thickness,
                                       cv2.LINE_AA)
+                            
         except Exception as e:
             print(f"绘制线段到圆的垂直距离时出错: {str(e)}")
 
