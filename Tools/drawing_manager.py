@@ -312,7 +312,20 @@ class DrawingManager(QObject):
         label_width = label.width()
         label_height = label.height()
         
-        ratio = min(label_width / img_width, label_height / img_height)
+        # 获取缩放因子
+        zoom_factor = 1.0
+        # 查找父容器是否为GridContainer
+        from Tools.grid_container import GridContainer
+        parent = label.parent()
+        while parent:
+            if isinstance(parent, GridContainer):
+                zoom_factor = parent.get_zoom_factor()
+                break
+            parent = parent.parent()
+        
+        # 计算缩放比例
+        base_ratio = min(label_width / img_width, label_height / img_height)
+        ratio = base_ratio * zoom_factor
         display_width = int(img_width * ratio)
         display_height = int(img_height * ratio)
         
@@ -588,7 +601,7 @@ class DrawingManager(QObject):
             # 更新目标视图
             current_frame = self.parent().get_current_frame_for_view(target_label)
             if current_frame is not None:
-                display_frame = target_manager.layer_manager.render_frame(current_frame)
+                display_frame = target_manager.layer_manager.render_frame(current_frame.copy())
                 if display_frame is not None:
                     self.parent().update_view(target_label, display_frame)
                     

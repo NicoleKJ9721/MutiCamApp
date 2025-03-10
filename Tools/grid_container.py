@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QStackedLayout, QGridLayout
 from PyQt5.QtGui import QPainter, QPen, QColor
-from PyQt5.QtCore import Qt, pyqtSignal, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QEvent, QPoint
 
 class GridOverlay(QWidget):
     """
@@ -87,6 +87,13 @@ class GridContainer(QWidget):
         self.grid_overlay.raise_()
         self.grid_overlay.setGeometry(0, 0, self.width(), self.height())
         
+        # 缩放相关属性
+        self.zoom_factor = 1.0  # 初始缩放因子
+        self.min_zoom_factor = 1.0  # 最小缩放因子（不能小于原始大小）
+        self.max_zoom_factor = 5.0  # 最大缩放因子
+        self.zoom_step = 0.1  # 每次滚轮滚动的缩放步长
+        self.zoom_center = QPoint(0, 0)  # 缩放中心点
+        
     def resizeEvent(self, event):
         """重写调整大小事件，确保覆盖层大小与容器一致"""
         super().resizeEvent(event)
@@ -137,4 +144,58 @@ class GridContainer(QWidget):
         if self.label and hasattr(self.label, 'mouseDoubleClickEvent'):
             self.label.mouseDoubleClickEvent(event)
         else:
-            super().mouseDoubleClickEvent(event) 
+            super().mouseDoubleClickEvent(event)
+            
+    def wheelEvent(self, event):
+        """处理滚轮事件，实现放大缩小功能"""
+        # 记录鼠标位置作为缩放中心
+        self.zoom_center = event.pos()
+        
+        # 计算缩放因子变化
+        delta = event.angleDelta().y()
+        zoom_delta = self.zoom_step if delta > 0 else -self.zoom_step
+        
+        # 更新缩放因子
+        new_zoom_factor = self.zoom_factor + zoom_delta
+        
+        # 限制缩放范围
+        new_zoom_factor = max(self.min_zoom_factor, min(self.max_zoom_factor, new_zoom_factor))
+        
+        # 如果缩放因子没有变化，不进行处理
+        if abs(new_zoom_factor - self.zoom_factor) < 0.001:
+            return
+            
+        # 更新缩放因子
+        self.zoom_factor = new_zoom_factor
+        
+        # 更新视图
+        self.update_view()
+        
+        # 阻止事件继续传播
+        event.accept()
+        
+    def update_view(self):
+        """更新视图显示"""
+        if self.label and self.label.pixmap():
+            # 获取当前帧
+            current_frame = self.window().get_current_frame_for_view(self.label)
+            if current_frame is not None:
+                # 获取测量管理器
+                drawing_manager = self.window().drawing_manager
+                if drawing_manager:
+                    measurement_manager = drawing_manager.get_measurement_manager(self.label)
+                    if measurement_manager:
+                        # 重新渲染帧
+                        display_frame = measurement_manager.layer_manager.render_frame(current_frame.copy())
+                        if display_frame is not None:
+                            # 更新视图
+                            self.window().update_view_with_zoom(self.label, display_frame, self.zoom_factor, self.zoom_center)
+                            
+    def get_zoom_factor(self):
+        """获取当前缩放因子"""
+        return self.zoom_factor
+        
+    def reset_zoom(self):
+        """重置缩放"""
+        self.zoom_factor = 1.0
+        self.update_view() 

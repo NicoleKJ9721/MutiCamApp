@@ -308,9 +308,9 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             if self.current_frame_vertical is not None:
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
                 if tab_measurement:
-                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_vertical)
+                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_vertical.copy())
                     if display_frame is not None:
-                        self.display_image(display_frame, self.lbVerticalView_2)
+                        self.update_view(self.lbVerticalView_2, display_frame)
 
         elif index == 2:  # 左视图选项卡
             self.last_active_view = self.lbLeftView_2
@@ -318,9 +318,9 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             if self.current_frame_left is not None:
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
                 if tab_measurement:
-                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_left)
+                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_left.copy())
                     if display_frame is not None:
-                        self.display_image(display_frame, self.lbLeftView_2)
+                        self.update_view(self.lbLeftView_2, display_frame)
 
         elif index == 3:  # 前视图选项卡
             self.last_active_view = self.lbFrontView_2
@@ -328,9 +328,9 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             if self.current_frame_front is not None:
                 tab_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
                 if tab_measurement:
-                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_front)
+                    display_frame = tab_measurement.layer_manager.render_frame(self.current_frame_front.copy())
                     if display_frame is not None:
-                        self.display_image(display_frame, self.lbFrontView_2)
+                        self.update_view(self.lbFrontView_2, display_frame)
 
     def start_drawing_mode(self):
         """启动绘画模式"""
@@ -452,75 +452,83 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def update_ver_camera_view(self, frame):
         """更新垂直相机视图"""
         try:
-            # 保存当前帧的引用而不是拷贝
-            self.current_frame_vertical = frame
+            if frame is None:
+                return
+                
+            # 保存当前帧
+            self.current_frame_vertical = frame.copy()
             
-            # 更新主界面的垂直视图（当选项卡索引为0时）
-            if self.tabWidget.currentIndex() == 0 and self.lbVerticalView.isVisible():
-                # 更新主界面的垂直视图
-                main_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
-                if main_measurement:
-                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
-                    if main_display_frame is not None:
-                        self.display_image(main_display_frame, self.lbVerticalView)
+            # 获取测量管理器
+            ver_manager = self.drawing_manager.get_measurement_manager(self.lbVerticalView)
+            ver_manager_2 = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
             
-            # 更新垂直选项卡的视图（当选项卡索引为1时）
-            if self.tabWidget.currentIndex() == 1 and self.lbVerticalView_2.isVisible():
-                tab_measurement = self.drawing_manager.get_measurement_manager(self.lbVerticalView_2)
-                if tab_measurement:
-                    tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
-                    if tab_display_frame is not None:
-                        self.display_image(tab_display_frame, self.lbVerticalView_2)
+            if ver_manager:
+                # 渲染主界面垂直视图
+                display_frame = ver_manager.layer_manager.render_frame(frame.copy())
+                if display_frame is not None:
+                    self.update_view(self.lbVerticalView, display_frame)
+            
+            # 如果当前是垂直视图选项卡，也更新选项卡视图
+            if self.tabWidget.currentIndex() == 1 and ver_manager_2:
+                display_frame_2 = ver_manager_2.layer_manager.render_frame(frame.copy())
+                if display_frame_2 is not None:
+                    self.update_view(self.lbVerticalView_2, display_frame_2)
                     
         except Exception as e:
             self.log_manager.log_error("更新垂直相机视图失败", str(e))
-
+            
     def update_left_camera_view(self, frame):
         """更新左侧相机视图"""
         try:
-            # 保存当前帧的引用而不是拷贝
-            self.current_frame_left = frame
+            if frame is None:
+                return
+                
+            # 保存当前帧
+            self.current_frame_left = frame.copy()
             
-            # 更新主界面的左侧视图（当选项卡索引为0时）
-            if self.tabWidget.currentIndex() == 0 and self.lbLeftView.isVisible():
-                main_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView)
-                if main_measurement:
-                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
-                    if main_display_frame is not None:
-                        self.display_image(main_display_frame, self.lbLeftView)
+            # 获取测量管理器
+            left_manager = self.drawing_manager.get_measurement_manager(self.lbLeftView)
+            left_manager_2 = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
             
-            # 更新左侧选项卡的视图（当选项卡索引为2时）
-            if self.tabWidget.currentIndex() == 2 and self.lbLeftView_2.isVisible():
-                tab_measurement = self.drawing_manager.get_measurement_manager(self.lbLeftView_2)
-                if tab_measurement:
-                    tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
-                    if tab_display_frame is not None:
-                        self.display_image(tab_display_frame, self.lbLeftView_2)
+            if left_manager:
+                # 渲染主界面左侧视图
+                display_frame = left_manager.layer_manager.render_frame(frame.copy())
+                if display_frame is not None:
+                    self.update_view(self.lbLeftView, display_frame)
+            
+            # 如果当前是左侧视图选项卡，也更新选项卡视图
+            if self.tabWidget.currentIndex() == 2 and left_manager_2:
+                display_frame_2 = left_manager_2.layer_manager.render_frame(frame.copy())
+                if display_frame_2 is not None:
+                    self.update_view(self.lbLeftView_2, display_frame_2)
                     
         except Exception as e:
             self.log_manager.log_error("更新左侧相机视图失败", str(e))
-
+            
     def update_front_camera_view(self, frame):
         """更新对向相机视图"""
         try:
-            # 保存当前帧的引用而不是拷贝
-            self.current_frame_front = frame
+            if frame is None:
+                return
+                
+            # 保存当前帧
+            self.current_frame_front = frame.copy()
             
-            # 更新主界面的前视图（当选项卡索引为0时）
-            if self.tabWidget.currentIndex() == 0 and self.lbFrontView.isVisible():
-                main_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView)
-                if main_measurement:
-                    main_display_frame = main_measurement.layer_manager.render_frame(frame)
-                if main_display_frame is not None:
-                    self.display_image(main_display_frame, self.lbFrontView)
+            # 获取测量管理器
+            front_manager = self.drawing_manager.get_measurement_manager(self.lbFrontView)
+            front_manager_2 = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
             
-            # 更新对向选项卡的视图（当选项卡索引为3时）
-            if self.tabWidget.currentIndex() == 3 and self.lbFrontView_2.isVisible():
-                tab_measurement = self.drawing_manager.get_measurement_manager(self.lbFrontView_2)
-                if tab_measurement:
-                    tab_display_frame = tab_measurement.layer_manager.render_frame(frame)
-                    if tab_display_frame is not None:
-                        self.display_image(tab_display_frame, self.lbFrontView_2)
+            if front_manager:
+                # 渲染主界面对向视图
+                display_frame = front_manager.layer_manager.render_frame(frame.copy())
+                if display_frame is not None:
+                    self.update_view(self.lbFrontView, display_frame)
+            
+            # 如果当前是对向视图选项卡，也更新选项卡视图
+            if self.tabWidget.currentIndex() == 3 and front_manager_2:
+                display_frame_2 = front_manager_2.layer_manager.render_frame(frame.copy())
+                if display_frame_2 is not None:
+                    self.update_view(self.lbFrontView_2, display_frame_2)
                     
         except Exception as e:
             self.log_manager.log_error("更新对向相机视图失败", str(e))
@@ -562,6 +570,50 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
 
         except Exception as e:
             self.log_manager.log_error("显示图像失败", str(e))
+
+    def update_view_with_zoom(self, label, frame, zoom_factor, zoom_center):
+        """带缩放功能的视图更新函数"""
+        try:
+            if frame is None or label is None:
+                return
+                
+            height, width = frame.shape[:2]
+            label_size = label.size()
+            
+            # 计算基础缩放比例（适应标签大小）
+            base_scale = min(label_size.width() / width, label_size.height() / height)
+            
+            # 应用额外的缩放因子
+            scale = base_scale * zoom_factor
+            
+            # 计算缩放后的尺寸
+            new_width = int(width * scale)
+            new_height = int(height * scale)
+            
+            # 使用INTER_LINEAR进行缩放，在放大时提供更好的质量
+            interpolation = cv2.INTER_LINEAR if zoom_factor > 1.0 else cv2.INTER_NEAREST
+            scaled_frame = cv2.resize(frame, (new_width, new_height), interpolation=interpolation)
+            
+            # 转换为QImage
+            if len(scaled_frame.shape) == 2:  # Mono8
+                q_img = QImage(scaled_frame.data, scaled_frame.shape[1], scaled_frame.shape[0], 
+                              scaled_frame.shape[1], QImage.Format_Grayscale8)
+            else:  # RGB
+                bytes_per_line = scaled_frame.shape[1] * 3
+                q_img = QImage(scaled_frame.data, scaled_frame.shape[1], scaled_frame.shape[0], 
+                              bytes_per_line, QImage.Format_RGB888)
+            
+            # 创建QPixmap
+            pixmap = QPixmap.fromImage(q_img)
+            
+            # 设置到标签
+            label.setPixmap(pixmap)
+            
+            # 强制更新显示
+            label.update()
+            
+        except Exception as e:
+            self.log_manager.log_error("带缩放的显示图像失败", str(e))
 
     def show_error(self, message):
         QMessageBox.critical(self, "错误", message)
@@ -641,8 +693,19 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         label_width = label.width()
         label_height = label.height()
         
+        # 获取缩放因子
+        zoom_factor = 1.0
+        # 查找父容器是否为GridContainer
+        parent = label.parent()
+        while parent:
+            if isinstance(parent, GridContainer):
+                zoom_factor = parent.get_zoom_factor()
+                break
+            parent = parent.parent()
+        
         # 计算缩放比例
-        ratio = min(label_width / img_width, label_height / img_height)
+        base_ratio = min(label_width / img_width, label_height / img_height)
+        ratio = base_ratio * zoom_factor
         display_width = int(img_width * ratio)
         display_height = int(img_height * ratio)
         
@@ -658,7 +721,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         image_x = max(0, min(image_x, img_width - 1))
         image_y = max(0, min(image_y, img_height - 1))
         
-        print(f"鼠标坐标转换: 屏幕({pos.x()}, {pos.y()}) -> 图像({image_x}, {image_y})")  # 调试信息
+        print(f"鼠标坐标转换: 屏幕({pos.x()}, {pos.y()}) -> 图像({image_x}, {image_y}), 缩放因子: {zoom_factor}")  # 调试信息
         return QPoint(image_x, image_y)
 
     def mouseReleaseEvent(self, event):
@@ -694,7 +757,24 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
     def update_view(self, label, frame):
         """更新指定视图的显示"""
         if frame is not None:
-            self.display_image(frame, label)
+            # 检查是否需要应用缩放
+            zoom_factor = 1.0
+            zoom_center = None
+            
+            # 查找父容器是否为GridContainer
+            parent = label.parent()
+            while parent:
+                if isinstance(parent, GridContainer):
+                    zoom_factor = parent.get_zoom_factor()
+                    zoom_center = parent.zoom_center
+                    break
+                parent = parent.parent()
+            
+            # 根据是否有缩放选择不同的显示方法
+            if zoom_factor > 1.0 and zoom_center is not None:
+                self.update_view_with_zoom(label, frame, zoom_factor, zoom_center)
+            else:
+                self.display_image(frame, label)
 
     def label_mouseDoubleClickEvent(self, event, label):
         """处理标签的双击事件"""
@@ -917,7 +997,24 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             manager = self.drawing_manager.measurement_managers[label]
             display_frame = manager.layer_manager.render_frame(current_frame.copy())
             if display_frame is not None:
-                self.update_view(label, display_frame)
+                # 检查是否需要应用缩放
+                zoom_factor = 1.0
+                zoom_center = None
+                
+                # 查找父容器是否为GridContainer
+                parent = label.parent()
+                while parent:
+                    if isinstance(parent, GridContainer):
+                        zoom_factor = parent.get_zoom_factor()
+                        zoom_center = parent.zoom_center
+                        break
+                    parent = parent.parent()
+                
+                # 根据是否有缩放选择不同的显示方法
+                if zoom_factor > 1.0 and zoom_center is not None:
+                    self.update_view_with_zoom(label, display_frame, zoom_factor, zoom_center)
+                else:
+                    self.update_view(label, display_frame)
 
     def resizeEvent(self, event):
         """窗口大小改变事件处理"""
