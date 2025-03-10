@@ -1207,6 +1207,19 @@ class LayerManager:
                 intersection_x = int(p1.x() + dx1 * t1)
                 intersection_y = int(p1.y() + dy1 * t1)
                 
+                # 检查交点是否在视图内
+                if (0 <= intersection_x < width and 0 <= intersection_y < height):
+                    display_x = intersection_x
+                    display_y = intersection_y
+                else:
+                    # 如果交点在视图外，计算两直线的中点
+                    mid1_x = (p1.x() + p2.x()) // 2
+                    mid1_y = (p1.y() + p2.y()) // 2
+                    mid2_x = (p3.x() + p4.x()) // 2
+                    mid2_y = (p3.y() + p4.y()) // 2
+                    display_x = (mid1_x + mid2_x) // 2
+                    display_y = (mid1_y + mid2_y) // 2
+                
                 # 计算角平分线的方向向量（中线）
                 mid_dx = dx1 + dx2
                 mid_dy = dy1 + dy2
@@ -1222,15 +1235,15 @@ class LayerManager:
                     total_length = max_length * 2
                     num_segments = int(total_length / segment_length)
                     
-                    # 从交点向两边绘制虚线
+                    # 从显示位置向两边绘制虚线
                     for i in range(num_segments):
                         start_dist = i * segment_length - max_length
                         end_dist = start_dist + dash_length
                         
-                        dash_start_x = int(intersection_x + mid_dx * start_dist)
-                        dash_start_y = int(intersection_y + mid_dy * start_dist)
-                        dash_end_x = int(intersection_x + mid_dx * end_dist)
-                        dash_end_y = int(intersection_y + mid_dy * end_dist)
+                        dash_start_x = int(display_x + mid_dx * start_dist)
+                        dash_start_y = int(display_y + mid_dy * start_dist)
+                        dash_end_x = int(display_x + mid_dx * end_dist)
+                        dash_end_y = int(display_y + mid_dy * end_dist)
                         
                         if (0 <= dash_start_x < width and 0 <= dash_start_y < height and
                             0 <= dash_end_x < width and 0 <= dash_end_y < height):
@@ -1256,16 +1269,17 @@ class LayerManager:
             (coord_width, _), _ = cv2.getTextSize(coord_text, font, font_scale, thickness)
             
             # 计算文本位置
-            text_x = intersection_x + 20
-            angle_y = intersection_y - text_height - 5
-            coord_y = intersection_y + text_height + 5
+            text_x = display_x + 20
+            angle_y = display_y - text_height - 5
+            coord_y = display_y + text_height + 5
             
             # 计算背景矩形的尺寸
             max_width = max(angle_width + 15, coord_width)  # 增加空间给度数符号
             total_height = text_height * 2 + 20  # 两行文本的总高度加上间距
 
-            # 在交点处画一个小圆点
-            cv2.circle(frame, (intersection_x, intersection_y), 6, (255, 0, 0), -1)
+            # 在显示位置画一个小圆点(仅当点在视图内时)
+            if 0 <= intersection_x < width and 0 <= intersection_y < height:
+                cv2.circle(frame, (display_x, display_y), 6, (255, 0, 0), -1)
             
             # 绘制文本背景
             cv2.rectangle(frame,
@@ -1302,7 +1316,7 @@ class LayerManager:
                       (text_x, coord_y),
                       font,
                       font_scale,
-                      obj.properties['color'],
+                      (255, 0, 0),
                       thickness,
                       cv2.LINE_AA)
 
