@@ -3387,6 +3387,8 @@ class MeasurementManager(QObject):
                                 f"直线检测失败 - 视图: {view_name}", 
                                 "未在ROI区域内检测到直线"
                             )
+                        # 在检测失败时也重置current_object，以便能够进行新的ROI框绘制
+                        self.layer_manager.current_object = None
                     
                     self.drawing = False
                     return self.layer_manager.render_frame(current_frame)
