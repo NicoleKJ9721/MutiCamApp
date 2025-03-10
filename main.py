@@ -1072,10 +1072,19 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 清理之前的菜单项
             self.context_menu.clear()
             
-            # 添加删除选项
-            self.delete_action = QAction("删除", self)
-            self.delete_action.triggered.connect(self.delete_selected_objects)
-            self.context_menu.addAction(self.delete_action)
+            # 检查是否有平行线中线对象
+            has_midline = False
+            for obj in selected:
+                if obj.properties.get('is_midline', False):
+                    has_midline = True
+                    break
+            
+            # 只有在没有选中平行线中线时才添加删除选项
+            if not has_midline:
+                # 添加删除选项
+                self.delete_action = QAction("删除", self)
+                self.delete_action.triggered.connect(self.delete_selected_objects)
+                self.context_menu.addAction(self.delete_action)
             
             # 如果选中了两个图元，添加相应的测量选项
             if len(selected) == 2:

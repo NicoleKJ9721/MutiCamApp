@@ -3278,6 +3278,7 @@ class MeasurementManager(QObject):
         
         # 如果在绘制模式下，执行正常的绘制操作
         if self.draw_mode:
+            self.layer_manager.clear_selection()
             if self.draw_mode == DrawingType.SIMPLE_CIRCLE:
                 # 简单圆模式不在鼠标按下时处理，而是在鼠标释放时处理
                 return None
