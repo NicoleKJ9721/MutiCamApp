@@ -312,14 +312,21 @@ class DrawingManager(QObject):
         label_width = label.width()
         label_height = label.height()
         
-        # 获取缩放因子
+        # 获取缩放因子和偏移量
         zoom_factor = 1.0
+        view_offset_x = 0
+        view_offset_y = 0
+        
         # 查找父容器是否为GridContainer
         from Tools.grid_container import GridContainer
         parent = label.parent()
         while parent:
             if isinstance(parent, GridContainer):
                 zoom_factor = parent.get_zoom_factor()
+                # 获取视图偏移量
+                if zoom_factor > 1.0:
+                    view_offset_x = parent.view_offset_x
+                    view_offset_y = parent.view_offset_y
                 break
             parent = parent.parent()
         
@@ -329,12 +336,25 @@ class DrawingManager(QObject):
         display_width = int(img_width * ratio)
         display_height = int(img_height * ratio)
         
+        # 计算中心偏移
         x_offset = (label_width - display_width) // 2
         y_offset = (label_height - display_height) // 2
         
-        image_x = int((pos.x() - x_offset) * img_width / display_width)
-        image_y = int((pos.y() - y_offset) * img_height / display_height)
+        # 考虑缩放偏移量进行坐标转换
+        if zoom_factor > 1.0:
+            # 调整鼠标位置，考虑视图偏移
+            adjusted_x = pos.x() - view_offset_x
+            adjusted_y = pos.y() - view_offset_y
+            
+            # 转换调整后的坐标到图像坐标
+            image_x = int(adjusted_x * img_width / display_width)
+            image_y = int(adjusted_y * img_height / display_height)
+        else:
+            # 未缩放时的标准转换
+            image_x = int((pos.x() - x_offset) * img_width / display_width)
+            image_y = int((pos.y() - y_offset) * img_height / display_height)
         
+        # 确保坐标在图像范围内
         image_x = max(0, min(image_x, img_width - 1))
         image_y = max(0, min(image_y, img_height - 1))
         

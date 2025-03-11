@@ -11,7 +11,7 @@ import cv2
 from typing import List
 from datetime import datetime
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QImage, QPixmap, QIntValidator
+from PyQt5.QtGui import QImage, QPixmap, QIntValidator, QPainter
 from PyQt5.QtCore import Qt, QThread, QPoint
 from mainwindow import Ui_MainWindow
 from Tools.camera_thread import CameraThread
@@ -606,6 +606,82 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             # 创建QPixmap
             pixmap = QPixmap.fromImage(q_img)
             
+            # 如果有缩放中心点，计算偏移量以保持鼠标位置下的图像点不变
+            if zoom_factor > 1.0:
+                # 获取GridContainer实例
+                grid_container = None
+                for parent in self.findChildren(GridContainer):
+                    if label in parent.findChildren(QLabel):
+                        grid_container = parent
+                        break
+                
+                if grid_container:
+                    # 只在首次缩放或用户主动缩放时更新偏移量
+                    # 通过比较当前zoom_factor和last_zoom_factor判断是否是用户主动缩放
+                    is_user_zoom = abs(zoom_factor - grid_container.last_zoom_factor) > 0.001
+                    
+                    if grid_container.last_zoom_factor == 1.0 and zoom_factor > 1.0:
+                        # 首次缩放，初始化偏移量
+                        # 计算鼠标在标签中的相对位置
+                        rel_x = zoom_center.x() / label_size.width()
+                        rel_y = zoom_center.y() / label_size.height()
+                        
+                        # 计算鼠标在原始图像上的位置
+                        img_x = int(rel_x * width)
+                        img_y = int(rel_y * height)
+                        
+                        # 计算缩放后鼠标位置对应的图像点应该在的位置
+                        scaled_img_x = int(img_x * scale)
+                        scaled_img_y = int(img_y * scale)
+                        
+                        # 计算初始偏移量
+                        grid_container.view_offset_x = zoom_center.x() - scaled_img_x
+                        grid_container.view_offset_y = zoom_center.y() - scaled_img_y
+                    elif is_user_zoom:
+                        # 用户主动缩放，更新偏移量
+                        # 计算缩放比例变化
+                        zoom_ratio = zoom_factor / grid_container.last_zoom_factor
+                        
+                        # 计算鼠标相对于当前视图的位置
+                        rel_view_x = zoom_center.x()
+                        rel_view_y = zoom_center.y()
+                        
+                        # 计算鼠标相对于原始内容的位置（考虑当前偏移）
+                        content_x = (rel_view_x - grid_container.view_offset_x) / (base_scale * grid_container.last_zoom_factor)
+                        content_y = (rel_view_y - grid_container.view_offset_y) / (base_scale * grid_container.last_zoom_factor)
+                        
+                        # 计算新的内容位置
+                        new_content_x = content_x * base_scale * zoom_factor
+                        new_content_y = content_y * base_scale * zoom_factor
+                        
+                        # 更新偏移量，保持鼠标下的内容点不变
+                        grid_container.view_offset_x = rel_view_x - new_content_x
+                        grid_container.view_offset_y = rel_view_y - new_content_y
+                    
+                    # 创建一个新的QPixmap，大小与标签相同
+                    display_pixmap = QPixmap(label_size)
+                    display_pixmap.fill(Qt.black)  # 填充黑色背景
+                    
+                    # 创建QPainter在新的QPixmap上绘制
+                    painter = QPainter(display_pixmap)
+                    
+                    # 使用计算好的偏移量绘制
+                    draw_x = grid_container.view_offset_x
+                    draw_y = grid_container.view_offset_y
+                    
+                    # 绘制缩放后的图像
+                    painter.drawPixmap(int(draw_x), int(draw_y), pixmap)
+                    
+                    # 确保在使用painter后正确结束它
+                    painter.end()
+                    
+                    # 使用调整后的pixmap
+                    pixmap = display_pixmap
+                    
+                    # 更新last_zoom_factor，但只在用户主动缩放时更新
+                    if is_user_zoom:
+                        grid_container.last_zoom_factor = zoom_factor
+            
             # 设置到标签
             label.setPixmap(pixmap)
             
@@ -693,13 +769,20 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         label_width = label.width()
         label_height = label.height()
         
-        # 获取缩放因子
+        # 获取缩放因子和偏移量
         zoom_factor = 1.0
+        view_offset_x = 0
+        view_offset_y = 0
+        
         # 查找父容器是否为GridContainer
         parent = label.parent()
         while parent:
             if isinstance(parent, GridContainer):
                 zoom_factor = parent.get_zoom_factor()
+                # 获取视图偏移量
+                if zoom_factor > 1.0:
+                    view_offset_x = parent.view_offset_x
+                    view_offset_y = parent.view_offset_y
                 break
             parent = parent.parent()
         
@@ -709,13 +792,23 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
         display_width = int(img_width * ratio)
         display_height = int(img_height * ratio)
         
-        # 计算偏移量
+        # 计算中心偏移
         x_offset = (label_width - display_width) // 2
         y_offset = (label_height - display_height) // 2
         
-        # 转换坐标
-        image_x = int((pos.x() - x_offset) * img_width / display_width)
-        image_y = int((pos.y() - y_offset) * img_height / display_height)
+        # 考虑缩放偏移量进行坐标转换
+        if zoom_factor > 1.0:
+            # 调整鼠标位置，考虑视图偏移
+            adjusted_x = pos.x() - view_offset_x
+            adjusted_y = pos.y() - view_offset_y
+            
+            # 转换调整后的坐标到图像坐标
+            image_x = int(adjusted_x * img_width / display_width)
+            image_y = int(adjusted_y * img_height / display_height)
+        else:
+            # 未缩放时的标准转换
+            image_x = int((pos.x() - x_offset) * img_width / display_width)
+            image_y = int((pos.y() - y_offset) * img_height / display_height)
         
         # 确保坐标在图像范围内
         image_x = max(0, min(image_x, img_width - 1))

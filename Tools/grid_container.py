@@ -93,6 +93,9 @@ class GridContainer(QWidget):
         self.max_zoom_factor = 5.0  # 最大缩放因子
         self.zoom_step = 0.1  # 每次滚轮滚动的缩放步长
         self.zoom_center = QPoint(0, 0)  # 缩放中心点
+        self.view_offset_x = 0  # 当前视图的X偏移量
+        self.view_offset_y = 0  # 当前视图的Y偏移量
+        self.last_zoom_factor = 1.0  # 上一次的缩放因子
         
     def resizeEvent(self, event):
         """重写调整大小事件，确保覆盖层大小与容器一致"""
@@ -165,6 +168,9 @@ class GridContainer(QWidget):
         if abs(new_zoom_factor - self.zoom_factor) < 0.001:
             return
             
+        # 保存上一次的缩放因子（在更新zoom_factor之前）
+        self.last_zoom_factor = self.zoom_factor
+            
         # 更新缩放因子
         self.zoom_factor = new_zoom_factor
         
@@ -198,4 +204,7 @@ class GridContainer(QWidget):
     def reset_zoom(self):
         """重置缩放"""
         self.zoom_factor = 1.0
+        self.view_offset_x = 0
+        self.view_offset_y = 0
+        self.last_zoom_factor = 1.0
         self.update_view() 
