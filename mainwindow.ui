@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>780</height>
+    <width>1014</width>
+    <height>734</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="minimumSize">
    <size>
     <width>512</width>
-    <height>390</height>
+    <height>400</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -55,7 +55,7 @@
           <item>
            <widget class="QGroupBox" name="groupBox">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -117,7 +117,7 @@
           <item>
            <widget class="QGroupBox" name="groupBox_2">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -183,7 +183,7 @@
           <item>
            <widget class="QGroupBox" name="groupBox_3">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -245,7 +245,7 @@
           <item>
            <widget class="QGroupBox" name="groupBox_4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Ignored" vsizetype="Minimum">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
