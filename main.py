@@ -1486,7 +1486,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
 def main():
     app = QApplication(sys.argv)
     main_window = MainApp()
-    main_window.show()
+    main_window.showMaximized()  # 将show()改为showMaximized()以实现窗口最大化
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
