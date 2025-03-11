@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>945</height>
+    <width>1000</width>
+    <height>502</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1000</width>
-    <height>600</height>
+    <width>500</width>
+    <height>300</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -170,6 +170,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout_19" stretch="1,1">
           <item>
            <widget class="QGroupBox" name="groupBox_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -227,7 +233,7 @@
           <item>
            <widget class="QGroupBox" name="groupBox_4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <sizepolicy hsizetype="Ignored" vsizetype="Minimum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -277,6 +283,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
                   <item>
                    <widget class="QPushButton" name="btnDrawPoint">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -291,6 +303,12 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="btnDrawStraight">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -305,6 +323,12 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="btnDrawSimpleCircle">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <family>Agency FB</family>
@@ -324,6 +348,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_3">
                   <item>
                    <widget class="QPushButton" name="btnDrawParallel">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -338,6 +368,12 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="btnDraw2Line">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <pointsize>9</pointsize>
@@ -352,6 +388,12 @@
                   </item>
                   <item>
                    <widget class="QPushButton" name="btnDrawFineCircle">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="font">
                      <font>
                       <family>Agency FB</family>
@@ -369,6 +411,19 @@
                 </item>
                 <item>
                  <widget class="QPushButton" name="btnCan1StepDraw">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>撤销上步绘画</string>
                   </property>
@@ -376,6 +431,13 @@
                 </item>
                 <item>
                  <widget class="QPushButton" name="btnClearDrawings">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>清空绘画</string>
                   </property>
@@ -383,8 +445,15 @@
                 </item>
                 <item>
                  <widget class="QPushButton" name="btnSaveImage">
+                  <property name="font">
+                   <font>
+                    <pointsize>12</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
                   <property name="text">
-                   <string>保存图像（原始图像+可视化图像）</string>
+                   <string>保存图像（原始+可视化）</string>
                   </property>
                  </widget>
                 </item>
