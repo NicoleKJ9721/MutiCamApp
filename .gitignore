@@ -2,3 +2,5 @@
 /Development/__pycache__
 /Tools/__pycache__
 /Logs
+/build
+/dist
