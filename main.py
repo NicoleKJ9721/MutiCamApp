@@ -660,7 +660,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
                     
                     # 创建一个新的QPixmap，大小与标签相同
                     display_pixmap = QPixmap(label_size)
-                    display_pixmap.fill(Qt.black)  # 填充黑色背景
+                    display_pixmap.fill(Qt.transparent)  # 填充透明背景
                     
                     # 创建QPainter在新的QPixmap上绘制
                     painter = QPainter(display_pixmap)
