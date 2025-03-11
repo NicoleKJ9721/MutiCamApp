@@ -1214,6 +1214,13 @@ class LayerManager:
             dot_product = dx1*dx2 + dy1*dy2
             angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
             
+            # 确保角度是锐角（小于90度）
+            if angle > 90:
+                angle = 180 - angle
+                # 反转第二条线的方向向量，用于计算角平分线
+                dx2 = -dx2
+                dy2 = -dy2
+            
             # 计算两直线的交点
             denominator = dx1*dy2 - dy1*dx2
             if abs(denominator) > 1e-10:  # 非平行线情况
@@ -1234,39 +1241,41 @@ class LayerManager:
                     display_x = (mid1_x + mid2_x) // 2
                     display_y = (mid1_y + mid2_y) // 2
                 
-                # 计算角平分线的方向向量（中线）
-                mid_dx = dx1 + dx2
-                mid_dy = dy1 + dy2
-                mid_length = np.sqrt(mid_dx*mid_dx + mid_dy*mid_dy)
-                if mid_length > 1e-10:
-                    mid_dx /= mid_length
-                    mid_dy /= mid_length
-                    
-                    # 绘制中线（虚线）
-                    dash_length = 10
-                    gap_length = 10
-                    segment_length = dash_length + gap_length
-                    total_length = max_length * 2
-                    num_segments = int(total_length / segment_length)
-                    
-                    # 从显示位置向两边绘制虚线
-                    for i in range(num_segments):
-                        start_dist = i * segment_length - max_length
-                        end_dist = start_dist + dash_length
+                # 只有当角度是锐角时才绘制角平分线
+                if angle < 90:
+                    # 计算角平分线的方向向量（中线）
+                    mid_dx = dx1 + dx2
+                    mid_dy = dy1 + dy2
+                    mid_length = np.sqrt(mid_dx*mid_dx + mid_dy*mid_dy)
+                    if mid_length > 1e-10:
+                        mid_dx /= mid_length
+                        mid_dy /= mid_length
                         
-                        dash_start_x = int(display_x + mid_dx * start_dist)
-                        dash_start_y = int(display_y + mid_dy * start_dist)
-                        dash_end_x = int(display_x + mid_dx * end_dist)
-                        dash_end_y = int(display_y + mid_dy * end_dist)
+                        # 绘制中线（虚线）
+                        dash_length = 10
+                        gap_length = 10
+                        segment_length = dash_length + gap_length
+                        total_length = max_length * 2
+                        num_segments = int(total_length / segment_length)
                         
-                        if (0 <= dash_start_x < width and 0 <= dash_start_y < height and
-                            0 <= dash_end_x < width and 0 <= dash_end_y < height):
-                            cv2.line(frame,
-                                    (dash_start_x, dash_start_y),
-                                    (dash_end_x, dash_end_y),
-                                    obj.properties['color'],
-                                    obj.properties['thickness'],
-                                    cv2.LINE_AA)
+                        # 从显示位置向两边绘制虚线
+                        for i in range(num_segments):
+                            start_dist = i * segment_length - max_length
+                            end_dist = start_dist + dash_length
+                            
+                            dash_start_x = int(display_x + mid_dx * start_dist)
+                            dash_start_y = int(display_y + mid_dy * start_dist)
+                            dash_end_x = int(display_x + mid_dx * end_dist)
+                            dash_end_y = int(display_y + mid_dy * end_dist)
+                            
+                            if (0 <= dash_start_x < width and 0 <= dash_start_y < height and
+                                0 <= dash_end_x < width and 0 <= dash_end_y < height):
+                                cv2.line(frame,
+                                        (dash_start_x, dash_start_y),
+                                        (dash_end_x, dash_end_y),
+                                        obj.properties['color'],
+                                        obj.properties['thickness'],
+                                        cv2.LINE_AA)
             
             # 准备显示的文本
             angle_text = f"{angle:.1f}"  # 移除度数符号，后面用圆圈代替
@@ -1371,6 +1380,10 @@ class LayerManager:
         # 计算夹角（点积公式）
         dot_product = dx1*dx2 + dy1*dy2
         angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
+        
+        # 确保角度是锐角（小于90度）
+        if angle > 90:
+            angle = 180 - angle
         
         # 计算两线段的交点作为显示角度的位置
         # 使用线性代数求解两直线交点
