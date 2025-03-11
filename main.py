@@ -49,7 +49,7 @@ class MainApp(QMainWindow, Ui_MainWindow): # type: ignore
             height = int(self.ledUIHeight.text())
             self.resize(width, height)
         except ValueError:
-            self.resize(700, 600)
+            self.resize(1000, 800)
         
         # 然后再初始化UI和连接信号
         self._init_ui()
