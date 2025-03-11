@@ -97,6 +97,9 @@ class GridContainer(QWidget):
         self.view_offset_y = 0  # 当前视图的Y偏移量
         self.last_zoom_factor = 1.0  # 上一次的缩放因子
         
+        # 设置可以接收键盘焦点
+        self.setFocusPolicy(Qt.StrongFocus)
+        
     def resizeEvent(self, event):
         """重写调整大小事件，确保覆盖层大小与容器一致"""
         super().resizeEvent(event)
@@ -126,6 +129,9 @@ class GridContainer(QWidget):
             
     # 转发鼠标事件到内部的QLabel
     def mousePressEvent(self, event):
+        # 获取焦点，以便接收键盘事件
+        self.setFocus()
+        
         if self.label and hasattr(self.label, 'mousePressEvent'):
             self.label.mousePressEvent(event)
         else:
@@ -144,6 +150,9 @@ class GridContainer(QWidget):
             super().mouseReleaseEvent(event)
             
     def mouseDoubleClickEvent(self, event):
+        # 获取焦点，以便接收键盘事件
+        self.setFocus()
+        
         if self.label and hasattr(self.label, 'mouseDoubleClickEvent'):
             self.label.mouseDoubleClickEvent(event)
         else:
@@ -151,6 +160,9 @@ class GridContainer(QWidget):
             
     def wheelEvent(self, event):
         """处理滚轮事件，实现放大缩小功能"""
+        # 获取焦点，以便接收键盘事件
+        self.setFocus()
+        
         # 记录鼠标位置作为缩放中心
         self.zoom_center = event.pos()
         
@@ -207,4 +219,36 @@ class GridContainer(QWidget):
         self.view_offset_x = 0
         self.view_offset_y = 0
         self.last_zoom_factor = 1.0
-        self.update_view() 
+        self.update_view()
+        
+    def keyPressEvent(self, event):
+        """处理键盘按键事件，实现方向键移动功能"""
+        # 只有在放大状态下才处理方向键移动
+        if self.zoom_factor > 1.0:
+            # 根据缩放因子调整移动步长，缩放越大，移动步长越大
+            base_step = 10
+            move_step = int(base_step * self.zoom_factor)
+            
+            # 处理方向键
+            if event.key() == Qt.Key_Left:
+                self.view_offset_x += move_step
+                self.update_view()
+                event.accept()
+            elif event.key() == Qt.Key_Right:
+                self.view_offset_x -= move_step
+                self.update_view()
+                event.accept()
+            elif event.key() == Qt.Key_Up:
+                self.view_offset_y += move_step
+                self.update_view()
+                event.accept()
+            elif event.key() == Qt.Key_Down:
+                self.view_offset_y -= move_step
+                self.update_view()
+                event.accept()
+            else:
+                # 其他按键交给父类处理
+                super().keyPressEvent(event)
+        else:
+            # 未放大状态下，交给父类处理
+            super().keyPressEvent(event) 
