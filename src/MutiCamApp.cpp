@@ -533,27 +533,42 @@ void MutiCamApp::displayImageHighQuality(const QImage& image, QLabel* label, dou
         return;
     }
     
+    // 检查标签是否可见，不可见则跳过渲染
+    if (!label->isVisible()) {
+        return;
+    }
+    
     // 获取原始图像和标签尺寸
     int imgWidth = image.width();
     int imgHeight = image.height();
     QSize labelSize = label->size();
     
-    DEBUG_OUT("High quality display - Original: " << imgWidth << "x" << imgHeight 
+    DEBUG_OUT("Optimized display - Original: " << imgWidth << "x" << imgHeight 
               << ", Label: " << labelSize.width() << "x" << labelSize.height()
               << ", Zoom: " << zoomFactor);
     
-    // 计算基础缩放比例（适应标签大小）确保图像完整显示
+    // 计算基础缩放比例（适应标签大小）
     double baseScale = std::min(static_cast<double>(labelSize.width()) / imgWidth, 
                                static_cast<double>(labelSize.height()) / imgHeight);
     
     // 应用用户缩放因子
     double finalScale = baseScale * zoomFactor;
     
-    // 确保缩放后的图像不会超出标签范围（当zoomFactor > 1时可能发生）
+    // 添加缩放阈值判断，避免不必要的缩放操作
+    const double SCALE_THRESHOLD = 0.01;
+    if (std::abs(finalScale - 1.0) < SCALE_THRESHOLD) {
+        // 缩放比例接近1.0时，直接使用原图像，避免不必要的缩放
+        QPixmap pixmap = QPixmap::fromImage(image);
+        label->setPixmap(pixmap);
+        label->setAlignment(Qt::AlignCenter);
+        return;
+    }
+    
+    // 计算目标尺寸
     int targetWidth = static_cast<int>(imgWidth * finalScale);
     int targetHeight = static_cast<int>(imgHeight * finalScale);
     
-    // 如果缩放后尺寸超出标签，重新计算缩放比例
+    // 确保缩放后的图像不会超出标签范围
     if (targetWidth > labelSize.width() || targetHeight > labelSize.height()) {
         double adjustedScale = std::min(static_cast<double>(labelSize.width()) / imgWidth,
                                        static_cast<double>(labelSize.height()) / imgHeight);
@@ -563,30 +578,28 @@ void MutiCamApp::displayImageHighQuality(const QImage& image, QLabel* label, dou
         DEBUG_OUT("Scale adjusted to fit label: " << finalScale);
     }
     
-    // 使用高质量缩放算法
-    QImage scaledImage;
+    // 使用优化的缩放算法（参考Python版本）
+    Qt::TransformationMode transformMode;
     if (finalScale > 1.0) {
-        // 放大时使用平滑变换
-        scaledImage = image.scaled(targetWidth, targetHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    } else if (finalScale < 0.3) {
-        // 大幅缩小时，先进行一次中等缩放，再进行最终缩放（避免细节丢失）
-        int intermediateWidth = static_cast<int>(imgWidth * 0.5);
-        int intermediateHeight = static_cast<int>(imgHeight * 0.5);
-        QImage intermediateImage = image.scaled(intermediateWidth, intermediateHeight, 
-                                               Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        scaledImage = intermediateImage.scaled(targetWidth, targetHeight, 
-                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // 放大时使用平滑变换以保持质量
+        transformMode = Qt::SmoothTransformation;
     } else {
-        // 普通缩放使用平滑变换
-        scaledImage = image.scaled(targetWidth, targetHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // 缩小时使用快速变换以提升性能（最近邻插值）
+        transformMode = Qt::FastTransformation;
     }
+    
+    // 执行单次缩放，避免多级缩放的性能损失
+    QImage scaledImage = image.scaled(targetWidth, targetHeight, Qt::KeepAspectRatio, transformMode);
     
     DEBUG_OUT("Scaled image size: " << scaledImage.width() << "x" << scaledImage.height());
     
-    // 创建QPixmap并设置
+    // 创建QPixmap并设置（这里仍然需要复制，但已经优化了缩放部分）
     QPixmap pixmap = QPixmap::fromImage(scaledImage);
     label->setPixmap(pixmap);
     label->setAlignment(Qt::AlignCenter);
+    
+    // 强制更新显示（参考Python版本）
+    label->update();
     
     // 计算实际的缩放比例用于调试
     double actualScale = static_cast<double>(scaledImage.width()) / imgWidth;
@@ -601,38 +614,59 @@ void MutiCamApp::onVerticalFrameReady(const QImage& image)
     DEBUG_OUT("图像尺寸: " << image.width() << "x" << image.height());
     DEBUG_OUT("图像格式: " << (int)image.format());
     
-    // 保存当前帧
+    // 保存当前帧（直接赋值，避免深拷贝）
     m_currentVerticalFrame = image;
     
-    // 显示带绘制内容的图像
-    displayImageWithDrawings(image, lbVerticalView);
-    displayImageWithDrawings(image, lbVerticalView2); // 同时更新选项卡视图
+    // 只更新可见的视图，减少不必要的渲染
+    if (lbVerticalView && lbVerticalView->isVisible()) {
+        displayImageWithDrawings(image, lbVerticalView);
+    }
+    
+    // 检查Tab视图是否可见（只有当Tab页被选中时才更新）
+    if (lbVerticalView2 && lbVerticalView2->isVisible() && 
+        ui->tabWidget->currentWidget()->findChild<QLabel*>("lbVerticalView2") == lbVerticalView2) {
+        displayImageWithDrawings(image, lbVerticalView2);
+    }
     
     DEBUG_OUT("垂直相机图像处理完成");
 }
 
 void MutiCamApp::onLeftFrameReady(const QImage& image)
 {
-    qDebug() << "收到左侧相机图像 - 尺寸:" << image.size() << "格式:" << image.format();
+    DEBUG_LOG("收到左侧相机图像 - 尺寸:" << image.size() << "格式:" << image.format());
     
-    // 保存当前帧
+    // 保存当前帧（避免深拷贝）
     m_currentLeftFrame = image;
     
-    // 显示带绘制内容的图像
-    displayImageWithDrawings(image, lbLeftView);
-    displayImageWithDrawings(image, lbLeftView2); // 同时更新选项卡视图
+    // 只更新可见的视图
+    if (lbLeftView && lbLeftView->isVisible()) {
+        displayImageWithDrawings(image, lbLeftView);
+    }
+    
+    // 检查Tab视图是否可见
+    if (lbLeftView2 && lbLeftView2->isVisible() && 
+        ui->tabWidget->currentWidget()->findChild<QLabel*>("lbLeftView2") == lbLeftView2) {
+        displayImageWithDrawings(image, lbLeftView2);
+    }
 }
 
 void MutiCamApp::onFrontFrameReady(const QImage& image)
 {
-    qDebug() << "收到对向相机图像 - 尺寸:" << image.size() << "格式:" << image.format();
+    DEBUG_LOG("收到对向相机图像 - 尺寸:" << image.size() << "格式:" << image.format());
     
-    // 保存当前帧
+    // 保存当前帧（避免深拷贝）
     m_currentFrontFrame = image;
     
-    // 显示带绘制内容的图像
-    displayImageWithDrawings(image, lbFrontView);
-    displayImageWithDrawings(image, lbFrontView2); // 同时更新选项卡视图
+    // 只更新可见的视图
+    if (lbFrontView && lbFrontView->isVisible()) {
+        displayImageWithDrawings(image, lbFrontView);
+    }
+    
+    // 检查Tab视图是否可见
+    if (lbFrontView2 && lbFrontView2->isVisible() && 
+        ui->tabWidget->currentWidget()->findChild<QLabel*>("lbFrontView2") == lbFrontView2) {
+        displayImageWithDrawings(image, lbFrontView2);
+    }
 }
 
 void MutiCamApp::onCameraError(const QString& error)

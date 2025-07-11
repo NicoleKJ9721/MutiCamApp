@@ -1,10 +1,13 @@
 #include "CameraThread.h"
+#include "utils/DebugUtils.h"
 #include <QDebug>
 #include <QMutexLocker>
 #include <QCoreApplication>
 #include <QPainter>
 #include <QFont>
+#include <QElapsedTimer>
 #include <iostream>
+#include <algorithm>
 
 CameraThread::CameraThread(const QString& serialNumber, QObject* parent)
     : QThread(parent)
@@ -13,12 +16,12 @@ CameraThread::CameraThread(const QString& serialNumber, QObject* parent)
     , m_running(false)
     , m_capturing(false)
     , m_captureTimer(nullptr)
-    , m_targetFPS(20)
-    , m_frameInterval(50) // 20fps = 50ms间隔
+    , m_targetFPS(15)   // 降低默认帧率到15fps以减少CPU占用
+    , m_frameInterval(67) // 15fps = 67ms间隔 (1000/15 ≈ 67)
     , m_frameBuffer(nullptr)
     , m_bufferSize(0)
 {
-    qDebug() << "创建相机线程，序列号:" << serialNumber;
+    qDebug() << "创建相机线程，序列号:" << serialNumber << "，帧率：15fps";
     
     // 不在构造函数中创建定时器，改用循环方式
 }
@@ -91,8 +94,8 @@ void CameraThread::setTargetFPS(int fps)
     QMutexLocker locker(&m_mutex);
     
     if (fps <= 0 || fps > 60) {
-        qWarning() << "无效的帧率设置:" << fps << "，使用默认值20";
-        fps = 20;
+        qWarning() << "无效的帧率设置:" << fps << "，使用默认值15";
+        fps = 15; // 改为15fps默认值
     }
     
     m_targetFPS = fps;
@@ -139,18 +142,35 @@ void CameraThread::run()
         return;
     }
     
-    std::cout << "Start image capture loop - SN: " << m_serialNumber.toStdString() 
-              << ", Interval: " << m_frameInterval << "ms" << std::endl;
+    DEBUG_OUT("Start optimized image capture loop - SN: " << m_serialNumber.toStdString() 
+              << ", Interval: " << m_frameInterval << "ms, Target FPS: " << m_targetFPS);
     
-    // 使用循环方式获取图像，而不是定时器
+    // 使用循环方式获取图像，并添加更精确的帧率控制
+    QElapsedTimer frameTimer;
+    frameTimer.start();
+    qint64 lastFrameTime = 0;
+    
     while (m_running && m_capturing) {
-        captureFrame();
+        qint64 currentTime = frameTimer.elapsed();
         
-        // 控制帧率
-        msleep(m_frameInterval);
+        // 检查是否到了下一帧的时间
+        if (currentTime - lastFrameTime >= m_frameInterval) {
+            captureFrame();
+            lastFrameTime = currentTime;
+        }
+        
+        // 动态休眠时间，提高精度并减少CPU占用
+        qint64 nextFrameTime = lastFrameTime + m_frameInterval;
+        qint64 sleepTime = nextFrameTime - frameTimer.elapsed();
+        
+        if (sleepTime > 0) {
+            msleep(std::min(sleepTime, static_cast<qint64>(10))); // 最多休眠10ms
+        } else {
+            msleep(1); // 最小休眠1ms，让出CPU时间
+        }
     }
     
-    std::cout << "Image capture loop ended - SN: " << m_serialNumber.toStdString() << std::endl;
+    DEBUG_OUT("Image capture loop ended - SN: " << m_serialNumber.toStdString());
     
     // 清理
     cleanupCamera();
@@ -162,7 +182,16 @@ void CameraThread::run()
 void CameraThread::captureFrame()
 {
     if (!m_capturing) {
-        qDebug() << "跳过采集 - capturing:" << m_capturing;
+        DEBUG_LOG("跳过采集 - capturing:" << m_capturing);
+        return;
+    }
+    
+    // 添加跳帧机制以减少CPU负载
+    static int frameSkipCounter = 0;
+    frameSkipCounter++;
+    
+    // 每3帧处理1帧（进一步降低实际处理帧率）
+    if (frameSkipCounter % 3 != 0) {
         return;
     }
     
@@ -202,40 +231,56 @@ void CameraThread::captureFrame()
             pImageBuf = nullptr;
         }
     } else {
-        // 测试模式 - 生成测试图像
+        // 测试模式 - 生成简化的测试图像以减少CPU占用
         static int frameCounter = 0;
+        static QImage baseImage; // 缓存基础图像
         frameCounter++;
         
-        // 创建640x480的测试图像
-        image = QImage(640, 480, QImage::Format_RGB888);
-        
-        // 填充渐变色背景
-        for (int y = 0; y < image.height(); y++) {
-            for (int x = 0; x < image.width(); x++) {
-                int r = (x * 255) / image.width();
-                int g = (y * 255) / image.height();
-                int b = (frameCounter * 10) % 255;
-                image.setPixel(x, y, qRgb(r, g, b));
+        // 如果是第一次或每100帧重新生成基础图像
+        if (baseImage.isNull() || frameCounter % 100 == 1) {
+            baseImage = QImage(640, 480, QImage::Format_RGB888);
+            
+            // 使用更简单的填充模式减少计算量
+            int blockSize = 80; // 分块大小
+            for (int by = 0; by < baseImage.height(); by += blockSize) {
+                for (int bx = 0; bx < baseImage.width(); bx += blockSize) {
+                    int r = (bx * 255) / baseImage.width();
+                    int g = (by * 255) / baseImage.height();
+                    int b = 128; // 固定蓝色分量
+                    
+                    // 填充整个块
+                    for (int y = by; y < std::min(by + blockSize, baseImage.height()); y++) {
+                        for (int x = bx; x < std::min(bx + blockSize, baseImage.width()); x++) {
+                            baseImage.setPixel(x, y, qRgb(r, g, b));
+                        }
+                    }
+                }
             }
         }
         
-        // 在图像上绘制相机标识文字
-        QPainter painter(&image);
-        painter.setPen(Qt::white);
-        painter.setFont(QFont("Arial", 20, QFont::Bold));
-        QString text = QString("测试相机: %1\n帧号: %2").arg(m_serialNumber).arg(frameCounter);
-        painter.drawText(QRect(10, 10, 300, 100), Qt::AlignLeft | Qt::AlignTop, text);
+        // 复制基础图像并添加简单的动态效果
+        image = baseImage.copy();
         
-        std::cout << "Generated test image - SN: " << m_serialNumber.toStdString() << ", Frame: " << frameCounter << std::endl;
+        // 添加简单的动态颜色变化（不重新绘制整个图像）
+        int dynamicColor = (frameCounter * 15) % 255;
+        
+        // 在图像上绘制相机标识文字（优化：减少字体大小和绘制复杂度）
+        QPainter painter(&image);
+        painter.setPen(QColor(255, 255, 255));
+        painter.setFont(QFont("Arial", 16, QFont::Bold)); // 减小字体
+        QString text = QString("测试相机: %1\n帧号: %2").arg(m_serialNumber).arg(frameCounter);
+        painter.drawText(QRect(10, 10, 250, 60), Qt::AlignLeft | Qt::AlignTop, text);
+        
+        DEBUG_OUT("Generated optimized test image - SN: " << m_serialNumber.toStdString() << ", Frame: " << frameCounter);
     }
     
     // 发送图像信号
     if (!image.isNull()) {
-        std::cout << "*** Image ready, emitting frameReady signal - SN: " << m_serialNumber.toStdString() 
-                  << ", Size: " << image.width() << "x" << image.height() << " ***" << std::endl;
+        DEBUG_OUT("*** Image ready, emitting frameReady signal - SN: " << m_serialNumber.toStdString() 
+                  << ", Size: " << image.width() << "x" << image.height() << " ***");
         emit frameReady(image);
     } else {
-        std::cout << "ERROR: Image is null, cannot send - SN: " << m_serialNumber.toStdString() << std::endl;
+        ERROR_OUT("ERROR: Image is null, cannot send - SN: " << m_serialNumber.toStdString());
     }
 }
 
@@ -257,9 +302,8 @@ QImage CameraThread::convertToQImage(unsigned char* pImageBuf, unsigned int widt
             return colorImage;
         } 
         else if (pixelFormat == "RGB8") {
-            // RGB图像 - 8位三通道
-            QImage image(pImageBuf, width, height, QImage::Format_RGB888);
-            return image.copy(); // 深拷贝
+            // RGB图像 - 8位三通道 - 减少不必要的拷贝
+            return QImage(pImageBuf, width, height, width * 3, QImage::Format_RGB888).copy();
         }
         else {
             // 未知格式，尝试作为灰度图像处理并转换为伪彩色
