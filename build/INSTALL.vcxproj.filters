@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\CMakeFiles\56f44f0a9aa180b287e481e0282de5a1\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D6E0373C-9303-34E0-AD02-F46702AE7611}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

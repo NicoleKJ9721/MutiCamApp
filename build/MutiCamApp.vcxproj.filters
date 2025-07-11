@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\mocs_compilation_Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\MutiCamApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\infrastructure\camera\HikVisionCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\infrastructure\threading\CameraThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\utils\DebugUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\domain\drawing\services\DrawingManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\domain\drawing\services\LayerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\mocs_compilation_Release.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\mocs_compilation_MinSizeRel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\mocs_compilation_RelWithDebInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\MutiCamApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\include_Debug\src\ui_MutiCamApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\include_Release\src\ui_MutiCamApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\include_MinSizeRel\src\ui_MutiCamApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\include_RelWithDebInfo\src\ui_MutiCamApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\CMakeFiles\1edb9bc0d68f75904ce525f38ffb101f\autouic_(CONFIG).stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\src\MutiCamApp.ui" />
+    <None Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\autouic_Debug.stamp" />
+    <None Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\autouic_Release.stamp" />
+    <None Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\autouic_MinSizeRel.stamp" />
+    <None Include="D:\AppData\Documents\GitHub\MutiCamApp\MutiCamApp_cpp\build\MutiCamApp_autogen\autouic_RelWithDebInfo.stamp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D6E0373C-9303-34E0-AD02-F46702AE7611}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D091204C-79CB-37B3-B764-9DE4DA2E110C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{929FE755-6346-3F38-9985-110A6195131F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,228 @@
+{
+  "application": {
+    "version": "2.0.0",
+    "language": "zh_CN",
+    "auto_save": true,
+    "auto_save_interval": 300,
+    "log_level": "INFO",
+    "max_log_files": 10
+  },
+  "ui": {
+    "window": {
+      "width": 1280,
+      "height": 960,
+      "maximized": false,
+      "remember_size": true,
+      "remember_position": true
+    },
+    "theme": {
+      "style": "fusion",
+      "dark_mode": false,
+      "accent_color": "#0078d4"
+    },
+    "image_view": {
+      "default_zoom": 1.0,
+      "max_zoom": 10.0,
+      "min_zoom": 0.1,
+      "zoom_step": 0.1,
+      "smooth_zoom": true,
+      "center_on_load": true
+    },
+    "grid": {
+      "show_by_default": false,
+      "default_spacing": 50,
+      "color": "#808080",
+      "opacity": 0.5,
+      "line_width": 1
+    }
+  },
+  "camera": {
+    "vertical": {
+      "serial_number": "Vir44168414",
+      "exposure_time": 10000,
+      "gain": 1.0,
+      "auto_exposure": false,
+      "auto_gain": false,
+      "trigger_mode": "software",
+      "pixel_format": "RGB8"
+    },
+    "left": {
+      "serial_number": "Vir44200501",
+      "exposure_time": 10000,
+      "gain": 1.0,
+      "auto_exposure": false,
+      "auto_gain": false,
+      "trigger_mode": "software",
+      "pixel_format": "RGB8"
+    },
+    "front": {
+      "serial_number": "Vir44200721",
+      "exposure_time": 10000,
+      "gain": 1.0,
+      "auto_exposure": false,
+      "auto_gain": false,
+      "trigger_mode": "software",
+      "pixel_format": "RGB8"
+    },
+    "global": {
+      "frame_rate": 20.0,
+      "buffer_size": 10,
+      "timeout_ms": 1000,
+      "retry_count": 3,
+      "auto_reconnect": true
+    }
+  },
+  "detection": {
+    "edge": {
+      "canny_low_threshold": 50,
+      "canny_high_threshold": 150,
+      "aperture_size": 3,
+      "l2_gradient": false
+    },
+    "line": {
+      "rho": 1,
+      "theta": 0.017453293,
+      "threshold": 50,
+      "min_line_length": 20,
+      "max_line_gap": 10
+    },
+    "circle": {
+      "dp": 1,
+      "min_dist": 50,
+      "param1": 200,
+      "param2": 50,
+      "min_radius": 5,
+      "max_radius": 500
+    },
+    "preprocessing": {
+      "gaussian_blur": {
+        "enabled": false,
+        "kernel_size": 5,
+        "sigma_x": 1.0,
+        "sigma_y": 1.0
+      },
+      "morphology": {
+        "enabled": false,
+        "operation": "open",
+        "kernel_size": 3,
+        "iterations": 1
+      }
+    }
+  },
+  "measurement": {
+    "calibration": {
+      "pixel_scale": 1.0,
+      "unit": "MILLIMETER",
+      "coordinate_system": "IMAGE_COORDINATES",
+      "auto_calibrate": false
+    },
+    "precision": {
+      "decimal_places": 3,
+      "angle_unit": "DEGREE",
+      "tolerance": 1.0
+    },
+    "display": {
+      "show_coordinates": true,
+      "show_dimensions": true,
+      "show_angles": true,
+      "annotation_font_size": 12,
+      "annotation_color": "#FF0000"
+    }
+  },
+  "drawing": {
+    "styles": {
+      "point": {
+        "color": "#FF0000",
+        "size": 5,
+        "thickness": 2,
+        "fill": true
+      },
+      "line": {
+        "color": "#00FF00",
+        "thickness": 2,
+        "line_type": "solid"
+      },
+      "circle": {
+        "color": "#0000FF",
+        "thickness": 2,
+        "fill": false,
+        "line_type": "solid"
+      },
+      "selection": {
+        "color": "#FFFF00",
+        "thickness": 3,
+        "line_type": "dashed"
+      },
+      "detection": {
+        "color": "#FF8000",
+        "thickness": 2,
+        "line_type": "solid"
+      }
+    },
+    "interaction": {
+      "snap_to_pixel": true,
+      "snap_distance": 5,
+      "multi_select": true,
+      "auto_complete": true
+    }
+  },
+  "performance": {
+    "threading": {
+      "max_threads": 0,
+      "image_processing_threads": 2,
+      "camera_worker_threads": 3
+    },
+    "memory": {
+      "max_cached_frames": 50,
+      "auto_cleanup": true,
+      "cleanup_interval": 30
+    },
+    "rendering": {
+      "vsync": true,
+      "max_fps": 60,
+      "use_hardware_acceleration": true,
+      "update_on_idle": false
+    }
+  },
+  "storage": {
+    "paths": {
+      "log_directory": "./Logs",
+      "config_directory": "./Settings",
+      "export_directory": "./Export",
+      "temp_directory": "./Temp"
+    },
+    "auto_export": {
+      "enabled": false,
+      "format": "PNG",
+      "quality": 95,
+      "include_annotations": true
+    },
+    "backup": {
+      "enabled": true,
+      "interval": 3600,
+      "max_backups": 5
+    }
+  },
+  "shortcuts": {
+    "global": {
+      "start_capture": "F5",
+      "stop_capture": "F6",
+      "save_image": "Ctrl+S",
+      "undo": "Ctrl+Z",
+      "redo": "Ctrl+Y",
+      "clear_all": "Ctrl+Delete"
+    },
+    "measurement": {
+      "point_tool": "P",
+      "line_tool": "L",
+      "circle_tool": "C",
+      "calibration": "Ctrl+K"
+    },
+    "view": {
+      "zoom_in": "Ctrl++",
+      "zoom_out": "Ctrl+-",
+      "zoom_fit": "Ctrl+0",
+      "toggle_grid": "G"
+    }
+  }
+} 
