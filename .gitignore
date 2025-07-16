@@ -1,0 +1,9 @@
+/build
+/template
+/study
+/.vscode
+/build
+
+*.png
+*.jpg
+*.jpeg
