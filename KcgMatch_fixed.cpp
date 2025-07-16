@@ -165,6 +165,35 @@ namespace cv_dnn_nms {
 
 		ClearModel();
 		PaddingModelAndMask(model, mask, scale_range.end);
+
+
+		// --- Start of added code to compute base_template_box_ ---
+		{
+			cout << "计算标准模板框..." << endl;
+			Mat base_model = MdlOf(model, { 0.0f, 1.0f }); // No rotation, scale 1.0
+			Mat base_mask = MskOf(mask, { 0.0f, 1.0f });
+			erode(base_mask, base_mask, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
+
+			int base_features = (int)(num_features * 1.0f);
+
+			Mat mag, angle, quantized_angle;
+			// Use the 180-degree version for better precision if available
+			QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true); 
+			Template base_templ = ExtractTemplate(angle, quantized_angle, mag,
+				{0.0f, 1.0f}, PyramidLevel(0),
+				weak_thresh, strong_thresh,
+				base_features, base_mask);
+			
+			// The CropTemplate inside ExtractTemplate has already calculated the box.
+			// We store it as our canonical/base bounding box.
+			this->base_template_box_ = Rect(base_templ.x, base_templ.y, base_templ.w, base_templ.h);
+			cout << "Base template box calculated: [x=" << base_template_box_.x 
+				<< ", y=" << base_template_box_.y 
+				<< ", w=" << base_template_box_.width 
+				<< ", h=" << base_template_box_.height << "]" << endl;
+		}
+
+
 		angle_range_ = angle_range;
 		scale_range_ = scale_range;
 		vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
@@ -212,9 +241,10 @@ namespace cv_dnn_nms {
 
 	vector<Match> KcgMatch::Matching(Mat source, float score_thresh, float overlap,
 		float mag_thresh, float greediness, PyramidLevel pyrd_level, int T, int top_k,
-		MatchingStrategy strategy, const Mat mask) {
+		MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, 
+		float scale_search_window, const Mat mask) {
 
-		InitMatchParameter(score_thresh, overlap, mag_thresh, greediness, T, top_k, strategy);
+		InitMatchParameter(score_thresh, overlap, mag_thresh, greediness, T, top_k, strategy, refinement_search_mode_, fixed_angle_window, scale_search_window);
 
 		auto start_pyramid = std::chrono::high_resolution_clock::now();
 		GetAllPyramidLevelValidSource(source, pyrd_level);
@@ -248,18 +278,55 @@ namespace cv_dnn_nms {
 		return matches;
 	}
 
-	void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color) {
-		for (size_t i = 0; i < matches.size(); i++) {
-			Match m = matches[i];
-			// Use pyramid level 8 for drawing, as it corresponds to the full-resolution 180-degree model,
-			// which provides the most detailed features for visualization.
-			if (templ_all_[8].empty() || m.template_id >= (int)templ_all_[8].size())
-			{
-				cerr << "Warning: Invalid template ID " << m.template_id << " for drawing." << endl;
-				continue;
-			}
-			Template t = templ_all_[8][m.template_id];
+// KcgMatch.cpp
+void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color) {
+	for (size_t i = 0; i < matches.size(); i++) {
+		Match m = matches[i];
+		
+		// 使用金字塔层级8进行绘制,因为它对应完整分辨率的180度模型,提供最详细的特征用于可视化
+		if (templ_all_[8].empty() || m.template_id >= (int)templ_all_[8].size()) {
+			cerr << "Warning: Invalid template ID " << m.template_id << " for drawing." << endl;
+			continue;
+		}
+		Template t = templ_all_[8][m.template_id];
 
+		// --- 开始修改的绘制逻辑 ---
+
+		// 1. 从匹配的模板获取变换信息
+		float angle = t.shape_info.angle;
+		float scale = t.shape_info.scale;
+
+		// 2. 使用基础盒子和当前缩放定义旋转矩形的大小
+		// 使用base_template_box_因为它是真实的未旋转尺寸
+		Size2f rect_size(base_template_box_.width * scale, base_template_box_.height * scale);
+
+		// 3. 定义旋转矩形的中心
+		// 匹配点(m.x, m.y)是搜索区域的左上角
+		// 目标在该区域内的中心是(m.x + t.w/2, m.y + t.h/2)
+		// t.w和t.h是旋转模板的轴对齐边界,这正是我们需要的中心点
+		Point2f rect_center(m.x + t.w / 2.0f, m.y + t.h / 2.0f);
+
+		// 4. 创建旋转矩形
+		RotatedRect rotated_rect(rect_center, rect_size, -angle);
+
+		// 5. 获取旋转矩形的4个角点
+		Point2f vertices[4];
+		rotated_rect.points(vertices);
+
+		// 6. 绘制连接顶点的4条线
+		for (int j = 0; j < 4; j++) {
+			line(image, vertices[j], vertices[(j + 1) % 4], color, 1); // 使用2像素宽度以提高可见性
+		}
+		
+		// --- 结束修改的绘制逻辑 ---
+
+		// 可选:保留绘制特征点用于调试/可视化
+		for (const auto& feature : t.features) {
+			// 我们需要对特征点应用完整的变换才能正确绘制
+			// 这部分比较复杂,因为特征是相对于t.x,t.y的,而且需要旋转
+			// 为简单起见,我们可以跳过绘制单个特征或使用旧方法来获得粗略的效果
+			// 让我们只为匹配绘制一个中心点
+			circle(image, rect_center, 3, color, -1);
 			// Draw each feature point of the matched template
 			for (const auto& feature : t.features) {
 				line(image,
@@ -267,17 +334,15 @@ namespace cv_dnn_nms {
 					Point(m.x + feature.x, m.y + feature.y),
 					color, 1);
 			}
-			
-			// Draw the bounding box
-			rectangle(image, { m.x, m.y }, { m.x + t.w, m.y + t.h }, color, 1);
-
-			// Draw the match information (score, angle, scale)
-			string text = to_string(m.similarity).substr(0, 4) +
-						  "|Ang:" + to_string(t.shape_info.angle).substr(0, 4) +
-						  "|Sca:" + to_string(t.shape_info.scale).substr(0, 4);
-			putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, 1.0, color, 1);
 		}
+
+		// 绘制匹配信息(分数、角度、缩放)
+		string text = to_string(m.similarity).substr(0, 4) +
+					"|Ang:" + to_string(t.shape_info.angle).substr(0, 4) +
+					"|Sca:" + to_string(t.shape_info.scale).substr(0, 4);
+			putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, 1.0, color, 1);
 	}
+}
 
 	void KcgMatch::PaddingModelAndMask(Mat &model, Mat &mask, float max_scale) {
 
@@ -721,6 +786,12 @@ namespace cv_dnn_nms {
 		fs << "scale_range_bgin" << scale_range_.begin;
 		fs << "scale_range_end" << scale_range_.end;
 		fs << "scale_range_step" << scale_range_.step;
+		//================
+		fs << "base_template_box_x" << this->base_template_box_.x;
+		fs << "base_template_box_y" << this->base_template_box_.y;
+		fs << "base_template_box_w" << this->base_template_box_.width;
+		fs << "base_template_box_h" << this->base_template_box_.height;
+		//================
 		fs << "templates"
 			<< "[";
 		{
@@ -781,6 +852,20 @@ namespace cv_dnn_nms {
 		scale_range_.begin = fn["scale_range_bgin"];
 		scale_range_.end = fn["scale_range_end"];
 		scale_range_.step = fn["scale_range_step"];
+		//================
+		{
+			int bx, by, bw, bh;
+			bx = fn["base_template_box_x"];
+			by = fn["base_template_box_y"]; 
+			bw = fn["base_template_box_w"];
+			bh = fn["base_template_box_h"];
+			this->base_template_box_ = Rect(bx, by, bw, bh);
+			cout << "base template box loaded: [x=" << base_template_box_.x 
+				<< ", y=" << base_template_box_.y 
+				<< ", w=" << base_template_box_.width 
+				<< ", h=" << base_template_box_.height << "]" << endl;
+		}
+		//================
 		FileNode tps_fn = fn["templates"];
 		FileNodeIterator tps_it = tps_fn.begin(), tps_it_end = tps_fn.end();
 		for (; tps_it != tps_it_end; ++tps_it)
@@ -828,7 +913,8 @@ namespace cv_dnn_nms {
 		}
 	}
 
-	void KcgMatch::InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy) {
+	void KcgMatch::InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy,
+		const string& refinement_search_mode, float fixed_angle_window, float scale_search_window) {
 
 		score_thresh_ = score_thresh;
 		overlap_ = overlap;
@@ -837,44 +923,43 @@ namespace cv_dnn_nms {
 		T_ = T;
 		top_k_ = top_k;
 		strategy_ = strategy;
+
+		refinement_search_mode_ = refinement_search_mode;
+		fixed_angle_window_ = fixed_angle_window; 
 	}
-
-	void KcgMatch::GetAllPyramidLevelValidSource(cv::Mat &source, PyramidLevel pyrd_level) {
-
+	// 这是修正后的代码
+	void KcgMatch::GetAllPyramidLevelValidSource(const Mat &source, PyramidLevel pyrd_level) {
 		sources_.clear();
-		for (int pl = 0; pl <= pyrd_level; pl++) {
+		if (pyrd_level < PyramidLevel_0) return;
 
-			Mat source_pyrd;
-			if (pl == 0) source_pyrd = source;
-			else pyrDown(source, source_pyrd, Size(source.cols >> 1, source.rows >> 1));
-			source = source_pyrd;
-			sources_.push_back(source_pyrd);
+		// 级别0就是原始图像
+		sources_.push_back(source);
+
+		// 从级别1开始，用上一级别的图像来生成下一级别的图像
+		for (int pl = 1; pl <= pyrd_level; pl++) {
+			Mat smaller_img;
+			// 使用 sources_[pl-1] (上一层) 来生成当前层
+			pyrDown(sources_[pl - 1], smaller_img, Size(sources_[pl - 1].cols >> 1, sources_[pl - 1].rows >> 1));
+			sources_.push_back(smaller_img);
 		}
 	}
-
+	
 	vector<Match> KcgMatch::GetTopKMatches(vector<Match> matches) {
 
 		vector<Match> top_k_matches;
 		top_k_matches.clear();
-		if (top_k_ > 0 && (top_k_ < (int)matches.size()) && (matches.size() > 0)) {
-
-			int k = 0;
-			top_k_matches.push_back(matches[0]);
-			for (size_t m = 1; m < matches.size(); m++) {
-
-				if (matches[m].similarity < matches[m - 1].similarity) {
-
-					++k;
-					if (k >= top_k_) break;
-				}
-				top_k_matches.push_back(matches[m]);
-			}
+		
+		std::sort(matches.begin(), matches.end());
+	
+		if (top_k_ <= 0) {
+			return matches;
 		}
-		else
-		{
-			top_k_matches = matches;
+
+		if ((size_t)top_k_ >= matches.size()) {
+			return matches;
 		}
-		return top_k_matches;
+
+		return vector<Match>(matches.begin(), matches.begin() + top_k_);
 	}
 
 	vector<Match> KcgMatch::DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap) {
@@ -1124,68 +1209,94 @@ namespace cv_dnn_nms {
 		float match_sal = templ.shape_info.scale;
 		int angle_region = (int)((angle_range_.end - angle_range_.begin) / angle_range_.step) + 1;
 		int scale_region = (int)((scale_range_.end - scale_range_.begin) / scale_range_.step) + 1;
-		if (strategy <= Strategy_Middling) {
 
-			if (match_agl < 0.f) match_agl += 360.f;
-			int key = (int)floor(match_agl / 22.5f);
-			float left_agl = match_agl - key * 22.5f;
+		if (refinement_search_mode_ == "fixed") {
+			// --- 使用固定的角度窗口进行搜索 (更鲁棒) ---
+			cout << "[Debug] Using 'fixed' refinement search with window: +/- " << fixed_angle_window_ << " deg" << endl;
 			for (int ar = 0; ar < angle_region; ar++) {
-
 				float cur_agl = templ_all_[PyramidLevel_0][ar].shape_info.angle;
-				if (cur_agl < 0.f) cur_agl += 360.f;
-				int k = key;
-				if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
+				
+				// 计算角度差, 处理循环边界(-180/180)
+				float diff = fmod(fabs(cur_agl - match_agl) + 180.0f, 360.0f) - 180.0f;
+	
+				if (fabs(diff) > fixed_angle_window_) continue;
+					
+				for (int sr = 0; sr < scale_region; sr++) {
+					// 计算出当前模板的实际ID和缩放值
+                    int current_id = ar + sr * angle_region;
+                    float cur_sal = templ_all_[PyramidLevel_0][current_id].shape_info.scale;
 
-					for (int sr = 0; sr < scale_region; sr++) {
+                    if (fabs(cur_sal - match_sal) <= scale_search_window_) {
+                        region_idxes.push_back(current_id);
+                    }
+				}				
+			}
+		}
+		else
+		{
+			if (strategy <= Strategy_Middling) {
 
-						region_idxes.push_back(ar + sr * angle_region);
-					}
-				}
-				if (strategy == Strategy_Accurate) {
-
-					if (left_agl < 11.25f) {
-
-						k = key - 1;
-						if (k < 0) k = 15;
-						if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
-
-							for (int sr = 0; sr < scale_region; sr++) {
-
-								region_idxes.push_back(ar + sr * angle_region);
-							}
+				if (match_agl < 0.f) match_agl += 360.f;
+				int key = (int)floor(match_agl / 22.5f);
+				float left_agl = match_agl - key * 22.5f;
+				for (int ar = 0; ar < angle_region; ar++) {
+	
+					float cur_agl = templ_all_[PyramidLevel_0][ar].shape_info.angle;
+					if (cur_agl < 0.f) cur_agl += 360.f;
+					int k = key;
+					if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
+	
+						for (int sr = 0; sr < scale_region; sr++) {
+	
+							region_idxes.push_back(ar + sr * angle_region);
 						}
 					}
-					else
-					{
-						k = key + 1;
-						if (k > 15) k = 0;
-						if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
-
-							for (int sr = 0; sr < scale_region; sr++) {
-
-								region_idxes.push_back(ar + sr * angle_region);
+					if (strategy == Strategy_Accurate) {
+	
+						if (left_agl < 11.25f) {
+	
+							k = key - 1;
+							if (k < 0) k = 15;
+							if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
+	
+								for (int sr = 0; sr < scale_region; sr++) {
+	
+									region_idxes.push_back(ar + sr * angle_region);
+								}
+							}
+						}
+						else
+						{
+							k = key + 1;
+							if (k > 15) k = 0;
+							if (cur_agl >= AngleRegionTable[k][0] && cur_agl < AngleRegionTable[k][1]) {
+	
+								for (int sr = 0; sr < scale_region; sr++) {
+	
+									region_idxes.push_back(ar + sr * angle_region);
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		else if (strategy == Strategy_Rough) {
-
-			float err_range = 3.f;
-			for (int ar = 0; ar < angle_region; ar++) {
-
-				float cur_agl = templ_all_[PyramidLevel_0][ar].shape_info.angle;
-				if (cur_agl >= (match_agl - angle_range_.step * err_range) &&
-					cur_agl <= (match_agl + angle_range_.step * err_range)) {
-
-					for (int sr = 0; sr < scale_region; sr++) {
-
-						float cur_sal = templ_all_[PyramidLevel_0][ar + sr * angle_region].shape_info.scale;
-						if (cur_sal >= (match_sal - scale_range_.step * err_range) &&
-							cur_sal <= (match_sal + scale_range_.step * err_range)) {
-
-							region_idxes.push_back(ar + sr * angle_region);
+			else if (strategy == Strategy_Rough) {
+	
+				float err_range = 3.f;
+				for (int ar = 0; ar < angle_region; ar++) {
+	
+					float cur_agl = templ_all_[PyramidLevel_0][ar].shape_info.angle;
+					if (cur_agl >= (match_agl - angle_range_.step * err_range) &&
+						cur_agl <= (match_agl + angle_range_.step * err_range)) {
+	
+						for (int sr = 0; sr < scale_region; sr++) {
+	
+							float cur_sal = templ_all_[PyramidLevel_0][ar + sr * angle_region].shape_info.scale;
+							if (cur_sal >= (match_sal - scale_range_.step * err_range) &&
+								cur_sal <= (match_sal + scale_range_.step * err_range)) {
+	
+								region_idxes.push_back(ar + sr * angle_region);
+							}
 						}
 					}
 				}

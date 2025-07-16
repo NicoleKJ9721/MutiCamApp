@@ -70,6 +70,8 @@ void runMatching(KcgMatch &kcg_match, const json& config, const fs::path& exe_di
     int T = 2;
     int top_k = 0;
     MatchingStrategy strategy = Strategy_Accurate;
+    string refinement_search_mode = "fixed";
+    float fixed_angle_window = 25.0f;
     fs::path search_path = exe_dir / "template" / "search.jpg";
     fs::path result_path = exe_dir / "template" / "result.png";
     
@@ -82,6 +84,8 @@ void runMatching(KcgMatch &kcg_match, const json& config, const fs::path& exe_di
         pyrd_level = static_cast<PyramidLevel>(m_config.value("PyramidLevel", 3));
         T = m_config.value("T", 2);
         top_k = m_config.value("TopK", 0);
+        refinement_search_mode = m_config.value("RefinementSearchMode", "fixed");
+        fixed_angle_window = m_config.value("FixedAngleWindow", 25.0f);
         strategy = static_cast<MatchingStrategy>(m_config.value("Strategy", 0));
     }
 
@@ -112,7 +116,7 @@ void runMatching(KcgMatch &kcg_match, const json& config, const fs::path& exe_di
 
     auto start = chrono::high_resolution_clock::now();
     vector<Match> matches = kcg_match.Matching(source, score_thresh, overlap, mag_thresh,
-        greediness, pyrd_level, T, top_k, strategy);
+        greediness, pyrd_level, T, top_k, strategy, refinement_search_mode, fixed_angle_window);
     auto end = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
 
@@ -146,7 +150,7 @@ int main(int argc, char *argv[])
     fs::path exe_dir = get_executable_dir();
 
     json config;
-    std::ifstream f(exe_dir / "config.json");
+    std::ifstream f(exe_dir / "config.jsonc");
     if (f.is_open()) {
         try {
             config = json::parse(f, nullptr, true, true);

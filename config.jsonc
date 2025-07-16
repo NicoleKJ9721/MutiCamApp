@@ -2,7 +2,7 @@
     // 基础路径设置
     "Paths": {
         // 模板图片路径
-        "TemplateImage": "template/template.png",
+        "TemplateImage": "template/template.jpg",
         // 待搜索图片路径 (支持 .png 或 .jpg)
         "SearchImage": "template/search.jpg",
         // 结果图片保存路径
@@ -31,9 +31,14 @@
         // 内部参数T (1 ~ 8). 通常保持默认值即可
         "T": 2,
         // 最多匹配数量 (0 代表不限制). 如果只想找最匹配的1个,设置为1,可以大幅提速
-        "TopK": 12,
+        "TopK": 0,
         // 匹配策略 (0: 精确, 1: 普通, 2: 粗略). 0最准最慢,2最快最不准
-        "Strategy": 0
+        "Strategy": 0,
+        // 细化搜索模式 (fixed: 固定角度窗口, dynamic: 动态角度窗口)
+        "RefinementSearchMode": "fixed",
+        // 固定角度窗口 (度). 仅在 RefinementSearchMode 为 fixed 时有效
+        "FixedAngleWindow": 25.0,
+        "ScaleSearchWindow": 0.1
     },
     "TemplateMaking": {
         // --- 模板生成时的角度范围 ---

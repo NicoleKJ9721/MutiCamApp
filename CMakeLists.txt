@@ -63,7 +63,7 @@ endif()
 # 复制资源文件到Debug和Release目录
 foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
     file(COPY ${CMAKE_SOURCE_DIR}/template DESTINATION ${CMAKE_BINARY_DIR}/${CONFIG})
-    file(COPY ${CMAKE_SOURCE_DIR}/config.json DESTINATION ${CMAKE_BINARY_DIR}/${CONFIG})
+    file(COPY ${CMAKE_SOURCE_DIR}/config.jsonc DESTINATION ${CMAKE_BINARY_DIR}/${CONFIG})
 endforeach()
 
 # 设置输出目录

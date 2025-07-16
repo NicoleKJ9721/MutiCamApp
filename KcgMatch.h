@@ -154,7 +154,8 @@ namespace kcg {
 		*/
 		vector<Match> Matching(Mat source, float score_thresh = 0.9f, float overlap = 0.4f,
 			float mag_thresh = 30.f, float greediness = 0.8f, PyramidLevel pyrd_level = PyramidLevel_3,
-			int T = 2, int top_k = 0, MatchingStrategy strategy = Strategy_Accurate, const Mat mask = Mat());
+			int T = 2, int top_k = 0, MatchingStrategy strategy = Strategy_Accurate, 
+			const string& refinement_search_mode = "fixed", float fixed_angle_window = 25.0f, float scale_search_window = 0.1f, const Mat mask = Mat());
 		void DrawMatches(Mat &image, vector<Match> matches, Scalar color);
 
 	protected:
@@ -174,8 +175,8 @@ namespace kcg {
 		void LoadRegion8Idxes();
 		void ClearModel();
 		void SaveModel();
-		void InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy);
-		void GetAllPyramidLevelValidSource(Mat &source, PyramidLevel pyrd_level);
+		void InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, float scale_search_window);
+		void GetAllPyramidLevelValidSource(const Mat &source, PyramidLevel pyrd_level);
 		vector<Match> GetTopKMatches(vector<Match> matches);
 		vector<Match> DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap);
 		vector<Match> MatchingPyrd180(Mat src, PyramidLevel pl, vector<int> region_idxes = vector<int>());
@@ -207,6 +208,11 @@ namespace kcg {
 		int T_;
 		int top_k_;
 		MatchingStrategy strategy_;
+
+		Rect base_template_box_;
+		string refinement_search_mode_;
+		float fixed_angle_window_;
+		float scale_search_window_;
 	};
 }
 
