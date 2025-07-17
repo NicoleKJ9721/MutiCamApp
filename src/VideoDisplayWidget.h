@@ -37,7 +37,7 @@ struct CircleObject {
     QPointF center;
     double radius;
     
-    CircleObject() : isCompleted(false), color(Qt::blue), thickness(3), radius(0.0) {}
+    CircleObject() : isCompleted(false), color(Qt::green), thickness(3), radius(0.0) {}
 };
 
 struct FineCircleObject {
@@ -48,7 +48,7 @@ struct FineCircleObject {
     QPointF center;
     double radius;
     
-    FineCircleObject() : isCompleted(false), color(Qt::magenta), thickness(3), radius(0.0) {}
+    FineCircleObject() : isCompleted(false), color(Qt::green), thickness(3), radius(0.0) {}
 };
 
 struct ParallelObject {
@@ -103,6 +103,7 @@ struct DrawingContext {
     QPen bluePen;
     QPen yellowPen;
     QPen grayPen;
+    QPen redDashedPen;  ///< 红色虚线画笔
     
     // 预创建的画刷
     QBrush greenBrush;

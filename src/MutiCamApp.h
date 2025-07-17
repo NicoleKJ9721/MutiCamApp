@@ -55,8 +55,7 @@ public:
         int thickness;                       ///< 线条粗细
         QPointF center;                      ///< 圆心坐标
         double radius;                       ///< 半径
-        
-        FineCircleObject() : isCompleted(false), color(Qt::magenta), thickness(3), radius(0.0) {}
+        FineCircleObject() : isCompleted(false), color(Qt::green), thickness(3), radius(0.0) {}
     };
     
     // 平行线绘制相关数据结构

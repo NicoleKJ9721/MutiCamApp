@@ -113,22 +113,19 @@
               <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
                <item>
                 <widget class="QPushButton" name="btnLoadTemplateVertical">
-                 <property name="text">
-                  <string>加载模版</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
                    <height>25</height>
                   </size>
                  </property>
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnStartMatchingVertical">
-                 <property name="text">
-                  <string>开始匹配</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
@@ -137,6 +134,9 @@
                  </property>
                  <property name="styleSheet">
                   <string>background-color: green; color: white;</string>
+                 </property>
+                 <property name="text">
+                  <string>开始匹配</string>
                  </property>
                 </widget>
                </item>
@@ -220,22 +220,19 @@
               <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
                <item>
                 <widget class="QPushButton" name="btnLoadTemplateLeft">
-                 <property name="text">
-                  <string>加载模版</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
                    <height>25</height>
                   </size>
                  </property>
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnStartMatchingLeft">
-                 <property name="text">
-                  <string>开始匹配</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
@@ -244,6 +241,9 @@
                  </property>
                  <property name="styleSheet">
                   <string>background-color: green; color: white;</string>
+                 </property>
+                 <property name="text">
+                  <string>开始匹配</string>
                  </property>
                 </widget>
                </item>
@@ -331,22 +331,19 @@
               <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
                <item>
                 <widget class="QPushButton" name="btnLoadTemplateFront">
-                 <property name="text">
-                  <string>加载模版</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
                    <height>25</height>
                   </size>
                  </property>
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnStartMatchingFront">
-                 <property name="text">
-                  <string>开始匹配</string>
-                 </property>
                  <property name="maximumSize">
                   <size>
                    <width>80</width>
@@ -355,6 +352,9 @@
                  </property>
                  <property name="styleSheet">
                   <string>background-color: green; color: white;</string>
+                 </property>
+                 <property name="text">
+                  <string>开始匹配</string>
                  </property>
                 </widget>
                </item>
@@ -1117,25 +1117,22 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate2">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateVertical">
-               <property name="text">
-                <string>加载模版</string>
-               </property>
+              <widget class="QPushButton" name="btnLoadTemplateVertical2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
                </property>
+               <property name="text">
+                <string>加载模版</string>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingVertical">
-               <property name="text">
-                <string>开始匹配</string>
-               </property>
+              <widget class="QPushButton" name="btnStartMatchingVertical2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1145,10 +1142,13 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <property name="styleSheet">
                 <string>background-color: green; color: white;</string>
                </property>
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_verticalTemplate">
+              <spacer name="horizontalSpacer_verticalTemplate2">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -1509,25 +1509,22 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate2">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateLeft">
-               <property name="text">
-                <string>加载模版</string>
-               </property>
+              <widget class="QPushButton" name="btnLoadTemplateLeft2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
                </property>
+               <property name="text">
+                <string>加载模版</string>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingLeft">
-               <property name="text">
-                <string>开始匹配</string>
-               </property>
+              <widget class="QPushButton" name="btnStartMatchingLeft2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1537,10 +1534,13 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <property name="styleSheet">
                 <string>background-color: green; color: white;</string>
                </property>
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_leftTemplate">
+              <spacer name="horizontalSpacer_leftTemplate2">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -1901,25 +1901,22 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate2">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateFront">
-               <property name="text">
-                <string>加载模版</string>
-               </property>
+              <widget class="QPushButton" name="btnLoadTemplateFront2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
                </property>
+               <property name="text">
+                <string>加载模版</string>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingFront">
-               <property name="text">
-                <string>开始匹配</string>
-               </property>
+              <widget class="QPushButton" name="btnStartMatchingFront2">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1929,10 +1926,13 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <property name="styleSheet">
                 <string>background-color: green; color: white;</string>
                </property>
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_frontTemplate">
+              <spacer name="horizontalSpacer_frontTemplate2">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -1974,7 +1974,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                  </property>
-     </widget>
+                </widget>
                </item>
                <item>
                 <widget class="QLineEdit" name="ledUIWidth"/>
@@ -2657,11 +2657,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <bold>true</bold>
               </font>
              </property>
-             <property name="text">
-              <string>在线: 2</string>
-             </property>
              <property name="styleSheet">
               <string>color: green;</string>
+             </property>
+             <property name="text">
+              <string>在线: 2</string>
              </property>
             </widget>
            </item>
@@ -2673,11 +2673,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <bold>true</bold>
               </font>
              </property>
-             <property name="text">
-              <string>离线: 1</string>
-             </property>
              <property name="styleSheet">
               <string>color: red;</string>
+             </property>
+             <property name="text">
+              <string>离线: 1</string>
              </property>
             </widget>
            </item>
@@ -2724,14 +2724,15 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <widget class="QLabel" name="labelVerticalStatus">
                  <property name="font">
                   <font>
+                   <pointsize>9</pointsize>
                    <bold>true</bold>
                   </font>
                  </property>
-                 <property name="text">
-                  <string>在线</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: green;</string>
+                 </property>
+                 <property name="text">
+                  <string>在线</string>
                  </property>
                 </widget>
                </item>
@@ -2933,14 +2934,15 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <widget class="QLabel" name="labelLeftStatus">
                  <property name="font">
                   <font>
+                   <pointsize>9</pointsize>
                    <bold>true</bold>
                   </font>
                  </property>
-                 <property name="text">
-                  <string>在线</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: green;</string>
+                 </property>
+                 <property name="text">
+                  <string>在线</string>
                  </property>
                 </widget>
                </item>
@@ -3142,14 +3144,15 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <widget class="QLabel" name="labelFrontStatus">
                  <property name="font">
                   <font>
+                   <pointsize>9</pointsize>
                    <bold>true</bold>
                   </font>
                  </property>
-                 <property name="text">
-                  <string>离线</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: red;</string>
+                 </property>
+                 <property name="text">
+                  <string>离线</string>
                  </property>
                 </widget>
                </item>
@@ -3179,11 +3182,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontFPS">
-                 <property name="text">
-                  <string>-- fps</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: gray;</string>
+                 </property>
+                 <property name="text">
+                  <string>-- fps</string>
                  </property>
                 </widget>
                </item>
@@ -3213,11 +3216,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontTemp">
-                 <property name="text">
-                  <string>--°C</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: gray;</string>
+                 </property>
+                 <property name="text">
+                  <string>--°C</string>
                  </property>
                 </widget>
                </item>
@@ -3247,11 +3250,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontResolution">
-                 <property name="text">
-                  <string>--</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: gray;</string>
+                 </property>
+                 <property name="text">
+                  <string>--</string>
                  </property>
                 </widget>
                </item>
@@ -3281,11 +3284,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontExposure">
-                 <property name="text">
-                  <string>--ms</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: gray;</string>
+                 </property>
+                 <property name="text">
+                  <string>--ms</string>
                  </property>
                 </widget>
                </item>
@@ -3315,11 +3318,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontGain">
-                 <property name="text">
-                  <string>--dB</string>
-                 </property>
                  <property name="styleSheet">
                   <string>color: gray;</string>
+                 </property>
+                 <property name="text">
+                  <string>--dB</string>
                  </property>
                 </widget>
                </item>
@@ -3370,14 +3373,17 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               </font>
              </property>
              <property name="html">
-              <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Microsoft YaHei UI'; font-size:9pt; font-weight:400; font-style:normal;"&gt;
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#ff0000;"&gt;[警告] 对向相机连接丢失 - 2025-01-15 14:32:15&lt;/span&gt;&lt;/p&gt;
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#ff8000;"&gt;[提醒] 垂直相机温度偏高(42.5°C) - 2025-01-15 14:30:22&lt;/span&gt;&lt;/p&gt;
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#008000;"&gt;[信息] 左侧相机连接正常 - 2025-01-15 14:28:45&lt;/span&gt;&lt;/p&gt;
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#008000;"&gt;[信息] 垂直相机连接正常 - 2025-01-15 14:28:43&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Microsoft YaHei UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ff0000;&quot;&gt;[警告] 对向相机连接丢失 - 2025-01-15 14:32:15&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#ff8000;&quot;&gt;[提醒] 垂直相机温度偏高(42.5°C) - 2025-01-15 14:30:22&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#008000;&quot;&gt;[信息] 左侧相机连接正常 - 2025-01-15 14:28:45&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#008000;&quot;&gt;[信息] 垂直相机连接正常 - 2025-01-15 14:28:43&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
@@ -3442,724 +3448,723 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
-     <widget class="QWidget" name="tabStageControl">
-      <attribute name="title">
-       <string>XYZ载物台控制</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_stageControl">
-       <item>
-        <widget class="QGroupBox" name="groupBoxStagePosition">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>当前位置</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_stagePosition">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelXPosition">
-            <property name="text">
-             <string>X轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelXPositionValue">
-            <property name="text">
-             <string>125.456 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelYPosition">
-            <property name="text">
-             <string>Y轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelYPositionValue">
-            <property name="text">
-             <string>89.234 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelZPosition">
-            <property name="text">
-             <string>Z轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelZPositionValue">
-            <property name="text">
-             <string>67.890 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxStageControl">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>载物台控制</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_stageControl">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelXTarget">
-            <property name="text">
-             <string>X目标位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEditXTarget">
-            <property name="text">
-             <string>125.456</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="btnMoveX">
-            <property name="text">
-             <string>移动X</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelYTarget">
-            <property name="text">
-             <string>Y目标位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEditYTarget">
-            <property name="text">
-             <string>89.234</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="btnMoveY">
-            <property name="text">
-             <string>移动Y</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelZTarget">
-            <property name="text">
-             <string>Z目标位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="lineEditZTarget">
-            <property name="text">
-             <string>67.890</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QPushButton" name="btnMoveZ">
-            <property name="text">
-             <string>移动Z</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_stageButtons">
-            <item>
-             <widget class="QPushButton" name="btnMoveAll">
+      <widget class="QWidget" name="tabStageControl">
+       <attribute name="title">
+        <string>XYZ载物台控制</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_stageControl">
+        <item>
+         <widget class="QGroupBox" name="groupBoxStagePosition">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>当前位置</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_stagePosition">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelXPosition">
+             <property name="text">
+              <string>X轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelXPositionValue">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>125.456 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelYPosition">
+             <property name="text">
+              <string>Y轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelYPositionValue">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>89.234 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelZPosition">
+             <property name="text">
+              <string>Z轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="labelZPositionValue">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>67.890 mm</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxStageControl">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>载物台控制</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_stageControl">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelXTarget">
+             <property name="text">
+              <string>X目标位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEditXTarget">
+             <property name="text">
+              <string>125.456</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="btnMoveX">
+             <property name="text">
+              <string>移动X</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelYTarget">
+             <property name="text">
+              <string>Y目标位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEditYTarget">
+             <property name="text">
+              <string>89.234</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="btnMoveY">
+             <property name="text">
+              <string>移动Y</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelZTarget">
+             <property name="text">
+              <string>Z目标位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEditZTarget">
+             <property name="text">
+              <string>67.890</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QPushButton" name="btnMoveZ">
+             <property name="text">
+              <string>移动Z</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="3">
+            <layout class="QHBoxLayout" name="horizontalLayout_stageButtons">
+             <item>
+              <widget class="QPushButton" name="btnMoveAll">
+               <property name="text">
+                <string>移动到目标位置</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStageHome">
+               <property name="text">
+                <string>回到原点</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStageStop">
+               <property name="styleSheet">
+                <string>background-color: red; color: white;</string>
+               </property>
+               <property name="text">
+                <string>紧急停止</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxStageStatus">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>载物台状态</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_stageStatus">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelStageConnectionTitle">
+             <property name="text">
+              <string>连接状态:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelStageConnection">
+             <property name="styleSheet">
+              <string>color: green; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>已连接</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelStageStatusTitle">
+             <property name="text">
+              <string>运动状态:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelStageMovingStatus">
+             <property name="styleSheet">
+              <string>color: blue;</string>
+             </property>
+             <property name="text">
+              <string>静止</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelStageSpeedTitle">
+             <property name="text">
+              <string>移动速度:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="labelStageSpeed">
+             <property name="text">
+              <string>10.0 mm/s</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_stageControl">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabPhysicalControl">
+       <attribute name="title">
+        <string>物理按键控制</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_physicalControl">
+        <item>
+         <widget class="QGroupBox" name="groupBoxKeyStatus">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>按键状态监控</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_keyStatus">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelKey1Title">
+             <property name="text">
+              <string>启动按键:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelKey1Status">
+             <property name="styleSheet">
+              <string>color: gray;</string>
+             </property>
+             <property name="text">
+              <string>未按下</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelKey2Title">
+             <property name="text">
+              <string>停止按键:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelKey2Status">
+             <property name="styleSheet">
+              <string>color: gray;</string>
+             </property>
+             <property name="text">
+              <string>未按下</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelKey3Title">
+             <property name="text">
+              <string>复位按键:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="labelKey3Status">
+             <property name="styleSheet">
+              <string>color: gray;</string>
+             </property>
+             <property name="text">
+              <string>未按下</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="labelKey4Title">
+             <property name="text">
+              <string>急停按键:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="labelKey4Status">
+             <property name="styleSheet">
+              <string>color: green; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>正常</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxKeyConfig">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>按键功能配置</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_keyConfig">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelKeyFunction1">
+             <property name="text">
+              <string>按键1功能:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="comboBoxKey1Function">
+             <item>
               <property name="text">
-               <string>移动到目标位置</string>
+               <string>启动相机采集</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnStageHome">
+             </item>
+             <item>
               <property name="text">
-               <string>回到原点</string>
+               <string>开始检测</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnStageStop">
+             </item>
+             <item>
               <property name="text">
-               <string>紧急停止</string>
+               <string>载物台回原点</string>
               </property>
-              <property name="styleSheet">
-               <string>background-color: red; color: white;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxStageStatus">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>载物台状态</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_stageStatus">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelStageConnectionTitle">
-            <property name="text">
-             <string>连接状态:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelStageConnection">
-            <property name="text">
-             <string>已连接</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: green; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelStageStatusTitle">
-            <property name="text">
-             <string>运动状态:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelStageMovingStatus">
-            <property name="text">
-             <string>静止</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelStageSpeedTitle">
-            <property name="text">
-             <string>移动速度:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelStageSpeed">
-            <property name="text">
-             <string>10.0 mm/s</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_stageControl">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabPhysicalControl">
-      <attribute name="title">
-       <string>物理按键控制</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_physicalControl">
-       <item>
-        <widget class="QGroupBox" name="groupBoxKeyStatus">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>按键状态监控</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_keyStatus">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelKey1Title">
-            <property name="text">
-             <string>启动按键:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelKey1Status">
-            <property name="text">
-             <string>未按下</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: gray;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelKey2Title">
-            <property name="text">
-             <string>停止按键:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelKey2Status">
-            <property name="text">
-             <string>未按下</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: gray;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelKey3Title">
-            <property name="text">
-             <string>复位按键:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelKey3Status">
-            <property name="text">
-             <string>未按下</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: gray;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="labelKey4Title">
-            <property name="text">
-             <string>急停按键:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="labelKey4Status">
-            <property name="text">
-             <string>正常</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: green; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxKeyConfig">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>按键功能配置</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_keyConfig">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelKeyFunction1">
-            <property name="text">
-             <string>按键1功能:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboBoxKey1Function">
-            <item>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelKeyFunction2">
              <property name="text">
-              <string>启动相机采集</string>
+              <string>按键2功能:</string>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>开始检测</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>载物台回原点</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelKeyFunction2">
-            <property name="text">
-             <string>按键2功能:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="comboBoxKey2Function">
-            <item>
-             <property name="text">
-              <string>停止相机采集</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>暂停检测</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>载物台停止</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelKeyFunction3">
-            <property name="text">
-             <string>按键3功能:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="comboBoxKey3Function">
-            <item>
-             <property name="text">
-              <string>系统复位</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>清除报警</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>保存图像</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxKeyTest">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>按键测试</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_keyTest">
-          <item>
-           <widget class="QPushButton" name="btnTestKey1">
-            <property name="text">
-             <string>测试按键1</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnTestKey2">
-            <property name="text">
-             <string>测试按键2</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnTestKey3">
-            <property name="text">
-             <string>测试按键3</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnTestEmergencyStop">
-            <property name="text">
-             <string>测试急停</string>
-            </property>
-            <property name="styleSheet">
-             <string>background-color: orange; color: white;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_physicalControl">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabGratingPosition">
-      <attribute name="title">
-       <string>光栅尺位置显示</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_gratingPosition">
-       <item>
-        <widget class="QGroupBox" name="groupBoxGratingStatus">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>光栅尺状态</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_gratingStatus">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelGratingXTitle">
-            <property name="text">
-             <string>X轴光栅尺:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelGratingXStatus">
-            <property name="text">
-             <string>正常</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: green; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelGratingYTitle">
-            <property name="text">
-             <string>Y轴光栅尺:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelGratingYStatus">
-            <property name="text">
-             <string>正常</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: green; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelGratingZTitle">
-            <property name="text">
-             <string>Z轴光栅尺:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelGratingZStatus">
-            <property name="text">
-             <string>正常</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: green; font-weight: bold;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxGratingPosition">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>实时位置读数</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_gratingPosition">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelGratingXPosTitle">
-            <property name="text">
-             <string>X轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelGratingXPosition">
-            <property name="text">
-             <string>125.4567 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold; font-size: 14px;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelGratingYPosTitle">
-            <property name="text">
-             <string>Y轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelGratingYPosition">
-            <property name="text">
-             <string>89.2345 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold; font-size: 14px;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelGratingZPosTitle">
-            <property name="text">
-             <string>Z轴位置:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="labelGratingZPosition">
-            <property name="text">
-             <string>67.8901 mm</string>
-            </property>
-            <property name="styleSheet">
-             <string>color: blue; font-weight: bold; font-size: 14px;</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBoxGratingCalibration">
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="title">
-          <string>光栅尺校准</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_gratingCalibration">
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelGratingResolutionTitle">
-            <property name="text">
-             <string>分辨率:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="labelGratingResolution">
-            <property name="text">
-             <string>0.001 mm</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelGratingAccuracyTitle">
-            <property name="text">
-             <string>精度:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="labelGratingAccuracy">
-            <property name="text">
-             <string>±0.002 mm</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_gratingButtons">
-            <item>
-             <widget class="QPushButton" name="btnGratingZero">
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="comboBoxKey2Function">
+             <item>
               <property name="text">
-               <string>设置零点</string>
+               <string>停止相机采集</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnGratingCalibrate">
+             </item>
+             <item>
               <property name="text">
-               <string>校准光栅尺</string>
+               <string>暂停检测</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="btnGratingReset">
+             </item>
+             <item>
               <property name="text">
-               <string>复位</string>
+               <string>载物台停止</string>
               </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_gratingPosition">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelKeyFunction3">
+             <property name="text">
+              <string>按键3功能:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="comboBoxKey3Function">
+             <item>
+              <property name="text">
+               <string>系统复位</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>清除报警</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>保存图像</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxKeyTest">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>按键测试</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_keyTest">
+           <item>
+            <widget class="QPushButton" name="btnTestKey1">
+             <property name="text">
+              <string>测试按键1</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnTestKey2">
+             <property name="text">
+              <string>测试按键2</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnTestKey3">
+             <property name="text">
+              <string>测试按键3</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnTestEmergencyStop">
+             <property name="styleSheet">
+              <string>background-color: orange; color: white;</string>
+             </property>
+             <property name="text">
+              <string>测试急停</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_physicalControl">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabGratingPosition">
+       <attribute name="title">
+        <string>光栅尺位置显示</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_gratingPosition">
+        <item>
+         <widget class="QGroupBox" name="groupBoxGratingStatus">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>光栅尺状态</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_gratingStatus">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelGratingXTitle">
+             <property name="text">
+              <string>X轴光栅尺:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelGratingXStatus">
+             <property name="styleSheet">
+              <string>color: green; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>正常</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelGratingYTitle">
+             <property name="text">
+              <string>Y轴光栅尺:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelGratingYStatus">
+             <property name="styleSheet">
+              <string>color: green; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>正常</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelGratingZTitle">
+             <property name="text">
+              <string>Z轴光栅尺:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="labelGratingZStatus">
+             <property name="styleSheet">
+              <string>color: green; font-weight: bold;</string>
+             </property>
+             <property name="text">
+              <string>正常</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxGratingPosition">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>实时位置读数</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_gratingPosition">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelGratingXPosTitle">
+             <property name="text">
+              <string>X轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelGratingXPosition">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold; font-size: 14px;</string>
+             </property>
+             <property name="text">
+              <string>125.4567 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelGratingYPosTitle">
+             <property name="text">
+              <string>Y轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelGratingYPosition">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold; font-size: 14px;</string>
+             </property>
+             <property name="text">
+              <string>89.2345 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="labelGratingZPosTitle">
+             <property name="text">
+              <string>Z轴位置:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="labelGratingZPosition">
+             <property name="styleSheet">
+              <string>color: blue; font-weight: bold; font-size: 14px;</string>
+             </property>
+             <property name="text">
+              <string>67.8901 mm</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxGratingCalibration">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>光栅尺校准</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_gratingCalibration">
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelGratingResolutionTitle">
+             <property name="text">
+              <string>分辨率:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="labelGratingResolution">
+             <property name="text">
+              <string>0.001 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelGratingAccuracyTitle">
+             <property name="text">
+              <string>精度:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="labelGratingAccuracy">
+             <property name="text">
+              <string>±0.002 mm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <layout class="QHBoxLayout" name="horizontalLayout_gratingButtons">
+             <item>
+              <widget class="QPushButton" name="btnGratingZero">
+               <property name="text">
+                <string>设置零点</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnGratingCalibrate">
+               <property name="text">
+                <string>校准光栅尺</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnGratingReset">
+               <property name="text">
+                <string>复位</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_gratingPosition">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>

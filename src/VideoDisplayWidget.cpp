@@ -436,8 +436,8 @@ void VideoDisplayWidget::drawPoints(QPainter& painter, const DrawingContext& ctx
     // 使用预创建的对象，提升性能
     
     // 预计算常量（匹配Python版本）
-    const double heightScale = std::max(0.8, std::min(ctx.scale, 4.0));
-    const double innerRadius = 4 * heightScale;
+    const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+    const double innerRadius = 20 * heightScale;  // {{ AURA-X: Modify - 增大点的半径以提高可见性. Approval: 寸止(ID:point_radius_fix). }}
     const double textpadding = qMax(4.0, ctx.fontSize * 2);
     
     for (int i = 0; i < m_points.size(); ++i) {
@@ -662,15 +662,15 @@ void VideoDisplayWidget::drawSingleCircle(QPainter& painter, const CircleObject&
         
         // 使用已计算的文本布局参数，直接使用期望的屏幕像素值
         
-        // 1. 绘制第一个文本框（坐标文本）
-        drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(textOffset, -textOffset));
+        // 1. 绘制第一个文本框（坐标文本）- 使用圆形颜色
+        drawTextWithBackground(painter, centerImage, centerText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, QPointF(textOffset, -textOffset));
         
         // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
         QFontMetrics fm(ctx.font);
         QRect centerTextRect = fm.boundingRect(centerText);
         double centerTextHeight = centerTextRect.height() + 2 * textPadding;
         QPointF radiusAnchorPoint = centerImage + QPointF(textOffset, -textOffset + centerTextHeight);
-        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
     }
 }
 
@@ -792,22 +792,16 @@ void VideoDisplayWidget::drawSingleFineCircle(QPainter& painter, const FineCircl
         QString centerText = QString::asprintf("(%.1f, %.1f)", fineCircle.center.x(), fineCircle.center.y());
         QString radiusText = QString::asprintf("%.1f", fineCircle.radius);
         
-        // 1. 计算将第一个文本框定位到圆心右上方所需的精确偏移量
-         QFontMetrics fm(ctx.font);
-         QRect textBoundingRect = fm.boundingRect(centerText);
-         double bgHeight = textBoundingRect.height() + 2 * textPadding;
-         QPointF centerTextOffset(textOffset, -textOffset - bgHeight);
-         
-         // 2. 使用完整版drawTextWithBackground函数
-         drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, centerTextOffset);
+        // {{ AURA-X: Modify - 修复精细圆第二个文本框位置，与简单圆保持一致. Confirmed via 寸止 }}
+        // 1. 绘制第一个文本框（坐标文本）- 使用精细圆颜色
+        drawTextWithBackground(painter, centerImage, centerText, ctx.font, fineCircle.color, Qt::black, textPadding, bgBorderWidth, QPointF(textOffset, -textOffset));
         
-        // 3. 计算第二个文本框的位置（紧挨着第一个文本框下方）
+        // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
+        QFontMetrics fm(ctx.font);
         QRect centerTextRect = fm.boundingRect(centerText);
         double centerTextHeight = centerTextRect.height() + 2 * textPadding;
         QPointF radiusAnchorPoint = centerImage + QPointF(textOffset, -textOffset + centerTextHeight);
-        
-        // 4. 绘制第二个文本框
-        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, fineCircle.color, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
     }
 }
 
@@ -1004,7 +998,7 @@ void VideoDisplayWidget::drawSingleParallel(QPainter& painter, const ParallelObj
             // 3. 绘制中线，补偿变换矩阵
             
             // 绘制中线（红色虚线）
-            painter.setPen(ctx.redPen); // 红色虚线
+            painter.setPen(ctx.redDashedPen); // 红色虚线
             painter.drawLine(extMidStart, extMidEnd); // 绘制延伸后的中线
             
             // 显示距离和角度信息 - 使用drawTextWithBackground辅助函数
@@ -1062,7 +1056,7 @@ void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObj
     int bgBorderWidth = 1;
     double desiredThickness = twoLines.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
-    double intersectionRadius = qMax(5.0, 8.0 * ctx.scale);
+    double intersectionRadius = qMax(16.0, 40.0 * ctx.scale);
     int intersectionPenWidth = qMax(2, static_cast<int>(3.0 * ctx.scale));
     double bisectorLength = qMax(30.0, 50.0 * ctx.scale);
     int bisectorPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
@@ -1209,9 +1203,9 @@ void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObj
     if (twoLines.isCompleted && twoLines.points.size() >= 4) {
         const QPointF& intersection = twoLines.intersection;
         
-        // 绘制交点 - 黄色圆圈，直接使用期望的屏幕像素值
-        painter.setPen(ctx.yellowPen);
-        painter.setBrush(Qt::NoBrush);
+        // 绘制交点 - 红色实心点，直接使用期望的屏幕像素值
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(Qt::red));
         painter.drawEllipse(intersection, intersectionRadius, intersectionRadius);
         
         // 计算角平分线方向
@@ -1229,11 +1223,12 @@ void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObj
         double bisectorLen = sqrt(bisectorDir.x() * bisectorDir.x() + bisectorDir.y() * bisectorDir.y());
         if (bisectorLen > 0) bisectorDir /= bisectorLen;
         
-        // 绘制角平分线（红色虚线），直接使用期望的屏幕像素值
-        QPointF bisectorEnd = twoLines.intersection + bisectorDir * bisectorLength;
+        // 绘制角平分线（红色虚线），延伸到图像边界
+        QPointF bisectorStart = twoLines.intersection - bisectorDir * 5000.0;
+        QPointF bisectorEnd = twoLines.intersection + bisectorDir * 5000.0;
         
-        painter.setPen(ctx.redPen); // 红色虚线
-        painter.drawLine(intersection, bisectorEnd);
+        painter.setPen(ctx.redDashedPen); // 红色虚线
+        painter.drawLine(bisectorStart, bisectorEnd);
         
         // 显示角度和坐标信息 - 使用drawTextWithBackground辅助函数
         QString angleText = QString::asprintf("%.1f°", twoLines.angle);
@@ -1244,8 +1239,21 @@ void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObj
         double textPadding = qMax(16.0, ctx.fontSize * 2);
         int bgBorderWidth = 1;
         
-        // 标注的锚点是交点
+        // 检查交点是否在视图范围内，如果不在则使用两线中间区域作为文字锚点
+        QSize imageSize = m_videoFrame.size();
         QPointF textAnchorPoint = intersection;
+        
+        if (!imageSize.isEmpty()) {
+            bool intersectionInView = (intersection.x() >= 0 && intersection.x() <= imageSize.width() && 
+                                     intersection.y() >= 0 && intersection.y() <= imageSize.height());
+            
+            if (!intersectionInView) {
+                // 计算两条线在视图内的中点作为文字锚点
+                QPointF line1Center = (twoLines.points[0] + twoLines.points[1]) / 2.0;
+                QPointF line2Center = (twoLines.points[2] + twoLines.points[3]) / 2.0;
+                textAnchorPoint = (line1Center + line2Center) / 2.0;
+            }
+        }
         
         // 【终极API设计】使用新的优雅API进行相对布局
         // 1. 计算角度文本框的矩形（定位到交点右上方）
@@ -1253,14 +1261,14 @@ void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObj
         QRectF angleTextRect = calculateTextWithBackgroundRect(textAnchorPoint, angleText, ctx.font, textPadding, angleTextOffset);
         
         // 4. 绘制角度文本框
-        drawTextInRect(painter, angleTextRect, angleText, ctx.font, Qt::white, Qt::black, bgBorderWidth);
+        drawTextInRect(painter, angleTextRect, angleText, ctx.font, twoLines.color, Qt::black, bgBorderWidth);
         
         // 3. 计算坐标文本框的矩形（紧挨着角度文本框下方）
         QPointF coordTextAnchor = QPointF(angleTextRect.left(), angleTextRect.bottom());
         QRectF coordTextRect = calculateTextWithBackgroundRect(coordTextAnchor, coordText, ctx.font, textPadding, QPointF(0, 0));
         
         // 4. 绘制坐标文本框
-        drawTextInRect(painter, coordTextRect, coordText, ctx.font, Qt::white, Qt::black, bgBorderWidth);
+        drawTextInRect(painter, coordTextRect, coordText, ctx.font, twoLines.color, Qt::black, bgBorderWidth);
     }
 }
 
@@ -1530,9 +1538,9 @@ void VideoDisplayWidget::handleTwoLinesDrawingClick(const QPointF& imagePos)
                 double angle2 = calculateLineAngle(p3, p4);
                 double angleDiff = abs(angle1 - angle2);
                 
-                // 确保角度在0-90度之间
-                if (angleDiff > 90) {
-                    angleDiff = 180 - angleDiff;
+                // 确保角度在0-180度之间，保留钝角
+                if (angleDiff > 180) {
+                    angleDiff = 360 - angleDiff;
                 }
                 
                 m_currentTwoLines.angle = angleDiff;
@@ -1870,6 +1878,7 @@ void VideoDisplayWidget::updateDrawingContext()
     m_cachedDrawingContext.bluePen = createPen(Qt::blue, 2, scale);
     m_cachedDrawingContext.yellowPen = createPen(Qt::yellow, 2, scale);
     m_cachedDrawingContext.grayPen = createPen(Qt::gray, 1, scale);
+    m_cachedDrawingContext.redDashedPen = createPen(Qt::red, 2, scale, true); // 红色虚线画笔
     
     // 创建所有画刷
     m_cachedDrawingContext.greenBrush = QBrush(Qt::green);
