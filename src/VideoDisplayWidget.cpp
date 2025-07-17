@@ -166,6 +166,10 @@ void VideoDisplayWidget::startDrawing(DrawingTool tool)
     m_isDrawingMode = true;
     m_currentDrawingTool = tool;
     
+    // 启动绘图模式时自动禁用选择模式，确保两个模式互斥
+    m_selectionEnabled = false;
+    clearSelection();
+    
     // 清除所有当前绘制状态
     clearCurrentLineData();
     clearCurrentCircleData();
@@ -195,7 +199,7 @@ void VideoDisplayWidget::stopDrawing()
 
 void VideoDisplayWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (!m_isDrawingMode || event->button() != Qt::LeftButton) {
+    if (event->button() != Qt::LeftButton) {
         QLabel::mousePressEvent(event);
         return;
     }
@@ -206,6 +210,18 @@ void VideoDisplayWidget::mousePressEvent(QMouseEvent *event)
     // 检查点击是否在图像范围内
     if (imagePos.x() < 0 || imagePos.y() < 0 || 
         imagePos.x() >= m_videoFrame.width() || imagePos.y() >= m_videoFrame.height()) {
+        return;
+    }
+    
+    // 如果启用了选择模式，进行命中测试
+    if (m_selectionEnabled) {
+        handleSelectionClick(imagePos, event->modifiers() & Qt::ControlModifier);
+        return;
+    }
+    
+    // 如果不在绘制模式，直接返回
+    if (!m_isDrawingMode) {
+        QLabel::mousePressEvent(event);
         return;
     }
     
@@ -357,6 +373,8 @@ void VideoDisplayWidget::clearAllDrawings()
     m_hasCurrentTwoLines = false;
     // {{ AURA-X: Add - 清除鼠标预览状态. Approval: 寸止(ID:preview_fix). }}
     m_hasValidMousePos = false;
+    // {{ AURA-X: Add - 清除选择状态. Approval: 寸止(ID:selection_feature). }}
+    clearSelection();
     update();
 }
 
@@ -422,6 +440,9 @@ void VideoDisplayWidget::paintEvent(QPaintEvent *event)
         drawFineCircles(painter, ctx);
         drawParallelLines(painter, ctx);
         drawTwoLines(painter, ctx);
+        
+        // 绘制选中状态高亮
+        drawSelectionHighlight(painter, ctx);
         
         painter.restore();
     }
@@ -1738,8 +1759,8 @@ void VideoDisplayWidget::drawTextInRect(QPainter& painter, const QRectF& rect, c
     painter.drawText(rect, Qt::AlignCenter, text);
 }
 
-bool VideoDisplayWidget::calculateCircleFromThreePoints(const QPointF& p1, const QPointF& p2, const QPointF& p3, 
-                                                       QPointF& center, double& radius)
+bool VideoDisplayWidget::calculateCircleFromThreePoints(const QPointF& p1, const QPointF& p2, const QPointF& p3,
+                                                         QPointF& center, double& radius) const
 {
     double x1 = p1.x(), y1 = p1.y();
     double x2 = p2.x(), y2 = p2.y();
@@ -1765,8 +1786,8 @@ bool VideoDisplayWidget::calculateCircleFromThreePoints(const QPointF& p1, const
     return true;
 }
 
-bool VideoDisplayWidget::calculateCircleFromFivePoints(const QVector<QPointF>& points, 
-                                                      QPointF& center, double& radius)
+bool VideoDisplayWidget::calculateCircleFromFivePoints(const QVector<QPointF>& points,
+                                                        QPointF& center, double& radius) const
 {
     if (points.size() != 5) {
         return false;
@@ -1825,7 +1846,7 @@ bool VideoDisplayWidget::calculateCircleFromFivePoints(const QVector<QPointF>& p
     return true;
 }
 
-bool VideoDisplayWidget::calculateLineIntersection(const QPointF& p1, const QPointF& p2, const QPointF& p3, const QPointF& p4, QPointF& intersection)
+bool VideoDisplayWidget::calculateLineIntersection(const QPointF& p1, const QPointF& p2, const QPointF& p3, const QPointF& p4, QPointF& intersection) const
 {
     double x1 = p1.x(), y1 = p1.y();
     double x2 = p2.x(), y2 = p2.y();
@@ -1846,7 +1867,7 @@ bool VideoDisplayWidget::calculateLineIntersection(const QPointF& p1, const QPoi
     return true;
 }
 
-double VideoDisplayWidget::calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd)
+double VideoDisplayWidget::calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const
 {
     double A = lineEnd.y() - lineStart.y();
     double B = lineStart.x() - lineEnd.x();
@@ -1911,4 +1932,457 @@ bool VideoDisplayWidget::needsDrawingContextUpdate() const
     }
     
     return false;
+}
+
+// {{ AURA-X: Add - 图元选择功能实现. Approval: 寸止(ID:selection_feature). }}
+// 启用选择模式
+void VideoDisplayWidget::enableSelection(bool enabled)
+{
+    m_selectionEnabled = enabled;
+    if (enabled) {
+        // 启用选择模式时，停止绘制模式
+        stopDrawing();
+        setCursor(Qt::ArrowCursor);
+    }
+    update();
+}
+
+// 检查是否启用了选择模式
+bool VideoDisplayWidget::isSelectionEnabled() const
+{
+    return m_selectionEnabled;
+}
+
+// 清除选择状态
+void VideoDisplayWidget::clearSelection()
+{
+    m_selectedPoints.clear();
+    m_selectedLines.clear();
+    m_selectedCircles.clear();
+    m_selectedFineCircles.clear();
+    m_selectedParallels.clear();
+    m_selectedTwoLines.clear();
+    m_selectedParallelMiddleLines.clear();
+    update();
+}
+
+// 获取选中图元信息
+QString VideoDisplayWidget::getSelectedObjectInfo() const
+{
+    QStringList info;
+    
+    if (!m_selectedPoints.isEmpty()) {
+        info << QString("选中了 %1 个点").arg(m_selectedPoints.size());
+    }
+    if (!m_selectedLines.isEmpty()) {
+        info << QString("选中了 %1 条直线").arg(m_selectedLines.size());
+    }
+    if (!m_selectedCircles.isEmpty()) {
+        info << QString("选中了 %1 个圆").arg(m_selectedCircles.size());
+    }
+    if (!m_selectedFineCircles.isEmpty()) {
+        info << QString("选中了 %1 个精细圆").arg(m_selectedFineCircles.size());
+    }
+    if (!m_selectedParallels.isEmpty()) {
+        info << QString("选中了 %1 组平行线").arg(m_selectedParallels.size());
+    }
+    if (!m_selectedTwoLines.isEmpty()) {
+        info << QString("选中了 %1 个两线夹角").arg(m_selectedTwoLines.size());
+    }
+    if (!m_selectedParallelMiddleLines.isEmpty()) {
+        info << QString("选中了 %1 条平行线中线").arg(m_selectedParallelMiddleLines.size());
+    }
+    
+    if (info.isEmpty()) {
+        return "未选中任何图元";
+    }
+    
+    return info.join(", ");
+}
+
+// 处理选择点击
+void VideoDisplayWidget::handleSelectionClick(const QPointF& imagePos, bool ctrlPressed)
+{
+    bool foundHit = false;
+    
+    // 命中测试顺序：点 -> 线 -> 圆 -> 精细圆 -> 平行线 -> 两线夹角
+    
+    // 1. 测试点
+    for (int i = 0; i < m_points.size(); ++i) {
+        if (hitTestPoint(imagePos, i)) {
+            selectObject("point", i);
+            foundHit = true;
+            break;
+        }
+    }
+    
+    if (!foundHit) {
+        // 2. 测试直线
+        for (int i = 0; i < m_lines.size(); ++i) {
+            if (hitTestLine(imagePos, i)) {
+                selectObject("line", i);
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    if (!foundHit) {
+        // 3. 测试圆
+        for (int i = 0; i < m_circles.size(); ++i) {
+            if (hitTestCircle(imagePos, i)) {
+                selectObject("circle", i);
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    if (!foundHit) {
+        // 4. 测试精细圆
+        for (int i = 0; i < m_fineCircles.size(); ++i) {
+            if (hitTestFineCircle(imagePos, i)) {
+                selectObject("fine_circle", i);
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    if (!foundHit) {
+        // 5. 测试平行线（包括中线）
+        for (int i = 0; i < m_parallels.size(); ++i) {
+            QString hitResult = hitTestParallel(imagePos, i);
+            if (!hitResult.isEmpty()) {
+                if (hitResult == "middle_line") {
+                    selectObject("parallel_middle_line", i, true);
+                } else {
+                    selectObject("parallel", i);
+                }
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    if (!foundHit) {
+        // 6. 测试两线夹角
+        for (int i = 0; i < m_twoLines.size(); ++i) {
+            if (hitTestTwoLines(imagePos, i)) {
+                selectObject("two_lines", i);
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    // 如果没有命中任何图元且没有按Ctrl，清除选择
+    if (!foundHit && !ctrlPressed) {
+        clearSelection();
+    }
+    
+    // 发送选择信息到状态栏
+    emit selectionChanged(getSelectedObjectInfo());
+}
+
+// 选择图元
+void VideoDisplayWidget::selectObject(const QString& type, int index, bool isMiddleLine)
+{
+    if (type == "point") {
+        if (m_selectedPoints.contains(index)) {
+            m_selectedPoints.remove(index);
+        } else {
+            m_selectedPoints.insert(index);
+        }
+    } else if (type == "line") {
+        if (m_selectedLines.contains(index)) {
+            m_selectedLines.remove(index);
+        } else {
+            m_selectedLines.insert(index);
+        }
+    } else if (type == "circle") {
+        if (m_selectedCircles.contains(index)) {
+            m_selectedCircles.remove(index);
+        } else {
+            m_selectedCircles.insert(index);
+        }
+    } else if (type == "fine_circle") {
+        if (m_selectedFineCircles.contains(index)) {
+            m_selectedFineCircles.remove(index);
+        } else {
+            m_selectedFineCircles.insert(index);
+        }
+    } else if (type == "parallel") {
+        if (m_selectedParallels.contains(index)) {
+            m_selectedParallels.remove(index);
+        } else {
+            m_selectedParallels.insert(index);
+        }
+    } else if (type == "two_lines") {
+        if (m_selectedTwoLines.contains(index)) {
+            m_selectedTwoLines.remove(index);
+        } else {
+            m_selectedTwoLines.insert(index);
+        }
+    } else if (type == "parallel_middle_line") {
+        if (m_selectedParallelMiddleLines.contains(index)) {
+            m_selectedParallelMiddleLines.remove(index);
+        } else {
+            m_selectedParallelMiddleLines.insert(index);
+        }
+    }
+    
+    update();
+}
+
+// 命中测试：点
+bool VideoDisplayWidget::hitTestPoint(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_points.size()) return false;
+    const QPointF& point = m_points[index];
+    double distance = sqrt(pow(testPos.x() - point.x(), 2) + pow(testPos.y() - point.y(), 2));
+    return distance <= 20.0; // 20像素范围
+}
+
+// 命中测试：直线
+bool VideoDisplayWidget::hitTestLine(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_lines.size()) return false;
+    const LineObject& line = m_lines[index];
+    if (line.points.size() < 2) return false;
+    
+    double distance = calculateDistancePointToLine(testPos, line.points[0], line.points[1]);
+    return distance <= 10.0; // 10像素范围
+}
+
+// 命中测试：圆
+bool VideoDisplayWidget::hitTestCircle(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_circles.size()) return false;
+    const CircleObject& circle = m_circles[index];
+    if (circle.points.size() < 3) return false;
+    
+    QPointF center;
+    double radius;
+    if (!calculateCircleFromThreePoints(circle.points[0], circle.points[1], circle.points[2], center, radius)) {
+        return false;
+    }
+    
+    double distance = sqrt(pow(testPos.x() - center.x(), 2) + pow(testPos.y() - center.y(), 2));
+    return abs(distance - radius) <= 10.0; // 圆周附近10像素范围
+}
+
+// 命中测试：精细圆
+bool VideoDisplayWidget::hitTestFineCircle(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_fineCircles.size()) return false;
+    const FineCircleObject& fineCircle = m_fineCircles[index];
+    if (fineCircle.points.size() < 5) return false;
+    
+    QPointF center;
+    double radius;
+    if (!calculateCircleFromFivePoints(fineCircle.points, center, radius)) {
+        return false;
+    }
+    
+    double distance = sqrt(pow(testPos.x() - center.x(), 2) + pow(testPos.y() - center.y(), 2));
+    return abs(distance - radius) <= 10.0; // 圆周附近10像素范围
+}
+
+// 命中测试：平行线
+QString VideoDisplayWidget::hitTestParallel(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_parallels.size()) return "";
+    const ParallelObject& parallel = m_parallels[index];
+    if (parallel.points.size() < 3) return "";
+    
+    const QPointF& p1 = parallel.points[0];
+    const QPointF& p2 = parallel.points[1];
+    const QPointF& p3 = parallel.points[2];
+    
+    // 测试第一条线
+    double dist1 = calculateDistancePointToLine(testPos, p1, p2);
+    if (dist1 <= 10.0) {
+        return "line1";
+    }
+    
+    // 计算第二条线的点
+    QPointF direction = p2 - p1;
+    QPointF p4 = p3 + direction;
+    
+    // 测试第二条线
+    double dist2 = calculateDistancePointToLine(testPos, p3, p4);
+    if (dist2 <= 10.0) {
+        return "line2";
+    }
+    
+    // 测试中线
+    QPointF midP1 = (p1 + p3) / 2.0;
+    QPointF midP2 = (p2 + p4) / 2.0;
+    double distMid = calculateDistancePointToLine(testPos, midP1, midP2);
+    if (distMid <= 10.0) {
+        return "middle_line";
+    }
+    
+    return "";
+}
+
+// 命中测试：两线夹角
+bool VideoDisplayWidget::hitTestTwoLines(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_twoLines.size()) return false;
+    const TwoLinesObject& twoLines = m_twoLines[index];
+    if (twoLines.points.size() < 4) return false;
+    
+    // 测试第一条线
+    double dist1 = calculateDistancePointToLine(testPos, twoLines.points[0], twoLines.points[1]);
+    if (dist1 <= 10.0) {
+        return true;
+    }
+    
+    // 测试第二条线
+    double dist2 = calculateDistancePointToLine(testPos, twoLines.points[2], twoLines.points[3]);
+    if (dist2 <= 10.0) {
+        return true;
+    }
+    
+    return false;
+}
+
+// 绘制选择高亮
+void VideoDisplayWidget::drawSelectionHighlight(QPainter& painter, const DrawingContext& ctx)
+{
+    // {{ AURA-X: Modify - 将选择高亮改为蓝色描边，提升视觉效果. Approval: 寸止(ID:blue_selection_highlight). }}
+    // 创建高亮画笔（蓝色，较粗）
+    QPen highlightPen = createPen(Qt::blue, 4, ctx.scale);
+    painter.setPen(highlightPen);
+    painter.setBrush(Qt::NoBrush);
+    
+    // 高亮选中的点
+    for (int index : m_selectedPoints) {
+        if (index >= 0 && index < m_points.size()) {
+            const QPointF& point = m_points[index];
+            double radius = 25.0 * std::max(1.0, std::min(ctx.scale, 4.0));
+            painter.drawEllipse(point, radius, radius);
+        }
+    }
+    
+    // 高亮选中的直线
+    for (int index : m_selectedLines) {
+        if (index >= 0 && index < m_lines.size()) {
+            const LineObject& line = m_lines[index];
+            if (line.points.size() >= 2) {
+                // 绘制延伸的高亮线
+                QPointF direction = line.points[1] - line.points[0];
+                QPointF extendedStart = line.points[0] - direction * 5000.0;
+                QPointF extendedEnd = line.points[1] + direction * 5000.0;
+                painter.drawLine(extendedStart, extendedEnd);
+            }
+        }
+    }
+    
+    // 高亮选中的圆
+    for (int index : m_selectedCircles) {
+        if (index >= 0 && index < m_circles.size()) {
+            const CircleObject& circle = m_circles[index];
+            if (circle.points.size() >= 3) {
+                QPointF center;
+                double radius;
+                if (calculateCircleFromThreePoints(circle.points[0], circle.points[1], circle.points[2], center, radius)) {
+                    painter.drawEllipse(center, radius, radius);
+                }
+            }
+        }
+    }
+    
+    // 高亮选中的精细圆
+    for (int index : m_selectedFineCircles) {
+        if (index >= 0 && index < m_fineCircles.size()) {
+            const FineCircleObject& fineCircle = m_fineCircles[index];
+            if (fineCircle.points.size() >= 5) {
+                QPointF center;
+                double radius;
+                if (calculateCircleFromFivePoints(fineCircle.points, center, radius)) {
+                    painter.drawEllipse(center, radius, radius);
+                }
+            }
+        }
+    }
+    
+    // 高亮选中的平行线
+    for (int index : m_selectedParallels) {
+        if (index >= 0 && index < m_parallels.size()) {
+            const ParallelObject& parallel = m_parallels[index];
+            if (parallel.points.size() >= 3) {
+                const QPointF& p1 = parallel.points[0];
+                const QPointF& p2 = parallel.points[1];
+                const QPointF& p3 = parallel.points[2];
+                
+                QPointF direction = p2 - p1;
+                QPointF p4 = p3 + direction;
+                
+                // 高亮两条平行线
+                QPointF extendedStart1 = p1 - direction * 5000.0;
+                QPointF extendedEnd1 = p2 + direction * 5000.0;
+                painter.drawLine(extendedStart1, extendedEnd1);
+                
+                QPointF extendedStart2 = p3 - direction * 5000.0;
+                QPointF extendedEnd2 = p4 + direction * 5000.0;
+                painter.drawLine(extendedStart2, extendedEnd2);
+            }
+        }
+    }
+    
+    // 高亮选中的平行线中线
+    for (int index : m_selectedParallelMiddleLines) {
+        if (index >= 0 && index < m_parallels.size()) {
+            const ParallelObject& parallel = m_parallels[index];
+            if (parallel.points.size() >= 3) {
+                const QPointF& p1 = parallel.points[0];
+                const QPointF& p2 = parallel.points[1];
+                const QPointF& p3 = parallel.points[2];
+                
+                QPointF direction = p2 - p1;
+                QPointF p4 = p3 + direction;
+                
+                // 高亮中线
+                QPointF midP1 = (p1 + p3) / 2.0;
+                QPointF midP2 = (p2 + p4) / 2.0;
+                QPointF extendedMidStart = midP1 - direction * 5000.0;
+                QPointF extendedMidEnd = midP2 + direction * 5000.0;
+                painter.drawLine(extendedMidStart, extendedMidEnd);
+            }
+        }
+    }
+    
+    // 高亮选中的两线夹角
+    for (int index : m_selectedTwoLines) {
+        if (index >= 0 && index < m_twoLines.size()) {
+            const TwoLinesObject& twoLines = m_twoLines[index];
+            if (twoLines.points.size() >= 4) {
+                // 高亮第一条线
+                QPointF direction1 = twoLines.points[1] - twoLines.points[0];
+                QPointF extendedStart1 = twoLines.points[0] - direction1 * 5000.0;
+                QPointF extendedEnd1 = twoLines.points[1] + direction1 * 5000.0;
+                painter.drawLine(extendedStart1, extendedEnd1);
+                
+                // 高亮第二条线
+                QPointF direction2 = twoLines.points[3] - twoLines.points[2];
+                QPointF extendedStart2 = twoLines.points[2] - direction2 * 5000.0;
+                QPointF extendedEnd2 = twoLines.points[3] + direction2 * 5000.0;
+                painter.drawLine(extendedStart2, extendedEnd2);
+            }
+        }
+    }
+}
+
+// 选择状态改变槽函数
+void VideoDisplayWidget::onSelectionChanged()
+{
+    // 更新显示
+    update();
+    
+    // 发送选择信息到状态栏
+    QString info = getSelectedObjectInfo();
+    emit selectionChanged(info);
 }

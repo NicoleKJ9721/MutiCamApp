@@ -203,6 +203,20 @@ public:
     bool isDrawing() const { return m_isDrawingMode; }
     DrawingTool getCurrentDrawingTool() const { return m_currentDrawingTool; }
     
+    // 选择功能
+    void enableSelection(bool enable);
+    bool isSelectionEnabled() const;
+    void clearSelection();
+    QString getSelectedObjectInfo() const;
+    
+public slots:
+    // 选择状态改变信号
+    void onSelectionChanged();
+    
+signals:
+    // 选择状态改变信号
+    void selectionChanged(const QString& info);
+    
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -270,15 +284,28 @@ private:
     void handleFineCircleDrawingClick(const QPointF& imagePos);
     void handleParallelDrawingClick(const QPointF& imagePos);
     void handleTwoLinesDrawingClick(const QPointF& imagePos);
+    void handleSelectionClick(const QPointF& imagePos, bool ctrlPressed);
+    
+    // 选择功能的私有方法
+    void selectObject(const QString& type, int index, bool isMiddleLine = false);
+    void drawSelectionHighlight(QPainter& painter, const DrawingContext& ctx);
+    
+    // 命中测试方法
+    bool hitTestPoint(const QPointF& testPos, int index) const;
+    bool hitTestLine(const QPointF& testPos, int index) const;
+    bool hitTestCircle(const QPointF& testPos, int index) const;
+    bool hitTestFineCircle(const QPointF& testPos, int index) const;
+    QString hitTestParallel(const QPointF& testPos, int index) const; // 返回0=无命中, 1=第一条线, 2=第二条线, 3=中线
+    bool hitTestTwoLines(const QPointF& testPos, int index) const;
     
     // 几何计算辅助方法
     bool calculateCircleFromThreePoints(const QPointF& p1, const QPointF& p2, const QPointF& p3, 
-                                       QPointF& center, double& radius);
+                                       QPointF& center, double& radius) const;
     bool calculateCircleFromFivePoints(const QVector<QPointF>& points, 
-                                      QPointF& center, double& radius);
-    bool calculateLineIntersection(const QPointF& p1, const QPointF& p2, const QPointF& p3, const QPointF& p4, QPointF& intersection);
-    QPair<QPointF, QPointF> calculateExtendedLine(const QPointF& p1, const QPointF& p2, const QSize& imageSize);
-    double calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd);
+                                      QPointF& center, double& radius) const;
+    bool calculateLineIntersection(const QPointF& p1, const QPointF& p2, const QPointF& p3, const QPointF& p4, QPointF& intersection) const;
+    QPair<QPointF, QPointF> calculateExtendedLine(const QPointF& p1, const QPointF& p2, const QSize& imageSize) const;
+    double calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
     
 private:
     QString m_viewName;                              ///< 视图名称
@@ -317,6 +344,16 @@ private:
     mutable QPointF m_cachedImageOffset;            ///< 缓存的图像偏移
     mutable QSize m_cachedWidgetSize;               ///< 缓存的控件尺寸
     mutable QSize m_cachedImageSize;                ///< 缓存的图像尺寸
+    
+    // 选择功能相关成员变量
+    bool m_selectionEnabled;                        ///< 是否启用选择功能
+    QSet<int> m_selectedPoints;                     ///< 选中的点索引
+    QSet<int> m_selectedLines;                      ///< 选中的线索引
+    QSet<int> m_selectedCircles;                    ///< 选中的圆索引
+    QSet<int> m_selectedFineCircles;                ///< 选中的精细圆索引
+    QSet<int> m_selectedParallels;                  ///< 选中的平行线索引
+    QSet<int> m_selectedTwoLines;                   ///< 选中的两线夹角索引
+    QSet<int> m_selectedParallelMiddleLines;        ///< 选中的平行线中线索引
     
     // {{ AURA-X: Add - 缓存的DrawingContext避免重复创建. Approval: 寸止(ID:context_cache). }}
     // 缓存的绘制上下文

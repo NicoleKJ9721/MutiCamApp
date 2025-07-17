@@ -111,6 +111,12 @@ private slots:
     void onDrawingDataChanged(const QString& viewName);
     
     /**
+     * @brief 处理VideoDisplayWidget选择状态变化信号
+     * @param info 选择信息
+     */
+    void onSelectionChanged(const QString& info);
+    
+    /**
      * @brief 处理相机状态变化信号
      * @param cameraId 相机ID
      * @param state 相机状态

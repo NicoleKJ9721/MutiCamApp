@@ -242,26 +242,38 @@ void MutiCamApp::connectSignalsAndSlots()
     if (m_verticalDisplayWidget) {
         connect(m_verticalDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_verticalDisplayWidget, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
     if (m_leftDisplayWidget) {
         connect(m_leftDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_leftDisplayWidget, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
     if (m_frontDisplayWidget) {
         connect(m_frontDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_frontDisplayWidget, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
     if (m_verticalDisplayWidget2) {
         connect(m_verticalDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
     if (m_leftDisplayWidget2) {
         connect(m_leftDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_leftDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
     if (m_frontDisplayWidget2) {
         connect(m_frontDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
                 this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_frontDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+                this, &MutiCamApp::onSelectionChanged);
     }
 }
 
@@ -422,6 +434,16 @@ void MutiCamApp::onDrawingDataChanged(const QString& viewName)
     // updateDrawingDataForView(viewName);
 }
 
+void MutiCamApp::onSelectionChanged(const QString& info)
+{
+    // 在状态栏显示选择的图元信息
+    if (info.isEmpty()) {
+        statusBar()->showMessage("就绪");
+    } else {
+        statusBar()->showMessage(QString("选中了: %1").arg(info));
+    }
+}
+
 
 
 QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
@@ -573,7 +595,28 @@ void MutiCamApp::exitDrawingMode()
         m_frontDisplayWidget2->stopDrawing();
     }
     
-    qDebug() << "退出绘制模式";
+    // {{ AURA-X: Add - 退出绘图模式时重新启用选择模式，确保状态完整切换. Approval: 寸止(ID:selection_restore). }}
+    // 重新启用所有VideoDisplayWidget的选择模式
+    if (m_verticalDisplayWidget) {
+        m_verticalDisplayWidget->enableSelection(true);
+    }
+    if (m_leftDisplayWidget) {
+        m_leftDisplayWidget->enableSelection(true);
+    }
+    if (m_frontDisplayWidget) {
+        m_frontDisplayWidget->enableSelection(true);
+    }
+    if (m_verticalDisplayWidget2) {
+        m_verticalDisplayWidget2->enableSelection(true);
+    }
+    if (m_leftDisplayWidget2) {
+        m_leftDisplayWidget2->enableSelection(true);
+    }
+    if (m_frontDisplayWidget2) {
+        m_frontDisplayWidget2->enableSelection(true);
+    }
+    
+    qDebug() << "退出绘制模式，重新启用选择模式";
 }
 
 // drawPointsOnImage 方法已迁移到 VideoDisplayWidget
@@ -1271,6 +1314,15 @@ void MutiCamApp::initializeVideoDisplayWidgets()
             delete frontItem2;
             ui->lbFrontView2->deleteLater();
         }
+        
+        // 启用选择功能
+        m_verticalDisplayWidget->enableSelection(true);
+        m_leftDisplayWidget->enableSelection(true);
+        m_frontDisplayWidget->enableSelection(true);
+        
+        m_verticalDisplayWidget2->enableSelection(true);
+        m_leftDisplayWidget2->enableSelection(true);
+        m_frontDisplayWidget2->enableSelection(true);
         
         // 显示硬件加速控件
         m_verticalDisplayWidget->show();
