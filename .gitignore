@@ -1,0 +1,7 @@
+/build
+/.vscode
+/third_party
+/参考项目/MutiCamApp第一版，只能打开相机
+/参考项目/MutiCamApp_python原版/__pycache__
+/参考项目/MutiCamApp_python原版/Development/__pycache__
+/参考项目/MutiCamApp_python原版/Tools/__pycache__

@@ -8,6 +8,10 @@ events:
       - "CMakeLists.txt:2 (project)"
     message: |
       The system is: Windows - 10.0.26100 - AMD64
+...
+
+---
+events:
   -
     kind: "message-v1"
     backtrace:
@@ -17,52 +21,43 @@ events:
       - "CMakeLists.txt:2 (project)"
     message: |
       Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
-      Compiler:  
+      Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe 
       Build flags: 
       Id flags:  
       
       The output was:
       0
-      閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-      鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:34銆?
+      用于 x64 的 Microsoft (R) C/C++ 优化编译器 19.44.35211 版
+      版权所有(C) Microsoft Corporation。保留所有权利。
       
-      鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\3.30.5\\CompilerIdCXX\\CompilerIdCXX.vcxproj鈥?榛樿鐩爣)銆?
-      PrepareForBuild:
-        姝ｅ湪鍒涘缓鐩綍鈥淒ebug\\鈥濄€?
-        宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-        姝ｅ湪鍒涘缓鐩綍鈥淒ebug\\CompilerIdCXX.tlog\\鈥濄€?
-      InitializeBuildStatus:
-        姝ｅ湪鍒涘缓鈥淒ebug\\CompilerIdCXX.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-        姝ｅ湪瀵光€淒ebug\\CompilerIdCXX.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-      ClCompile:
-        C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc143.pdb" /external:W0 /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
-        CMakeCXXCompilerId.cpp
-      Link:
-        C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCXX.lib" /MACHINE:X64 Debug\\CMakeCXXCompilerId.obj
-        CompilerIdCXX.vcxproj -> D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\3.30.5\\CompilerIdCXX\\CompilerIdCXX.exe
-      PostBuildEvent:
-        for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
-        :VCEnd
-        CMAKE_CXX_COMPILER=C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe
-      FinalizeBuildStatus:
-        姝ｅ湪鍒犻櫎鏂囦欢鈥淒ebug\\CompilerIdCXX.tlog\\unsuccessfulbuild鈥濄€?
-        姝ｅ湪瀵光€淒ebug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate鈥濇墽琛?Touch 浠诲姟銆?
-      宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\3.30.5\\CompilerIdCXX\\CompilerIdCXX.vcxproj鈥?榛樿鐩爣)鐨勬搷浣溿€?
+      CMakeCXXCompilerId.cpp
+      Microsoft (R) Incremental Linker Version 14.44.35211.0
+      Copyright (C) Microsoft Corporation.  All rights reserved.
       
-      宸叉垚鍔熺敓鎴愩€?
-          0 涓鍛?
-          0 涓敊璇?
-      
-      宸茬敤鏃堕棿 00:00:01.83
+      /out:CMakeCXXCompilerId.exe 
+      CMakeCXXCompilerId.obj 
       
       
-      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.exe"
       
-      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcxproj"
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.obj"
       
       The CXX compiler identification is MSVC, found in:
-        D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/3.30.5/CompilerIdCXX/CompilerIdCXX.exe
+        D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/3.30.5/CompilerIdCXX/CMakeCXXCompilerId.exe
       
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:1243 (message)"
+      - "C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineCompilerId.cmake:250 (CMAKE_DETERMINE_MSVC_SHOWINCLUDES_PREFIX)"
+      - "C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Detecting CXX compiler /showIncludes prefix:
+        main.c
+        注意: 包含文件:  D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\ShowIncludes\\foo.h
+        
+      Found prefix "注意: 包含文件:  "
   -
     kind: "try_compile-v1"
     backtrace:
@@ -72,51 +67,21 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-ca1zef"
-      binary: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-ca1zef"
+      source: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ggj0df"
+      binary: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ggj0df"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
-      CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
       CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
     buildResult:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-ca1zef'
+        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ggj0df'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_e6299.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-        鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:37銆?
-        
-        鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ca1zef\\cmTC_e6299.vcxproj鈥?榛樿鐩爣)銆?
-        PrepareForBuild:
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e6299.dir\\Debug\\鈥濄€?
-          宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-          姝ｅ湪鍒涘缓鐩綍鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ca1zef\\Debug\\鈥濄€?
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e6299.dir\\Debug\\cmTC_e6299.tlog\\鈥濄€?
-        InitializeBuildStatus:
-          姝ｅ湪鍒涘缓鈥渃mTC_e6299.dir\\Debug\\cmTC_e6299.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-          姝ｅ湪瀵光€渃mTC_e6299.dir\\Debug\\cmTC_e6299.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_e6299.dir\\Debug\\\\" /Fd"cmTC_e6299.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Qt\\Tools\\CMake_64\\share\\cmake-3.30\\Modules\\CMakeCXXCompilerABI.cpp"
-          鐢ㄤ簬 x64 鐨?Microsoft (R) C/C++ 浼樺寲缂栬瘧鍣?19.44.35211 鐗?
-          鐗堟潈鎵€鏈?C) Microsoft Corporation銆備繚鐣欐墍鏈夋潈鍒┿€?
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /Fo"cmTC_e6299.dir\\Debug\\\\" /Fd"cmTC_e6299.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "C:\\Qt\\Tools\\CMake_64\\share\\cmake-3.30\\Modules\\CMakeCXXCompilerABI.cpp"
-          CMakeCXXCompilerABI.cpp
-        Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ca1zef\\Debug\\cmTC_e6299.exe" /INCREMENTAL /ILK:"cmTC_e6299.dir\\Debug\\cmTC_e6299.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-ca1zef/Debug/cmTC_e6299.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-ca1zef/Debug/cmTC_e6299.lib" /MACHINE:X64  /machine:x64 cmTC_e6299.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_e6299.vcxproj -> D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ca1zef\\Debug\\cmTC_e6299.exe
-        FinalizeBuildStatus:
-          姝ｅ湪鍒犻櫎鏂囦欢鈥渃mTC_e6299.dir\\Debug\\cmTC_e6299.tlog\\unsuccessfulbuild鈥濄€?
-          姝ｅ湪瀵光€渃mTC_e6299.dir\\Debug\\cmTC_e6299.tlog\\cmTC_e6299.lastbuildstate鈥濇墽琛?Touch 浠诲姟銆?
-        宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ca1zef\\cmTC_e6299.vcxproj鈥?榛樿鐩爣)鐨勬搷浣溿€?
-        
-        宸叉垚鍔熺敓鎴愩€?
-            0 涓鍛?
-            0 涓敊璇?
-        
-        宸茬敤鏃堕棿 00:00:01.35
+        Run Build Command(s): C:/PROGRA~1/MIB055~1/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe -v cmTC_e86ce
+        [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Zi /Ob0 /Od /RTC1 /showIncludes /FoCMakeFiles\\cmTC_e86ce.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_e86ce.dir\\ /FS -c C:\\Qt\\Tools\\CMake_64\\share\\cmake-3.30\\Modules\\CMakeCXXCompilerABI.cpp
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_e86ce.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_e86ce.dir\\CMakeCXXCompilerABI.cpp.obj  /out:cmTC_e86ce.exe /implib:cmTC_e86ce.lib /pdb:cmTC_e86ce.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
         
       exitCode: 0
   -
@@ -129,7 +94,7 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?|link\\.exe|lld-link(\\.exe)?))("|,| |$)]
-        linker tool for 'CXX': C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/link.exe
+        linker tool for 'CXX': C:/PROGRA~1/MIB055~1/2022/COMMUN~1/VC/Tools/MSVC/1444~1.352/bin/Hostx64/x64/link.exe
         implicit libs: []
         implicit objs: []
         implicit dirs: []
@@ -144,7 +109,7 @@ events:
       - "C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
       - "CMakeLists.txt:2 (project)"
     message: |
-      Running the CXX compiler's linker: "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/link.exe" "-v"
+      Running the CXX compiler's linker: "C:/PROGRA~1/MIB055~1/2022/COMMUN~1/VC/Tools/MSVC/1444~1.352/bin/Hostx64/x64/link.exe" "-v"
       Microsoft (R) Incremental Linker Version 14.44.35211.0
       Copyright (C) Microsoft Corporation.  All rights reserved.
   -
@@ -162,51 +127,25 @@ events:
     checks:
       - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
     directories:
-      source: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-re4h3r"
-      binary: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-re4h3r"
+      source: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-qdd032"
+      binary: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-qdd032"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      CMAKE_MODULE_PATH: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/cmake;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
+      CMAKE_MODULE_PATH: "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
     buildResult:
       variable: "CMAKE_HAVE_LIBC_PTHREAD"
       cached: true
       stdout: |
-        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-re4h3r'
+        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-qdd032'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_e8fda.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-        鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:38銆?
-        
-        鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\cmTC_e8fda.vcxproj鈥?榛樿鐩爣)銆?
-        PrepareForBuild:
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e8fda.dir\\Debug\\鈥濄€?
-          宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-          姝ｅ湪鍒涘缓鐩綍鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\Debug\\鈥濄€?
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e8fda.dir\\Debug\\cmTC_e8fda.tlog\\鈥濄€?
-        InitializeBuildStatus:
-          姝ｅ湪鍒涘缓鈥渃mTC_e8fda.dir\\Debug\\cmTC_e8fda.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-          姝ｅ湪瀵光€渃mTC_e8fda.dir\\Debug\\cmTC_e8fda.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_e8fda.dir\\Debug\\\\" /Fd"cmTC_e8fda.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\src.cxx"
-          鐢ㄤ簬 x64 鐨?Microsoft (R) C/C++ 浼樺寲缂栬瘧鍣?19.44.35211 鐗?
-          鐗堟潈鎵€鏈?C) Microsoft Corporation銆備繚鐣欐墍鏈夋潈鍒┿€?
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CMAKE_HAVE_LIBC_PTHREAD /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_e8fda.dir\\Debug\\\\" /Fd"cmTC_e8fda.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\src.cxx"
-          src.cxx
-        D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\src.cxx(1,10): error C1083: 鏃犳硶鎵撳紑鍖呮嫭鏂囦欢: 鈥減thread.h鈥? No such file or directory [D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\cmTC_e8fda.vcxproj]
-        宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\cmTC_e8fda.vcxproj鈥?榛樿鐩爣)鐨勬搷浣?- 澶辫触銆?
-        
-        鐢熸垚澶辫触銆?
-        
-        鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\cmTC_e8fda.vcxproj鈥?榛樿鐩爣) (1) ->
-        (ClCompile 鐩爣) -> 
-          D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\src.cxx(1,10): error C1083: 鏃犳硶鎵撳紑鍖呮嫭鏂囦欢: 鈥減thread.h鈥? No such file or directory [D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-re4h3r\\cmTC_e8fda.vcxproj]
-        
-            0 涓鍛?
-            1 涓敊璇?
-        
-        宸茬敤鏃堕棿 00:00:01.21
+        Run Build Command(s): C:/PROGRA~1/MIB055~1/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe -v cmTC_6d6a3
+        [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DCMAKE_HAVE_LIBC_PTHREAD  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /showIncludes /FoCMakeFiles\\cmTC_6d6a3.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_6d6a3.dir\\ /FS -c D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-qdd032\\src.cxx
+        FAILED: CMakeFiles/cmTC_6d6a3.dir/src.cxx.obj 
+        C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DCMAKE_HAVE_LIBC_PTHREAD  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /showIncludes /FoCMakeFiles\\cmTC_6d6a3.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_6d6a3.dir\\ /FS -c D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-qdd032\\src.cxx
+        D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-qdd032\\src.cxx(1): fatal error C1083: 无法打开包括文件: “pthread.h”: No such file or directory
+        ninja: build stopped: subcommand failed.
         
       exitCode: 1
   -
@@ -223,53 +162,27 @@ events:
     checks:
       - "Looking for pthread_create in pthreads"
     directories:
-      source: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hly364"
-      binary: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hly364"
+      source: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-vhpeyh"
+      binary: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-vhpeyh"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      CMAKE_MODULE_PATH: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/cmake;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
+      CMAKE_MODULE_PATH: "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
     buildResult:
       variable: "CMAKE_HAVE_PTHREADS_CREATE"
       cached: true
       stdout: |
-        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hly364'
+        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-vhpeyh'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_e0e14.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-        鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:40銆?
-        
-        鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\cmTC_e0e14.vcxproj鈥?榛樿鐩爣)銆?
-        PrepareForBuild:
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e0e14.dir\\Debug\\鈥濄€?
-          宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-          姝ｅ湪鍒涘缓鐩綍鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\Debug\\鈥濄€?
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_e0e14.dir\\Debug\\cmTC_e0e14.tlog\\鈥濄€?
-        InitializeBuildStatus:
-          姝ｅ湪鍒涘缓鈥渃mTC_e0e14.dir\\Debug\\cmTC_e0e14.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-          姝ｅ湪瀵光€渃mTC_e0e14.dir\\Debug\\cmTC_e0e14.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_e0e14.dir\\Debug\\\\" /Fd"cmTC_e0e14.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\CheckFunctionExists.cxx"
-          鐢ㄤ簬 x64 鐨?Microsoft (R) C/C++ 浼樺寲缂栬瘧鍣?19.44.35211 鐗?
-          鐗堟潈鎵€鏈?C) Microsoft Corporation銆備繚鐣欐墍鏈夋潈鍒┿€?
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_e0e14.dir\\Debug\\\\" /Fd"cmTC_e0e14.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\CheckFunctionExists.cxx"
-          CheckFunctionExists.cxx
-        Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\Debug\\cmTC_e0e14.exe" /INCREMENTAL /ILK:"cmTC_e0e14.dir\\Debug\\cmTC_e0e14.ilk" /NOLOGO pthreads.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hly364/Debug/cmTC_e0e14.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hly364/Debug/cmTC_e0e14.lib" /MACHINE:X64  /machine:x64 cmTC_e0e14.dir\\Debug\\CheckFunctionExists.obj
-        LINK : fatal error LNK1104: 鏃犳硶鎵撳紑鏂囦欢鈥減threads.lib鈥?[D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\cmTC_e0e14.vcxproj]
-        宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\cmTC_e0e14.vcxproj鈥?榛樿鐩爣)鐨勬搷浣?- 澶辫触銆?
-        
-        鐢熸垚澶辫触銆?
-        
-        鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\cmTC_e0e14.vcxproj鈥?榛樿鐩爣) (1) ->
-        (Link 鐩爣) -> 
-          LINK : fatal error LNK1104: 鏃犳硶鎵撳紑鏂囦欢鈥減threads.lib鈥?[D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hly364\\cmTC_e0e14.vcxproj]
-        
-            0 涓鍛?
-            1 涓敊璇?
-        
-        宸茬敤鏃堕棿 00:00:01.09
+        Run Build Command(s): C:/PROGRA~1/MIB055~1/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe -v cmTC_5b595
+        [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc -DCHECK_FUNCTION_EXISTS=pthread_create /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /showIncludes /FoCMakeFiles\\cmTC_5b595.dir\\CheckFunctionExists.cxx.obj /FdCMakeFiles\\cmTC_5b595.dir\\ /FS -c D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-vhpeyh\\CheckFunctionExists.cxx
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_5b595.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_5b595.dir\\CheckFunctionExists.cxx.obj  /out:cmTC_5b595.exe /implib:cmTC_5b595.lib /pdb:cmTC_5b595.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthreads.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        FAILED: cmTC_5b595.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_5b595.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_5b595.dir\\CheckFunctionExists.cxx.obj  /out:cmTC_5b595.exe /implib:cmTC_5b595.lib /pdb:cmTC_5b595.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthreads.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        LINK Pass 1: command "C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_5b595.dir\\CheckFunctionExists.cxx.obj /out:cmTC_5b595.exe /implib:cmTC_5b595.lib /pdb:cmTC_5b595.pdb /version:0.0 /machine:x64 /debug /INCREMENTAL /subsystem:console pthreads.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTFILE:CMakeFiles\\cmTC_5b595.dir/intermediate.manifest CMakeFiles\\cmTC_5b595.dir/manifest.res" failed (exit code 1104) with the following output:
+        LINK : fatal error LNK1104: 无法打开文件“pthreads.lib”\x0d
+        ninja: build stopped: subcommand failed.
         
       exitCode: 1
   -
@@ -286,53 +199,27 @@ events:
     checks:
       - "Looking for pthread_create in pthread"
     directories:
-      source: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-jbncxk"
-      binary: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-jbncxk"
+      source: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-2a6c91"
+      binary: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-2a6c91"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      CMAKE_MODULE_PATH: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/cmake;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
+      CMAKE_MODULE_PATH: "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
     buildResult:
       variable: "CMAKE_HAVE_PTHREAD_CREATE"
       cached: true
       stdout: |
-        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-jbncxk'
+        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-2a6c91'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_d90af.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-        鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:42銆?
-        
-        鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\cmTC_d90af.vcxproj鈥?榛樿鐩爣)銆?
-        PrepareForBuild:
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_d90af.dir\\Debug\\鈥濄€?
-          宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-          姝ｅ湪鍒涘缓鐩綍鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\Debug\\鈥濄€?
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_d90af.dir\\Debug\\cmTC_d90af.tlog\\鈥濄€?
-        InitializeBuildStatus:
-          姝ｅ湪鍒涘缓鈥渃mTC_d90af.dir\\Debug\\cmTC_d90af.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-          姝ｅ湪瀵光€渃mTC_d90af.dir\\Debug\\cmTC_d90af.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_d90af.dir\\Debug\\\\" /Fd"cmTC_d90af.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\CheckFunctionExists.cxx"
-          鐢ㄤ簬 x64 鐨?Microsoft (R) C/C++ 浼樺寲缂栬瘧鍣?19.44.35211 鐗?
-          鐗堟潈鎵€鏈?C) Microsoft Corporation銆備繚鐣欐墍鏈夋潈鍒┿€?
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D CHECK_FUNCTION_EXISTS=pthread_create /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_d90af.dir\\Debug\\\\" /Fd"cmTC_d90af.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\CheckFunctionExists.cxx"
-          CheckFunctionExists.cxx
-        Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\Debug\\cmTC_d90af.exe" /INCREMENTAL /ILK:"cmTC_d90af.dir\\Debug\\cmTC_d90af.ilk" /NOLOGO pthread.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-jbncxk/Debug/cmTC_d90af.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-jbncxk/Debug/cmTC_d90af.lib" /MACHINE:X64  /machine:x64 cmTC_d90af.dir\\Debug\\CheckFunctionExists.obj
-        LINK : fatal error LNK1104: 鏃犳硶鎵撳紑鏂囦欢鈥減thread.lib鈥?[D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\cmTC_d90af.vcxproj]
-        宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\cmTC_d90af.vcxproj鈥?榛樿鐩爣)鐨勬搷浣?- 澶辫触銆?
-        
-        鐢熸垚澶辫触銆?
-        
-        鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\cmTC_d90af.vcxproj鈥?榛樿鐩爣) (1) ->
-        (Link 鐩爣) -> 
-          LINK : fatal error LNK1104: 鏃犳硶鎵撳紑鏂囦欢鈥減thread.lib鈥?[D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-jbncxk\\cmTC_d90af.vcxproj]
-        
-            0 涓鍛?
-            1 涓敊璇?
-        
-        宸茬敤鏃堕棿 00:00:01.08
+        Run Build Command(s): C:/PROGRA~1/MIB055~1/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe -v cmTC_525c5
+        [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc -DCHECK_FUNCTION_EXISTS=pthread_create /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /showIncludes /FoCMakeFiles\\cmTC_525c5.dir\\CheckFunctionExists.cxx.obj /FdCMakeFiles\\cmTC_525c5.dir\\ /FS -c D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-2a6c91\\CheckFunctionExists.cxx
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_525c5.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_525c5.dir\\CheckFunctionExists.cxx.obj  /out:cmTC_525c5.exe /implib:cmTC_525c5.lib /pdb:cmTC_525c5.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthread.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        FAILED: cmTC_525c5.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_525c5.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_525c5.dir\\CheckFunctionExists.cxx.obj  /out:cmTC_525c5.exe /implib:cmTC_525c5.lib /pdb:cmTC_525c5.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  pthread.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
+        LINK Pass 1: command "C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_525c5.dir\\CheckFunctionExists.cxx.obj /out:cmTC_525c5.exe /implib:cmTC_525c5.lib /pdb:cmTC_525c5.pdb /version:0.0 /machine:x64 /debug /INCREMENTAL /subsystem:console pthread.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTFILE:CMakeFiles\\cmTC_525c5.dir/intermediate.manifest CMakeFiles\\cmTC_525c5.dir/manifest.res" failed (exit code 1104) with the following output:
+        LINK : fatal error LNK1104: 无法打开文件“pthread.lib”\x0d
+        ninja: build stopped: subcommand failed.
         
       exitCode: 1
   -
@@ -345,56 +232,31 @@ events:
       - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:36 (find_dependency)"
       - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Core/Qt6CoreDependencies.cmake:35 (_qt_internal_find_third_party_dependencies)"
       - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Core/Qt6CoreConfig.cmake:45 (include)"
+      - "C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake:143 (find_dependency)"
+      - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6WidgetsDependencies.cmake:43 (_qt_internal_find_qt_dependencies)"
+      - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6WidgetsConfig.cmake:43 (include)"
       - "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/Qt6Config.cmake:181 (find_package)"
       - "CMakeLists.txt:24 (find_package)"
     checks:
       - "Performing Test HAVE_STDATOMIC"
     directories:
-      source: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-237ovc"
-      binary: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-237ovc"
+      source: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ur27wr"
+      binary: "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ur27wr"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
-      CMAKE_MODULE_PATH: "D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/cmake;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
+      CMAKE_MODULE_PATH: "C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/extra-cmake-modules/find-modules;C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6/3rdparty/kwin"
     buildResult:
       variable: "HAVE_STDATOMIC"
       cached: true
       stdout: |
-        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-237ovc'
+        Change Dir: 'D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/CMakeScratch/TryCompile-ur27wr'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_f1cf4.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=17.0 /v:n
-        閫傜敤浜?.NET Framework MSBuild 鐗堟湰 17.14.14+a129329f1
-        鐢熸垚鍚姩鏃堕棿涓?2025/7/11 21:47:43銆?
-        
-        鑺傜偣 1 涓婄殑椤圭洰鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\cmTC_f1cf4.vcxproj鈥?榛樿鐩爣)銆?
-        PrepareForBuild:
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_f1cf4.dir\\Debug\\鈥濄€?
-          宸插惎鐢ㄧ粨鏋勫寲杈撳嚭銆傜紪璇戝櫒璇婃柇鐨勬牸寮忚缃皢鍙嶆槧閿欒灞傛缁撴瀯銆傛湁鍏宠缁嗕俊鎭紝璇峰弬闃?https://aka.ms/cpp/structured-output銆?
-          姝ｅ湪鍒涘缓鐩綍鈥淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\Debug\\鈥濄€?
-          姝ｅ湪鍒涘缓鐩綍鈥渃mTC_f1cf4.dir\\Debug\\cmTC_f1cf4.tlog\\鈥濄€?
-        InitializeBuildStatus:
-          姝ｅ湪鍒涘缓鈥渃mTC_f1cf4.dir\\Debug\\cmTC_f1cf4.tlog\\unsuccessfulbuild鈥濓紝鍥犱负宸叉寚瀹氣€淎lwaysCreate鈥濄€?
-          姝ｅ湪瀵光€渃mTC_f1cf4.dir\\Debug\\cmTC_f1cf4.tlog\\unsuccessfulbuild鈥濇墽琛?Touch 浠诲姟銆?
-        ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\CL.exe /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D HAVE_STDATOMIC /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_f1cf4.dir\\Debug\\\\" /Fd"cmTC_f1cf4.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\src.cxx"
-          鐢ㄤ簬 x64 鐨?Microsoft (R) C/C++ 浼樺寲缂栬瘧鍣?19.44.35211 鐗?
-          鐗堟潈鎵€鏈?C) Microsoft Corporation銆備繚鐣欐墍鏈夋潈鍒┿€?
-          cl /c /Zi /W3 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D HAVE_STDATOMIC /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR /std:c++17 /Fo"cmTC_f1cf4.dir\\Debug\\\\" /Fd"cmTC_f1cf4.dir\\Debug\\vc143.pdb" /external:W3 /Gd /TP /errorReport:queue "D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\src.cxx"
-          src.cxx
-        Link:
-          C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:"D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\Debug\\cmTC_f1cf4.exe" /INCREMENTAL /ILK:"cmTC_f1cf4.dir\\Debug\\cmTC_f1cf4.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-237ovc/Debug/cmTC_f1cf4.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:/AppData/Documents/GitHub/MutiCamApp/MutiCamApp_cpp/build/CMakeFiles/CMakeScratch/TryCompile-237ovc/Debug/cmTC_f1cf4.lib" /MACHINE:X64  /machine:x64 cmTC_f1cf4.dir\\Debug\\src.obj
-          cmTC_f1cf4.vcxproj -> D:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\Debug\\cmTC_f1cf4.exe
-        FinalizeBuildStatus:
-          姝ｅ湪鍒犻櫎鏂囦欢鈥渃mTC_f1cf4.dir\\Debug\\cmTC_f1cf4.tlog\\unsuccessfulbuild鈥濄€?
-          姝ｅ湪瀵光€渃mTC_f1cf4.dir\\Debug\\cmTC_f1cf4.tlog\\cmTC_f1cf4.lastbuildstate鈥濇墽琛?Touch 浠诲姟銆?
-        宸插畬鎴愮敓鎴愰」鐩€淒:\\AppData\\Documents\\GitHub\\MutiCamApp\\MutiCamApp_cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-237ovc\\cmTC_f1cf4.vcxproj鈥?榛樿鐩爣)鐨勬搷浣溿€?
-        
-        宸叉垚鍔熺敓鎴愩€?
-            0 涓鍛?
-            0 涓敊璇?
-        
-        宸茬敤鏃堕棿 00:00:01.40
+        Run Build Command(s): C:/PROGRA~1/MIB055~1/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/Ninja/ninja.exe -v cmTC_e1fb7
+        [1/2] C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DHAVE_STDATOMIC  /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /showIncludes /FoCMakeFiles\\cmTC_e1fb7.dir\\src.cxx.obj /FdCMakeFiles\\cmTC_e1fb7.dir\\ /FS -c D:\\AppData\\Documents\\GitHub\\MutiCamApp_Cpp\\build\\CMakeFiles\\CMakeScratch\\TryCompile-ur27wr\\src.cxx
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\Qt\\Tools\\CMake_64\\bin\\cmake.exe -E vs_link_exe --intdir=CMakeFiles\\cmTC_e1fb7.dir --rc=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\rc.exe --mt=C:\\PROGRA~2\\WI3CF2~1\\10\\bin\\100261~1.0\\x64\\mt.exe --manifests  -- C:\\PROGRA~1\\MIB055~1\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\link.exe /nologo CMakeFiles\\cmTC_e1fb7.dir\\src.cxx.obj  /out:cmTC_e1fb7.exe /implib:cmTC_e1fb7.lib /pdb:cmTC_e1fb7.pdb /version:0.0 /machine:x64  /debug /INCREMENTAL /subsystem:console  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib && cd ."
         
       exitCode: 0
 ...

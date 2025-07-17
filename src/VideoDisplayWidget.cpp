@@ -1,0 +1,1905 @@
+#include "VideoDisplayWidget.h"
+#include "MutiCamApp.h"
+#include <QPainter>
+#include <QDebug>
+#include <QPainterPath>
+#include <QApplication>
+#include <QVector2D>
+#include <cmath>
+
+VideoDisplayWidget::VideoDisplayWidget(QWidget *parent)
+    : QLabel(parent)
+    , m_isDrawingMode(false)
+    , m_currentDrawingTool(DrawingTool::None)
+    , m_cachedScaleFactor(1.0)
+    , m_cachedImageOffset(0, 0)
+    , m_cachedWidgetSize(0, 0)
+    , m_cachedImageSize(0, 0)
+    , m_hasCurrentLine(false)
+    , m_hasCurrentCircle(false)
+    , m_hasCurrentFineCircle(false)
+    , m_hasCurrentParallel(false)
+    , m_hasCurrentTwoLines(false)
+    , m_hasValidMousePos(false)
+    , m_drawingContextValid(false)
+    , m_lastContextWidgetSize(0, 0)
+    , m_lastContextImageSize(0, 0)
+{
+    // 启用抗锯齿和高质量渲染
+    setAttribute(Qt::WA_OpaquePaintEvent, false);
+    setScaledContents(false);
+    
+    // 启用鼠标跟踪以支持鼠标移动事件
+    setMouseTracking(true);
+}
+
+void VideoDisplayWidget::setVideoFrame(const QPixmap& pixmap)
+{
+    m_videoFrame = pixmap;
+    
+    // 如果图像尺寸发生变化，清除缓存
+    if (m_cachedImageSize != pixmap.size()) {
+        m_cachedImageSize = pixmap.size();
+        m_cachedScaleFactor = -1; // 标记需要重新计算
+        // {{ AURA-X: Add - 图像尺寸变化时使DrawingContext缓存失效. Approval: 寸止(ID:context_cache). }}
+        m_drawingContextValid = false; // 标记DrawingContext需要重新计算
+    }
+    
+    // 触发重绘（所有绘制工作统一在paintEvent中完成）
+    update();
+}
+
+void VideoDisplayWidget::setViewName(const QString& viewName)
+{
+    m_viewName = viewName;
+}
+
+void VideoDisplayWidget::setPointsData(const QVector<QPointF>& points)
+{
+    m_points = points;
+    update();
+}
+
+void VideoDisplayWidget::setLinesData(const QVector<LineObject>& lines)
+{
+    m_lines = lines;
+    update();
+}
+
+void VideoDisplayWidget::setCirclesData(const QVector<CircleObject>& circles)
+{
+    m_circles = circles;
+    update();
+}
+
+void VideoDisplayWidget::setFineCirclesData(const QVector<FineCircleObject>& fineCircles)
+{
+    m_fineCircles = fineCircles;
+    update();
+}
+
+void VideoDisplayWidget::setParallelLinesData(const QVector<ParallelObject>& parallels)
+{
+    m_parallels = parallels;
+    update();
+}
+
+void VideoDisplayWidget::setTwoLinesData(const QVector<TwoLinesObject>& twoLines)
+{
+    m_twoLines = twoLines;
+    update();
+}
+
+void VideoDisplayWidget::setCurrentLineData(const LineObject& currentLine)
+{
+    m_currentLine = currentLine;
+    m_hasCurrentLine = true;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::clearCurrentLineData()
+{
+    m_hasCurrentLine = false;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::setCurrentCircleData(const CircleObject& currentCircle)
+{
+    m_currentCircle = currentCircle;
+    m_hasCurrentCircle = true;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::clearCurrentCircleData()
+{
+    m_hasCurrentCircle = false;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::setCurrentFineCircleData(const FineCircleObject& currentFineCircle)
+{
+    m_currentFineCircle = currentFineCircle;
+    m_hasCurrentFineCircle = true;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::clearCurrentFineCircleData()
+{
+    m_hasCurrentFineCircle = false;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::setCurrentParallelData(const ParallelObject& currentParallel)
+{
+    m_currentParallel = currentParallel;
+    m_hasCurrentParallel = true;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::clearCurrentParallelData()
+{
+    m_currentParallel = ParallelObject();
+    m_hasCurrentParallel = false;
+    // {{ AURA-X: Add - 清除鼠标预览状态. Approval: 寸止(ID:preview_fix). }}
+    m_hasValidMousePos = false;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::setCurrentTwoLinesData(const TwoLinesObject& currentTwoLines)
+{
+    m_currentTwoLines = currentTwoLines;
+    m_hasCurrentTwoLines = true;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::clearCurrentTwoLinesData()
+{
+    m_currentTwoLines = TwoLinesObject();
+    m_hasCurrentTwoLines = false;
+    // {{ AURA-X: Add - 清除鼠标预览状态. Approval: 寸止(ID:preview_fix). }}
+    m_hasValidMousePos = false;
+    update();
+}
+
+void VideoDisplayWidget::startDrawing(DrawingTool tool)
+{
+    m_isDrawingMode = true;
+    m_currentDrawingTool = tool;
+    
+    // 清除所有当前绘制状态
+    clearCurrentLineData();
+    clearCurrentCircleData();
+    clearCurrentFineCircleData();
+    clearCurrentParallelData();
+    clearCurrentTwoLinesData();
+    
+    // 设置鼠标光标
+    setCursor(Qt::CrossCursor);
+}
+
+void VideoDisplayWidget::stopDrawing()
+{
+    m_isDrawingMode = false;
+    m_currentDrawingTool = DrawingTool::None;
+    
+    // 清除所有当前绘制状态
+    clearCurrentLineData();
+    clearCurrentCircleData();
+    clearCurrentFineCircleData();
+    clearCurrentParallelData();
+    clearCurrentTwoLinesData();
+    
+    // 恢复默认鼠标光标
+    setCursor(Qt::ArrowCursor);
+}
+
+void VideoDisplayWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (!m_isDrawingMode || event->button() != Qt::LeftButton) {
+        QLabel::mousePressEvent(event);
+        return;
+    }
+    
+    // 将窗口坐标转换为图像坐标
+    QPointF imagePos = widgetToImage(event->pos());
+    
+    // 检查点击是否在图像范围内
+    if (imagePos.x() < 0 || imagePos.y() < 0 || 
+        imagePos.x() >= m_videoFrame.width() || imagePos.y() >= m_videoFrame.height()) {
+        return;
+    }
+    
+    // 根据当前绘制工具处理点击
+    switch (m_currentDrawingTool) {
+        case DrawingTool::Point:
+            handlePointDrawingClick(imagePos);
+            break;
+        case DrawingTool::Line:
+            handleLineDrawingClick(imagePos);
+            break;
+        case DrawingTool::Circle:
+            handleCircleDrawingClick(imagePos);
+            break;
+        case DrawingTool::FineCircle:
+            handleFineCircleDrawingClick(imagePos);
+            break;
+        case DrawingTool::Parallel:
+            handleParallelDrawingClick(imagePos);
+            break;
+        case DrawingTool::TwoLines:
+            handleTwoLinesDrawingClick(imagePos);
+            break;
+        default:
+            break;
+    }
+}
+
+void VideoDisplayWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!m_isDrawingMode) {
+        QLabel::mouseMoveEvent(event);
+        return;
+    }
+    
+    // 将窗口坐标转换为图像坐标
+    QPointF imagePos = widgetToImage(event->pos());
+    
+    // 检查鼠标是否在图像范围内
+    if (imagePos.x() < 0 || imagePos.y() < 0 || 
+        imagePos.x() >= m_videoFrame.width() || imagePos.y() >= m_videoFrame.height()) {
+        QLabel::mouseMoveEvent(event);
+        return;
+    }
+    
+    // 根据当前绘制工具处理鼠标移动（实时预览）
+    bool needUpdate = false;
+    
+    switch (m_currentDrawingTool) {
+        case DrawingTool::Line:
+            if (m_hasCurrentLine && m_currentLine.points.size() >= 1) {
+                // 直线绘制：更新第二个点进行实时预览
+                if (m_currentLine.points.size() == 1) {
+                    m_currentLine.points.append(imagePos);
+                } else if (m_currentLine.points.size() >= 2) {
+                    m_currentLine.points[1] = imagePos;
+                }
+                needUpdate = true;
+            }
+            break;
+            
+        case DrawingTool::Parallel:
+            if (m_hasCurrentParallel) {
+                if (m_currentParallel.points.size() == 1) {
+                    // 第一个点到第二个点的预览：更新鼠标位置
+                    m_currentMousePos = imagePos;
+                    m_hasValidMousePos = true;
+                    needUpdate = true;
+                } else if (m_currentParallel.points.size() >= 2) {
+                    // 平行线绘制：只有在有2个点后才进行第三个点的预览
+                    if (m_currentParallel.points.size() == 2) {
+                        // 添加第三个点进行预览
+                        m_currentParallel.points.append(imagePos);
+                        m_currentParallel.isPreview = true;
+                    } else if (m_currentParallel.points.size() >= 3) {
+                        // 更新第三个点的预览位置
+                        m_currentParallel.points[2] = imagePos;
+                    }
+                    needUpdate = true;
+                }
+            }
+            break;
+            
+        case DrawingTool::TwoLines:
+            if (m_hasCurrentTwoLines) {
+                if (m_currentTwoLines.points.size() == 1) {
+                    // {{ AURA-X: Modify - 第一条线的第二个点预览，使用鼠标位置. Approval: 寸止(ID:click_fix). }}
+                    // 第一条线的第二个点预览
+                    m_currentMousePos = imagePos;
+                    m_hasValidMousePos = true;
+                    needUpdate = true;
+                } else if (m_currentTwoLines.points.size() == 2) {
+                    // {{ AURA-X: Add - 第三个点预览，使用鼠标位置. Approval: 寸止(ID:third_point_preview). }}
+                    // 第三个点预览
+                    m_currentMousePos = imagePos;
+                    m_hasValidMousePos = true; 
+                    needUpdate = true;
+                } else if (m_currentTwoLines.points.size() == 3) {
+                    // {{ AURA-X: Modify - 第二条线的第二个点预览，使用鼠标位置. Approval: 寸止(ID:click_fix). }}
+                    // 第二条线的第二个点预览
+                    m_currentMousePos = imagePos;
+                    m_hasValidMousePos = true;
+                    needUpdate = true;
+                }
+            }
+            break;
+            
+        default:
+            // 其他绘制工具暂时不需要实时预览
+            break;
+    }
+    
+    if (needUpdate) {
+        update(); // 触发重绘
+    }
+    
+    QLabel::mouseMoveEvent(event);
+}
+
+void VideoDisplayWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+    QLabel::mouseReleaseEvent(event);
+}
+
+// {{ AURA-X: Add - 控件尺寸变化时使DrawingContext缓存失效. Approval: 寸止(ID:context_cache). }}
+void VideoDisplayWidget::resizeEvent(QResizeEvent *event)
+{
+    QLabel::resizeEvent(event);
+    
+    // 控件尺寸变化时，使DrawingContext缓存失效
+    m_drawingContextValid = false;
+    
+    // 同时清除其他缓存
+    m_cachedScaleFactor = -1;
+}
+
+void VideoDisplayWidget::clearAllDrawings()
+{
+    m_points.clear();
+    m_lines.clear();
+    m_circles.clear();
+    m_fineCircles.clear();
+    m_parallels.clear();
+    m_twoLines.clear();
+    m_hasCurrentLine = false;
+    m_hasCurrentCircle = false;
+    m_hasCurrentFineCircle = false;
+    m_hasCurrentParallel = false;
+    m_hasCurrentTwoLines = false;
+    // {{ AURA-X: Add - 清除鼠标预览状态. Approval: 寸止(ID:preview_fix). }}
+    m_hasValidMousePos = false;
+    update();
+}
+
+void VideoDisplayWidget::updateDrawings()
+{
+    update();
+}
+
+void VideoDisplayWidget::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    
+    // 启用抗锯齿和高质量渲染
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter.setRenderHint(QPainter::TextAntialiasing, true);
+    
+    // 1. 绘制背景视频帧
+    if (!m_videoFrame.isNull()) {
+        // 计算图像在控件中的位置和缩放
+        QPointF offset = getImageOffset();
+        double scale = getScaleFactor();
+        
+        QRectF targetRect(offset.x(), offset.y(), 
+                         m_videoFrame.width() * scale, 
+                         m_videoFrame.height() * scale);
+        
+        painter.drawPixmap(targetRect, m_videoFrame, m_videoFrame.rect());
+    }
+    
+    // 2. 绘制前景几何图形（硬件加速优化）
+    if (!m_videoFrame.isNull()) {
+        // {{ AURA-X: Optimize - 缓存变换参数避免重复函数调用，使用QTransform提升性能. Approval: 寸止(ID:performance). }}
+        // 在paintEvent开头计算一次变换参数，避免重复函数调用开销
+        const double scale = getScaleFactor();
+        const QPointF offset = getImageOffset();
+        
+        painter.save();
+        
+        // 使用QTransform统一管理坐标变换，性能更优
+        QTransform transform;
+        transform.translate(offset.x(), offset.y());
+        transform.scale(scale, scale);
+        painter.setTransform(transform);
+        
+        // 在变换后的坐标系中设置裁剪区域，使用图像坐标
+        painter.setClipRect(m_videoFrame.rect());
+        
+        // {{ AURA-X: Optimize - 使用缓存的DrawingContext避免重复创建对象. Approval: 寸止(ID:context_cache). }}
+        // 检查是否需要更新DrawingContext缓存
+        if (needsDrawingContextUpdate()) {
+            updateDrawingContext();
+        }
+        
+        // 使用缓存的DrawingContext，避免重复创建对象
+        const DrawingContext& ctx = m_cachedDrawingContext;
+        
+        // 现在坐标系原点就是图像左上角，所有绘制函数可以直接使用图像坐标
+        // 传递绘制上下文，避免重复创建对象
+        drawPoints(painter, ctx);
+        drawLines(painter, ctx);
+        drawCircles(painter, ctx);
+        drawFineCircles(painter, ctx);
+        drawParallelLines(painter, ctx);
+        drawTwoLines(painter, ctx);
+        
+        painter.restore();
+    }
+}
+
+// 点
+void VideoDisplayWidget::drawPoints(QPainter& painter, const DrawingContext& ctx)
+{
+    if (m_points.isEmpty()) return;
+    
+    // {{ AURA-X: Optimize - 使用DrawingContext避免重复创建对象. Approval: 寸止(ID:performance_optimization). }}
+    // 使用预创建的对象，提升性能
+    
+    // 预计算常量（匹配Python版本）
+    const double heightScale = std::max(0.8, std::min(ctx.scale, 4.0));
+    const double innerRadius = 4 * heightScale;
+    const double textpadding = qMax(4.0, ctx.fontSize * 2);
+    
+    for (int i = 0; i < m_points.size(); ++i) {
+        const QPointF& point = m_points[i];  // 直接使用图像坐标
+        
+        // 绘制点（绿色实心圆）- 使用预创建的画刷
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(ctx.greenBrush);
+        painter.drawEllipse(point, innerRadius, innerRadius);
+        
+        // 绘制坐标文本（使用统一的布局思维）
+        QString coordText = QString("(%1,%2)")
+            .arg(static_cast<int>(point.x()))
+            .arg(static_cast<int>(point.y()));
+        
+        // 计算将文本框定位到点右上角所需的偏移量
+        QFontMetrics fm(ctx.font);
+        QRect textBoundingRect = fm.boundingRect(coordText);
+        double bgHeight = textBoundingRect.height() + 2 * textpadding;
+        
+        QPointF offset(innerRadius, -innerRadius - bgHeight);
+        
+        // 调用带有offset参数的完美辅助函数
+        drawTextWithBackground(painter, point, coordText, ctx.font, QColor(0, 255, 0), Qt::black,
+                             textpadding, 1.0, offset);
+    }
+}
+
+// 直线
+void VideoDisplayWidget::drawSingleLine(QPainter& painter, const LineObject& line, bool isCurrentDrawing, const DrawingContext& ctx)
+{
+    if (line.points.size() < 2) {
+        return;
+    }
+    
+    const QPointF& start = line.points[0];
+    const QPointF& end = line.points[1];
+    
+    // {{ AURA-X: Optimize - 移除重复坐标转换，直接使用图像坐标. Approval: 寸止(ID:performance). }}
+    // 直接使用图像坐标，QPainter变换矩阵自动处理缩放和平移
+    
+    // Calculate direction vector for infinite line extension
+    QPointF direction = end - start;
+    qreal length = sqrt(direction.x() * direction.x() + direction.y() * direction.y());
+    
+    if (length < 1.0) {
+        return; // 两点过于接近，无法确定方向
+    }
+    
+    // 使用简单可靠的方向向量延伸方法，让QPainter自动裁剪
+    // 向后延伸足够长的距离（在图像坐标系中，5000像素足以覆盖任何合理的显示区域）
+    QPointF extendedStart = start - direction * 5000.0;
+    // 向前延伸足够长的距离
+    QPointF extendedEnd = end + direction * 5000.0;
+    
+    // {{ AURA-X: Optimize - 使用DrawingContext避免重复创建画笔. Approval: 寸止(ID:performance_optimization). }}
+    // 使用预创建的画笔或根据需要创建特定颜色的画笔
+    int desiredThickness = qMax(2, static_cast<int>(line.thickness * 2.0 * ctx.scale));
+    
+    QPen linePen = createPen(line.color, desiredThickness, ctx.scale);
+    linePen.setCapStyle(Qt::RoundCap);
+    
+    if (line.isDashed) {
+        // Draw dashed line
+        linePen.setStyle(Qt::DashLine);
+        painter.setPen(linePen);
+        painter.drawLine(extendedStart, extendedEnd);
+    } else {
+        // Draw extended line to boundary
+        painter.setPen(linePen);
+        painter.drawLine(extendedStart, extendedEnd);
+    }
+    
+    // {{ AURA-X: Optimize - 使用更Qt风格的端点绘制方式，直接使用期望的屏幕像素值 }}
+    // Draw user-clicked original endpoints (match Python style)
+    // 绘制起始点标记（动态缩放的小圆点）
+    double pointRadius = qMax(2.0, 3.0 * ctx.scale);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(line.color));
+    painter.drawEllipse(start, pointRadius, pointRadius);
+    
+    // Calculate and display angle information (使用与平行线功能一致的简洁方式)
+    double angle = calculateLineAngle(start, end);
+    
+    // 格式化角度文本（包含度数符号）
+    QString angleText = QString::asprintf("%.1f°", angle);
+    
+    // 动态计算文本布局参数
+    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    
+    // 计算角度文本框定位到起始点右上方所需的精确偏移量
+    QFontMetrics fm(ctx.font);
+    QRect textBoundingRect = fm.boundingRect(angleText);
+    double bgHeight = textBoundingRect.height() + 2 * textPadding;
+    QPointF angleTextOffset(textOffset, -textOffset - bgHeight);
+    
+    // 使用完整版drawTextWithBackground函数
+    drawTextWithBackground(painter, start, angleText, ctx.font, line.color, Qt::black, textPadding, bgBorderWidth, angleTextOffset);
+}
+
+void VideoDisplayWidget::drawLines(QPainter& painter, const DrawingContext& ctx)
+{
+    // {{ AURA-X: Add - 添加当前正在绘制的直线实时预览功能. Approval: 寸止(ID:5). }}
+    // 绘制已完成的直线
+    for (const auto& line : m_lines) {
+        drawSingleLine(painter, line, false, ctx);
+    }
+    
+    // 绘制当前正在绘制的直线（实时预览）
+    if (m_hasCurrentLine && !m_currentLine.points.isEmpty()) {
+        drawSingleLine(painter, m_currentLine, true, ctx);
+    }
+}
+
+void VideoDisplayWidget::drawCircles(QPainter& painter, const DrawingContext& ctx)
+{
+    // 绘制已完成的圆形
+    for (const auto& circle : m_circles) {
+        drawSingleCircle(painter, circle, ctx);
+    }
+    
+    // 绘制当前正在绘制的圆形（实时预览）
+    if (m_hasCurrentCircle && !m_currentCircle.points.isEmpty()) {
+        drawSingleCircle(painter, m_currentCircle, ctx);
+    }
+}
+
+// 简单圆
+void VideoDisplayWidget::drawSingleCircle(QPainter& painter, const CircleObject& circle, const DrawingContext& ctx)
+{
+    // 使用预创建的字体和画笔
+    painter.setFont(ctx.font);
+    
+    // 计算动态尺寸参数
+    double fontSize = ctx.fontSize;
+    
+    // 统一计算所有动态尺寸参数
+    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
+    double pointOuterRadius = qMax(4.0, 8.0 * ctx.scale);
+    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double textOffset = qMax(10.0, 15.0 * ctx.scale);
+    int connectionLineWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    
+    // 只在绘制过程中显示辅助点，圆形完成后不显示
+    if (!circle.isCompleted) {
+        // {{ AURA-X: Optimize - 移除重复坐标转换，直接使用图像坐标. Approval: 寸止(ID:performance). }}
+        // 绘制圆形的点
+        for (int i = 0; i < circle.points.size(); ++i) {
+            const QPointF& imagePos = circle.points[i];
+            
+            // 绘制点 - 实心圆 + 空心圆环 - 使用绿色
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(ctx.greenBrush);
+            painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
+            
+            // 绘制空心圆环
+            painter.setPen(ctx.greenPen);
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+            
+            // 显示序号
+            QString pointText = QString::number(i + 1);
+            QPointF textPos = imagePos + QPointF(textOffset, textOffset);
+            
+            // 绘制文本（使用绿色）
+            painter.setPen(ctx.greenPen);
+            painter.setBrush(Qt::NoBrush);
+            painter.drawText(textPos, pointText);
+        }
+    }
+    
+    // 绘制正在绘制的连接线 - 使用绿色
+    if (!circle.isCompleted && circle.points.size() > 1) {
+        painter.setPen(ctx.greenPen);
+        for (int i = 0; i < circle.points.size() - 1; ++i) {
+            const QPointF& start = circle.points[i];
+            const QPointF& end = circle.points[i + 1];
+            painter.drawLine(start, end);
+        }
+    }
+    
+    // 如果圆形已完成，绘制圆形
+    if (circle.isCompleted && circle.points.size() >= 3) {
+        const QPointF& centerImage = circle.center;
+        double radiusImage = circle.radius;
+        
+        // 手动计算与 drawSingleLine 一致的线条粗细
+        int desiredThickness = qMax(2, static_cast<int>(circle.thickness * 2.0 * ctx.scale));
+        
+        // 根据颜色选择合适的画笔
+        QPen circlePen;
+        if (circle.color == Qt::red) {
+            circlePen = ctx.redPen;
+        } else if (circle.color == Qt::green) {
+            circlePen = ctx.greenPen;
+        } else if (circle.color == Qt::blue) {
+            circlePen = ctx.bluePen;
+        } else {
+            circlePen = ctx.blackPen;
+        }
+        
+        // 绘制圆形
+        painter.setPen(circlePen);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(centerImage, radiusImage, radiusImage);
+        
+        // 动态计算圆心标记尺寸
+        double centerMarkRadius = qMax(3.0, 6.0 * ctx.scale);
+        
+        // 绘制圆心 - 白色边框 + 红色实心圆
+        painter.setPen(ctx.whitePen);
+        painter.setBrush(ctx.redBrush);
+        painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
+        
+        // 显示圆心坐标和半径 - 让两个文本框紧挨着排列
+        QString centerText = QString::asprintf("(%.1f,%.1f)", circle.center.x(), circle.center.y());
+        QString radiusText = QString::asprintf("R=%.1f", circle.radius);
+        
+        // 使用已计算的文本布局参数，直接使用期望的屏幕像素值
+        
+        // 1. 绘制第一个文本框（坐标文本）
+        drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(textOffset, -textOffset));
+        
+        // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
+        QFontMetrics fm(ctx.font);
+        QRect centerTextRect = fm.boundingRect(centerText);
+        double centerTextHeight = centerTextRect.height() + 2 * textPadding;
+        QPointF radiusAnchorPoint = centerImage + QPointF(textOffset, -textOffset + centerTextHeight);
+        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+    }
+}
+
+void VideoDisplayWidget::drawFineCircles(QPainter& painter, const DrawingContext& ctx)
+{
+    // 绘制已完成的精细圆
+    for (const auto& fineCircle : m_fineCircles) {
+        drawSingleFineCircle(painter, fineCircle, ctx);
+    }
+    
+    // 绘制当前正在绘制的精细圆（实时预览）
+    if (m_hasCurrentFineCircle && !m_currentFineCircle.points.isEmpty()) {
+        drawSingleFineCircle(painter, m_currentFineCircle, ctx);
+    }
+}
+
+// 精细圆
+void VideoDisplayWidget::drawSingleFineCircle(QPainter& painter, const FineCircleObject& fineCircle, const DrawingContext& ctx)
+{
+    // 使用预创建的字体和画笔
+    painter.setFont(ctx.font);
+    
+    // 计算动态尺寸参数
+    double fontSize = ctx.fontSize;
+    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
+    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
+    double pointPenWidth = qMax(1.0, 2.0 * ctx.scale);
+    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    int connectionLineWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    
+    // 只在绘制过程中显示辅助点，精细圆完成后不显示
+    if (!fineCircle.isCompleted) {
+        // 绘制精细圆的点
+        for (int i = 0; i < fineCircle.points.size(); ++i) {
+            const QPointF& imagePos = fineCircle.points[i];
+            
+            // 绘制点 - 实心圆 + 空心圆环 - 使用精细圆颜色
+            painter.setPen(Qt::NoPen);
+            // 根据颜色选择合适的画刷
+            if (fineCircle.color == Qt::red) {
+                painter.setBrush(ctx.redBrush);
+            } else if (fineCircle.color == Qt::green) {
+                painter.setBrush(ctx.greenBrush);
+            } else if (fineCircle.color == Qt::blue) {
+                painter.setBrush(ctx.blueBrush);
+            } else {
+                painter.setBrush(ctx.blackBrush);
+            }
+            painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
+            
+            // 绘制空心圆环
+            // 根据颜色选择合适的画笔
+            if (fineCircle.color == Qt::red) {
+                painter.setPen(ctx.redPen);
+            } else if (fineCircle.color == Qt::green) {
+                painter.setPen(ctx.greenPen);
+            } else if (fineCircle.color == Qt::blue) {
+                painter.setPen(ctx.bluePen);
+            } else {
+                painter.setPen(ctx.blackPen);
+            }
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+            
+            // 显示序号（与drawSingleCircle保持一致，不带背景）
+            QString pointText = QString::number(i + 1);
+            QPointF textPos = imagePos + QPointF(textOffset, textOffset);
+            
+            // 绘制文本（使用相同颜色的画笔）
+            painter.setBrush(Qt::NoBrush);
+            painter.drawText(textPos, pointText);
+        }
+    }
+    
+    // 只在正在绘制时显示点之间的连接线（灰色虚线）
+    if (!fineCircle.isCompleted && fineCircle.points.size() >= 2) {
+        painter.setPen(ctx.grayPen);
+        for (int i = 0; i < fineCircle.points.size() - 1; ++i) {
+            const QPointF& start = fineCircle.points[i];
+            const QPointF& end = fineCircle.points[i + 1];
+            painter.drawLine(start, end);
+        }
+    }
+    
+    // 如果精细圆已完成，绘制圆形和显示信息
+    if (fineCircle.isCompleted && fineCircle.radius > 0) {
+        const QPointF& centerImage = fineCircle.center;
+        double radiusImage = fineCircle.radius;
+        
+        // 手动计算线条粗细，确保与其他绘制功能一致
+        int finalThickness = qMax(1, static_cast<int>(fineCircle.thickness * 2.0 * ctx.scale));
+        
+        // 绘制精细圆 - 根据颜色选择合适的画笔
+        if (fineCircle.color == Qt::red) {
+            painter.setPen(ctx.redPen);
+        } else if (fineCircle.color == Qt::green) {
+            painter.setPen(ctx.greenPen);
+        } else if (fineCircle.color == Qt::blue) {
+            painter.setPen(ctx.bluePen);
+        } else {
+            painter.setPen(ctx.blackPen);
+        }
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(centerImage, radiusImage, radiusImage);
+        
+        // 绘制圆心标记（使用红色以区别于简单圆）
+        double centerMarkRadius = qMax(4.0, 6.0 * ctx.scale);
+        painter.setPen(ctx.whitePen);
+        painter.setBrush(ctx.redBrush);
+        painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
+        
+        // 显示圆心坐标和半径信息（使用已计算的字体参数）
+        double textPadding = qMax(16.0, ctx.fontSize * 2);
+        int bgBorderWidth = 1; // 背景边框宽度
+        
+        // 使用正确的字符串格式化
+        QString centerText = QString::asprintf("(%.1f, %.1f)", fineCircle.center.x(), fineCircle.center.y());
+        QString radiusText = QString::asprintf("%.1f", fineCircle.radius);
+        
+        // 1. 计算将第一个文本框定位到圆心右上方所需的精确偏移量
+         QFontMetrics fm(ctx.font);
+         QRect textBoundingRect = fm.boundingRect(centerText);
+         double bgHeight = textBoundingRect.height() + 2 * textPadding;
+         QPointF centerTextOffset(textOffset, -textOffset - bgHeight);
+         
+         // 2. 使用完整版drawTextWithBackground函数
+         drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, centerTextOffset);
+        
+        // 3. 计算第二个文本框的位置（紧挨着第一个文本框下方）
+        QRect centerTextRect = fm.boundingRect(centerText);
+        double centerTextHeight = centerTextRect.height() + 2 * textPadding;
+        QPointF radiusAnchorPoint = centerImage + QPointF(textOffset, -textOffset + centerTextHeight);
+        
+        // 4. 绘制第二个文本框
+        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, Qt::white, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+    }
+}
+
+void VideoDisplayWidget::drawParallelLines(QPainter& painter, const DrawingContext& ctx)
+{
+    // 绘制已完成的平行线
+    for (const auto& parallel : m_parallels) {
+        drawSingleParallel(painter, parallel, ctx);
+    }
+    
+    // 绘制当前正在绘制的平行线（实时预览）
+    if (m_hasCurrentParallel && !m_currentParallel.points.isEmpty()) {
+        drawSingleParallel(painter, m_currentParallel, ctx);
+    }
+}
+
+// 平行线
+void VideoDisplayWidget::drawSingleParallel(QPainter& painter, const ParallelObject& parallel, const DrawingContext& ctx)
+{
+    // 使用预创建的字体和画笔
+    painter.setFont(ctx.font);
+    
+    // 计算动态尺寸参数
+    double fontSize = ctx.fontSize;
+    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
+    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
+    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double textOffset = qMax(10.0, 15.0 * ctx.scale);
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    double desiredThickness = parallel.thickness * 2.0 * ctx.scale;
+    int thickLine = qMax(2, static_cast<int>(desiredThickness));
+    int midLineWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    
+    // 只在绘制过程中显示辅助点，平行线完成后不显示
+    if (!parallel.isCompleted) {
+        // 绘制平行线的点
+        for (int i = 0; i < parallel.points.size(); ++i) {
+            const QPointF& imagePos = parallel.points[i];
+            
+            // {{ AURA-X: Modify - 预览点不显示序号. Approval: 寸止(ID:no_preview_text). }}
+            // 判断是否为预览点（第三个点且处于预览状态）
+            bool isPreviewPoint = (i == 2 && parallel.isPreview);
+            
+            if (isPreviewPoint) {
+                // 预览点使用虚线样式的圆环，不显示序号
+                // 根据颜色选择合适的画笔（虚线版本）
+                if (parallel.color == Qt::red) {
+                    painter.setPen(ctx.redPen);
+                } else if (parallel.color == Qt::green) {
+                    painter.setPen(ctx.greenPen);
+                } else if (parallel.color == Qt::blue) {
+                    painter.setPen(ctx.bluePen);
+                } else {
+                    painter.setPen(ctx.blackPen);
+                }
+                painter.setBrush(Qt::NoBrush);
+                painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+            } else {
+                // 正常点绘制 - 实心圆 + 空心圆环 + 序号
+                painter.setPen(Qt::NoPen);
+                // 根据颜色选择合适的画刷
+                if (parallel.color == Qt::red) {
+                    painter.setBrush(ctx.redBrush);
+                } else if (parallel.color == Qt::green) {
+                    painter.setBrush(ctx.greenBrush);
+                } else if (parallel.color == Qt::blue) {
+                    painter.setBrush(ctx.blueBrush);
+                } else {
+                    painter.setBrush(ctx.blackBrush);
+                }
+                painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
+                
+                // 绘制空心圆环
+                // 根据颜色选择合适的画笔
+                if (parallel.color == Qt::red) {
+                    painter.setPen(ctx.redPen);
+                } else if (parallel.color == Qt::green) {
+                    painter.setPen(ctx.greenPen);
+                } else if (parallel.color == Qt::blue) {
+                    painter.setPen(ctx.bluePen);
+                } else {
+                    painter.setPen(ctx.blackPen);
+                }
+                painter.setBrush(Qt::NoBrush);
+                painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+                
+                // 绘制点的序号（与drawSingleCircle保持一致，不带背景）
+                QString pointText = QString::number(i + 1);
+                QPointF textPos = imagePos + QPointF(textOffset, textOffset);
+                
+                // 绘制文本（使用相同颜色的画笔）
+                painter.setBrush(Qt::NoBrush);
+                painter.drawText(textPos, pointText);
+            }
+        }
+    }
+    
+    // 绘制第一条线（延伸到图像边界）
+    if (parallel.points.size() >= 2) {
+        QPointF extStart1, extEnd1;
+        calculateExtendedLine(parallel.points[0], parallel.points[1], extStart1, extEnd1);
+        
+        // 使用已计算的线条粗细参数，直接使用期望的屏幕像素值
+        
+        // 当只有两个点时（第一条线预览），使用虚线
+            if (parallel.points.size() == 2) {
+                // 根据颜色选择合适的画笔（虚线版本）
+                if (parallel.color == Qt::red) {
+                    painter.setPen(ctx.redPen);
+                } else if (parallel.color == Qt::green) {
+                    painter.setPen(ctx.greenPen);
+                } else if (parallel.color == Qt::blue) {
+                    painter.setPen(ctx.bluePen);
+                } else {
+                    painter.setPen(ctx.blackPen);
+                }
+            } else {
+                // 有第三个点后：第一条线使用实线
+                if (parallel.color == Qt::red) {
+                    painter.setPen(ctx.redPen);
+                } else if (parallel.color == Qt::green) {
+                    painter.setPen(ctx.greenPen);
+                } else if (parallel.color == Qt::blue) {
+                    painter.setPen(ctx.bluePen);
+                } else {
+                    painter.setPen(ctx.blackPen);
+                }
+            }
+        painter.drawLine(extStart1, extEnd1);
+    } else if (parallel.points.size() == 1 && m_hasValidMousePos) {
+        // {{ AURA-X: Add - 添加第一个点到鼠标位置的预览线. Approval: 寸止(ID:preview_fix). }}
+        // 只有一个点时，绘制从第一个点到当前鼠标位置的预览线
+        QPointF extStart1, extEnd1;
+        calculateExtendedLine(parallel.points[0], m_currentMousePos, extStart1, extEnd1);
+        
+        // 使用虚线表示预览状态
+        // 根据颜色选择合适的画笔（虚线版本）
+        if (parallel.color == Qt::red) {
+            painter.setPen(ctx.redPen);
+        } else if (parallel.color == Qt::green) {
+            painter.setPen(ctx.greenPen);
+        } else if (parallel.color == Qt::blue) {
+            painter.setPen(ctx.bluePen);
+        } else {
+            painter.setPen(ctx.blackPen);
+        }
+        painter.drawLine(extStart1, extEnd1);
+    }
+    
+    // 如果有第三个点，绘制第二条平行线
+    if (parallel.points.size() >= 3) {
+        // 计算平行线的方向向量
+        QPointF direction = parallel.points[1] - parallel.points[0];
+        QPointF parallelStart = parallel.points[2];
+        QPointF parallelEnd = parallelStart + direction;
+        
+        // 延伸第二条线到图像边界
+        QPointF extStart2, extEnd2;
+        calculateExtendedLine(parallelStart, parallelEnd, extStart2, extEnd2);
+        
+        // 使用已计算的线条粗细参数，补偿变换矩阵
+        
+        // 根据完成状态决定第二条线的样式：未完成时使用虚线（预览状态），完成后使用实线
+        // 根据颜色选择合适的画笔
+        if (parallel.color == Qt::red) {
+            painter.setPen(ctx.redPen);
+        } else if (parallel.color == Qt::green) {
+            painter.setPen(ctx.greenPen);
+        } else if (parallel.color == Qt::blue) {
+            painter.setPen(ctx.bluePen);
+        } else {
+            painter.setPen(ctx.blackPen);
+        }
+        painter.drawLine(extStart2, extEnd2);
+        
+        // 如果平行线已完成，绘制中线（红色虚线）
+        if (parallel.isCompleted) {
+            // 【核心修正】计算真正的中线
+            
+            // 重新获取第二条线的端点，以便计算
+            QPointF direction = parallel.points[1] - parallel.points[0];
+            QPointF p3 = parallel.points[2];
+            QPointF p4 = p3 + direction;
+
+            // 1. 计算中线的两个点
+            QPointF mid_start = (parallel.points[0] + p3) / 2.0;
+            QPointF mid_end = (parallel.points[1] + p4) / 2.0;
+
+            // 2. 将中线延伸到图像边界
+            QPointF extMidStart, extMidEnd;
+            calculateExtendedLine(mid_start, mid_end, extMidStart, extMidEnd);
+
+            // 3. 绘制中线，补偿变换矩阵
+            
+            // 绘制中线（红色虚线）
+            painter.setPen(ctx.redPen); // 红色虚线
+            painter.drawLine(extMidStart, extMidEnd); // 绘制延伸后的中线
+            
+            // 显示距离和角度信息 - 使用drawTextWithBackground辅助函数
+            QString distanceText = QString::asprintf("%.1f", parallel.distance) + "px";
+            QString angleText = QString::asprintf("%.1f°", parallel.angle);
+            // 【标注位置修正】标注的锚点应该是中线的中点
+            QPointF textAnchorPoint = (extMidStart + extMidEnd) / 2.0;
+            
+            // 1. 计算将距离文本框定位到中线中点右上方所需的精确偏移量
+            QFontMetrics fm(ctx.font);
+            QRect textBoundingRect = fm.boundingRect(distanceText);
+            double bgHeight = textBoundingRect.height() + 2 * textPadding;
+            QPointF distanceTextOffset(textOffset, -textOffset - bgHeight);
+            
+            // 2. 使用完整版drawTextWithBackground函数
+            drawTextWithBackground(painter, textAnchorPoint, distanceText, ctx.font, parallel.color, Qt::black, textPadding, bgBorderWidth, distanceTextOffset);
+            
+            // 3. 计算角度文本框的位置（紧挨着距离文本框下方）
+            QRect distanceTextRect = fm.boundingRect(distanceText);
+            double distanceTextHeight = distanceTextRect.height() + 2 * textPadding;
+            QPointF angleAnchorPoint = textAnchorPoint + QPointF(0, distanceTextHeight) + distanceTextOffset;
+            
+            // 4. 角度文本框相对于新锚点的偏移量为0，因为它要紧挨着
+            drawTextWithBackground(painter, angleAnchorPoint, angleText, ctx.font, parallel.color, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+        }
+    }
+}
+
+void VideoDisplayWidget::drawTwoLines(QPainter& painter, const DrawingContext& ctx)
+{
+    // 绘制已完成的两线
+    for (const auto& twoLine : m_twoLines) {
+        drawSingleTwoLines(painter, twoLine, ctx);
+    }
+    
+    // 绘制当前正在绘制的两线（实时预览）
+    if (m_hasCurrentTwoLines && !m_currentTwoLines.points.isEmpty()) {
+        drawSingleTwoLines(painter, m_currentTwoLines, ctx);
+    }
+}
+
+// 两线
+void VideoDisplayWidget::drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx)
+{
+    // 使用预创建的字体和画笔
+    painter.setFont(ctx.font);
+    
+    // 计算动态尺寸参数
+    double fontSize = ctx.fontSize;
+    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
+    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
+    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double textOffset = qMax(10.0, 15.0 * ctx.scale);
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    double desiredThickness = twoLines.thickness * 2.0 * ctx.scale;
+    int thickLine = qMax(2, static_cast<int>(desiredThickness));
+    double intersectionRadius = qMax(5.0, 8.0 * ctx.scale);
+    int intersectionPenWidth = qMax(2, static_cast<int>(3.0 * ctx.scale));
+    double bisectorLength = qMax(30.0, 50.0 * ctx.scale);
+    int bisectorPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    
+    // 只在绘制过程中显示辅助点，两线完成后不显示
+    if (!twoLines.isCompleted) {
+        // 绘制两线的点
+        for (int i = 0; i < twoLines.points.size(); ++i) {
+            const QPointF& imagePos = twoLines.points[i];
+            
+            // 绘制点 - 实心圆 + 空心圆环 - 直接使用期望的屏幕像素值
+            painter.setPen(Qt::NoPen);
+            // 根据颜色选择合适的画刷
+            if (twoLines.color == Qt::red) {
+                painter.setBrush(ctx.redBrush);
+            } else if (twoLines.color == Qt::green) {
+                painter.setBrush(ctx.greenBrush);
+            } else if (twoLines.color == Qt::blue) {
+                painter.setBrush(ctx.blueBrush);
+            } else {
+                painter.setBrush(ctx.blackBrush);
+            }
+            painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
+            
+            // 绘制空心圆环
+            // 根据颜色选择合适的画笔
+            if (twoLines.color == Qt::red) {
+                painter.setPen(ctx.redPen);
+            } else if (twoLines.color == Qt::green) {
+                painter.setPen(ctx.greenPen);
+            } else if (twoLines.color == Qt::blue) {
+                painter.setPen(ctx.bluePen);
+            } else {
+                painter.setPen(ctx.blackPen);
+            }
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+            
+            // 绘制点的序号（与drawSingleParallel保持一致，不带背景）
+            QString pointText = QString::number(i + 1);
+            QPointF textPos = imagePos + QPointF(textOffset, textOffset);
+            
+            // 绘制文本（使用相同颜色的画笔）
+            painter.setBrush(Qt::NoBrush);
+            painter.drawText(textPos, pointText);
+        }
+        
+        // {{ AURA-X: Add - 第三个点预览支持. Approval: 寸止(ID:third_point_preview). }}
+        // 当有2个点时，显示第三个点的预览
+        if (twoLines.points.size() == 2 && m_hasValidMousePos) {
+            const QPointF& previewPos = m_currentMousePos;
+            
+            // 绘制预览点 - 使用虚线样式的圆环，不显示序号
+            // 根据颜色选择合适的画笔（虚线版本）
+            if (twoLines.color == Qt::red) {
+                painter.setPen(ctx.redPen);
+            } else if (twoLines.color == Qt::green) {
+                painter.setPen(ctx.greenPen);
+            } else if (twoLines.color == Qt::blue) {
+                painter.setPen(ctx.bluePen);
+            } else {
+                painter.setPen(ctx.blackPen);
+            }
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(previewPos, pointOuterRadius, pointOuterRadius);
+        }
+    }
+    
+    // {{ AURA-X: Add - 支持第一条线的鼠标预览. Approval: 寸止(ID:preview_fix). }}
+    // 绘制第一条线（延伸到图像边界）
+    if (twoLines.points.size() >= 1) {
+        QPointF p1 = twoLines.points[0];
+        QPointF p2;
+        bool hasSecondPoint = false;
+        
+        if (twoLines.points.size() >= 2) {
+            p2 = twoLines.points[1];
+            hasSecondPoint = true;
+        } else if (m_hasValidMousePos) {
+            // 使用鼠标位置作为第二个点进行预览
+            p2 = m_currentMousePos;
+            hasSecondPoint = true;
+        }
+        
+        if (hasSecondPoint) {
+            QPointF extStart1, extEnd1;
+            calculateExtendedLine(p1, p2, extStart1, extEnd1);
+            
+            // 使用已计算的线条粗细参数，直接使用期望的屏幕像素值
+            
+            // 根据颜色选择合适的画笔
+            if (twoLines.color == Qt::red) {
+                painter.setPen(ctx.redPen);
+            } else if (twoLines.color == Qt::green) {
+                painter.setPen(ctx.greenPen);
+            } else if (twoLines.color == Qt::blue) {
+                painter.setPen(ctx.bluePen);
+            } else {
+                painter.setPen(ctx.blackPen);
+            }
+            painter.drawLine(extStart1, extEnd1);
+        }
+    }
+    
+    // {{ AURA-X: Add - 支持第二条线的鼠标预览. Approval: 寸止(ID:preview_fix). }}
+    // 绘制第二条线：预览状态下3个点即可，完成状态需要4个点
+    if (twoLines.points.size() >= 3) {
+        QPointF start2 = twoLines.points[2];
+        QPointF end2;
+        bool hasSecondLineEnd = false;
+        
+        if (twoLines.points.size() >= 4) {
+            // 完成状态：使用第4个点作为终点
+            end2 = twoLines.points[3];
+            hasSecondLineEnd = true;
+        } else if (m_hasValidMousePos) {
+            // 预览状态：使用鼠标位置作为第4个点
+            end2 = m_currentMousePos;
+            hasSecondLineEnd = true;
+        }
+        
+        if (hasSecondLineEnd) {
+            // 计算第二条线延伸到图像边界
+            QPointF extStart2, extEnd2;
+            calculateExtendedLine(start2, end2, extStart2, extEnd2);
+            
+            // 绘制第二条线，直接使用期望的屏幕像素值
+            
+            // 根据颜色选择合适的画笔
+            if (twoLines.color == Qt::red) {
+                painter.setPen(ctx.redPen);
+            } else if (twoLines.color == Qt::green) {
+                painter.setPen(ctx.greenPen);
+            } else if (twoLines.color == Qt::blue) {
+                painter.setPen(ctx.bluePen);
+            } else {
+                painter.setPen(ctx.blackPen);
+            }
+            painter.drawLine(extStart2, extEnd2);
+        }
+    }
+    
+    // 如果两线已完成，绘制交点、角平分线和角度信息
+    if (twoLines.isCompleted && twoLines.points.size() >= 4) {
+        const QPointF& intersection = twoLines.intersection;
+        
+        // 绘制交点 - 黄色圆圈，直接使用期望的屏幕像素值
+        painter.setPen(ctx.yellowPen);
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(intersection, intersectionRadius, intersectionRadius);
+        
+        // 计算角平分线方向
+        QPointF dir1 = twoLines.points[1] - twoLines.points[0];
+        QPointF dir2 = twoLines.points[3] - twoLines.points[2];
+        
+        // 归一化方向向量
+        double len1 = sqrt(dir1.x() * dir1.x() + dir1.y() * dir1.y());
+        double len2 = sqrt(dir2.x() * dir2.x() + dir2.y() * dir2.y());
+        if (len1 > 0) dir1 /= len1;
+        if (len2 > 0) dir2 /= len2;
+        
+        // 计算角平分线方向
+        QPointF bisectorDir = dir1 + dir2;
+        double bisectorLen = sqrt(bisectorDir.x() * bisectorDir.x() + bisectorDir.y() * bisectorDir.y());
+        if (bisectorLen > 0) bisectorDir /= bisectorLen;
+        
+        // 绘制角平分线（红色虚线），直接使用期望的屏幕像素值
+        QPointF bisectorEnd = twoLines.intersection + bisectorDir * bisectorLength;
+        
+        painter.setPen(ctx.redPen); // 红色虚线
+        painter.drawLine(intersection, bisectorEnd);
+        
+        // 显示角度和坐标信息 - 使用drawTextWithBackground辅助函数
+        QString angleText = QString::asprintf("%.1f°", twoLines.angle);
+        QString coordText = QString::asprintf("(%.1f,%.1f)", twoLines.intersection.x(), twoLines.intersection.y());
+        
+        // 动态计算文本布局参数，直接使用期望的屏幕像素值
+        double textOffset = qMax(8.0, 10.0 * ctx.scale);
+        double textPadding = qMax(16.0, ctx.fontSize * 2);
+        int bgBorderWidth = 1;
+        
+        // 标注的锚点是交点
+        QPointF textAnchorPoint = intersection;
+        
+        // 【终极API设计】使用新的优雅API进行相对布局
+        // 1. 计算角度文本框的矩形（定位到交点右上方）
+        QPointF angleTextOffset(textOffset, -textOffset);
+        QRectF angleTextRect = calculateTextWithBackgroundRect(textAnchorPoint, angleText, ctx.font, textPadding, angleTextOffset);
+        
+        // 4. 绘制角度文本框
+        drawTextInRect(painter, angleTextRect, angleText, ctx.font, Qt::white, Qt::black, bgBorderWidth);
+        
+        // 3. 计算坐标文本框的矩形（紧挨着角度文本框下方）
+        QPointF coordTextAnchor = QPointF(angleTextRect.left(), angleTextRect.bottom());
+        QRectF coordTextRect = calculateTextWithBackgroundRect(coordTextAnchor, coordText, ctx.font, textPadding, QPointF(0, 0));
+        
+        // 4. 绘制坐标文本框
+        drawTextInRect(painter, coordTextRect, coordText, ctx.font, Qt::white, Qt::black, bgBorderWidth);
+    }
+}
+
+QPen VideoDisplayWidget::createPen(const QColor& color, int targetScreenWidth, double scale, bool dashed)
+{
+    QPen pen(color);
+    // 内部进行补偿，确保在屏幕上看起来是 targetScreenWidth 像素宽
+    pen.setWidthF(qMax(1.0, targetScreenWidth / scale));
+    pen.setCapStyle(Qt::RoundCap);
+    pen.setJoinStyle(Qt::RoundJoin);
+    
+    if (dashed) {
+        pen.setStyle(Qt::DashLine);
+        // 设置虚线模式
+        QVector<qreal> dashPattern;
+        dashPattern << 5 << 3; // 5像素实线，3像素空白
+        pen.setDashPattern(dashPattern);
+    }
+    
+    return pen;
+}
+
+QFont VideoDisplayWidget::createFont(int targetScreenSize, double scale)
+{
+    QFont font;
+    // 内部进行补偿，确保在屏幕上看起来是 targetScreenSize 大小
+    font.setPointSizeF(qMax(8.0, targetScreenSize / scale));
+    font.setBold(true);
+    return font;
+}
+
+
+
+double VideoDisplayWidget::getScaleFactor() const
+{
+    if (m_videoFrame.isNull()) return 1.0;
+    
+    // 检查是否需要重新计算
+    if (m_cachedScaleFactor < 0 || m_cachedWidgetSize != size()) {
+        m_cachedWidgetSize = size();
+        
+        QSize imageSize = m_videoFrame.size();
+        QSize widgetSize = size();
+        
+        double scaleX = static_cast<double>(widgetSize.width()) / imageSize.width();
+        double scaleY = static_cast<double>(widgetSize.height()) / imageSize.height();
+        
+        // 使用较小的缩放因子以保持宽高比
+        m_cachedScaleFactor = qMin(scaleX, scaleY);
+    }
+    
+    return m_cachedScaleFactor;
+}
+
+QPointF VideoDisplayWidget::getImageOffset() const
+{
+    if (m_videoFrame.isNull()) return QPointF(0, 0);
+    
+    double scale = getScaleFactor();
+    QSize imageSize = m_videoFrame.size();
+    QSize widgetSize = size();
+    
+    double scaledWidth = imageSize.width() * scale;
+    double scaledHeight = imageSize.height() * scale;
+    
+    double offsetX = (widgetSize.width() - scaledWidth) / 2.0;
+    double offsetY = (widgetSize.height() - scaledHeight) / 2.0;
+    
+    return QPointF(offsetX, offsetY);
+}
+
+void VideoDisplayWidget::handlePointDrawingClick(const QPointF& imagePos)
+{
+    // 直接添加点到点集合中
+    m_points.append(imagePos);
+    
+    // 发出数据变化信号
+    emit drawingDataChanged(m_viewName);
+    
+    update();
+}
+
+void VideoDisplayWidget::handleLineDrawingClick(const QPointF& imagePos)
+{
+    if (!m_hasCurrentLine) {
+        // 开始新的直线
+        m_currentLine = LineObject();
+        m_currentLine.points.append(imagePos);
+        m_hasCurrentLine = true;
+    } else {
+        // 完成直线
+        m_currentLine.points.append(imagePos);
+        m_currentLine.isCompleted = true;
+        
+        // 将完成的直线添加到直线集合中
+        m_lines.append(m_currentLine);
+        
+        // 发出数据变化信号
+        emit drawingDataChanged(m_viewName);
+        
+        // 清除当前直线状态
+        clearCurrentLineData();
+    }
+    update();
+}
+
+void VideoDisplayWidget::handleCircleDrawingClick(const QPointF& imagePos)
+{
+    if (!m_hasCurrentCircle) {
+        // 开始新的圆形
+        m_currentCircle = CircleObject();
+        m_currentCircle.points.append(imagePos);
+        m_hasCurrentCircle = true;
+    } else if (m_currentCircle.points.size() < 3) {
+        // 添加第二个或第三个点
+        m_currentCircle.points.append(imagePos);
+        
+        if (m_currentCircle.points.size() == 3) {
+            // 计算圆心和半径
+            if (calculateCircleFromThreePoints(m_currentCircle.points[0], 
+                                             m_currentCircle.points[1], 
+                                             m_currentCircle.points[2], 
+                                             m_currentCircle.center, 
+                                             m_currentCircle.radius)) {
+                m_currentCircle.isCompleted = true;
+                
+                // 将完成的圆形添加到圆形集合中
+                m_circles.append(m_currentCircle);
+                
+                // 发出数据变化信号
+                emit drawingDataChanged(m_viewName);
+                
+                // 清除当前圆形状态
+                clearCurrentCircleData();
+            } else {
+                // 三点共线，重新开始
+                clearCurrentCircleData();
+            }
+        }
+    }
+    update();
+}
+
+void VideoDisplayWidget::handleFineCircleDrawingClick(const QPointF& imagePos)
+{
+    if (!m_hasCurrentFineCircle) {
+        // 开始新的精细圆
+        m_currentFineCircle = FineCircleObject();
+        m_currentFineCircle.points.append(imagePos);
+        m_hasCurrentFineCircle = true;
+    } else if (m_currentFineCircle.points.size() < 5) {
+        // 添加点直到有5个点
+        m_currentFineCircle.points.append(imagePos);
+        
+        if (m_currentFineCircle.points.size() == 5) {
+            // 使用五点拟合圆
+            if (calculateCircleFromFivePoints(m_currentFineCircle.points, 
+                                            m_currentFineCircle.center, 
+                                            m_currentFineCircle.radius)) {
+                m_currentFineCircle.isCompleted = true;
+                
+                // 将完成的精细圆添加到精细圆集合中
+                m_fineCircles.append(m_currentFineCircle);
+                
+                // 发出数据变化信号
+                emit drawingDataChanged(m_viewName);
+                
+                // 清除当前精细圆状态
+                clearCurrentFineCircleData();
+            } else {
+                // 拟合失败，重新开始
+                clearCurrentFineCircleData();
+            }
+        }
+    }
+    update();
+}
+
+void VideoDisplayWidget::handleParallelDrawingClick(const QPointF& imagePos)
+{
+    if (!m_hasCurrentParallel) {
+        // 开始新的平行线
+        m_currentParallel = ParallelObject();
+        m_currentParallel.points.append(imagePos);
+        m_hasCurrentParallel = true;
+    } else {
+        // 如果当前处于预览状态，先清除预览点
+        if (m_currentParallel.isPreview && m_currentParallel.points.size() > 2) {
+            m_currentParallel.points.resize(2);
+            m_currentParallel.isPreview = false;
+        }
+        
+        if (m_currentParallel.points.size() < 3) {
+            // 添加点直到有3个点
+            m_currentParallel.points.append(imagePos);
+            // {{ AURA-X: Add - 清除鼠标预览状态. Approval: 寸止(ID:preview_fix). }}
+            if (m_currentParallel.points.size() == 2) {
+                m_hasValidMousePos = false;
+            }
+        }
+        if (m_currentParallel.points.size() == 3) {
+            // 计算平行线的距离和角度
+            QPointF p1 = m_currentParallel.points[0];
+            QPointF p2 = m_currentParallel.points[1];
+            QPointF p3 = m_currentParallel.points[2];
+            
+            // 计算第一条线的角度
+            m_currentParallel.angle = calculateLineAngle(p1, p2);
+            
+            // 计算点到直线的距离
+            double A = p2.y() - p1.y();
+            double B = p1.x() - p2.x();
+            double C = p2.x() * p1.y() - p1.x() * p2.y();
+            double denominator = sqrt(A * A + B * B);
+            
+            if (denominator > 0) {
+                m_currentParallel.distance = abs(A * p3.x() + B * p3.y() + C) / denominator;
+                m_currentParallel.isCompleted = true;
+                
+                // 将完成的平行线添加到平行线集合中
+                m_parallels.append(m_currentParallel);
+                
+                // 发出数据变化信号
+                emit drawingDataChanged(m_viewName);
+                
+                // 清除当前平行线状态
+                clearCurrentParallelData();
+            } else {
+                // 计算失败，重新开始
+                clearCurrentParallelData();
+            }
+        }
+    }
+    update();
+}
+
+void VideoDisplayWidget::handleTwoLinesDrawingClick(const QPointF& imagePos)
+{
+    if (!m_hasCurrentTwoLines) {
+        // 开始新的两线
+        m_currentTwoLines = TwoLinesObject();
+        m_currentTwoLines.points.append(imagePos);
+        m_hasCurrentTwoLines = true;
+    } else {
+        if (m_currentTwoLines.points.size() < 4) {
+            // 添加点直到有4个点
+            m_currentTwoLines.points.append(imagePos);
+            // {{ AURA-X: Modify - 修复点击逻辑，确保每次点击都正确添加点并清除预览状态. Approval: 寸止(ID:click_fix). }}
+            if (m_currentTwoLines.points.size() == 2) {
+                // 第一条线完成后，清除预览状态
+                m_hasValidMousePos = false;
+            } else if (m_currentTwoLines.points.size() == 4) {
+                // 第二条线完成后，清除预览状态
+                m_hasValidMousePos = false;
+            }
+        }
+        if (m_currentTwoLines.points.size() == 4) {
+            // 计算两线的交点和夹角
+            QPointF p1 = m_currentTwoLines.points[0];
+            QPointF p2 = m_currentTwoLines.points[1];
+            QPointF p3 = m_currentTwoLines.points[2];
+            QPointF p4 = m_currentTwoLines.points[3];
+            
+            if (calculateLineIntersection(p1, p2, p3, p4, m_currentTwoLines.intersection)) {
+                // 计算两线夹角
+                double angle1 = calculateLineAngle(p1, p2);
+                double angle2 = calculateLineAngle(p3, p4);
+                double angleDiff = abs(angle1 - angle2);
+                
+                // 确保角度在0-90度之间
+                if (angleDiff > 90) {
+                    angleDiff = 180 - angleDiff;
+                }
+                
+                m_currentTwoLines.angle = angleDiff;
+                m_currentTwoLines.isCompleted = true;
+                
+                // 将完成的两线添加到两线集合中
+                m_twoLines.append(m_currentTwoLines);
+                
+                // 发出数据变化信号
+                emit drawingDataChanged(m_viewName);
+                
+                // 清除当前两线状态
+                clearCurrentTwoLinesData();
+            } else {
+                // 两线平行，重新开始
+                clearCurrentTwoLinesData();
+            }
+        }
+    }
+    update();
+}
+
+QPointF VideoDisplayWidget::imageToWidget(const QPointF& imagePos) const
+{
+    double scale = getScaleFactor();
+    QPointF offset = getImageOffset();
+    
+    return QPointF(imagePos.x() * scale + offset.x(), 
+                   imagePos.y() * scale + offset.y());
+}
+
+QPointF VideoDisplayWidget::widgetToImage(const QPointF& widgetPos) const
+{
+    double scale = getScaleFactor();
+    QPointF offset = getImageOffset();
+    
+    return QPointF((widgetPos.x() - offset.x()) / scale, 
+                   (widgetPos.y() - offset.y()) / scale);
+}
+
+double VideoDisplayWidget::calculateFontSize() const
+{
+    // Calculate font size based on user view scaling, consistent with parallel line logic
+    if (m_videoFrame.isNull()) {
+        return 8.0; // Default font size
+    }
+    
+    // Use the same logic as parallel lines for consistent user experience
+    double scaleFactor = getScaleFactor();
+    const double heightScale = std::max(0.8, std::min(scaleFactor, 4.0));
+    const double fontSizeBase = std::max(0.8, 0.6 + (0.8 * heightScale));
+    
+    // Scale up to match the expected font size range for UI rendering
+    return fontSizeBase * 8.0;
+}
+
+double VideoDisplayWidget::calculateLineAngle(const QPointF& start, const QPointF& end) const
+{
+    double dx = end.x() - start.x();
+    double dy = end.y() - start.y();
+    
+    // Calculate angle (radians to degrees)
+    double angleRad = atan2(dy, dx);
+    double angleDeg = angleRad * 180.0 / M_PI;
+    
+    // Ensure angle is in 0-180 degree range
+    if (angleDeg < 0) {
+        angleDeg += 180.0;
+    }
+    if (angleDeg >= 180.0) {
+        angleDeg -= 180.0;
+    }
+    
+    return angleDeg;
+}
+
+void VideoDisplayWidget::calculateExtendedLine(const QPointF& start, const QPointF& end, QPointF& extStart, QPointF& extEnd) const
+{
+    // 获取图像尺寸
+    QSize imageSize = m_videoFrame.size();
+    if (imageSize.isEmpty()) {
+        extStart = start;
+        extEnd = end;
+        return;
+    }
+    
+    double imageWidth = imageSize.width();
+    double imageHeight = imageSize.height();
+    
+    // 计算直线方向向量
+    double dx = end.x() - start.x();
+    double dy = end.y() - start.y();
+    
+    // 避免除零错误
+    if (abs(dx) < 1e-6 && abs(dy) < 1e-6) {
+        extStart = start;
+        extEnd = end;
+        return;
+    }
+    
+    // 计算延伸参数
+    double t1 = -1000.0; // 向后延伸
+    double t2 = 1000.0;  // 向前延伸
+    
+    // 与图像边界的交点计算
+    if (abs(dx) > 1e-6) {
+        // 与左边界 (x=0) 的交点
+        double t_left = (0 - start.x()) / dx;
+        // 与右边界 (x=imageWidth) 的交点
+        double t_right = (imageWidth - start.x()) / dx;
+        
+        t1 = qMax(t1, qMin(t_left, t_right));
+        t2 = qMin(t2, qMax(t_left, t_right));
+    }
+    
+    if (abs(dy) > 1e-6) {
+        // 与上边界 (y=0) 的交点
+        double t_top = (0 - start.y()) / dy;
+        // 与下边界 (y=imageHeight) 的交点
+        double t_bottom = (imageHeight - start.y()) / dy;
+        
+        t1 = qMax(t1, qMin(t_top, t_bottom));
+        t2 = qMin(t2, qMax(t_top, t_bottom));
+    }
+    
+    // 计算延伸后的端点
+    extStart = QPointF(start.x() + t1 * dx, start.y() + t1 * dy);
+    extEnd = QPointF(start.x() + t2 * dx, start.y() + t2 * dy);
+    
+    // 确保端点在图像范围内
+    extStart.setX(qBound(0.0, extStart.x(), imageWidth));
+    extStart.setY(qBound(0.0, extStart.y(), imageHeight));
+    extEnd.setX(qBound(0.0, extEnd.x(), imageWidth));
+    extEnd.setY(qBound(0.0, extEnd.y(), imageHeight));
+}
+
+void VideoDisplayWidget::drawTextWithBackground(QPainter& painter,
+                                                const QPointF& anchorPoint,
+                                                const QString& text,
+                                                const QFont& font,
+                                                const QColor& textColor,
+                                                const QColor& bgColor,
+                                                double padding,
+                                                double borderWidth,
+                                                const QPointF& offset)
+{
+    // 1. 计算尺寸
+    QFontMetrics fm(font);
+    QRect textBoundingRect = fm.boundingRect(text);
+
+    // 2. 创建一个以(0,0)为左上角的、包含内边距的总内容框
+    QRectF contentRectWithPadding = QRectF(0, 0, textBoundingRect.width(), textBoundingRect.height())
+                                     .adjusted(-padding, -padding, padding, padding);
+
+    // 3. 将内容框移动到最终位置
+    contentRectWithPadding.moveTopLeft(anchorPoint + offset);
+
+    // 4. 绘制背景和边框
+    painter.setPen(createPen(textColor, borderWidth, getScaleFactor())); // 使用文本颜色作为边框颜色
+    painter.setBrush(QBrush(bgColor));
+    painter.drawRect(contentRectWithPadding);
+
+    // 5. 在内容框内居中绘制文本
+    painter.setPen(createPen(textColor, 1, getScaleFactor()));
+    painter.setFont(font);
+    painter.drawText(contentRectWithPadding, Qt::AlignCenter, text);
+}
+
+
+
+// 【终极API设计】计算文本背景矩形的辅助函数
+QRectF VideoDisplayWidget::calculateTextWithBackgroundRect(const QPointF& anchorPoint, const QString& text, 
+                                                           const QFont& font, double padding, const QPointF& offset)
+{
+    QFontMetrics fm(font);
+    QRect textBoundingRect = fm.boundingRect(text);
+    QRectF contentRectWithPadding = QRectF(0, 0, textBoundingRect.width(), textBoundingRect.height()).adjusted(-padding, -padding, padding, padding);
+    contentRectWithPadding.moveTopLeft(anchorPoint + offset);
+    return contentRectWithPadding;
+}
+
+// 【终极API设计】在预先计算好的矩形中绘制文本
+void VideoDisplayWidget::drawTextInRect(QPainter& painter, const QRectF& rect, const QString& text,
+                                        const QFont& font, const QColor& textColor, const QColor& bgColor,
+                                        double borderWidth)
+{
+    // 绘制背景和边框
+    painter.setPen(createPen(textColor, borderWidth, getScaleFactor())); // 使用文本颜色作为边框颜色
+    painter.setBrush(QBrush(bgColor));
+    painter.drawRect(rect);
+    
+    // 在矩形内居中绘制文本
+    painter.setPen(createPen(textColor, 1, getScaleFactor()));
+    painter.setFont(font);
+    painter.drawText(rect, Qt::AlignCenter, text);
+}
+
+bool VideoDisplayWidget::calculateCircleFromThreePoints(const QPointF& p1, const QPointF& p2, const QPointF& p3, 
+                                                       QPointF& center, double& radius)
+{
+    double x1 = p1.x(), y1 = p1.y();
+    double x2 = p2.x(), y2 = p2.y();
+    double x3 = p3.x(), y3 = p3.y();
+    
+    // 计算行列式
+    double det = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+    
+    if (abs(det) < 1e-10) {
+        // 三点共线
+        return false;
+    }
+    
+    // 计算圆心坐标
+    double cx = ((x1*x1 + y1*y1) * (y2 - y3) + (x2*x2 + y2*y2) * (y3 - y1) + (x3*x3 + y3*y3) * (y1 - y2)) / det;
+    double cy = ((x1*x1 + y1*y1) * (x3 - x2) + (x2*x2 + y2*y2) * (x1 - x3) + (x3*x3 + y3*y3) * (x2 - x1)) / det;
+    
+    center = QPointF(cx, cy);
+    
+    // 计算半径
+    radius = sqrt((cx - x1) * (cx - x1) + (cy - y1) * (cy - y1));
+    
+    return true;
+}
+
+bool VideoDisplayWidget::calculateCircleFromFivePoints(const QVector<QPointF>& points, 
+                                                      QPointF& center, double& radius)
+{
+    if (points.size() != 5) {
+        return false;
+    }
+    
+    // 使用最小二乘法拟合圆
+    // 设圆的方程为: (x-a)^2 + (y-b)^2 = r^2
+    // 展开为: x^2 + y^2 - 2ax - 2by + (a^2 + b^2 - r^2) = 0
+    // 设 A = -2a, B = -2b, C = a^2 + b^2 - r^2
+    // 则方程为: x^2 + y^2 + Ax + By + C = 0
+    
+    // 构建线性方程组求解A, B, C
+    double sumX = 0, sumY = 0, sumX2 = 0, sumY2 = 0, sumXY = 0;
+    double sumX3 = 0, sumY3 = 0, sumX2Y = 0, sumXY2 = 0;
+    
+    for (const QPointF& p : points) {
+        double x = p.x(), y = p.y();
+        sumX += x;
+        sumY += y;
+        sumX2 += x * x;
+        sumY2 += y * y;
+        sumXY += x * y;
+        sumX3 += x * x * x;
+        sumY3 += y * y * y;
+        sumX2Y += x * x * y;
+        sumXY2 += x * y * y;
+    }
+    
+    int n = points.size();
+    
+    // 构建矩阵方程 M * [A B C]^T = V
+    double m11 = sumX2, m12 = sumXY, m13 = sumX;
+    double m21 = sumXY, m22 = sumY2, m23 = sumY;
+    double m31 = sumX, m32 = sumY, m33 = n;
+    
+    double v1 = -(sumX3 + sumXY2);
+    double v2 = -(sumX2Y + sumY3);
+    double v3 = -(sumX2 + sumY2);
+    
+    // 使用克拉默法则求解
+    double det = m11 * (m22 * m33 - m23 * m32) - m12 * (m21 * m33 - m23 * m31) + m13 * (m21 * m32 - m22 * m31);
+    
+    if (abs(det) < 1e-10) {
+        return false;
+    }
+    
+    double A = (v1 * (m22 * m33 - m23 * m32) - m12 * (v2 * m33 - m23 * v3) + m13 * (v2 * m32 - m22 * v3)) / det;
+    double B = (m11 * (v2 * m33 - m23 * v3) - v1 * (m21 * m33 - m23 * m31) + m13 * (m21 * v3 - v2 * m31)) / det;
+    
+    center = QPointF(-A / 2, -B / 2);
+    
+    // 计算半径（使用第一个点）
+    QPointF p0 = points[0];
+    radius = sqrt((center.x() - p0.x()) * (center.x() - p0.x()) + (center.y() - p0.y()) * (center.y() - p0.y()));
+    
+    return true;
+}
+
+bool VideoDisplayWidget::calculateLineIntersection(const QPointF& p1, const QPointF& p2, const QPointF& p3, const QPointF& p4, QPointF& intersection)
+{
+    double x1 = p1.x(), y1 = p1.y();
+    double x2 = p2.x(), y2 = p2.y();
+    double x3 = p3.x(), y3 = p3.y();
+    double x4 = p4.x(), y4 = p4.y();
+    
+    double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    
+    if (abs(denom) < 1e-10) {
+        // 两线平行
+        return false;
+    }
+    
+    double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+    
+    intersection = QPointF(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+    
+    return true;
+}
+
+double VideoDisplayWidget::calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd)
+{
+    double A = lineEnd.y() - lineStart.y();
+    double B = lineStart.x() - lineEnd.x();
+    double C = lineEnd.x() * lineStart.y() - lineStart.x() * lineEnd.y();
+    
+    double distance = abs(A * point.x() + B * point.y() + C) / sqrt(A * A + B * B);
+    
+    return distance;
+}
+
+// {{ AURA-X: Add - DrawingContext缓存管理方法实现. Approval: 寸止(ID:context_cache). }}
+void VideoDisplayWidget::updateDrawingContext()
+{
+    // 计算当前绘制参数
+    double scale = getScaleFactor();
+    double fontSize = calculateFontSize();
+    QFont font = createFont(static_cast<int>(fontSize), scale);
+    
+    // 更新DrawingContext
+    m_cachedDrawingContext.scale = scale;
+    m_cachedDrawingContext.fontSize = fontSize;
+    m_cachedDrawingContext.font = font;
+    
+    // 创建所有画笔
+    m_cachedDrawingContext.greenPen = createPen(Qt::green, 2, scale);
+    m_cachedDrawingContext.blackPen = createPen(Qt::black, 2, scale);
+    m_cachedDrawingContext.whitePen = createPen(Qt::white, 2, scale);
+    m_cachedDrawingContext.redPen = createPen(Qt::red, 2, scale);
+    m_cachedDrawingContext.bluePen = createPen(Qt::blue, 2, scale);
+    m_cachedDrawingContext.yellowPen = createPen(Qt::yellow, 2, scale);
+    m_cachedDrawingContext.grayPen = createPen(Qt::gray, 1, scale);
+    
+    // 创建所有画刷
+    m_cachedDrawingContext.greenBrush = QBrush(Qt::green);
+    m_cachedDrawingContext.blackBrush = QBrush(Qt::black);
+    m_cachedDrawingContext.whiteBrush = QBrush(Qt::white);
+    m_cachedDrawingContext.redBrush = QBrush(Qt::red);
+    m_cachedDrawingContext.blueBrush = QBrush(Qt::blue);
+    
+    // 更新缓存状态
+    m_drawingContextValid = true;
+    m_lastContextWidgetSize = size();
+    m_lastContextImageSize = m_videoFrame.size();
+}
+
+bool VideoDisplayWidget::needsDrawingContextUpdate() const
+{
+    // 检查是否需要更新DrawingContext
+    if (!m_drawingContextValid) {
+        return true;
+    }
+    
+    // 检查控件尺寸是否变化
+    if (m_lastContextWidgetSize != size()) {
+        return true;
+    }
+    
+    // 检查图像尺寸是否变化
+    if (m_lastContextImageSize != m_videoFrame.size()) {
+        return true;
+    }
+    
+    return false;
+}

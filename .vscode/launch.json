@@ -16,7 +16,8 @@
                     "value": "c:/Qt/6.8.0/msvc2022_64/bin"
                 }
             ],
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "visualizerFile": "c:\\Users\\xp\\AppData\\Roaming\\Trae\\User\\workspaceStorage\\fc82df3d5fdac7f80fdace98cdaf734c\\tonka3000.qtvsctools\\qt.natvis.xml"
         }
     ]
 }

@@ -37,7 +37,7 @@
      <widget class="QTabWidget" name="tabWidget">
       <property name="font">
        <font>
-        <pointsize>12</pointsize>
+        <pointsize>9</pointsize>
         <bold>true</bold>
        </font>
       </property>
@@ -61,7 +61,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>12</pointsize>
+              <pointsize>9</pointsize>
               <bold>true</bold>
              </font>
             </property>
@@ -109,6 +109,52 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
+               <item>
+                <widget class="QPushButton" name="btnLoadTemplateVertical">
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnStartMatchingVertical">
+                 <property name="text">
+                  <string>开始匹配</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>background-color: green; color: white;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalTemplate">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
             </layout>
            </widget>
           </item>
@@ -122,7 +168,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>12</pointsize>
+              <pointsize>9</pointsize>
               <bold>true</bold>
              </font>
             </property>
@@ -170,6 +216,52 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
+               <item>
+                <widget class="QPushButton" name="btnLoadTemplateLeft">
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnStartMatchingLeft">
+                 <property name="text">
+                  <string>开始匹配</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>background-color: green; color: white;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftTemplate">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
             </layout>
            </widget>
           </item>
@@ -187,7 +279,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>12</pointsize>
+              <pointsize>9</pointsize>
               <bold>true</bold>
              </font>
             </property>
@@ -235,6 +327,52 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
+               <item>
+                <widget class="QPushButton" name="btnLoadTemplateFront">
+                 <property name="text">
+                  <string>加载模版</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnStartMatchingFront">
+                 <property name="text">
+                  <string>开始匹配</string>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>background-color: green; color: white;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontTemplate">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
             </layout>
            </widget>
           </item>
@@ -248,7 +386,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>12</pointsize>
+              <pointsize>9</pointsize>
               <bold>true</bold>
              </font>
             </property>
@@ -369,7 +507,7 @@
                    <widget class="QPushButton" name="btnCan1StepDraw">
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>9</pointsize>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -382,7 +520,7 @@
                    <widget class="QPushButton" name="btnClearDrawings">
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>9</pointsize>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -395,7 +533,7 @@
                    <widget class="QPushButton" name="btnSaveImage">
                     <property name="font">
                      <font>
-                      <pointsize>10</pointsize>
+                      <pointsize>9</pointsize>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -560,7 +698,7 @@
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>11</pointsize>
+                         <pointsize>9</pointsize>
                          <bold>true</bold>
                         </font>
                        </property>
@@ -593,7 +731,7 @@ QPushButton:pressed { background-color: #3d8b40; }</string>
                        </property>
                        <property name="font">
                         <font>
-                         <pointsize>11</pointsize>
+                         <pointsize>9</pointsize>
                          <bold>true</bold>
                         </font>
                        </property>
@@ -631,7 +769,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxVerticalMain">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -929,7 +1067,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxVerticalDisplay">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -978,6 +1116,52 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
              </property>
             </widget>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
+             <item>
+              <widget class="QPushButton" name="btnLoadTemplateVertical">
+               <property name="text">
+                <string>加载模版</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStartMatchingVertical">
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: green; color: white;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_verticalTemplate">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </item>
@@ -992,7 +1176,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxLeftMain">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -1275,7 +1459,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxLeftDisplay">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -1324,6 +1508,52 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
              </property>
             </widget>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
+             <item>
+              <widget class="QPushButton" name="btnLoadTemplateLeft">
+               <property name="text">
+                <string>加载模版</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStartMatchingLeft">
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: green; color: white;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_leftTemplate">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </item>
@@ -1338,7 +1568,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxFrontMain">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -1621,7 +1851,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
          <widget class="QGroupBox" name="groupBoxFrontDisplay">
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
             <bold>true</bold>
            </font>
           </property>
@@ -1670,11 +1900,2266 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
              </property>
             </widget>
            </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
+             <item>
+              <widget class="QPushButton" name="btnLoadTemplateFront">
+               <property name="text">
+                <string>加载模版</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStartMatchingFront">
+               <property name="text">
+                <string>开始匹配</string>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: green; color: white;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_frontTemplate">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tabSettings">
+       <attribute name="title">
+        <string>参数设置</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_settings">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_settingsMain">
+          <item row="0" column="0">
+           <widget class="QGroupBox" name="groupBoxDisplaySettings">
+            <property name="title">
+             <string>显示设置</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_display">
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_uiWidth" stretch="2,0,1,3">
+               <item>
+                <widget class="QLabel" name="labelUIWidth">
+                 <property name="text">
+                  <string>界面总宽:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+     </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="ledUIWidth"/>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelUIWidthUnit">
+                 <property name="text">
+                  <string>像素</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_uiWidth">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item row="2" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_uiHeight" stretch="2,0,1,3">
+               <item>
+                <widget class="QLabel" name="labelUIHeight">
+                 <property name="text">
+                  <string>界面总高:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="ledUIHeight"/>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelUIHeightUnit">
+                 <property name="text">
+                  <string>像素</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_uiHeight">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item row="3" column="0">
+              <spacer name="verticalSpacer_display">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="groupBoxCameraSettings">
+          <property name="title">
+           <string>相机采集参数</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_camera">
+           <item row="0" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_verCamSN" stretch="4,4,4,0">
+             <item>
+              <widget class="QLabel" name="labelVerCamSN">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>垂直相机SN码：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="ledVerCamSN"/>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_verCamSN">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelVerCamSNStatus">
+               <property name="font">
+                <font>
+                 <family>Times New Roman</family>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_leftCamSN" stretch="4,4,4,0">
+             <item>
+              <widget class="QLabel" name="labelLeftCamSN">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>左侧相机SN码：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="ledLeftCamSN"/>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_leftCamSN">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelLeftCamSNStatus">
+               <property name="font">
+                <font>
+                 <family>Times New Roman</family>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_frontCamSN" stretch="4,4,4,0">
+             <item>
+              <widget class="QLabel" name="labelFrontCamSN">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>对向相机SN码：</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="ledFrontCamSN"/>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_frontCamSN">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelFrontCamSNStatus">
+               <property name="font">
+                <font>
+                 <family>Times New Roman</family>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="0">
+            <spacer name="verticalSpacer_camera">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="0" column="1" rowspan="2">
+         <widget class="QGroupBox" name="groupBoxAutoMeasureSettings">
+          <property name="title">
+           <string>自动测量参数</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_autoMeasure">
+           <item row="0" column="0">
+            <widget class="QGroupBox" name="groupBoxLineDetection">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>直线查找参数</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_lineDetection">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_cannyLineLow" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelCannyLineLow">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>边缘低阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledCannyLineLow">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_cannyLineLow">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_cannyLineHigh" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelCannyLineHigh">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>边缘高阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledCannyLineHigh">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_cannyLineHigh">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_lineDetThreshold" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelLineDetThreshold">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>直线查找阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledLineDetThreshold">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_lineDetThreshold">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_lineDetMinLength" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelLineDetMinLength">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>最小线长</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledLineDetMinLength">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_lineDetMinLength">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_lineDetMaxGap" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelLineDetMaxGap">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>最大间隙</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledLineDetMaxGap">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_lineDetMaxGap">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QGroupBox" name="groupBoxCircleDetection">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>圆查找参数</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_circleDetection">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_cannyCircleLow" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelCannyCircleLow">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>边缘低阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledCannyCircleLow">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_cannyCircleLow">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_cannyCircleHigh" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelCannyCircleHigh">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>边缘高阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledCannyCircleHigh">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_cannyCircleHigh">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_circleDetParam2" stretch="3,1,5">
+                <item>
+                 <widget class="QLabel" name="labelCircleDetParam2">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>圆查找阈值</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="ledCircleDetParam2">
+                  <property name="font">
+                   <font>
+                    <pointsize>9</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_circleDetParam2">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabCameraStatus">
+       <attribute name="title">
+        <string>相机状态监控</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_cameraStatus">
+        <item>
+         <widget class="QGroupBox" name="groupBoxCameraOverview">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>相机状态总览</string>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_cameraOverview">
+           <item>
+            <widget class="QLabel" name="labelTotalCameras">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>总相机数: 3</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelOnlineCameras">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>在线: 2</string>
+             </property>
+             <property name="styleSheet">
+              <string>color: green;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelOfflineCameras">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>离线: 1</string>
+             </property>
+             <property name="styleSheet">
+              <string>color: red;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_cameraOverview">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_cameraDetails">
+          <item>
+           <widget class="QGroupBox" name="groupBoxVerticalCameraStatus">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>垂直相机</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_verticalCamera">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalStatus">
+               <item>
+                <widget class="QLabel" name="labelVerticalStatusTitle">
+                 <property name="text">
+                  <string>连接状态:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalStatus">
+                 <property name="font">
+                  <font>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>在线</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: green;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalStatus">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalFPS">
+               <item>
+                <widget class="QLabel" name="labelVerticalFPSTitle">
+                 <property name="text">
+                  <string>帧率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalFPS">
+                 <property name="text">
+                  <string>30.2 fps</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalFPS">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalTemp">
+               <item>
+                <widget class="QLabel" name="labelVerticalTempTitle">
+                 <property name="text">
+                  <string>温度:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalTemp">
+                 <property name="text">
+                  <string>42.5°C</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalTemp">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalResolution">
+               <item>
+                <widget class="QLabel" name="labelVerticalResolutionTitle">
+                 <property name="text">
+                  <string>分辨率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalResolution">
+                 <property name="text">
+                  <string>1920x1080</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalResolution">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalExposure">
+               <item>
+                <widget class="QLabel" name="labelVerticalExposureTitle">
+                 <property name="text">
+                  <string>曝光时间:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalExposure">
+                 <property name="text">
+                  <string>15.6ms</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalExposure">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_verticalGain">
+               <item>
+                <widget class="QLabel" name="labelVerticalGainTitle">
+                 <property name="text">
+                  <string>增益:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelVerticalGain">
+                 <property name="text">
+                  <string>2.5dB</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_verticalGain">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxLeftCameraStatus">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>左侧相机</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_leftCamera">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftStatus">
+               <item>
+                <widget class="QLabel" name="labelLeftStatusTitle">
+                 <property name="text">
+                  <string>连接状态:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftStatus">
+                 <property name="font">
+                  <font>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>在线</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: green;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftStatus">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftFPS">
+               <item>
+                <widget class="QLabel" name="labelLeftFPSTitle">
+                 <property name="text">
+                  <string>帧率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftFPS">
+                 <property name="text">
+                  <string>29.8 fps</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftFPS">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftTemp">
+               <item>
+                <widget class="QLabel" name="labelLeftTempTitle">
+                 <property name="text">
+                  <string>温度:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftTemp">
+                 <property name="text">
+                  <string>41.2°C</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftTemp">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftResolution">
+               <item>
+                <widget class="QLabel" name="labelLeftResolutionTitle">
+                 <property name="text">
+                  <string>分辨率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftResolution">
+                 <property name="text">
+                  <string>1920x1080</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftResolution">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftExposure">
+               <item>
+                <widget class="QLabel" name="labelLeftExposureTitle">
+                 <property name="text">
+                  <string>曝光时间:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftExposure">
+                 <property name="text">
+                  <string>16.2ms</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftExposure">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_leftGain">
+               <item>
+                <widget class="QLabel" name="labelLeftGainTitle">
+                 <property name="text">
+                  <string>增益:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelLeftGain">
+                 <property name="text">
+                  <string>3.1dB</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_leftGain">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxFrontCameraStatus">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="title">
+             <string>对向相机</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_frontCamera">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontStatus">
+               <item>
+                <widget class="QLabel" name="labelFrontStatusTitle">
+                 <property name="text">
+                  <string>连接状态:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontStatus">
+                 <property name="font">
+                  <font>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>离线</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: red;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontStatus">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontFPS">
+               <item>
+                <widget class="QLabel" name="labelFrontFPSTitle">
+                 <property name="text">
+                  <string>帧率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontFPS">
+                 <property name="text">
+                  <string>-- fps</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: gray;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontFPS">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontTemp">
+               <item>
+                <widget class="QLabel" name="labelFrontTempTitle">
+                 <property name="text">
+                  <string>温度:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontTemp">
+                 <property name="text">
+                  <string>--°C</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: gray;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontTemp">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontResolution">
+               <item>
+                <widget class="QLabel" name="labelFrontResolutionTitle">
+                 <property name="text">
+                  <string>分辨率:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontResolution">
+                 <property name="text">
+                  <string>--</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: gray;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontResolution">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontExposure">
+               <item>
+                <widget class="QLabel" name="labelFrontExposureTitle">
+                 <property name="text">
+                  <string>曝光时间:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontExposure">
+                 <property name="text">
+                  <string>--ms</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: gray;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontExposure">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_frontGain">
+               <item>
+                <widget class="QLabel" name="labelFrontGainTitle">
+                 <property name="text">
+                  <string>增益:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelFrontGain">
+                 <property name="text">
+                  <string>--dB</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string>color: gray;</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_frontGain">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxCameraAlerts">
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>故障诊断与报警</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_cameraAlerts">
+           <item>
+            <widget class="QTextEdit" name="textEditAlerts">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>120</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="html">
+              <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Microsoft YaHei UI'; font-size:9pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#ff0000;"&gt;[警告] 对向相机连接丢失 - 2025-01-15 14:32:15&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#ff8000;"&gt;[提醒] 垂直相机温度偏高(42.5°C) - 2025-01-15 14:30:22&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#008000;"&gt;[信息] 左侧相机连接正常 - 2025-01-15 14:28:45&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" color:#008000;"&gt;[信息] 垂直相机连接正常 - 2025-01-15 14:28:43&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_alertButtons">
+             <item>
+              <widget class="QPushButton" name="btnClearAlerts">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>清空报警</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnRefreshStatus">
+               <property name="font">
+                <font>
+                 <pointsize>9</pointsize>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>刷新状态</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_alertButtons">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_cameraStatus">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     <widget class="QWidget" name="tabStageControl">
+      <attribute name="title">
+       <string>XYZ载物台控制</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_stageControl">
+       <item>
+        <widget class="QGroupBox" name="groupBoxStagePosition">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>当前位置</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_stagePosition">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelXPosition">
+            <property name="text">
+             <string>X轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelXPositionValue">
+            <property name="text">
+             <string>125.456 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelYPosition">
+            <property name="text">
+             <string>Y轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelYPositionValue">
+            <property name="text">
+             <string>89.234 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelZPosition">
+            <property name="text">
+             <string>Z轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelZPositionValue">
+            <property name="text">
+             <string>67.890 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxStageControl">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>载物台控制</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_stageControl">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelXTarget">
+            <property name="text">
+             <string>X目标位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEditXTarget">
+            <property name="text">
+             <string>125.456</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="btnMoveX">
+            <property name="text">
+             <string>移动X</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelYTarget">
+            <property name="text">
+             <string>Y目标位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEditYTarget">
+            <property name="text">
+             <string>89.234</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="btnMoveY">
+            <property name="text">
+             <string>移动Y</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelZTarget">
+            <property name="text">
+             <string>Z目标位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEditZTarget">
+            <property name="text">
+             <string>67.890</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QPushButton" name="btnMoveZ">
+            <property name="text">
+             <string>移动Z</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_stageButtons">
+            <item>
+             <widget class="QPushButton" name="btnMoveAll">
+              <property name="text">
+               <string>移动到目标位置</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnStageHome">
+              <property name="text">
+               <string>回到原点</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnStageStop">
+              <property name="text">
+               <string>紧急停止</string>
+              </property>
+              <property name="styleSheet">
+               <string>background-color: red; color: white;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxStageStatus">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>载物台状态</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_stageStatus">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelStageConnectionTitle">
+            <property name="text">
+             <string>连接状态:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelStageConnection">
+            <property name="text">
+             <string>已连接</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: green; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelStageStatusTitle">
+            <property name="text">
+             <string>运动状态:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelStageMovingStatus">
+            <property name="text">
+             <string>静止</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelStageSpeedTitle">
+            <property name="text">
+             <string>移动速度:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelStageSpeed">
+            <property name="text">
+             <string>10.0 mm/s</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_stageControl">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabPhysicalControl">
+      <attribute name="title">
+       <string>物理按键控制</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_physicalControl">
+       <item>
+        <widget class="QGroupBox" name="groupBoxKeyStatus">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>按键状态监控</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_keyStatus">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelKey1Title">
+            <property name="text">
+             <string>启动按键:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelKey1Status">
+            <property name="text">
+             <string>未按下</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: gray;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelKey2Title">
+            <property name="text">
+             <string>停止按键:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelKey2Status">
+            <property name="text">
+             <string>未按下</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: gray;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelKey3Title">
+            <property name="text">
+             <string>复位按键:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelKey3Status">
+            <property name="text">
+             <string>未按下</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: gray;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="labelKey4Title">
+            <property name="text">
+             <string>急停按键:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="labelKey4Status">
+            <property name="text">
+             <string>正常</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: green; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxKeyConfig">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>按键功能配置</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_keyConfig">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelKeyFunction1">
+            <property name="text">
+             <string>按键1功能:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBoxKey1Function">
+            <item>
+             <property name="text">
+              <string>启动相机采集</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>开始检测</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>载物台回原点</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelKeyFunction2">
+            <property name="text">
+             <string>按键2功能:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="comboBoxKey2Function">
+            <item>
+             <property name="text">
+              <string>停止相机采集</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>暂停检测</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>载物台停止</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelKeyFunction3">
+            <property name="text">
+             <string>按键3功能:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBoxKey3Function">
+            <item>
+             <property name="text">
+              <string>系统复位</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>清除报警</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>保存图像</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxKeyTest">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>按键测试</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_keyTest">
+          <item>
+           <widget class="QPushButton" name="btnTestKey1">
+            <property name="text">
+             <string>测试按键1</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnTestKey2">
+            <property name="text">
+             <string>测试按键2</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnTestKey3">
+            <property name="text">
+             <string>测试按键3</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnTestEmergencyStop">
+            <property name="text">
+             <string>测试急停</string>
+            </property>
+            <property name="styleSheet">
+             <string>background-color: orange; color: white;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_physicalControl">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabGratingPosition">
+      <attribute name="title">
+       <string>光栅尺位置显示</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_gratingPosition">
+       <item>
+        <widget class="QGroupBox" name="groupBoxGratingStatus">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>光栅尺状态</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_gratingStatus">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelGratingXTitle">
+            <property name="text">
+             <string>X轴光栅尺:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelGratingXStatus">
+            <property name="text">
+             <string>正常</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: green; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelGratingYTitle">
+            <property name="text">
+             <string>Y轴光栅尺:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelGratingYStatus">
+            <property name="text">
+             <string>正常</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: green; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelGratingZTitle">
+            <property name="text">
+             <string>Z轴光栅尺:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelGratingZStatus">
+            <property name="text">
+             <string>正常</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: green; font-weight: bold;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxGratingPosition">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>实时位置读数</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_gratingPosition">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelGratingXPosTitle">
+            <property name="text">
+             <string>X轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelGratingXPosition">
+            <property name="text">
+             <string>125.4567 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold; font-size: 14px;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelGratingYPosTitle">
+            <property name="text">
+             <string>Y轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelGratingYPosition">
+            <property name="text">
+             <string>89.2345 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold; font-size: 14px;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelGratingZPosTitle">
+            <property name="text">
+             <string>Z轴位置:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelGratingZPosition">
+            <property name="text">
+             <string>67.8901 mm</string>
+            </property>
+            <property name="styleSheet">
+             <string>color: blue; font-weight: bold; font-size: 14px;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxGratingCalibration">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>光栅尺校准</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_gratingCalibration">
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelGratingResolutionTitle">
+            <property name="text">
+             <string>分辨率:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelGratingResolution">
+            <property name="text">
+             <string>0.001 mm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelGratingAccuracyTitle">
+            <property name="text">
+             <string>精度:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelGratingAccuracy">
+            <property name="text">
+             <string>±0.002 mm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_gratingButtons">
+            <item>
+             <widget class="QPushButton" name="btnGratingZero">
+              <property name="text">
+               <string>设置零点</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnGratingCalibrate">
+              <property name="text">
+               <string>校准光栅尺</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnGratingReset">
+              <property name="text">
+               <string>复位</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_gratingPosition">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+
      </widget>
     </item>
    </layout>

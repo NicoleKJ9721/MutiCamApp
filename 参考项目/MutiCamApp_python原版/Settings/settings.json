@@ -1,0 +1,15 @@
+{
+    "VerCamSN": "Vir21084717",
+    "LeftCamSN": "Vir21128616",
+    "FrontCamSN": "Vir21128647",
+    "CannyLineLow": 50,
+    "CannyLineHigh": 150,
+    "LineDetThreshold": 50,
+    "LineDetMinLength": 20,
+    "LineDetMaxGap": 10,
+    "CannyCircleLow": 100,
+    "CannyCircleHigh": 200,
+    "CircleDetParam2": 50,
+    "UIWidth": 958,
+    "UIHeight": 993
+}

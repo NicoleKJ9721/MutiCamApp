@@ -31,11 +31,11 @@ set(CMAKE_CXX_COMPILER_RANLIB "")
 set(CMAKE_LINKER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.exe")
 set(CMAKE_LINKER_LINK "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/link.exe")
 set(CMAKE_LINKER_LLD "lld-link")
-set(CMAKE_CXX_COMPILER_LINKER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/HostX64/x64/link.exe")
+set(CMAKE_CXX_COMPILER_LINKER "C:/PROGRA~1/MIB055~1/2022/COMMUN~1/VC/Tools/MSVC/1444~1.352/bin/Hostx64/x64/link.exe")
 set(CMAKE_CXX_COMPILER_LINKER_ID "MSVC")
 set(CMAKE_CXX_COMPILER_LINKER_VERSION 14.44.35211.0)
 set(CMAKE_CXX_COMPILER_LINKER_FRONTEND_VARIANT MSVC)
-set(CMAKE_MT "CMAKE_MT-NOTFOUND")
+set(CMAKE_MT "C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/mt.exe")
 set(CMAKE_TAPI "")
 set(CMAKE_COMPILER_IS_GNUCXX )
 set(CMAKE_CXX_COMPILER_LOADED 1)
@@ -78,7 +78,7 @@ if(CMAKE_CXX_LIBRARY_ARCHITECTURE)
   set(CMAKE_LIBRARY_ARCHITECTURE "")
 endif()
 
-set(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX "")
+set(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX "注意: 包含文件:  ")
 if(CMAKE_CXX_CL_SHOWINCLUDES_PREFIX)
   set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_CXX_CL_SHOWINCLUDES_PREFIX}")
 endif()
@@ -95,7 +95,7 @@ set(CMAKE_CXX_COMPILER_CLANG_RESOURCE_DIR "")
 
 set(CMAKE_CXX_COMPILER_IMPORT_STD "")
 ### Imported target for C++23 standard library
-set(CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE "Unsupported generator: Visual Studio 17 2022")
+set(CMAKE_CXX23_COMPILER_IMPORT_STD_NOT_FOUND_MESSAGE "Experimental `import std` support not enabled when detecting toolchain; it must be set before `CXX` is enabled (usually a `project()` call)")
 
 
 
