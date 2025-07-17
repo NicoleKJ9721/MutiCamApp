@@ -29,6 +29,16 @@ struct LineObject {
     LineObject() : isCompleted(false), color(Qt::green), thickness(2), isDashed(false) {}
 };
 
+struct LineSegmentObject {
+    QVector<QPointF> points;  // 只包含两个点：起点和终点
+    bool isCompleted;
+    QColor color;
+    int thickness;
+    bool isDashed;
+    
+    LineSegmentObject() : isCompleted(false), color(Qt::green), thickness(2), isDashed(false) {}
+};
+
 struct CircleObject {
     QVector<QPointF> points;
     bool isCompleted;
@@ -149,6 +159,7 @@ public:
     // 绘制数据设置接口
     void setPointsData(const QVector<QPointF>& points);
     void setLinesData(const QVector<LineObject>& lines);
+    void setLineSegmentsData(const QVector<LineSegmentObject>& lineSegments);
     void setCirclesData(const QVector<CircleObject>& circles);
     void setFineCirclesData(const QVector<FineCircleObject>& fineCircles);
     void setParallelLinesData(const QVector<ParallelObject>& parallels);
@@ -209,6 +220,10 @@ public:
     void clearSelection();
     QString getSelectedObjectInfo() const;
     
+    // {{ AURA-X: Add - 右键菜单和删除功能. Approval: 寸止(ID:context_menu_delete). }}
+    // 删除选中的对象
+    void deleteSelectedObjects();
+    
 public slots:
     // 选择状态改变信号
     void onSelectionChanged();
@@ -223,12 +238,15 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    // {{ AURA-X: Add - 右键菜单事件处理. Approval: 寸止(ID:context_menu_delete). }}
+    void contextMenuEvent(QContextMenuEvent *event) override;
     
 private:
     // {{ AURA-X: Optimize - 使用DrawingContext简化绘制函数接口. Approval: 寸止(ID:performance_optimization). }}
     // 绘制各种几何图形的私有方法
     void drawPoints(QPainter& painter, const DrawingContext& ctx);
     void drawLines(QPainter& painter, const DrawingContext& ctx);
+    void drawLineSegments(QPainter& painter, const DrawingContext& ctx);
     void drawCircles(QPainter& painter, const DrawingContext& ctx);
     void drawFineCircles(QPainter& painter, const DrawingContext& ctx);
     void drawParallelLines(QPainter& painter, const DrawingContext& ctx);
@@ -236,6 +254,7 @@ private:
     
     // 绘制单个图形的私有方法
     void drawSingleLine(QPainter& painter, const LineObject& line, bool isCurrentDrawing, const DrawingContext& ctx);
+    void drawSingleLineSegment(QPainter& painter, const LineSegmentObject& lineSegment, const DrawingContext& ctx);
     void drawSingleCircle(QPainter& painter, const CircleObject& circle, const DrawingContext& ctx);
     void drawSingleFineCircle(QPainter& painter, const FineCircleObject& fineCircle, const DrawingContext& ctx);
     void drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx);
@@ -293,6 +312,7 @@ private:
     // 命中测试方法
     bool hitTestPoint(const QPointF& testPos, int index) const;
     bool hitTestLine(const QPointF& testPos, int index) const;
+    bool hitTestLineSegment(const QPointF& testPos, int index) const;
     bool hitTestCircle(const QPointF& testPos, int index) const;
     bool hitTestFineCircle(const QPointF& testPos, int index) const;
     QString hitTestParallel(const QPointF& testPos, int index) const; // 返回0=无命中, 1=第一条线, 2=第二条线, 3=中线
@@ -307,6 +327,9 @@ private:
     QPair<QPointF, QPointF> calculateExtendedLine(const QPointF& p1, const QPointF& p2, const QSize& imageSize) const;
     double calculateDistancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
     
+    // 从选中的点创建线段
+    void createLineFromSelectedPoints();
+    
 private:
     QString m_viewName;                              ///< 视图名称
     QPixmap m_videoFrame;                           ///< 背景视频帧
@@ -318,6 +341,7 @@ private:
     // 绘制数据
     QVector<QPointF> m_points;                      ///< 点数据
     QVector<LineObject> m_lines;                    ///< 直线数据
+    QVector<LineSegmentObject> m_lineSegments;      ///< 线段数据
     QVector<CircleObject> m_circles;                ///< 圆形数据
     QVector<FineCircleObject> m_fineCircles;        ///< 精细圆数据
     QVector<ParallelObject> m_parallels;            ///< 平行线数据
@@ -349,6 +373,7 @@ private:
     bool m_selectionEnabled;                        ///< 是否启用选择功能
     QSet<int> m_selectedPoints;                     ///< 选中的点索引
     QSet<int> m_selectedLines;                      ///< 选中的线索引
+    QSet<int> m_selectedLineSegments;               ///< 选中的线段索引
     QSet<int> m_selectedCircles;                    ///< 选中的圆索引
     QSet<int> m_selectedFineCircles;                ///< 选中的精细圆索引
     QSet<int> m_selectedParallels;                  ///< 选中的平行线索引

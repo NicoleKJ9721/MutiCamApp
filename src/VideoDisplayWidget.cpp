@@ -6,6 +6,10 @@
 #include <QApplication>
 #include <QVector2D>
 #include <cmath>
+// {{ AURA-X: Add - 右键菜单相关头文件. Approval: 寸止(ID:context_menu_delete). }}
+#include <QMenu>
+#include <QAction>
+#include <QContextMenuEvent>
 
 VideoDisplayWidget::VideoDisplayWidget(QWidget *parent)
     : QLabel(parent)
@@ -63,6 +67,12 @@ void VideoDisplayWidget::setPointsData(const QVector<QPointF>& points)
 void VideoDisplayWidget::setLinesData(const QVector<LineObject>& lines)
 {
     m_lines = lines;
+    update();
+}
+
+void VideoDisplayWidget::setLineSegmentsData(const QVector<LineSegmentObject>& lineSegments)
+{
+    m_lineSegments = lineSegments;
     update();
 }
 
@@ -362,6 +372,7 @@ void VideoDisplayWidget::clearAllDrawings()
 {
     m_points.clear();
     m_lines.clear();
+    m_lineSegments.clear();
     m_circles.clear();
     m_fineCircles.clear();
     m_parallels.clear();
@@ -436,6 +447,7 @@ void VideoDisplayWidget::paintEvent(QPaintEvent *event)
         // 传递绘制上下文，避免重复创建对象
         drawPoints(painter, ctx);
         drawLines(painter, ctx);
+        drawLineSegments(painter, ctx);
         drawCircles(painter, ctx);
         drawFineCircles(painter, ctx);
         drawParallelLines(painter, ctx);
@@ -573,6 +585,66 @@ void VideoDisplayWidget::drawLines(QPainter& painter, const DrawingContext& ctx)
     if (m_hasCurrentLine && !m_currentLine.points.isEmpty()) {
         drawSingleLine(painter, m_currentLine, true, ctx);
     }
+}
+
+void VideoDisplayWidget::drawLineSegments(QPainter& painter, const DrawingContext& ctx)
+{
+    // 绘制所有线段
+    for (const auto& lineSegment : m_lineSegments) {
+        drawSingleLineSegment(painter, lineSegment, ctx);
+    }
+}
+
+void VideoDisplayWidget::drawSingleLineSegment(QPainter& painter, const LineSegmentObject& lineSegment, const DrawingContext& ctx)
+{
+    if (!lineSegment.isCompleted) {
+        return;
+    }
+   // 绘制线段
+    if (lineSegment.points.size() < 2) return;
+    const QPointF& start = lineSegment.points[0];
+    const QPointF& end = lineSegment.points[1];
+    
+    // 创建线段画笔
+    int desiredThickness = qMax(2, static_cast<int>(lineSegment.thickness * 2.0 * ctx.scale));
+    QPen linePen = createPen(lineSegment.color, desiredThickness, ctx.scale);
+    linePen.setCapStyle(Qt::RoundCap);
+    
+    if (lineSegment.isDashed) {
+        linePen.setStyle(Qt::DashLine);
+    }
+    
+    // 绘制线段（直接连接两点，不延伸）
+    painter.setPen(linePen);
+    painter.drawLine(start, end);
+    
+    // 绘制端点标记
+    double pointRadius = qMax(2.0, 3.0 * ctx.scale);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QBrush(lineSegment.color));
+    painter.drawEllipse(start, pointRadius, pointRadius);
+    painter.drawEllipse(end, pointRadius, pointRadius);
+    
+    // 计算并显示长度信息
+    double length = sqrt(pow(end.x() - start.x(), 2) + pow(end.y() - start.y(), 2));
+    QString lengthText = QString::asprintf("L=%.1f", length);
+    
+    // 计算线段中点作为文本位置
+    QPointF midPoint = (start + end) / 2.0;
+    
+    // 动态计算文本布局参数
+    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    int bgBorderWidth = 1;
+    
+    // 计算长度文本框定位到中点右上方所需的精确偏移量
+    QFontMetrics fm(ctx.font);
+    QRect textBoundingRect = fm.boundingRect(lengthText);
+    double bgHeight = textBoundingRect.height() + 2 * textPadding;
+    QPointF lengthTextOffset(textOffset, -textOffset - bgHeight);
+    
+    // 使用完整版drawTextWithBackground函数
+    drawTextWithBackground(painter, midPoint, lengthText, ctx.font, lineSegment.color, Qt::black, textPadding, bgBorderWidth, lengthTextOffset);
 }
 
 void VideoDisplayWidget::drawCircles(QPainter& painter, const DrawingContext& ctx)
@@ -1958,6 +2030,7 @@ void VideoDisplayWidget::clearSelection()
 {
     m_selectedPoints.clear();
     m_selectedLines.clear();
+    m_selectedLineSegments.clear();
     m_selectedCircles.clear();
     m_selectedFineCircles.clear();
     m_selectedParallels.clear();
@@ -1976,6 +2049,9 @@ QString VideoDisplayWidget::getSelectedObjectInfo() const
     }
     if (!m_selectedLines.isEmpty()) {
         info << QString("选中了 %1 条直线").arg(m_selectedLines.size());
+    }
+    if (!m_selectedLineSegments.isEmpty()) {
+        info << QString("选中了 %1 条线段").arg(m_selectedLineSegments.size());
     }
     if (!m_selectedCircles.isEmpty()) {
         info << QString("选中了 %1 个圆").arg(m_selectedCircles.size());
@@ -2028,7 +2104,18 @@ void VideoDisplayWidget::handleSelectionClick(const QPointF& imagePos, bool ctrl
     }
     
     if (!foundHit) {
-        // 3. 测试圆
+        // 3. 测试线段
+        for (int i = 0; i < m_lineSegments.size(); ++i) {
+            if (hitTestLineSegment(imagePos, i)) {
+                selectObject("line_segment", i);
+                foundHit = true;
+                break;
+            }
+        }
+    }
+    
+    if (!foundHit) {
+        // 4. 测试圆
         for (int i = 0; i < m_circles.size(); ++i) {
             if (hitTestCircle(imagePos, i)) {
                 selectObject("circle", i);
@@ -2130,6 +2217,12 @@ void VideoDisplayWidget::selectObject(const QString& type, int index, bool isMid
         } else {
             m_selectedParallelMiddleLines.insert(index);
         }
+    } else if (type == "line_segment") {
+        if (m_selectedLineSegments.contains(index)) {
+            m_selectedLineSegments.remove(index);
+        } else {
+            m_selectedLineSegments.insert(index);
+        }
     }
     
     update();
@@ -2152,6 +2245,40 @@ bool VideoDisplayWidget::hitTestLine(const QPointF& testPos, int index) const
     if (line.points.size() < 2) return false;
     
     double distance = calculateDistancePointToLine(testPos, line.points[0], line.points[1]);
+    return distance <= 10.0; // 10像素范围
+}
+
+// 命中测试：线段
+bool VideoDisplayWidget::hitTestLineSegment(const QPointF& testPos, int index) const
+{
+    if (index < 0 || index >= m_lineSegments.size()) return false;
+    const LineSegmentObject& lineSegment = m_lineSegments[index];
+    if (!lineSegment.isCompleted) return false;
+    
+    // 计算点到线段的距离
+    if (lineSegment.points.size() < 2) return false;
+    const QPointF& start = lineSegment.points[0];
+    const QPointF& end = lineSegment.points[1];
+    
+    // 计算线段长度的平方
+    double segmentLengthSq = pow(end.x() - start.x(), 2) + pow(end.y() - start.y(), 2);
+    if (segmentLengthSq < 1e-6) return false; // 线段长度为0
+    
+    // 计算投影参数t
+    double t = ((testPos.x() - start.x()) * (end.x() - start.x()) + 
+                (testPos.y() - start.y()) * (end.y() - start.y())) / segmentLengthSq;
+    
+    // 限制t在[0,1]范围内，确保投影点在线段上
+    t = qMax(0.0, qMin(1.0, t));
+    
+    // 计算投影点
+    QPointF projection(start.x() + t * (end.x() - start.x()),
+                      start.y() + t * (end.y() - start.y()));
+    
+    // 计算测试点到投影点的距离
+    double distance = sqrt(pow(testPos.x() - projection.x(), 2) + 
+                          pow(testPos.y() - projection.y(), 2));
+    
     return distance <= 10.0; // 10像素范围
 }
 
@@ -2374,6 +2501,16 @@ void VideoDisplayWidget::drawSelectionHighlight(QPainter& painter, const Drawing
             }
         }
     }
+    
+    // 高亮选中的线段
+    for (int index : m_selectedLineSegments) {
+        if (index >= 0 && index < m_lineSegments.size()) {
+            const LineSegmentObject& lineSegment = m_lineSegments[index];
+            if (lineSegment.isCompleted && lineSegment.points.size() >= 2) {
+                painter.drawLine(lineSegment.points[0], lineSegment.points[1]);
+            }
+        }
+    }
 }
 
 // 选择状态改变槽函数
@@ -2385,4 +2522,165 @@ void VideoDisplayWidget::onSelectionChanged()
     // 发送选择信息到状态栏
     QString info = getSelectedObjectInfo();
     emit selectionChanged(info);
+}
+
+// {{ AURA-X: Add - 删除选中对象功能. Approval: 寸止(ID:context_menu_delete). }}
+void VideoDisplayWidget::deleteSelectedObjects()
+{
+    bool dataChanged = false;
+    
+    // 删除选中的点（从后往前删除，避免索引变化）
+    QList<int> pointIndices = m_selectedPoints.values();
+    std::sort(pointIndices.rbegin(), pointIndices.rend());
+    for (int index : pointIndices) {
+        if (index >= 0 && index < m_points.size()) {
+            m_points.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的直线
+    QList<int> lineIndices = m_selectedLines.values();
+    std::sort(lineIndices.rbegin(), lineIndices.rend());
+    for (int index : lineIndices) {
+        if (index >= 0 && index < m_lines.size()) {
+            m_lines.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的圆
+    QList<int> circleIndices = m_selectedCircles.values();
+    std::sort(circleIndices.rbegin(), circleIndices.rend());
+    for (int index : circleIndices) {
+        if (index >= 0 && index < m_circles.size()) {
+            m_circles.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的精细圆
+    QList<int> fineCircleIndices = m_selectedFineCircles.values();
+    std::sort(fineCircleIndices.rbegin(), fineCircleIndices.rend());
+    for (int index : fineCircleIndices) {
+        if (index >= 0 && index < m_fineCircles.size()) {
+            m_fineCircles.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的平行线
+    QList<int> parallelIndices = m_selectedParallels.values();
+    std::sort(parallelIndices.rbegin(), parallelIndices.rend());
+    for (int index : parallelIndices) {
+        if (index >= 0 && index < m_parallels.size()) {
+            m_parallels.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的两线夹角
+    QList<int> twoLinesIndices = m_selectedTwoLines.values();
+    std::sort(twoLinesIndices.rbegin(), twoLinesIndices.rend());
+    for (int index : twoLinesIndices) {
+        if (index >= 0 && index < m_twoLines.size()) {
+            m_twoLines.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 删除选中的线段
+    QList<int> lineSegmentIndices = m_selectedLineSegments.values();
+    std::sort(lineSegmentIndices.rbegin(), lineSegmentIndices.rend());
+    for (int index : lineSegmentIndices) {
+        if (index >= 0 && index < m_lineSegments.size()) {
+            m_lineSegments.removeAt(index);
+            dataChanged = true;
+        }
+    }
+    
+    // 清除选择状态
+    clearSelection();
+    
+    // 如果有数据变化，发出信号并更新显示
+    if (dataChanged) {
+        emit drawingDataChanged(m_viewName);
+        update();
+    }
+}
+
+// {{ AURA-X: Add - 右键菜单事件处理. Approval: 寸止(ID:context_menu_delete). }}
+void VideoDisplayWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    // 只在选择模式下显示右键菜单
+    if (!m_selectionEnabled) {
+        QLabel::contextMenuEvent(event);
+        return;
+    }
+    
+    // 检查是否有选中的对象
+    bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() || 
+                       !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() || 
+                       !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() || 
+                       !m_selectedParallelMiddleLines.isEmpty() || !m_selectedLineSegments.isEmpty();
+    
+    if (!hasSelection) {
+        QLabel::contextMenuEvent(event);
+        return;
+    }
+    
+    // 创建右键菜单
+    QMenu contextMenu(this);
+    
+    // 添加删除选项
+    QAction *deleteAction = contextMenu.addAction("删除");
+    deleteAction->setIcon(QIcon("../icon/delete.svg"));
+    
+    // 检查是否选中了恰好两个点，如果是则添加"点与点"选项
+    QAction *pointToPointAction = nullptr;
+    if (m_selectedPoints.size() == 2 && m_selectedLines.isEmpty() && 
+        m_selectedCircles.isEmpty() && m_selectedFineCircles.isEmpty() && 
+        m_selectedParallels.isEmpty() && m_selectedTwoLines.isEmpty() && 
+        m_selectedParallelMiddleLines.isEmpty()) {
+        pointToPointAction = contextMenu.addAction("点与点");
+    }
+    
+    // 显示菜单并处理选择
+    QAction *selectedAction = contextMenu.exec(event->globalPos());
+    
+    if (selectedAction == deleteAction) {
+        deleteSelectedObjects();
+    } else if (selectedAction == pointToPointAction) {
+        createLineFromSelectedPoints();
+    }
+}
+
+void VideoDisplayWidget::createLineFromSelectedPoints()
+{
+    if (m_selectedPoints.size() != 2) {
+        return;
+    }
+    
+    // 获取选中的两个点
+    QList<int> selectedIndices(m_selectedPoints.begin(), m_selectedPoints.end());
+    QPointF point1 = m_points[selectedIndices[0]];
+    QPointF point2 = m_points[selectedIndices[1]];
+    
+    // 创建新的线段对象
+    LineSegmentObject newLineSegment;
+    newLineSegment.points.append(point1);
+    newLineSegment.points.append(point2);
+    newLineSegment.isCompleted = true;
+    newLineSegment.color = Qt::green;  // 统一绿色
+    newLineSegment.thickness = 2.0;  // 默认粗细
+    newLineSegment.isDashed = false; // 默认实线
+    
+    // 添加到线段列表
+    m_lineSegments.append(newLineSegment);
+    
+    // 清除选择状态
+    m_selectedPoints.clear();
+    
+    // 更新显示
+    update();
 }

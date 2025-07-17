@@ -82,6 +82,8 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "qpixmap": "cpp",
-        "qcursor": "cpp"
+        "qcursor": "cpp",
+        "qvector2d": "cpp",
+        "qapplication": "cpp"
     }
 }
