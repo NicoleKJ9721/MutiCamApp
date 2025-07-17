@@ -155,8 +155,22 @@ namespace kcg {
 		vector<Match> Matching(Mat source, float score_thresh = 0.9f, float overlap = 0.4f,
 			float mag_thresh = 30.f, float greediness = 0.8f, PyramidLevel pyrd_level = PyramidLevel_3,
 			int T = 2, int top_k = 0, MatchingStrategy strategy = Strategy_Accurate, 
-			const string& refinement_search_mode = "fixed", float fixed_angle_window = 25.0f, float scale_search_window = 0.1f, const Mat mask = Mat());
+			const string& refinement_search_mode = "fixed", float fixed_angle_window = 25.0f, float scale_search_window = 0.1f);
 		void DrawMatches(Mat &image, vector<Match> matches, Scalar color);
+
+		const Template& getTemplate(int pyramid_level, int template_id) const {
+			if (pyramid_level < 0 || pyramid_level >= PyramidLevel_TabooUse || 
+				templ_all_[pyramid_level].empty() || template_id >= (int)templ_all_[pyramid_level].size()) {
+				// 返回一个无效的模板作为错误信号
+				static Template invalid_template;
+				return invalid_template;
+			}
+			return templ_all_[pyramid_level][template_id];
+		}
+
+		const Rect& getBaseTemplateBox() const {
+			return base_template_box_;
+		}
 
 	protected:
 		void PaddingModelAndMask(Mat &model, Mat &mask, float max_scale);

@@ -1,77 +1,89 @@
-cmake_minimum_required(VERSION 3.10)
-set(ENV{MSBUILDENSUREUTF8OUTPUT} 1) # Force MSBuild to output in UTF-8 to prevent garbled text
-project(MatchTemplate)
+# ===================================================================
+#           CMakeLists.txt (最终的、强制生成并链接lib版)
+# ===================================================================
 
-# 设置C++标准
+cmake_minimum_required(VERSION 3.15)
+project(MatchingSystem CXX)
+
+# --- 1. 环境与依赖配置 ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# 设置OpenCV路径
+set(ENV{MSBUILDENSUREUTF8OUTPUT} 1)
 list(APPEND CMAKE_PREFIX_PATH "D:/APPS/Environments/OpenCV4.10.0/opencv/build")
-
-# 查找OpenCV
 find_package(OpenCV REQUIRED)
-if(OpenCV_FOUND)
-    message(STATUS "OpenCV found: ${OpenCV_VERSION}")
-    message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
-    message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
-else()
-    message(FATAL_ERROR "OpenCV not found!")
-endif()
-
-# 查找OpenMP
 find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-    message(STATUS "OpenMP found")
-else()
-    message(WARNING "OpenMP not found, performance may be reduced")
+# ... (if/message 语句) ...
+if(OpenCV_FOUND) 
+    message(STATUS "OpenCV found: ${OpenCV_VERSION}") 
+endif()
+if(OpenMP_CXX_FOUND) 
+    message(STATUS "OpenMP found") 
 endif()
 
-# 包含目录
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-# 添加可执行文件
-add_executable(${PROJECT_NAME} 
-    main.cpp
-    KcgMatch_fixed.cpp # 使用修复后的文件
-    KcgMatch.h
-    PathHelpers.cpp
-    PathHelpers.h
+# --- 2. 定义核心库：MatchingController ---
+add_library(MatchingController SHARED 
+    KcgMatch.h KcgMatch_fixed.cpp 
+    MatchingController.h MatchingController.cpp
 )
-
-# 链接库
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
-
-# 如果找到OpenMP，链接OpenMP
+target_include_directories(MatchingController PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party"
+    ${OpenCV_INCLUDE_DIRS}
+)
+target_link_libraries(MatchingController PUBLIC ${OpenCV_LIBS})
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_CXX)
+    target_link_libraries(MatchingController PRIVATE OpenMP::OpenMP_CXX)
+endif()
+set_target_properties(MatchingController PROPERTIES DEBUG_POSTFIX "d")
+
+# 【【【 核心修正 A: 强制生成导入库 】】】
+# 在Windows平台上，确保为共享库（DLL）生成一个导入库（.lib）
+if(WIN32)
+    set_target_properties(MatchingController PROPERTIES
+        WINDOWS_EXPORT_ALL_SYMBOLS ON
+    )
 endif()
 
-# 设置编译选项
-if(MSVC)
-    # Visual Studio编译器选项
-    target_compile_options(${PROJECT_NAME} PRIVATE /W3)
-    # 启用多处理器编译
-    target_compile_options(${PROJECT_NAME} PRIVATE /MP)
-    # 设置源文件和执行字符集为UTF-8
-    target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
-else()
-    # GCC/Clang编译器选项
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -O3)
-endif()
+# --- 3. 定义测试程序：MatchTemplate ---
+add_executable(MatchTemplate main.cpp)
 
-# 复制资源文件到Debug和Release目录
-foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
-    file(COPY ${CMAKE_SOURCE_DIR}/template DESTINATION ${CMAKE_BINARY_DIR}/${CONFIG})
-    file(COPY ${CMAKE_SOURCE_DIR}/config.jsonc DESTINATION ${CMAKE_BINARY_DIR}/${CONFIG})
+# 【【【 核心修正 B: 使用最直接的链接方式 】】】
+# 我们直接链接到目标，让CMake处理所有底层的路径和文件名
+target_link_libraries(MatchTemplate PRIVATE MatchingController)
+
+
+# --- 4. 统一设置编译选项 ---
+foreach(TARGET MatchingController MatchTemplate)
+    if(MSVC)
+        target_compile_options(${TARGET} PRIVATE /W3 /MP /utf-8)
+    else()
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -O3)
+    endif()
 endforeach()
 
-# 设置输出目录
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-)
 
-# 打印构建信息
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+# --- 5. 构建后事件：自动复制运行时所需文件 ---
+# 确保测试程序可以直接运行
+add_custom_command(TARGET MatchTemplate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/config.jsonc"
+        "$<TARGET_FILE_DIR:MatchTemplate>"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/template"
+        "$<TARGET_FILE_DIR:MatchTemplate>/template"
+
+    # 使用硬编码路径复制OpenCV的DLL，这是最可靠的方式
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "D:/APPS/Environments/OpenCV4.10.0/opencv/build/x64/vc16/bin/opencv_world4100.dll"
+        "$<TARGET_FILE_DIR:MatchTemplate>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "D:/APPS/Environments/OpenCV4.10.0/opencv/build/x64/vc16/bin/opencv_world4100d.dll"
+        "$<TARGET_FILE_DIR:MatchTemplate>"
+
+    # 复制我们自己的DLL，以便可执行文件能找到它
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:MatchingController>"
+        "$<TARGET_FILE_DIR:MatchTemplate>"
+        
+    COMMENT "Copying runtime resources and dependencies..."
+)

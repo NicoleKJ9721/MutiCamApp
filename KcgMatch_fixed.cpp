@@ -160,89 +160,201 @@ namespace cv_dnn_nms {
 
 	}
 
-	void KcgMatch::MakingTemplates(Mat model, AngleRange angle_range, ScaleRange scale_range,
-		int num_features, float weak_thresh, float strong_thresh, Mat mask) {
+	// void KcgMatch::MakingTemplates(Mat model, AngleRange angle_range, ScaleRange scale_range,
+	// 	int num_features, float weak_thresh, float strong_thresh, Mat mask) {
+	// 	//===
+	// 	if (model.channels() > 1) {
+	// 		cv::cvtColor(model, model, cv::COLOR_BGR2GRAY);
+	// 	}
+		
+	// 	// model 现在是 CV_8UC1
+	// 	std::cout << "[DEBUG] Model type before Transform: " << model.type() << " (CV_8UC1 is 0)" << std::endl;
+	
+	// 	try {
+	// 		// 直接调用 Transform 函数
+	// 		std::cout << "[DEBUG] Calling Transform..." << std::endl;
+	// 		Mat transformed_model = Transform(model, 30.0, 1.0); // 用任意值测试
+	// 		std::cout << "[SUCCESS] Transform function executed without error." << std::endl;
+	// 		std::cout << "[DEBUG] Transformed model type: " << transformed_model.type() << std::endl;
+	// 	} catch (const cv::Exception& e) {
+	// 		std::cerr << "[FATAL-DIRECT-TEST] Exception directly from Transform function: " << e.what() << std::endl;
+	// 	}
+	
+	// 	// 在这里直接 return，不执行后续代码
+	// 	return;
+	// 	//===
+	// 	ClearModel();
+	// 	PaddingModelAndMask(model, mask, scale_range.end);
 
+
+	// 	// --- Start of added code to compute base_template_box_ ---
+	// 	{
+	// 		cout << "computing base template box..." << endl;
+	// 		Mat base_model = MdlOf(model, { 0.0f, 1.0f }); // No rotation, scale 1.0
+	// 		Mat base_mask = MskOf(mask, { 0.0f, 1.0f });
+	// 		erode(base_mask, base_mask, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
+
+	// 		int base_features = (int)(num_features * 1.0f);
+
+	// 		Mat mag, angle, quantized_angle;
+	// 		// Use the 180-degree version for better precision if available
+	// 		QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true); 
+	// 		Template base_templ = ExtractTemplate(angle, quantized_angle, mag,
+	// 			{0.0f, 1.0f}, PyramidLevel(0),
+	// 			weak_thresh, strong_thresh,
+	// 			base_features, base_mask);
+			
+	// 		// The CropTemplate inside ExtractTemplate has already calculated the box.
+	// 		// We store it as our canonical/base bounding box.
+	// 		this->base_template_box_ = Rect(base_templ.x, base_templ.y, base_templ.w, base_templ.h);
+	// 		cout << "Base template box calculated: [x=" << base_template_box_.x 
+	// 			<< ", y=" << base_template_box_.y 
+	// 			<< ", w=" << base_template_box_.width 
+	// 			<< ", h=" << base_template_box_.height << "]" << endl;
+	// 	}
+
+
+	// 	angle_range_ = angle_range;
+	// 	scale_range_ = scale_range;
+	// 	vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
+	// 	vector<Mat> l0_mdls; l0_mdls.clear();
+	// 	vector<Mat> l0_msks; l0_msks.clear();
+	// 	for (size_t s = 0; s < shape_infos.size(); s++) {
+	// 		l0_mdls.push_back(MdlOf(model, shape_infos[s]));
+	// 		l0_msks.push_back(MskOf(mask, shape_infos[s]));
+	// 	}
+	// 	for (int p = 0; p <= PyramidLevel_7; p++) {
+	// 		for (size_t s = 0; s < shape_infos.size(); s++) {
+	// 			Mat mdl_pyrd = l0_mdls[s];
+	// 			Mat msk_pyrd = l0_msks[s];
+	// 			if (p > 0) {
+	// 				Size sz = Size(l0_mdls[s].cols >> 1, l0_mdls[s].rows >> 1);
+	// 				pyrDown(l0_mdls[s], mdl_pyrd, sz);
+	// 				pyrDown(l0_msks[s], msk_pyrd, sz);
+	// 			}
+	// 			erode(msk_pyrd, msk_pyrd, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
+	// 			l0_mdls[s] = mdl_pyrd;
+	// 			l0_msks[s] = msk_pyrd;
+
+	// 			int features_pyrd = (int)((num_features >> p) * shape_infos[s].scale);
+
+	// 			Mat mag8, angle8, quantized_angle8;
+	// 			QuantifyEdge(mdl_pyrd, angle8, quantized_angle8, mag8, weak_thresh, false);
+	// 			Template templ = ExtractTemplate(angle8, quantized_angle8, mag8,
+	// 				shape_infos[s], PyramidLevel(p),
+	// 				weak_thresh, strong_thresh,
+	// 				features_pyrd, msk_pyrd);
+	// 			templ_all_[p].push_back(templ);
+
+	// 			Mat mag180, angle180, quantized_angle180;
+	// 			QuantifyEdge(mdl_pyrd, angle180, quantized_angle180, mag180, weak_thresh, true);
+	// 			templ = ExtractTemplate(angle180, quantized_angle180, mag180,
+	// 				shape_infos[s], PyramidLevel(p),
+	// 				weak_thresh, strong_thresh,
+	// 				features_pyrd, msk_pyrd);
+	// 			templ_all_[p + 8].push_back(templ);
+	// 		}
+	// 		cout << "train pyramid level " << p << " complete." << endl;
+	// 	}
+	// 	SaveModel();
+	// }
+
+	// 在 KcgMatch.cpp 中
+
+	void KcgMatch::MakingTemplates(
+		Mat const_model, 
+		AngleRange angle_range, 
+		ScaleRange scale_range,
+		int num_features, 
+		float weak_thresh, 
+		float strong_thresh, 
+		Mat mask) 
+	{
+		// 1. 创建一个与输入完全无关的、可写的副本
+		Mat model;
+		const_model.copyTo(model);
+		if (model.channels() > 1) {
+			cv::cvtColor(model, model, cv::COLOR_BGR2GRAY);
+		}
+		
+		// 2. 正常执行所有后续逻辑
 		ClearModel();
 		PaddingModelAndMask(model, mask, scale_range.end);
 
-
-		// --- Start of added code to compute base_template_box_ ---
+		// 3. 计算 base_template_box_
 		{
-			cout << "计算标准模板框..." << endl;
-			Mat base_model = MdlOf(model, { 0.0f, 1.0f }); // No rotation, scale 1.0
+			cout << "computing base template box..." << endl;
+			Mat base_model = MdlOf(model, { 0.0f, 1.0f });
 			Mat base_mask = MskOf(mask, { 0.0f, 1.0f });
 			erode(base_mask, base_mask, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
-
 			int base_features = (int)(num_features * 1.0f);
-
 			Mat mag, angle, quantized_angle;
-			// Use the 180-degree version for better precision if available
-			QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true); 
-			Template base_templ = ExtractTemplate(angle, quantized_angle, mag,
-				{0.0f, 1.0f}, PyramidLevel(0),
-				weak_thresh, strong_thresh,
-				base_features, base_mask);
-			
-			// The CropTemplate inside ExtractTemplate has already calculated the box.
-			// We store it as our canonical/base bounding box.
+			QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true);
+			Template base_templ = ExtractTemplate(angle, quantized_angle, mag, {0.0f, 1.0f}, PyramidLevel(0), weak_thresh, strong_thresh, base_features, base_mask);
 			this->base_template_box_ = Rect(base_templ.x, base_templ.y, base_templ.w, base_templ.h);
-			cout << "Base template box calculated: [x=" << base_template_box_.x 
-				<< ", y=" << base_template_box_.y 
-				<< ", w=" << base_template_box_.width 
-				<< ", h=" << base_template_box_.height << "]" << endl;
+			cout << "Base template box calculated: [x=" << base_template_box_.x << ", y=" << base_template_box_.y << ", w=" << base_template_box_.width << ", h=" << base_template_box_.height << "]" << endl;
 		}
-
-
+		
 		angle_range_ = angle_range;
 		scale_range_ = scale_range;
 		vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
-		vector<Mat> l0_mdls; l0_mdls.clear();
-		vector<Mat> l0_msks; l0_msks.clear();
+
+		// 4. 【核心修正】创建并使用独立的Mat列表，避免在循环中修改数据源
+		vector<Mat> l0_mdls, l0_msks;
 		for (size_t s = 0; s < shape_infos.size(); s++) {
 			l0_mdls.push_back(MdlOf(model, shape_infos[s]));
 			l0_msks.push_back(MskOf(mask, shape_infos[s]));
 		}
-		for (int p = 0; p <= PyramidLevel_7; p++) {
-			for (size_t s = 0; s < shape_infos.size(); s++) {
-				Mat mdl_pyrd = l0_mdls[s];
-				Mat msk_pyrd = l0_msks[s];
-				if (p > 0) {
-					Size sz = Size(l0_mdls[s].cols >> 1, l0_mdls[s].rows >> 1);
-					pyrDown(l0_mdls[s], mdl_pyrd, sz);
-					pyrDown(l0_msks[s], msk_pyrd, sz);
-				}
-				erode(msk_pyrd, msk_pyrd, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
-				l0_mdls[s] = mdl_pyrd;
-				l0_msks[s] = msk_pyrd;
 
+		vector<Mat> prev_level_mdls = l0_mdls;
+		vector<Mat> prev_level_msks = l0_msks;
+
+		for (int p = 0; p <= PyramidLevel_7; p++) {
+			vector<Mat> current_level_mdls, current_level_msks;
+
+			if (p == 0) {
+				current_level_mdls = prev_level_mdls;
+				current_level_msks = prev_level_msks;
+			} else {
+				for (size_t s = 0; s < shape_infos.size(); s++) {
+					Mat smaller_mdl, smaller_msk;
+					pyrDown(prev_level_mdls[s], smaller_mdl, Size(prev_level_mdls[s].cols >> 1, prev_level_mdls[s].rows >> 1));
+					pyrDown(prev_level_msks[s], smaller_msk, Size(prev_level_msks[s].cols >> 1, prev_level_msks[s].rows >> 1));
+					current_level_mdls.push_back(smaller_mdl);
+					current_level_msks.push_back(smaller_msk);
+				}
+			}
+
+			for (size_t s = 0; s < shape_infos.size(); s++) {
+				Mat mdl_pyrd = current_level_mdls[s].clone(); // 使用clone确保每个循环拿到的都是独立副本
+				Mat msk_pyrd = current_level_msks[s].clone();
+				
 				int features_pyrd = (int)((num_features >> p) * shape_infos[s].scale);
 
 				Mat mag8, angle8, quantized_angle8;
 				QuantifyEdge(mdl_pyrd, angle8, quantized_angle8, mag8, weak_thresh, false);
-				Template templ = ExtractTemplate(angle8, quantized_angle8, mag8,
-					shape_infos[s], PyramidLevel(p),
-					weak_thresh, strong_thresh,
-					features_pyrd, msk_pyrd);
-				templ_all_[p].push_back(templ);
+				Template templ8 = ExtractTemplate(angle8, quantized_angle8, mag8, shape_infos[s], PyramidLevel(p), weak_thresh, strong_thresh, features_pyrd, msk_pyrd);
+				templ_all_[p].push_back(templ8);
 
 				Mat mag180, angle180, quantized_angle180;
 				QuantifyEdge(mdl_pyrd, angle180, quantized_angle180, mag180, weak_thresh, true);
-				templ = ExtractTemplate(angle180, quantized_angle180, mag180,
-					shape_infos[s], PyramidLevel(p),
-					weak_thresh, strong_thresh,
-					features_pyrd, msk_pyrd);
-				templ_all_[p + 8].push_back(templ);
+				Template templ180 = ExtractTemplate(angle180, quantized_angle180, mag180, shape_infos[s], PyramidLevel(p), weak_thresh, strong_thresh, features_pyrd, msk_pyrd);
+				templ_all_[p + 8].push_back(templ180);
 			}
+			
 			cout << "train pyramid level " << p << " complete." << endl;
+
+			prev_level_mdls = current_level_mdls;
+			prev_level_msks = current_level_msks;
 		}
+		
 		SaveModel();
 	}
 
 	vector<Match> KcgMatch::Matching(Mat source, float score_thresh, float overlap,
 		float mag_thresh, float greediness, PyramidLevel pyrd_level, int T, int top_k,
 		MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, 
-		float scale_search_window, const Mat mask) {
+		float scale_search_window) {
 
 		InitMatchParameter(score_thresh, overlap, mag_thresh, greediness, T, top_k, strategy, refinement_search_mode_, fixed_angle_window, scale_search_window);
 
@@ -278,71 +390,71 @@ namespace cv_dnn_nms {
 		return matches;
 	}
 
-// KcgMatch.cpp
-void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color) {
-	for (size_t i = 0; i < matches.size(); i++) {
-		Match m = matches[i];
-		
-		// 使用金字塔层级8进行绘制,因为它对应完整分辨率的180度模型,提供最详细的特征用于可视化
-		if (templ_all_[8].empty() || m.template_id >= (int)templ_all_[8].size()) {
-			cerr << "Warning: Invalid template ID " << m.template_id << " for drawing." << endl;
-			continue;
-		}
-		Template t = templ_all_[8][m.template_id];
-
-		// --- 开始修改的绘制逻辑 ---
-
-		// 1. 从匹配的模板获取变换信息
-		float angle = t.shape_info.angle;
-		float scale = t.shape_info.scale;
-
-		// 2. 使用基础盒子和当前缩放定义旋转矩形的大小
-		// 使用base_template_box_因为它是真实的未旋转尺寸
-		Size2f rect_size(base_template_box_.width * scale, base_template_box_.height * scale);
-
-		// 3. 定义旋转矩形的中心
-		// 匹配点(m.x, m.y)是搜索区域的左上角
-		// 目标在该区域内的中心是(m.x + t.w/2, m.y + t.h/2)
-		// t.w和t.h是旋转模板的轴对齐边界,这正是我们需要的中心点
-		Point2f rect_center(m.x + t.w / 2.0f, m.y + t.h / 2.0f);
-
-		// 4. 创建旋转矩形
-		RotatedRect rotated_rect(rect_center, rect_size, -angle);
-
-		// 5. 获取旋转矩形的4个角点
-		Point2f vertices[4];
-		rotated_rect.points(vertices);
-
-		// 6. 绘制连接顶点的4条线
-		for (int j = 0; j < 4; j++) {
-			line(image, vertices[j], vertices[(j + 1) % 4], color, 1); // 使用2像素宽度以提高可见性
-		}
-		
-		// --- 结束修改的绘制逻辑 ---
-
-		// 可选:保留绘制特征点用于调试/可视化
-		for (const auto& feature : t.features) {
-			// 我们需要对特征点应用完整的变换才能正确绘制
-			// 这部分比较复杂,因为特征是相对于t.x,t.y的,而且需要旋转
-			// 为简单起见,我们可以跳过绘制单个特征或使用旧方法来获得粗略的效果
-			// 让我们只为匹配绘制一个中心点
-			circle(image, rect_center, 3, color, -1);
-			// Draw each feature point of the matched template
-			for (const auto& feature : t.features) {
-				line(image,
-					Point(m.x + feature.x, m.y + feature.y),
-					Point(m.x + feature.x, m.y + feature.y),
-					color, 1);
+	// KcgMatch.cpp
+	void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color) {
+		for (size_t i = 0; i < matches.size(); i++) {
+			Match m = matches[i];
+			
+			// 使用金字塔层级8进行绘制,因为它对应完整分辨率的180度模型,提供最详细的特征用于可视化
+			if (templ_all_[8].empty() || m.template_id >= (int)templ_all_[8].size()) {
+				cerr << "Warning: Invalid template ID " << m.template_id << " for drawing." << endl;
+				continue;
 			}
-		}
+			Template t = templ_all_[8][m.template_id];
 
-		// 绘制匹配信息(分数、角度、缩放)
-		string text = to_string(m.similarity).substr(0, 4) +
-					"|Ang:" + to_string(t.shape_info.angle).substr(0, 4) +
-					"|Sca:" + to_string(t.shape_info.scale).substr(0, 4);
-			putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, 1.0, color, 1);
+			// --- 开始修改的绘制逻辑 ---
+
+			// 1. 从匹配的模板获取变换信息
+			float angle = t.shape_info.angle;
+			float scale = t.shape_info.scale;
+
+			// 2. 使用基础盒子和当前缩放定义旋转矩形的大小
+			// 使用base_template_box_因为它是真实的未旋转尺寸
+			Size2f rect_size(base_template_box_.width * scale, base_template_box_.height * scale);
+
+			// 3. 定义旋转矩形的中心
+			// 匹配点(m.x, m.y)是搜索区域的左上角
+			// 目标在该区域内的中心是(m.x + t.w/2, m.y + t.h/2)
+			// t.w和t.h是旋转模板的轴对齐边界,这正是我们需要的中心点
+			Point2f rect_center(m.x + t.w / 2.0f, m.y + t.h / 2.0f);
+
+			// 4. 创建旋转矩形
+			RotatedRect rotated_rect(rect_center, rect_size, -angle);
+
+			// 5. 获取旋转矩形的4个角点
+			Point2f vertices[4];
+			rotated_rect.points(vertices);
+
+			// 6. 绘制连接顶点的4条线
+			for (int j = 0; j < 4; j++) {
+				line(image, vertices[j], vertices[(j + 1) % 4], color, 1); // 使用2像素宽度以提高可见性
+			}
+			
+			// --- 结束修改的绘制逻辑 ---
+
+			// 可选:保留绘制特征点用于调试/可视化
+			for (const auto& feature : t.features) {
+				// 我们需要对特征点应用完整的变换才能正确绘制
+				// 这部分比较复杂,因为特征是相对于t.x,t.y的,而且需要旋转
+				// 为简单起见,我们可以跳过绘制单个特征或使用旧方法来获得粗略的效果
+				// 让我们只为匹配绘制一个中心点
+				circle(image, rect_center, 3, color, -1);
+				// Draw each feature point of the matched template
+				for (const auto& feature : t.features) {
+					line(image,
+						Point(m.x + feature.x, m.y + feature.y),
+						Point(m.x + feature.x, m.y + feature.y),
+						color, 1);
+				}
+			}
+
+			// 绘制匹配信息(分数、角度、缩放)
+			string text = to_string(m.similarity).substr(0, 4) +
+						"|Ang:" + to_string(t.shape_info.angle).substr(0, 4) +
+						"|Sca:" + to_string(t.shape_info.scale).substr(0, 4);
+				putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, 1.0, color, 1);
+		}
 	}
-}
 
 	void KcgMatch::PaddingModelAndMask(Mat &model, Mat &mask, float max_scale) {
 
