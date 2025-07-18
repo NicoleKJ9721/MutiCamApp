@@ -431,6 +431,10 @@ private:
         int index; // 记录被添加对象在对应列表中的索引
     };
     QStack<DrawingAction> m_drawingHistory;         ///< 绘制历史记录栈
+    
+    // {{ AURA-X: Add - 事件节流相关成员变量. Approval: 寸止(ID:event_throttling). }}
+    // 事件节流，用于限制mouseMoveEvent的处理频率
+    std::chrono::steady_clock::time_point m_lastMouseMoveTime; ///< 上次处理鼠标移动事件的时间
 };
 
 #endif // VIDEODISPLAYWIDGET_H

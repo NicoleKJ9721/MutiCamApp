@@ -28,6 +28,7 @@ VideoDisplayWidget::VideoDisplayWidget(QWidget *parent)
     , m_drawingContextValid(false)
     , m_lastContextWidgetSize(0, 0)
     , m_lastContextImageSize(0, 0)
+    , m_lastMouseMoveTime(std::chrono::steady_clock::now())
 {
     // 启用抗锯齿和高质量渲染
     setAttribute(Qt::WA_OpaquePaintEvent, false);
@@ -288,6 +289,17 @@ void VideoDisplayWidget::mouseMoveEvent(QMouseEvent *event)
         QLabel::mouseMoveEvent(event);
         return;
     }
+    
+    // {{ AURA-X: Add - 事件节流，限制处理频率到60FPS. Approval: 寸止(ID:event_throttling). }}
+    // 事件节流开始 - 限制刷新频率，例如最高60FPS (大约16ms一次)
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_lastMouseMoveTime).count();
+    
+    if (elapsed < 16) { 
+        return; // 时间太短，忽略这次事件
+    }
+    m_lastMouseMoveTime = now; // 更新时间戳
+    // 事件节流结束
     
     // 将窗口坐标转换为图像坐标
     QPointF imagePos = widgetToImage(event->pos());
