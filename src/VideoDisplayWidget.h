@@ -11,6 +11,7 @@
 #include <QPen>
 #include <QBrush>
 #include <QFont>
+#include <QStack>
 
 // 前向声明
 class QPaintEvent;
@@ -134,6 +135,13 @@ signals:
      * @param viewName 视图名称
      */
     void drawingDataChanged(const QString& viewName);
+    
+    /**
+     * @brief 测量完成时发出的信号
+     * @param viewName 视图名称
+     * @param result 测量结果字符串
+     */
+    void measurementCompleted(const QString& viewName, const QString& result);
 
 public:
     // 绘图工具枚举
@@ -147,6 +155,10 @@ public:
         TwoLines
     };
     
+    // 动作类型枚举（用于历史记录）
+    enum class ActionType { Point, Line, LineSegment, Circle, FineCircle, Parallel, TwoLines };
+
+    
     explicit VideoDisplayWidget(QWidget *parent = nullptr);
     
     // 设置背景视频帧
@@ -156,14 +168,8 @@ public:
     void setViewName(const QString& viewName);
     QString getViewName() const { return m_viewName; }
     
-    // 绘制数据设置接口
-    void setPointsData(const QVector<QPointF>& points);
-    void setLinesData(const QVector<LineObject>& lines);
-    void setLineSegmentsData(const QVector<LineSegmentObject>& lineSegments);
-    void setCirclesData(const QVector<CircleObject>& circles);
-    void setFineCirclesData(const QVector<FineCircleObject>& fineCircles);
-    void setParallelLinesData(const QVector<ParallelObject>& parallels);
-    void setTwoLinesData(const QVector<TwoLinesObject>& twoLines);
+    // {{ AURA-X: Delete - 绘制数据设置接口已移至private区域. Approval: 寸止(ID:encapsulation). }}
+    // 绘制数据设置接口已移至private区域，通过setDrawingState统一管理
     
     // 设置当前正在绘制的直线（用于实时预览）
     void setCurrentLineData(const LineObject& currentLine);
@@ -198,6 +204,12 @@ public:
     // 清除所有绘制数据
     void clearAllDrawings();
     
+    // 撤销上一个绘制的图形
+    void undoLastDrawing();
+    
+    // {{ AURA-X: Add - 通用绘图提交逻辑. Approval: 寸止(ID:code_refactor). }}
+    void commitDrawingAction(ActionType type, const QString& result);
+    
     // 更新绘制（触发重绘）
     void updateDrawings();
     
@@ -223,6 +235,21 @@ public:
     // {{ AURA-X: Add - 右键菜单和删除功能. Approval: 寸止(ID:context_menu_delete). }}
     // 删除选中的对象
     void deleteSelectedObjects();
+    
+    // {{ AURA-X: Add - 绘图状态同步方法. Approval: 寸止(ID:drawing_sync). }}
+    // 获取当前绘图状态
+    struct DrawingState {
+        QVector<QPointF> points;
+        QVector<LineObject> lines;
+        QVector<LineSegmentObject> lineSegments;
+        QVector<CircleObject> circles;
+        QVector<FineCircleObject> fineCircles;
+        QVector<ParallelObject> parallels;
+        QVector<TwoLinesObject> twoLines;
+    };
+    
+    DrawingState getDrawingState() const;
+    void setDrawingState(const DrawingState& state);
     
 public slots:
     // 选择状态改变信号
@@ -330,6 +357,16 @@ private:
     // 从选中的点创建线段
     void createLineFromSelectedPoints();
     
+    // {{ AURA-X: Add - 绘制数据设置接口移至private区域. Approval: 寸止(ID:encapsulation). }}
+    // 绘制数据设置接口（仅供内部使用）
+    void setPointsData(const QVector<QPointF>& points);
+    void setLinesData(const QVector<LineObject>& lines);
+    void setLineSegmentsData(const QVector<LineSegmentObject>& lineSegments);
+    void setCirclesData(const QVector<CircleObject>& circles);
+    void setFineCirclesData(const QVector<FineCircleObject>& fineCircles);
+    void setParallelLinesData(const QVector<ParallelObject>& parallels);
+    void setTwoLinesData(const QVector<TwoLinesObject>& twoLines);
+    
 private:
     QString m_viewName;                              ///< 视图名称
     QPixmap m_videoFrame;                           ///< 背景视频帧
@@ -386,6 +423,14 @@ private:
     mutable bool m_drawingContextValid;             ///< 绘制上下文是否有效
     mutable QSize m_lastContextWidgetSize;          ///< 上次更新上下文时的控件尺寸
     mutable QSize m_lastContextImageSize;           ///< 上次更新上下文时的图像尺寸
+    
+    // {{ AURA-X: Add - 历史记录栈支持撤销功能. Approval: 寸止(ID:undo_feature). }}
+    // 历史记录栈，用于实现撤销功能
+    struct DrawingAction {
+        ActionType type;
+        int index; // 记录被添加对象在对应列表中的索引
+    };
+    QStack<DrawingAction> m_drawingHistory;         ///< 绘制历史记录栈
 };
 
 #endif // VIDEODISPLAYWIDGET_H

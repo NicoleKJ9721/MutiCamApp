@@ -203,12 +203,34 @@ void VideoDisplayWidget::stopDrawing()
     clearCurrentParallelData();
     clearCurrentTwoLinesData();
     
+    // 停止绘制模式时重新启用选择模式
+    m_selectionEnabled = true;
+    
     // 恢复默认鼠标光标
     setCursor(Qt::ArrowCursor);
 }
 
 void VideoDisplayWidget::mousePressEvent(QMouseEvent *event)
 {
+    // 处理右键点击：如果在绘制模式且没有选中任何图元，退出绘制模式
+    if (event->button() == Qt::RightButton) {
+        if (m_isDrawingMode) {
+            // 检查是否有选中的对象
+            bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() || 
+                               !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() || 
+                               !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() || 
+                               !m_selectedParallelMiddleLines.isEmpty() || !m_selectedLineSegments.isEmpty();
+            
+            if (!hasSelection) {
+                stopDrawing();
+                update();
+                return;
+            }
+        }
+        QLabel::mousePressEvent(event);
+        return;
+    }
+    
     if (event->button() != Qt::LeftButton) {
         QLabel::mousePressEvent(event);
         return;
@@ -386,11 +408,179 @@ void VideoDisplayWidget::clearAllDrawings()
     m_hasValidMousePos = false;
     // {{ AURA-X: Add - 清除选择状态. Approval: 寸止(ID:selection_feature). }}
     clearSelection();
+    // {{ AURA-X: Add - 清除历史记录栈. Approval: 寸止(ID:undo_feature). }}
+    m_drawingHistory.clear();
+    emit drawingDataChanged(m_viewName);
     update();
+}
+
+void VideoDisplayWidget::undoLastDrawing()
+{
+    if (m_drawingHistory.isEmpty()) {
+        return;
+    }
+
+    DrawingAction lastAction = m_drawingHistory.pop();
+    
+    // 根据动作类型，从对应的列表中移除最后一个添加的对象
+    switch (lastAction.type) {
+        case ActionType::Point:
+            if (!m_points.isEmpty()) m_points.removeLast();
+            break;
+        case ActionType::Line:
+            if (!m_lines.isEmpty()) m_lines.removeLast();
+            break;
+        case ActionType::LineSegment:
+            if (!m_lineSegments.isEmpty()) m_lineSegments.removeLast();
+            break;
+        case ActionType::Circle:
+            if (!m_circles.isEmpty()) m_circles.removeLast();
+            break;
+        case ActionType::FineCircle:
+            if (!m_fineCircles.isEmpty()) m_fineCircles.removeLast();
+            break;
+        case ActionType::Parallel:
+            if (!m_parallels.isEmpty()) m_parallels.removeLast();
+            break;
+        case ActionType::TwoLines:
+            if (!m_twoLines.isEmpty()) m_twoLines.removeLast();
+            break;
+    }
+    
+    clearSelection();
+    emit drawingDataChanged(m_viewName);
+    update();
+}
+
+void VideoDisplayWidget::commitDrawingAction(ActionType type, const QString& result)
+{
+    // 1. 根据类型将当前对象添加到对应的最终列表中
+    switch (type) {
+        case ActionType::Point:
+            // 点类型不需要从当前对象添加，因为已经直接添加到m_points
+            break;
+        case ActionType::Line:
+            m_lines.append(m_currentLine);
+            break;
+        case ActionType::LineSegment:
+            // LineSegment通常直接添加到m_lineSegments，这里可能不需要特殊处理
+            break;
+        case ActionType::Circle:
+            m_circles.append(m_currentCircle);
+            break;
+        case ActionType::FineCircle:
+            m_fineCircles.append(m_currentFineCircle);
+            break;
+        case ActionType::Parallel:
+            m_parallels.append(m_currentParallel);
+            break;
+        case ActionType::TwoLines:
+            m_twoLines.append(m_currentTwoLines);
+            break;
+    }
+    
+    // 2. 记录历史（获取对应列表的最新索引）
+    int index = 0;
+    switch (type) {
+        case ActionType::Point:
+            index = m_points.size() - 1;
+            break;
+        case ActionType::Line:
+            index = m_lines.size() - 1;
+            break;
+        case ActionType::LineSegment:
+            index = m_lineSegments.size() - 1;
+            break;
+        case ActionType::Circle:
+            index = m_circles.size() - 1;
+            break;
+        case ActionType::FineCircle:
+            index = m_fineCircles.size() - 1;
+            break;
+        case ActionType::Parallel:
+            index = m_parallels.size() - 1;
+            break;
+        case ActionType::TwoLines:
+            index = m_twoLines.size() - 1;
+            break;
+    }
+    m_drawingHistory.push({type, index});
+    
+    // 3. 发出信号
+    emit measurementCompleted(m_viewName, result);
+    emit drawingDataChanged(m_viewName);
+    
+    // 4. 清理当前状态
+    switch (type) {
+        case ActionType::Point:
+            // 点类型不需要清理当前状态
+            break;
+        case ActionType::Line:
+            clearCurrentLineData();
+            break;
+        case ActionType::LineSegment:
+            // LineSegment通常不需要清理当前状态
+            break;
+        case ActionType::Circle:
+            clearCurrentCircleData();
+            break;
+        case ActionType::FineCircle:
+            clearCurrentFineCircleData();
+            break;
+        case ActionType::Parallel:
+            clearCurrentParallelData();
+            break;
+        case ActionType::TwoLines:
+            clearCurrentTwoLinesData();
+            break;
+    }
 }
 
 void VideoDisplayWidget::updateDrawings()
 {
+    update();
+}
+
+// {{ AURA-X: Add - 绘图状态同步方法实现. Approval: 寸止(ID:drawing_sync). }}
+VideoDisplayWidget::DrawingState VideoDisplayWidget::getDrawingState() const
+{
+    DrawingState state;
+    state.points = m_points;
+    state.lines = m_lines;
+    state.lineSegments = m_lineSegments;
+    state.circles = m_circles;
+    state.fineCircles = m_fineCircles;
+    state.parallels = m_parallels;
+    state.twoLines = m_twoLines;
+    return state;
+}
+
+void VideoDisplayWidget::setDrawingState(const DrawingState& state)
+{
+    m_points = state.points;
+    m_lines = state.lines;
+    m_lineSegments = state.lineSegments;
+    m_circles = state.circles;
+    m_fineCircles = state.fineCircles;
+    m_parallels = state.parallels;
+    m_twoLines = state.twoLines;
+    
+    // 清除当前绘制状态
+    m_hasCurrentLine = false;
+    m_hasCurrentCircle = false;
+    m_hasCurrentFineCircle = false;
+    m_hasCurrentParallel = false;
+    m_hasCurrentTwoLines = false;
+    m_hasValidMousePos = false;
+    
+    // 清除选择状态
+    clearSelection();
+    
+    // 重建历史记录栈（简化版本，只记录当前存在的对象）
+    m_drawingHistory.clear();
+    
+    // 发出数据变化信号
+    emit drawingDataChanged(m_viewName);
     update();
 }
 
@@ -1438,8 +1628,10 @@ void VideoDisplayWidget::handlePointDrawingClick(const QPointF& imagePos)
     // 直接添加点到点集合中
     m_points.append(imagePos);
     
-    // 发出数据变化信号
-    emit drawingDataChanged(m_viewName);
+    // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+    // 使用通用提交逻辑
+    QString result = QString("点: (%.1f, %.1f)").arg(imagePos.x()).arg(imagePos.y());
+    commitDrawingAction(ActionType::Point, result);
     
     update();
 }
@@ -1456,15 +1648,13 @@ void VideoDisplayWidget::handleLineDrawingClick(const QPointF& imagePos)
         m_currentLine.points.append(imagePos);
         m_currentLine.isCompleted = true;
         
-        // 将完成的直线添加到直线集合中
-        m_lines.append(m_currentLine);
-        
-        // 发出数据变化信号
-        emit drawingDataChanged(m_viewName);
-        
-        // 清除当前直线状态
-        clearCurrentLineData();
+        // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+        // 计算角度并使用通用提交逻辑
+        double angle = calculateLineAngle(m_currentLine.points[0], m_currentLine.points[1]);
+        QString result = QString("直线: 角度 %.1f°").arg(angle);
+        commitDrawingAction(ActionType::Line, result);
     }
+    
     update();
 }
 
@@ -1488,14 +1678,13 @@ void VideoDisplayWidget::handleCircleDrawingClick(const QPointF& imagePos)
                                              m_currentCircle.radius)) {
                 m_currentCircle.isCompleted = true;
                 
-                // 将完成的圆形添加到圆形集合中
-                m_circles.append(m_currentCircle);
-                
-                // 发出数据变化信号
-                emit drawingDataChanged(m_viewName);
-                
-                // 清除当前圆形状态
-                clearCurrentCircleData();
+                // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+                // 计算圆的面积和周长并使用通用提交逻辑
+                double area = M_PI * m_currentCircle.radius * m_currentCircle.radius;
+                double circumference = 2 * M_PI * m_currentCircle.radius;
+                QString result = QString("圆形: 半径 %.1f, 面积 %.1f, 周长 %.1f")
+                                .arg(m_currentCircle.radius).arg(area).arg(circumference);
+                commitDrawingAction(ActionType::Circle, result);
             } else {
                 // 三点共线，重新开始
                 clearCurrentCircleData();
@@ -1523,14 +1712,13 @@ void VideoDisplayWidget::handleFineCircleDrawingClick(const QPointF& imagePos)
                                             m_currentFineCircle.radius)) {
                 m_currentFineCircle.isCompleted = true;
                 
-                // 将完成的精细圆添加到精细圆集合中
-                m_fineCircles.append(m_currentFineCircle);
-                
-                // 发出数据变化信号
-                emit drawingDataChanged(m_viewName);
-                
-                // 清除当前精细圆状态
-                clearCurrentFineCircleData();
+                // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+                // 计算精细圆的面积和周长并使用通用提交逻辑
+                double area = M_PI * m_currentFineCircle.radius * m_currentFineCircle.radius;
+                double circumference = 2 * M_PI * m_currentFineCircle.radius;
+                QString result = QString("精细圆: 半径 %.1f, 面积 %.1f, 周长 %.1f")
+                                .arg(m_currentFineCircle.radius).arg(area).arg(circumference);
+                commitDrawingAction(ActionType::FineCircle, result);
             } else {
                 // 拟合失败，重新开始
                 clearCurrentFineCircleData();
@@ -1581,14 +1769,11 @@ void VideoDisplayWidget::handleParallelDrawingClick(const QPointF& imagePos)
                 m_currentParallel.distance = abs(A * p3.x() + B * p3.y() + C) / denominator;
                 m_currentParallel.isCompleted = true;
                 
-                // 将完成的平行线添加到平行线集合中
-                m_parallels.append(m_currentParallel);
-                
-                // 发出数据变化信号
-                emit drawingDataChanged(m_viewName);
-                
-                // 清除当前平行线状态
-                clearCurrentParallelData();
+                // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+                // 使用通用提交逻辑
+                QString result = QString("平行线: 距离 %.1f, 角度 %.1f°")
+                                .arg(m_currentParallel.distance).arg(m_currentParallel.angle);
+                commitDrawingAction(ActionType::Parallel, result);
             } else {
                 // 计算失败，重新开始
                 clearCurrentParallelData();
@@ -1639,14 +1824,11 @@ void VideoDisplayWidget::handleTwoLinesDrawingClick(const QPointF& imagePos)
                 m_currentTwoLines.angle = angleDiff;
                 m_currentTwoLines.isCompleted = true;
                 
-                // 将完成的两线添加到两线集合中
-                m_twoLines.append(m_currentTwoLines);
-                
-                // 发出数据变化信号
-                emit drawingDataChanged(m_viewName);
-                
-                // 清除当前两线状态
-                clearCurrentTwoLinesData();
+                // {{ AURA-X: Refactor - 使用通用提交逻辑简化代码. Approval: 寸止(ID:code_refactor). }}
+                // 使用通用提交逻辑
+                QString result = QString("两线夹角: %.1f°")
+                                .arg(m_currentTwoLines.angle);
+                commitDrawingAction(ActionType::TwoLines, result);
             } else {
                 // 两线平行，重新开始
                 clearCurrentTwoLinesData();

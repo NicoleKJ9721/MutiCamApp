@@ -20,8 +20,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , ui(new Ui_MutiCamApp)
     , m_cameraManager(nullptr)
     , m_isMeasuring(false)
-    , m_isDrawingMode(false)
-    , m_activeView("")
+    // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
+    // m_isDrawingMode和m_activeView已移除，绘图状态现在由VideoDisplayWidget管理
     , m_frameCache(MAX_CACHED_FRAMES)  // 初始化缓存，设置最大缓存数量
     , m_lastUpdateTime(std::chrono::steady_clock::now())  // 初始化更新时间
     , m_verticalDisplayWidget(nullptr)
@@ -224,6 +224,16 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnDraw2LineFront, &QPushButton::clicked,
             this, &MutiCamApp::onDrawTwoLinesClicked);
     
+    // 连接清空按钮信号
+    connect(ui->btnClearDrawings, &QPushButton::clicked,
+            this, &MutiCamApp::onClearDrawingsClicked);
+    connect(ui->btnClearDrawingsVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onClearDrawingsVerticalClicked);
+    connect(ui->btnClearDrawingsLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onClearDrawingsLeftClicked);
+    connect(ui->btnClearDrawingsFront, &QPushButton::clicked,
+            this, &MutiCamApp::onClearDrawingsFrontClicked);
+    
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
@@ -238,42 +248,54 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onCameraError);
     }
     
-    // 连接VideoDisplayWidget的绘制数据变化信号
+    // 连接VideoDisplayWidget的测量结果信号和绘图同步信号
     if (m_verticalDisplayWidget) {
-        connect(m_verticalDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_verticalDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_verticalDisplayWidget, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_verticalDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_leftDisplayWidget) {
-        connect(m_leftDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_leftDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_leftDisplayWidget, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_leftDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_frontDisplayWidget) {
-        connect(m_frontDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_frontDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_frontDisplayWidget, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_frontDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_verticalDisplayWidget2) {
-        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_verticalDisplayWidget2, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_leftDisplayWidget2) {
-        connect(m_leftDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_leftDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_leftDisplayWidget2, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_leftDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_frontDisplayWidget2) {
-        connect(m_frontDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
-                this, &MutiCamApp::onDrawingDataChanged);
+        connect(m_frontDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+                this, &MutiCamApp::onMeasurementResult);
         connect(m_frontDisplayWidget2, &VideoDisplayWidget::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_frontDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
 }
 
@@ -339,52 +361,22 @@ void MutiCamApp::onStopMeasureClicked()
 
 void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& frame)
 {
-    if (frame.empty()) {
-        return;
+    if (frame.empty()) return;
+
+    VideoDisplayWidget* mainWidget = getVideoDisplayWidget(cameraId);
+    VideoDisplayWidget* tabWidget = nullptr;
+
+    if (cameraId == "vertical") tabWidget = m_verticalDisplayWidget2;
+    else if (cameraId == "left") tabWidget = m_leftDisplayWidget2;
+    else if (cameraId == "front") tabWidget = m_frontDisplayWidget2;
+
+    if (mainWidget) {
+        mainWidget->setVideoFrame(matToQPixmap(frame));
     }
     
-    try {
-        // 保存当前帧的副本
-        cv::Mat frameCopy = frame.clone();
-        
-        // 根据相机ID保存到对应的成员变量
-        if (cameraId == "vertical") {
-            m_currentFrameVertical = frameCopy.clone();
-            // 直接更新VideoDisplayWidget的视频帧，不再频繁更新几何图形数据
-            if (m_verticalDisplayWidget) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_verticalDisplayWidget->setVideoFrame(pixmap);
-            }
-            if (ui->tabWidget->currentIndex() == 1 && m_verticalDisplayWidget2) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_verticalDisplayWidget2->setVideoFrame(pixmap);
-            }
-        } else if (cameraId == "left") {
-            m_currentFrameLeft = frameCopy.clone();
-            // 直接更新VideoDisplayWidget的视频帧，不再频繁更新几何图形数据
-            if (m_leftDisplayWidget) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_leftDisplayWidget->setVideoFrame(pixmap);
-            }
-            if (ui->tabWidget->currentIndex() == 2 && m_leftDisplayWidget2) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_leftDisplayWidget2->setVideoFrame(pixmap);
-            }
-        } else if (cameraId == "front") {
-            m_currentFrameFront = frameCopy.clone();
-            // 直接更新VideoDisplayWidget的视频帧，不再频繁更新几何图形数据
-            if (m_frontDisplayWidget) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_frontDisplayWidget->setVideoFrame(pixmap);
-            }
-            if (ui->tabWidget->currentIndex() == 3 && m_frontDisplayWidget2) {
-                QPixmap pixmap = matToQPixmap(frameCopy);
-                m_frontDisplayWidget2->setVideoFrame(pixmap);
-            }
-        }
-        
-    } catch (const std::exception& e) {
-        qDebug() << "Error displaying frame for camera" << cameraId << ":" << e.what();
+    // 只有当对应的Tab页可见时才更新，以节省性能
+    if (tabWidget && tabWidget->isVisible()) {
+        tabWidget->setVideoFrame(matToQPixmap(frame));
     }
 }
 
@@ -419,19 +411,13 @@ void MutiCamApp::onCameraError(const QString& cameraId, const QString& error)
                         QString("相机 %1 发生错误: %2").arg(cameraId, error));
 }
 
-void MutiCamApp::onDrawingDataChanged(const QString& viewName)
+void MutiCamApp::onMeasurementResult(const QString& viewName, const QString& result)
 {
-    qDebug() << "Drawing data changed for view:" << viewName;
-    
-    // 当VideoDisplayWidget的绘制数据发生变化时，同步更新MutiCamApp的数据
-    // 这里可以根据需要从VideoDisplayWidget获取最新的绘制数据
-    // 并更新到m_viewData、m_lineData等成员变量中
-    
-    // 使缓存失效，确保下次更新时重新渲染
-    invalidateCache(viewName);
-    
-    // 可选：触发其他相关视图的更新
-    // updateDrawingDataForView(viewName);
+    // 在这里处理测量结果，例如：
+    // 1. 显示到UI的某个文本框中
+    // 2. 记录到日志文件
+    qDebug() << "测量结果来自 [" << viewName << "]:" << result;
+    statusBar()->showMessage(QString("新测量结果 [%1]: %2").arg(viewName, result), 5000);
 }
 
 void MutiCamApp::onSelectionChanged(const QString& info)
@@ -491,133 +477,37 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
 // 画点功能实现
 void MutiCamApp::onDrawPointClicked()
 {
-    setDrawingMode("point", "general");
+    // 命令所有视图进入"画点"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointVerticalClicked()
 {
-    setDrawingMode("point", "vertical");
+    // 只命令垂直视图进入"画点"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointLeftClicked()
 {
-    setDrawingMode("point", "left");
+    // 只命令左视图进入"画点"模式
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointFrontClicked()
 {
-    setDrawingMode("point", "front");
+    // 只命令前视图进入"画点"模式
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
 }
 
-void MutiCamApp::setDrawingMode(const QString& drawingType, const QString& viewName)
-{
-    // 先退出之前的绘制模式
-    exitDrawingMode();
-    
-    m_isDrawingMode = true;
-    m_currentDrawingType = drawingType;
-    m_activeView = viewName;
-    
-    // 将绘图类型转换为VideoDisplayWidget的DrawingTool枚举
-    VideoDisplayWidget::DrawingTool tool = VideoDisplayWidget::DrawingTool::None;
-    if (drawingType == "point") {
-        tool = VideoDisplayWidget::DrawingTool::Point;
-    } else if (drawingType == "line") {
-        tool = VideoDisplayWidget::DrawingTool::Line;
-    } else if (drawingType == "circle") {
-        tool = VideoDisplayWidget::DrawingTool::Circle;
-    } else if (drawingType == "fine_circle") {
-        tool = VideoDisplayWidget::DrawingTool::FineCircle;
-    } else if (drawingType == "parallel") {
-        tool = VideoDisplayWidget::DrawingTool::Parallel;
-    } else if (drawingType == "two_lines") {
-        tool = VideoDisplayWidget::DrawingTool::TwoLines;
-    }
-    
-    // 启动所有相关视图的绘制模式
-    if (viewName == "general" || viewName == "vertical") {
-        if (m_verticalDisplayWidget) {
-            m_verticalDisplayWidget->startDrawing(tool);
-        }
-        if (m_verticalDisplayWidget2) {
-            m_verticalDisplayWidget2->startDrawing(tool);
-        }
-    }
-    if (viewName == "general" || viewName == "left") {
-        if (m_leftDisplayWidget) {
-            m_leftDisplayWidget->startDrawing(tool);
-        }
-        if (m_leftDisplayWidget2) {
-            m_leftDisplayWidget2->startDrawing(tool);
-        }
-    }
-    if (viewName == "general" || viewName == "front") {
-        if (m_frontDisplayWidget) {
-            m_frontDisplayWidget->startDrawing(tool);
-        }
-        if (m_frontDisplayWidget2) {
-            m_frontDisplayWidget2->startDrawing(tool);
-        }
-    }
-    
-    qDebug() << "进入" << drawingType << "绘制模式:" << viewName;
-}
-
-void MutiCamApp::exitDrawingMode()
-{
-    m_isDrawingMode = false;
-    m_currentDrawingType = "";
-    m_activeView = "";
-    
-    // 清理当前正在绘制的直线、圆形、精细圆和平行线
-    m_currentLines.clear();
-    m_currentCircles.clear();
-    m_currentFineCircles.clear();
-    m_currentParallels.clear();
-    
-    // 停止所有VideoDisplayWidget的绘制模式
-    if (m_verticalDisplayWidget) {
-        m_verticalDisplayWidget->stopDrawing();
-    }
-    if (m_leftDisplayWidget) {
-        m_leftDisplayWidget->stopDrawing();
-    }
-    if (m_frontDisplayWidget) {
-        m_frontDisplayWidget->stopDrawing();
-    }
-    if (m_verticalDisplayWidget2) {
-        m_verticalDisplayWidget2->stopDrawing();
-    }
-    if (m_leftDisplayWidget2) {
-        m_leftDisplayWidget2->stopDrawing();
-    }
-    if (m_frontDisplayWidget2) {
-        m_frontDisplayWidget2->stopDrawing();
-    }
-    
-    // {{ AURA-X: Add - 退出绘图模式时重新启用选择模式，确保状态完整切换. Approval: 寸止(ID:selection_restore). }}
-    // 重新启用所有VideoDisplayWidget的选择模式
-    if (m_verticalDisplayWidget) {
-        m_verticalDisplayWidget->enableSelection(true);
-    }
-    if (m_leftDisplayWidget) {
-        m_leftDisplayWidget->enableSelection(true);
-    }
-    if (m_frontDisplayWidget) {
-        m_frontDisplayWidget->enableSelection(true);
-    }
-    if (m_verticalDisplayWidget2) {
-        m_verticalDisplayWidget2->enableSelection(true);
-    }
-    if (m_leftDisplayWidget2) {
-        m_leftDisplayWidget2->enableSelection(true);
-    }
-    if (m_frontDisplayWidget2) {
-        m_frontDisplayWidget2->enableSelection(true);
-    }
-    
-    qDebug() << "退出绘制模式，重新启用选择模式";
-}
+// setDrawingMode和exitDrawingMode方法已移除 - 现在直接通过按钮槽函数调用VideoDisplayWidget的startDrawing方法
 
 // drawPointsOnImage 方法已迁移到 VideoDisplayWidget
 
@@ -654,134 +544,15 @@ void MutiCamApp::installMouseEventFilters()
 
 bool MutiCamApp::eventFilter(QObject* obj, QEvent* event)
 {
-    if (!m_isDrawingMode) {
-        return QMainWindow::eventFilter(obj, event);
-    }
+    // {{ AURA-X: Delete - 事件处理已迁移到VideoDisplayWidget. Approval: 寸止(ID:cleanup). }}
+    // 所有绘图相关的事件处理已完全迁移到VideoDisplayWidget
+    // 这里只保留基本的事件过滤功能
     
-    // 检查是否是VideoDisplayWidget
-    VideoDisplayWidget* videoWidget = qobject_cast<VideoDisplayWidget*>(obj);
-    if (videoWidget) {
-        // 只处理右键退出绘制模式，其他事件让VideoDisplayWidget自己处理
-        if (event->type() == QEvent::MouseButtonPress) {
-            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-            if (mouseEvent->button() == Qt::RightButton) {
-                exitDrawingMode();
-                return true;
-            }
-        }
-        // 让VideoDisplayWidget处理其他所有鼠标事件
-        return false;
-    }
-    
-    // 检查是否是QLabel（保留对QLabel的支持，仅用于点绘制）
-    QLabel* label = qobject_cast<QLabel*>(obj);
-    
-    if (label && event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        
-        // 右键退出绘制模式
-        if (mouseEvent->button() == Qt::RightButton) {
-            exitDrawingMode();
-            return true;
-        }
-        
-        // 左键开始绘制（对于点测量，我们在释放时处理）
-        if (mouseEvent->button() == Qt::LeftButton) {
-            return true; // 消费事件但不处理
-        }
-    }
-    else if (label && event->type() == QEvent::MouseButtonRelease) {
-        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        
-        // 左键释放时处理点测量（仅限点绘制）
-        if (mouseEvent->button() == Qt::LeftButton && m_currentDrawingType == "point") {
-            handleLabelClick(label, mouseEvent->pos());
-            return true;
-        }
-    }
-    else if (label && event->type() == QEvent::MouseMove) {
-        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        
-        // 处理鼠标移动事件（仅限点绘制的实时显示）
-        if (m_currentDrawingType == "point") {
-            handleMouseMove(label, mouseEvent->pos());
-            return true;
-        }
-    }
-    
-    // 其他事件正常处理
     return QMainWindow::eventFilter(obj, event);
 }
 
-void MutiCamApp::handleLabelClick(QLabel* label, const QPoint& pos)
-{
-    QString viewName = getViewName(label);
-    if (viewName.isEmpty()) {
-        return;
-    }
-    
-    // 检查是否是有效的绘制目标
-    bool isValidTarget = false;
-    if (m_activeView == "general") {
-        isValidTarget = true; // 通用模式下所有视图都可以绘制
-    } else if (m_activeView == viewName) {
-        isValidTarget = true; // 特定视图模式下只能在对应视图绘制
-    }
-    
-    if (!isValidTarget) {
-        return;
-    }
-    
-    // 将窗口坐标转换为图像坐标
-    QPointF imagePos = windowToImageCoordinates(label, pos);
-    
-    // 检查坐标是否有效
-    if (imagePos.x() < 0 || imagePos.y() < 0) {
-        qDebug() << "点击位置超出图像范围，忽略";
-        return;
-    }
-    
-    // 根据绘制类型处理点击
-    bool dataChanged = false;
-    if (m_currentDrawingType == "point") {
-        // 添加点到对应视图
-        m_viewData[viewName].append(imagePos);
-        qDebug() << "在" << viewName << "视图添加点:" << imagePos;
-        dataChanged = true;
-    } else if (m_currentDrawingType == "line") {
-        // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-        // handleLineDrawingClick方法已迁移到VideoDisplayWidget
-        qDebug() << "直线绘制功能已迁移到VideoDisplayWidget";
-    } else if (m_currentDrawingType == "circle") {
-        // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-        // handleCircleDrawingClick方法已迁移到VideoDisplayWidget
-        qDebug() << "圆形绘制功能已迁移到VideoDisplayWidget";
-    } else if (m_currentDrawingType == "fine_circle") {
-        // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-        // handleFineCircleDrawingClick方法已迁移到VideoDisplayWidget
-        qDebug() << "精细圆绘制功能已迁移到VideoDisplayWidget";
-    } else if (m_currentDrawingType == "parallel") {
-        // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-        // handleParallelDrawingClick方法已迁移到VideoDisplayWidget
-        qDebug() << "平行线绘制功能已迁移到VideoDisplayWidget";
-    } else if (m_currentDrawingType == "two_lines") {
-        // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-        // handleTwoLinesDrawingClick方法已迁移到VideoDisplayWidget
-        qDebug() << "线与线绘制功能已迁移到VideoDisplayWidget";
-    }
-    
-    // 如果数据发生变化，使用事件驱动的方式更新绘制数据
-    if (dataChanged) {
-        // 使该视图的缓存失效（因为绘制数据已改变）
-        invalidateCache(viewName);
-        
-        // 事件驱动更新：只在绘制操作完成时更新几何图形数据
-        updateDrawingDataForView(viewName);
-    }
-    
-    // 立即更新显示
-    updateViewDisplay(viewName);
-}
+// {{ AURA-X: Delete - 残留的标签点击处理方法. Approval: 寸止(ID:cleanup). }}
+// handleLabelClick方法已删除，现在直接使用VideoDisplayWidget
 
 QString MutiCamApp::getViewName(QLabel* label)
 {
@@ -817,69 +588,8 @@ QPointF MutiCamApp::windowToImageCoordinates(VideoDisplayWidget* widget, const Q
     return widget->widgetToImage(windowPos);
 }
 
-void MutiCamApp::handleMouseMove(QLabel* label, const QPoint& pos)
-{
-    QString viewName = getViewName(label);
-    if (viewName.isEmpty()) {
-        return;
-    }
-    
-    // 检查是否是有效的绘制目标
-    bool isValidTarget = false;
-    if (m_activeView == "general") {
-        isValidTarget = true; // 通用模式下所有视图都可以绘制
-    } else if (m_activeView == viewName) {
-        isValidTarget = true; // 特定视图模式下只能在对应视图绘制
-    }
-    
-    if (!isValidTarget) {
-        return;
-    }
-    
-    // 将窗口坐标转换为图像坐标
-    QPointF imagePos = windowToImageCoordinates(label, pos);
-    
-    // 检查坐标是否有效
-    if (imagePos.x() < 0 || imagePos.y() < 0) {
-        return;
-    }
-    
-    // 根据绘制类型处理鼠标移动（主要用于实时预览）
-    if (m_currentDrawingType == "line" && m_currentLines.contains(viewName)) {
-        // 直线绘制：如果已有一个点，更新第二个点进行实时预览
-        LineObject& currentLine = m_currentLines[viewName];
-        if (currentLine.points.size() == 1) {
-            // 添加第二个点用于实时预览
-            currentLine.points.append(imagePos);
-            
-            // 使该视图的缓存失效并更新显示
-            invalidateCache(viewName);
-            updateViewDisplay(viewName);
-        } else if (currentLine.points.size() == 2) {
-            // 更新第二个点的位置
-            currentLine.points[1] = imagePos;
-            
-            // 使该视图的缓存失效并更新显示
-            invalidateCache(viewName);
-            updateViewDisplay(viewName);
-        }
-    }
-    // {{ AURA-X: Add - 添加平行线实时预览逻辑（QLabel版本）. Approval: 寸止(ID:8). }}
-    else if (m_currentDrawingType == "parallel" && m_currentParallels.contains(viewName)) {
-        // 平行线绘制：如果已有一个点，创建临时预览数据
-        ParallelObject& currentParallel = m_currentParallels[viewName];
-        if (currentParallel.points.size() == 1) {
-            // 创建临时预览数据，不修改原始points数组
-            m_tempParallelPreview[viewName] = currentParallel;
-            m_tempParallelPreview[viewName].points.append(imagePos); // 只在预览数据中添加第二个点
-            
-            // 使该视图的缓存失效并更新显示
-            invalidateCache(viewName);
-            updateViewDisplay(viewName);
-        }
-    }
-    // 注意：圆形和精细圆绘制通常不需要实时预览，因为需要多个点确定
-}
+// {{ AURA-X: Delete - 残留的鼠标移动处理方法. Approval: 寸止(ID:cleanup). }}
+// handleMouseMove方法已删除，现在直接使用VideoDisplayWidget
 
 void MutiCamApp::updateViewDisplay(const QString& viewName)
 {
@@ -929,7 +639,7 @@ void MutiCamApp::updateViewDisplay(const QString& viewName)
         tabWidget->setVideoFrame(QPixmap::fromImage(qimg));
     }
     
-    qDebug() << "已更新" << viewName << "视图显示，包含" << m_viewData[viewName].size() << "个点";
+    qDebug() << "已更新" << viewName << "视图显示";
 }
 
 QPointF MutiCamApp::windowToImageCoordinates(QLabel* label, const QPoint& windowPos)
@@ -991,23 +701,10 @@ QPointF MutiCamApp::windowToImageCoordinates(QLabel* label, const QPoint& window
 
 size_t MutiCamApp::calculatePointsHash(const QString& viewName)
 {
-    if (!m_viewData.contains(viewName)) {
-        return 0;
-    }
-    
-    const QVector<QPointF>& points = m_viewData[viewName];
-    size_t hash = 0;
-    
-    // 使用简单的哈希算法计算点数据的哈希值
-    for (const QPointF& point : points) {
-        // 将坐标转换为整数进行哈希计算
-        int x = static_cast<int>(point.x() * 100);  // 保留两位小数精度
-        int y = static_cast<int>(point.y() * 100);
-        hash ^= std::hash<int>{}(x) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-        hash ^= std::hash<int>{}(y) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
-    }
-    
-    return hash;
+    // {{ AURA-X: Delete - 绘图数据已迁移到VideoDisplayWidget. Approval: 寸止(ID:cleanup). }}
+    // 绘图数据哈希计算已迁移到VideoDisplayWidget，这里返回固定值
+    Q_UNUSED(viewName);
+    return 0;
 }
 
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
@@ -1043,26 +740,34 @@ void MutiCamApp::invalidateCache(const QString& viewName)
 // 直线绘制槽函数实现
 void MutiCamApp::onDrawLineClicked()
 {
-    qDebug() << "开始通用直线绘制模式";
-    setDrawingMode("line", "general");
+    // 命令所有视图进入"画线"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineVerticalClicked()
 {
-    qDebug() << "开始垂直视图直线绘制模式";
-    setDrawingMode("line", "vertical");
+    // 只命令垂直视图进入"画线"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineLeftClicked()
 {
-    qDebug() << "开始左视图直线绘制模式";
-    setDrawingMode("line", "left");
+    // 只命令左视图进入"画线"模式
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineFrontClicked()
 {
-    qDebug() << "开始前视图直线绘制模式";
-    setDrawingMode("line", "front");
+    // 只命令前视图进入"画线"模式
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
 }
 
 // 直线绘制相关方法实现
@@ -1078,82 +783,111 @@ void MutiCamApp::onDrawLineFrontClicked()
 // 圆形绘制槽函数实现
 void MutiCamApp::onDrawSimpleCircleClicked()
 {
-    qDebug() << "开始通用圆形绘制模式";
-    setDrawingMode("circle", "general");
+    // 命令所有视图进入"画圆"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleVerticalClicked()
 {
-    qDebug() << "开始垂直视图圆形绘制模式";
-    setDrawingMode("circle", "vertical");
+    // 只命令垂直视图进入"画圆"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleLeftClicked()
 {
-    qDebug() << "开始左视图圆形绘制模式";
-    setDrawingMode("circle", "left");
+    // 只命令左视图进入"画圆"模式
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleFrontClicked()
 {
-    qDebug() << "开始前视图圆形绘制模式";
-    setDrawingMode("circle", "front");
+    // 只命令前视图进入"画圆"模式
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawFineCircleClicked()
 {
-    qDebug() << "开始通用精细圆绘制模式";
-    setDrawingMode("fine_circle", "general");
+    // 命令所有视图进入"精细圆"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleVerticalClicked()
 {
-    qDebug() << "开始垂直视图精细圆绘制模式";
-    setDrawingMode("fine_circle", "vertical");
+    // 只命令垂直视图进入"精细圆"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleLeftClicked()
 {
-    qDebug() << "开始左视图精细圆绘制模式";
-    setDrawingMode("fine_circle", "left");
+    // 只命令左视图进入"精细圆"模式
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleFrontClicked()
 {
-    qDebug() << "开始前视图精细圆绘制模式";
-    setDrawingMode("fine_circle", "front");
+    // 只命令前视图进入"精细圆"模式
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
 }
 
 // 平行线绘制按钮点击事件处理
 void MutiCamApp::onDrawParallelClicked()
 {
-    qDebug() << "开始通用平行线绘制模式";
-    setDrawingMode("parallel", "general");
+    // 命令所有视图进入"平行线"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelVerticalClicked()
 {
-    qDebug() << "开始垂直视图平行线绘制模式";
-    setDrawingMode("parallel", "vertical");
+    // 只命令垂直视图进入"平行线"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelLeftClicked()
 {
-    qDebug() << "开始左视图平行线绘制模式";
-    setDrawingMode("parallel", "left");
+    // 只命令左视图进入"平行线"模式
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelFrontClicked()
 {
-    qDebug() << "开始前视图平行线绘制模式";
-    setDrawingMode("parallel", "front");
+    // 只命令前视图进入"平行线"模式
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
 }
 
 // 线与线绘制按钮点击事件处理
 void MutiCamApp::onDrawTwoLinesClicked()
 {
-    qDebug() << "开始线与线绘制模式";
-    setDrawingMode("two_lines", "general");
+    // 命令所有视图进入"两线测量"模式
+    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
 }
 
 // 线与线绘制相关方法实现
@@ -1394,67 +1128,7 @@ void MutiCamApp::updateVideoDisplayWidget(const QString& viewName, const cv::Mat
     // 这大幅减少了每帧的数据传输开销，提升了性能
 }
 
-// 新增：专门用于更新几何图形数据的函数（事件驱动）
-void MutiCamApp::updateDrawingDataForView(const QString& viewName)
-{
-    // 获取主界面和选项卡的控件
-    VideoDisplayWidget* mainWidget = getVideoDisplayWidget(viewName);
-    VideoDisplayWidget* tabWidget = nullptr;
-    
-    if (viewName == "vertical") {
-        tabWidget = m_verticalDisplayWidget2;
-    } else if (viewName == "left") {
-        tabWidget = m_leftDisplayWidget2;
-    } else if (viewName == "front") {
-        tabWidget = m_frontDisplayWidget2;
-    }
-    
-    // 更新主界面控件的绘制数据
-    if (mainWidget) {
-        updateWidgetDrawingData(mainWidget, viewName);
-    }
-    
-    // 更新选项卡控件的绘制数据
-    if (tabWidget) {
-        updateWidgetDrawingData(tabWidget, viewName);
-    }
-}
-
-// 辅助函数：更新单个控件的绘制数据
-void MutiCamApp::updateWidgetDrawingData(VideoDisplayWidget* widget, const QString& viewName)
-{
-    if (!widget) {
-        return;
-    }
-    
-    // 更新绘制数据
-    if (m_viewData.contains(viewName)) {
-        widget->setPointsData(m_viewData.value(viewName));
-    }
-    
-    if (m_lineData.contains(viewName)) {
-        widget->setLinesData(convertToWidgetLineObjects(m_lineData.value(viewName)));
-    }
-    
-    if (m_circleData.contains(viewName)) {
-        widget->setCirclesData(convertToWidgetCircleObjects(m_circleData.value(viewName)));
-    }
-    
-    if (m_fineCircleData.contains(viewName)) {
-        widget->setFineCirclesData(convertToWidgetFineCircleObjects(m_fineCircleData.value(viewName)));
-    }
-    
-    if (m_parallelData.contains(viewName)) {
-        widget->setParallelLinesData(convertToWidgetParallelObjects(m_parallelData.value(viewName)));
-    }
-    
-    if (m_twoLinesData.contains(viewName)) {
-        widget->setTwoLinesData(convertToWidgetTwoLinesObjects(m_twoLinesData.value(viewName)));
-    }
-    
-    // 触发重绘
-    widget->update();
-}
+// 这些函数已移除，绘图数据管理现在完全由VideoDisplayWidget内部处理
 
 VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
 {
@@ -1474,86 +1148,111 @@ VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
     return nullptr;
 }
 
+// {{ AURA-X: Add - 清空绘图按钮槽函数实现. Approval: 寸止(ID:clear_buttons). }}
+void MutiCamApp::onClearDrawingsClicked()
+{
+    VideoDisplayWidget* widget = getActiveVideoWidget();
+    if (widget) {
+        widget->clearAllDrawings();
+    }
+}
+
+void MutiCamApp::onClearDrawingsVerticalClicked()
+{
+    if (m_verticalDisplayWidget) {
+        m_verticalDisplayWidget->clearAllDrawings();
+    }
+}
+
+void MutiCamApp::onClearDrawingsLeftClicked()
+{
+    if (m_leftDisplayWidget) {
+        m_leftDisplayWidget->clearAllDrawings();
+    }
+}
+
+void MutiCamApp::onClearDrawingsFrontClicked()
+{
+    if (m_frontDisplayWidget) {
+        m_frontDisplayWidget->clearAllDrawings();
+    }
+}
+
+// {{ AURA-X: Add - 绘图同步槽函数实现. Approval: 寸止(ID:drawing_sync). }}
+void MutiCamApp::onDrawingSync(const QString& viewName)
+{
+    // 获取发送信号的VideoDisplayWidget
+    VideoDisplayWidget* sourceWidget = qobject_cast<VideoDisplayWidget*>(sender());
+    if (!sourceWidget) {
+        return;
+    }
+    
+    // 获取源widget的绘图状态
+    VideoDisplayWidget::DrawingState state = sourceWidget->getDrawingState();
+    
+    // 根据视图名称确定同步目标：主界面视图和选项卡视图分别同步
+    QList<VideoDisplayWidget*> targetWidgets;
+    
+    // 判断源视图是主界面视图还是选项卡视图
+    if (viewName == "vertical" || viewName == "left" || viewName == "front") {
+        // 主界面视图：同步到对应的选项卡视图
+        if (viewName == "vertical" && m_verticalDisplayWidget2) {
+            targetWidgets.append(m_verticalDisplayWidget2);
+        } else if (viewName == "left" && m_leftDisplayWidget2) {
+            targetWidgets.append(m_leftDisplayWidget2);
+        } else if (viewName == "front" && m_frontDisplayWidget2) {
+            targetWidgets.append(m_frontDisplayWidget2);
+        }
+    } else if (viewName == "vertical2" || viewName == "left2" || viewName == "front2") {
+        // 选项卡视图：同步到对应的主界面视图
+        if (viewName == "vertical2" && m_verticalDisplayWidget) {
+            targetWidgets.append(m_verticalDisplayWidget);
+        } else if (viewName == "left2" && m_leftDisplayWidget) {
+            targetWidgets.append(m_leftDisplayWidget);
+        } else if (viewName == "front2" && m_frontDisplayWidget) {
+            targetWidgets.append(m_frontDisplayWidget);
+        }
+    }
+    
+    // 同步到目标视图
+    for (VideoDisplayWidget* widget : targetWidgets) {
+        if (widget && widget != sourceWidget) {
+            // 临时断开信号连接，避免循环触发
+            disconnect(widget, &VideoDisplayWidget::drawingDataChanged, 
+                      this, &MutiCamApp::onDrawingSync);
+            
+            // 设置绘图状态
+            widget->setDrawingState(state);
+            
+            // 重新连接信号
+            connect(widget, &VideoDisplayWidget::drawingDataChanged,
+                   this, &MutiCamApp::onDrawingSync);
+        }
+    }
+}
+
+// {{ AURA-X: Add - 获取当前活动VideoDisplayWidget辅助函数. Approval: 寸止(ID:active_widget_helper). }}
+VideoDisplayWidget* MutiCamApp::getActiveVideoWidget()
+{
+    int currentTab = ui->tabWidget->currentIndex();
+    
+    // 根据当前选项卡返回对应的VideoDisplayWidget
+    switch (currentTab) {
+        case 0: // 主界面
+            // 可以根据需要返回主界面的某个默认widget，这里返回垂直视图
+            return m_verticalDisplayWidget;
+        case 1: // 垂直视图选项卡
+            return m_verticalDisplayWidget2;
+        case 2: // 左视图选项卡
+            return m_leftDisplayWidget2;
+        case 3: // 前视图选项卡
+            return m_frontDisplayWidget2;
+        default:
+            return m_verticalDisplayWidget; // 默认返回垂直视图
+    }
+}
+
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
 // displayImageWithHardwareAcceleration方法已迁移到VideoDisplayWidget
 
-// 类型转换函数实现
-QVector<::LineObject> MutiCamApp::convertToWidgetLineObjects(const QVector<LineObject>& lines)
-{
-    QVector<::LineObject> result;
-    for (const auto& line : lines) {
-        ::LineObject widgetLine;
-        widgetLine.points = line.points;
-        widgetLine.isCompleted = line.isCompleted;
-        widgetLine.color = line.color;
-        widgetLine.thickness = line.thickness;
-        widgetLine.isDashed = line.isDashed;
-        result.append(widgetLine);
-    }
-    return result;
-}
-
-QVector<::CircleObject> MutiCamApp::convertToWidgetCircleObjects(const QVector<CircleObject>& circles)
-{
-    QVector<::CircleObject> result;
-    for (const auto& circle : circles) {
-        ::CircleObject widgetCircle;
-        widgetCircle.points = circle.points;
-        widgetCircle.isCompleted = circle.isCompleted;
-        widgetCircle.color = circle.color;
-        widgetCircle.thickness = circle.thickness;
-        widgetCircle.center = circle.center;
-        widgetCircle.radius = circle.radius;
-        result.append(widgetCircle);
-    }
-    return result;
-}
-
-QVector<::FineCircleObject> MutiCamApp::convertToWidgetFineCircleObjects(const QVector<FineCircleObject>& fineCircles)
-{
-    QVector<::FineCircleObject> result;
-    for (const auto& fineCircle : fineCircles) {
-        ::FineCircleObject widgetFineCircle;
-        widgetFineCircle.points = fineCircle.points;
-        widgetFineCircle.isCompleted = fineCircle.isCompleted;
-        widgetFineCircle.color = fineCircle.color;
-        widgetFineCircle.thickness = fineCircle.thickness;
-        widgetFineCircle.center = fineCircle.center;
-        widgetFineCircle.radius = fineCircle.radius;
-        result.append(widgetFineCircle);
-    }
-    return result;
-}
-
-QVector<::ParallelObject> MutiCamApp::convertToWidgetParallelObjects(const QVector<ParallelObject>& parallels)
-{
-    QVector<::ParallelObject> result;
-    for (const auto& parallel : parallels) {
-        ::ParallelObject widgetParallel;
-        widgetParallel.points = parallel.points;
-        widgetParallel.isCompleted = parallel.isCompleted;
-        widgetParallel.color = parallel.color;
-        widgetParallel.thickness = parallel.thickness;
-        widgetParallel.distance = parallel.distance;
-        widgetParallel.angle = parallel.angle;
-        result.append(widgetParallel);
-    }
-    return result;
-}
-
-QVector<::TwoLinesObject> MutiCamApp::convertToWidgetTwoLinesObjects(const QVector<TwoLinesObject>& twoLines)
-{
-    QVector<::TwoLinesObject> result;
-    for (const auto& twoLine : twoLines) {
-        ::TwoLinesObject widgetTwoLines;
-        widgetTwoLines.points = twoLine.points;
-        widgetTwoLines.isCompleted = twoLine.isCompleted;
-        widgetTwoLines.isPreview = twoLine.isPreview;
-        widgetTwoLines.color = twoLine.color;
-        widgetTwoLines.thickness = twoLine.thickness;
-        widgetTwoLines.angle = twoLine.angle;
-        widgetTwoLines.intersection = twoLine.intersection;
-        result.append(widgetTwoLines);
-    }
-    return result;
-}
+// 类型转换函数已移除，VideoDisplayWidget现在使用自己的数据类型
