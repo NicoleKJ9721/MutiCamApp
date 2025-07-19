@@ -2,6 +2,7 @@
 #include "ui_MutiCamApp.h"
 #include "camera/camera_manager.h"
 #include "VideoDisplayWidget.h"
+#include "PaintingOverlay.h"
 #include <QMainWindow>
 #include <QLabel>
 #include <QTimer>
@@ -137,6 +138,12 @@ private:
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
     
+    /**
+     * @brief 同步指定视图的视频层和绘画层的坐标变换
+     * @param viewName 视图名称 ("vertical", "left", "front", etc.)
+     */
+    void syncOverlayTransforms(const QString& viewName);
+    
     // 测量状态
     bool m_isMeasuring;
     
@@ -173,6 +180,16 @@ private:
     VideoDisplayWidget* m_verticalDisplayWidget2;
     VideoDisplayWidget* m_leftDisplayWidget2;
     VideoDisplayWidget* m_frontDisplayWidget2;
+    
+    // PaintingOverlay 成员变量
+    PaintingOverlay* m_verticalPaintingOverlay;
+    PaintingOverlay* m_leftPaintingOverlay;
+    PaintingOverlay* m_frontPaintingOverlay;
+    
+    // 选项卡PaintingOverlay
+    PaintingOverlay* m_verticalPaintingOverlay2;
+    PaintingOverlay* m_leftPaintingOverlay2;
+    PaintingOverlay* m_frontPaintingOverlay2;
     
     /**
      * @brief 初始化相机系统
@@ -221,6 +238,11 @@ private:
      * @brief 事件过滤器
      */
     bool eventFilter(QObject* obj, QEvent* event) override;
+    
+    /**
+     * @brief 窗口大小改变事件
+     */
+    void resizeEvent(QResizeEvent* event) override;
     
     // {{ AURA-X: Delete - 残留的标签点击处理方法. Approval: 寸止(ID:cleanup). }}
     // 标签点击处理已移除，现在直接使用VideoDisplayWidget
@@ -350,6 +372,19 @@ private:
       * @return 当前活动的VideoDisplayWidget指针
       */
      VideoDisplayWidget* getActiveVideoWidget();
+     
+     /**
+      * @brief 获取指定视图的PaintingOverlay
+      * @param viewName 视图名称
+      * @return PaintingOverlay指针
+      */
+     PaintingOverlay* getPaintingOverlay(const QString& viewName);
+     
+     /**
+      * @brief 获取当前活动的PaintingOverlay（基于当前选项卡）
+      * @return 当前活动的PaintingOverlay指针
+      */
+     PaintingOverlay* getActivePaintingOverlay();
      
      // 硬件加速显示方法已迁移到VideoDisplayWidget
       

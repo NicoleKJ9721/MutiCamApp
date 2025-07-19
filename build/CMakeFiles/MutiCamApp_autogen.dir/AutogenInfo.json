@@ -293,6 +293,12 @@
 			null
 		],
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/PaintingOverlay.h",
+			"MU",
+			"UVLADIE3JM/moc_PaintingOverlay.cpp",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/VideoDisplayWidget.h",
 			"MU",
 			"UVLADIE3JM/moc_VideoDisplayWidget.cpp",
@@ -391,6 +397,11 @@
 	[
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/MutiCamApp.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/PaintingOverlay.cpp",
 			"MU",
 			null
 		],

@@ -5,7 +5,9 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QEvent>
+#include <QResizeEvent>
 #include <QCursor>
+#include <QStackedLayout>
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -248,53 +250,53 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onCameraError);
     }
     
-    // 连接VideoDisplayWidget的测量结果信号和绘图同步信号
-    if (m_verticalDisplayWidget) {
-        connect(m_verticalDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+    // 连接PaintingOverlay的测量结果信号和绘图同步信号
+    if (m_verticalPaintingOverlay) {
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_verticalDisplayWidget, &VideoDisplayWidget::selectionChanged,
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_verticalDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
-    if (m_leftDisplayWidget) {
-        connect(m_leftDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+    if (m_leftPaintingOverlay) {
+        connect(m_leftPaintingOverlay, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_leftDisplayWidget, &VideoDisplayWidget::selectionChanged,
+        connect(m_leftPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_leftDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
-    if (m_frontDisplayWidget) {
-        connect(m_frontDisplayWidget, &VideoDisplayWidget::measurementCompleted,
+    if (m_frontPaintingOverlay) {
+        connect(m_frontPaintingOverlay, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_frontDisplayWidget, &VideoDisplayWidget::selectionChanged,
+        connect(m_frontPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_frontDisplayWidget, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
-    if (m_verticalDisplayWidget2) {
-        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+    if (m_verticalPaintingOverlay2) {
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_verticalDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
-    if (m_leftDisplayWidget2) {
-        connect(m_leftDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+    if (m_leftPaintingOverlay2) {
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_leftDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_leftDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
-    if (m_frontDisplayWidget2) {
-        connect(m_frontDisplayWidget2, &VideoDisplayWidget::measurementCompleted,
+    if (m_frontPaintingOverlay2) {
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::measurementCompleted,
                 this, &MutiCamApp::onMeasurementResult);
-        connect(m_frontDisplayWidget2, &VideoDisplayWidget::selectionChanged,
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
-        connect(m_frontDisplayWidget2, &VideoDisplayWidget::drawingDataChanged,
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
     }
 }
@@ -372,11 +374,15 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     if (mainWidget) {
         mainWidget->setVideoFrame(matToQPixmap(frame));
+        // 同步主界面视图的坐标变换
+        syncOverlayTransforms(cameraId);
     }
     
     // 只有当对应的Tab页可见时才更新，以节省性能
     if (tabWidget && tabWidget->isVisible()) {
         tabWidget->setVideoFrame(matToQPixmap(frame));
+        // 同步选项卡视图的坐标变换
+        syncOverlayTransforms(cameraId + "2");
     }
 }
 
@@ -478,33 +484,33 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
 void MutiCamApp::onDrawPointClicked()
 {
     // 命令所有视图进入"画点"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointVerticalClicked()
 {
     // 只命令垂直视图进入"画点"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointLeftClicked()
 {
     // 只命令左视图进入"画点"模式
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
 }
 
 void MutiCamApp::onDrawPointFrontClicked()
 {
     // 只命令前视图进入"画点"模式
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Point);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Point);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
 }
 
 // setDrawingMode和exitDrawingMode方法已移除 - 现在直接通过按钮槽函数调用VideoDisplayWidget的startDrawing方法
@@ -584,8 +590,15 @@ QString MutiCamApp::getViewName(VideoDisplayWidget* widget)
 
 QPointF MutiCamApp::windowToImageCoordinates(VideoDisplayWidget* widget, const QPoint& windowPos)
 {
-    // 使用VideoDisplayWidget的内置坐标转换方法
-    return widget->widgetToImage(windowPos);
+    // 坐标转换方法已移到PaintingOverlay中，这里使用简化的转换逻辑
+    QPointF offset = widget->getImageOffset();
+    double scale = widget->getScaleFactor();
+    
+    // 转换为图像坐标
+    double imageX = (windowPos.x() - offset.x()) / scale;
+    double imageY = (windowPos.y() - offset.y()) / scale;
+    
+    return QPointF(imageX, imageY);
 }
 
 // {{ AURA-X: Delete - 残留的鼠标移动处理方法. Approval: 寸止(ID:cleanup). }}
@@ -741,33 +754,33 @@ void MutiCamApp::invalidateCache(const QString& viewName)
 void MutiCamApp::onDrawLineClicked()
 {
     // 命令所有视图进入"画线"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineVerticalClicked()
 {
     // 只命令垂直视图进入"画线"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineLeftClicked()
 {
     // 只命令左视图进入"画线"模式
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
 }
 
 void MutiCamApp::onDrawLineFrontClicked()
 {
     // 只命令前视图进入"画线"模式
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Line);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Line);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
 }
 
 // 直线绘制相关方法实现
@@ -784,110 +797,110 @@ void MutiCamApp::onDrawLineFrontClicked()
 void MutiCamApp::onDrawSimpleCircleClicked()
 {
     // 命令所有视图进入"画圆"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleVerticalClicked()
 {
     // 只命令垂直视图进入"画圆"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleLeftClicked()
 {
     // 只命令左视图进入"画圆"模式
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawSimpleCircleFrontClicked()
 {
     // 只命令前视图进入"画圆"模式
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Circle);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
 }
 
 void MutiCamApp::onDrawFineCircleClicked()
 {
     // 命令所有视图进入"精细圆"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleVerticalClicked()
 {
     // 只命令垂直视图进入"精细圆"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleLeftClicked()
 {
     // 只命令左视图进入"精细圆"模式
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
 }
 
 void MutiCamApp::onDrawFineCircleFrontClicked()
 {
     // 只命令前视图进入"精细圆"模式
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::FineCircle);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
 }
 
 // 平行线绘制按钮点击事件处理
 void MutiCamApp::onDrawParallelClicked()
 {
     // 命令所有视图进入"平行线"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelVerticalClicked()
 {
     // 只命令垂直视图进入"平行线"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelLeftClicked()
 {
     // 只命令左视图进入"平行线"模式
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
 }
 
 void MutiCamApp::onDrawParallelFrontClicked()
 {
     // 只命令前视图进入"平行线"模式
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::Parallel);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
 }
 
 // 线与线绘制按钮点击事件处理
 void MutiCamApp::onDrawTwoLinesClicked()
 {
     // 命令所有视图进入"两线测量"模式
-    if (m_verticalDisplayWidget) m_verticalDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
-    if (m_leftDisplayWidget) m_leftDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
-    if (m_frontDisplayWidget) m_frontDisplayWidget->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
-    if (m_verticalDisplayWidget2) m_verticalDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
-    if (m_leftDisplayWidget2) m_leftDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
-    if (m_frontDisplayWidget2) m_frontDisplayWidget2->startDrawing(VideoDisplayWidget::DrawingTool::TwoLines);
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
 }
 
 // 线与线绘制相关方法实现
@@ -965,15 +978,80 @@ void MutiCamApp::initializeVideoDisplayWidgets()
     m_leftDisplayWidget2 = new VideoDisplayWidget(this);
     m_frontDisplayWidget2 = new VideoDisplayWidget(this);
     
-    // 设置视图名称
-    m_verticalDisplayWidget->setViewName("vertical");
-    m_leftDisplayWidget->setViewName("left");
-    m_frontDisplayWidget->setViewName("front");
+    // 创建PaintingOverlay控件
+    m_verticalPaintingOverlay = new PaintingOverlay(this);
+    m_leftPaintingOverlay = new PaintingOverlay(this);
+    m_frontPaintingOverlay = new PaintingOverlay(this);
     
-    // 设置选项卡视图名称
-    m_verticalDisplayWidget2->setViewName("vertical2");
-    m_leftDisplayWidget2->setViewName("left2");
-    m_frontDisplayWidget2->setViewName("front2");
+    // 创建选项卡PaintingOverlay
+    m_verticalPaintingOverlay2 = new PaintingOverlay(this);
+    m_leftPaintingOverlay2 = new PaintingOverlay(this);
+    m_frontPaintingOverlay2 = new PaintingOverlay(this);
+    
+    // 设置PaintingOverlay的视图名称（用于measurementCompleted信号）
+    m_verticalPaintingOverlay->setViewName("Vertical");
+    m_leftPaintingOverlay->setViewName("Left");
+    m_frontPaintingOverlay->setViewName("Front");
+    
+    m_verticalPaintingOverlay2->setViewName("Vertical2");
+    m_leftPaintingOverlay2->setViewName("Left2");
+    m_frontPaintingOverlay2->setViewName("Front2");
+    
+    // 创建叠加容器并使用QStackedLayout
+    QWidget* verticalContainer = new QWidget(this);
+    QWidget* leftContainer = new QWidget(this);
+    QWidget* frontContainer = new QWidget(this);
+    
+    QWidget* verticalContainer2 = new QWidget(this);
+    QWidget* leftContainer2 = new QWidget(this);
+    QWidget* frontContainer2 = new QWidget(this);
+    
+    // 【关键修复】: 为主界面视图创建 QGridLayout 以实现重叠
+    QGridLayout* verticalGrid = new QGridLayout(verticalContainer);
+    QGridLayout* leftGrid = new QGridLayout(leftContainer);
+    QGridLayout* frontGrid = new QGridLayout(frontContainer);
+    
+    // 【关键修复】: 为选项卡视图创建 QGridLayout
+    QGridLayout* verticalGrid2 = new QGridLayout(verticalContainer2);
+    QGridLayout* leftGrid2 = new QGridLayout(leftContainer2);
+    QGridLayout* frontGrid2 = new QGridLayout(frontContainer2);
+    
+    // 【关键修复】: 将两个控件添加到同一个网格单元(0,0)以实现重叠
+    verticalGrid->setContentsMargins(0, 0, 0, 0);
+    verticalGrid->addWidget(m_verticalDisplayWidget, 0, 0);
+    verticalGrid->addWidget(m_verticalPaintingOverlay, 0, 0);
+    
+    leftGrid->setContentsMargins(0, 0, 0, 0);
+    leftGrid->addWidget(m_leftDisplayWidget, 0, 0);
+    leftGrid->addWidget(m_leftPaintingOverlay, 0, 0);
+    
+    frontGrid->setContentsMargins(0, 0, 0, 0);
+    frontGrid->addWidget(m_frontDisplayWidget, 0, 0);
+    frontGrid->addWidget(m_frontPaintingOverlay, 0, 0);
+    
+    // 将选项卡VideoDisplayWidget和PaintingOverlay添加到同一个网格单元
+    verticalGrid2->setContentsMargins(0, 0, 0, 0);
+    verticalGrid2->addWidget(m_verticalDisplayWidget2, 0, 0);
+    verticalGrid2->addWidget(m_verticalPaintingOverlay2, 0, 0);
+    
+    leftGrid2->setContentsMargins(0, 0, 0, 0);
+    leftGrid2->addWidget(m_leftDisplayWidget2, 0, 0);
+    leftGrid2->addWidget(m_leftPaintingOverlay2, 0, 0);
+    
+    frontGrid2->setContentsMargins(0, 0, 0, 0);
+    frontGrid2->addWidget(m_frontDisplayWidget2, 0, 0);
+    frontGrid2->addWidget(m_frontPaintingOverlay2, 0, 0);
+    
+
+    
+    // 设置PaintingOverlay为透明背景，使其叠加在VideoDisplayWidget之上
+    m_verticalPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
+    m_leftPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
+    m_frontPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
+    
+    m_verticalPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
+    m_leftPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
+    m_frontPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
     
     // {{ AURA-X: Modify - 使用布局管理器API正确替换控件. Approval: 寸止(ID:fix_layout_replacement). }}
     // 使用 QLayout::replaceWidget 正确替换控件
@@ -1011,15 +1089,15 @@ void MutiCamApp::initializeVideoDisplayWidgets()
         m_leftDisplayWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         m_frontDisplayWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         
-        // 使用 replaceWidget 替换控件，这会自动处理布局管理
-        QLayoutItem* verticalItem = verticalLayout->replaceWidget(ui->lbVerticalView, m_verticalDisplayWidget);
-        QLayoutItem* leftItem = leftLayout->replaceWidget(ui->lbLeftView, m_leftDisplayWidget);
-        QLayoutItem* frontItem = frontLayout->replaceWidget(ui->lbFrontView, m_frontDisplayWidget);
+        // 使用 replaceWidget 替换控件为叠加容器，这会自动处理布局管理
+        QLayoutItem* verticalItem = verticalLayout->replaceWidget(ui->lbVerticalView, verticalContainer);
+        QLayoutItem* leftItem = leftLayout->replaceWidget(ui->lbLeftView, leftContainer);
+        QLayoutItem* frontItem = frontLayout->replaceWidget(ui->lbFrontView, frontContainer);
         
-        // 替换选项卡QLabel
-        QLayoutItem* verticalItem2 = verticalLayout2->replaceWidget(ui->lbVerticalView2, m_verticalDisplayWidget2);
-        QLayoutItem* leftItem2 = leftLayout2->replaceWidget(ui->lbLeftView2, m_leftDisplayWidget2);
-        QLayoutItem* frontItem2 = frontLayout2->replaceWidget(ui->lbFrontView2, m_frontDisplayWidget2);
+        // 替换选项卡QLabel为叠加容器
+        QLayoutItem* verticalItem2 = verticalLayout2->replaceWidget(ui->lbVerticalView2, verticalContainer2);
+        QLayoutItem* leftItem2 = leftLayout2->replaceWidget(ui->lbLeftView2, leftContainer2);
+        QLayoutItem* frontItem2 = frontLayout2->replaceWidget(ui->lbFrontView2, frontContainer2);
         
         // 删除被替换的控件和布局项
         if (verticalItem) {
@@ -1049,24 +1127,39 @@ void MutiCamApp::initializeVideoDisplayWidgets()
             ui->lbFrontView2->deleteLater();
         }
         
-        // 启用选择功能
-        m_verticalDisplayWidget->enableSelection(true);
-        m_leftDisplayWidget->enableSelection(true);
-        m_frontDisplayWidget->enableSelection(true);
+        // 启用PaintingOverlay的选择功能
+        m_verticalPaintingOverlay->enableSelection(true);
+        m_leftPaintingOverlay->enableSelection(true);
+        m_frontPaintingOverlay->enableSelection(true);
         
-        m_verticalDisplayWidget2->enableSelection(true);
-        m_leftDisplayWidget2->enableSelection(true);
-        m_frontDisplayWidget2->enableSelection(true);
+        m_verticalPaintingOverlay2->enableSelection(true);
+        m_leftPaintingOverlay2->enableSelection(true);
+        m_frontPaintingOverlay2->enableSelection(true);
         
-        // 显示硬件加速控件
-        m_verticalDisplayWidget->show();
-        m_leftDisplayWidget->show();
-        m_frontDisplayWidget->show();
+        // 显示叠加容器
+        verticalContainer->show();
+        leftContainer->show();
+        frontContainer->show();
         
-        // 显示选项卡VideoDisplayWidget
-        m_verticalDisplayWidget2->show();
-        m_leftDisplayWidget2->show();
-        m_frontDisplayWidget2->show();
+        // 显示选项卡叠加容器
+        verticalContainer2->show();
+        leftContainer2->show();
+        frontContainer2->show();
+        
+        // 连接PaintingOverlay的drawingCompleted信号进行视图同步
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
         
         qDebug() << "硬件加速显示控件已通过布局管理器正确替换 QLabel";
         qDebug() << "硬件加速控件几何信息:";
@@ -1148,84 +1241,119 @@ VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
     return nullptr;
 }
 
+PaintingOverlay* MutiCamApp::getPaintingOverlay(const QString& viewName)
+{
+    if (viewName == "vertical") {
+        return m_verticalPaintingOverlay;
+    } else if (viewName == "left") {
+        return m_leftPaintingOverlay;
+    } else if (viewName == "front") {
+        return m_frontPaintingOverlay;
+    } else if (viewName == "vertical2") {
+        return m_verticalPaintingOverlay2;
+    } else if (viewName == "left2") {
+        return m_leftPaintingOverlay2;
+    } else if (viewName == "front2") {
+        return m_frontPaintingOverlay2;
+    }
+    return nullptr;
+}
+
+PaintingOverlay* MutiCamApp::getActivePaintingOverlay()
+{
+    int currentTab = ui->tabWidget->currentIndex();
+    if (currentTab == 0) {
+        // 主界面，返回当前活动的主视图PaintingOverlay
+        // 这里可以根据具体需求返回特定视图，暂时返回垂直视图
+        return m_verticalPaintingOverlay;
+    } else if (currentTab == 1) {
+        return m_verticalPaintingOverlay2;
+    } else if (currentTab == 2) {
+        return m_leftPaintingOverlay2;
+    } else if (currentTab == 3) {
+        return m_frontPaintingOverlay2;
+    }
+    return nullptr;
+}
+
 // {{ AURA-X: Add - 清空绘图按钮槽函数实现. Approval: 寸止(ID:clear_buttons). }}
 void MutiCamApp::onClearDrawingsClicked()
 {
-    VideoDisplayWidget* widget = getActiveVideoWidget();
-    if (widget) {
-        widget->clearAllDrawings();
+    PaintingOverlay* overlay = getActivePaintingOverlay();
+    if (overlay) {
+        overlay->clearAllDrawings();
     }
 }
 
 void MutiCamApp::onClearDrawingsVerticalClicked()
 {
-    if (m_verticalDisplayWidget) {
-        m_verticalDisplayWidget->clearAllDrawings();
+    if (m_verticalPaintingOverlay) {
+        m_verticalPaintingOverlay->clearAllDrawings();
     }
 }
 
 void MutiCamApp::onClearDrawingsLeftClicked()
 {
-    if (m_leftDisplayWidget) {
-        m_leftDisplayWidget->clearAllDrawings();
+    if (m_leftPaintingOverlay) {
+        m_leftPaintingOverlay->clearAllDrawings();
     }
 }
 
 void MutiCamApp::onClearDrawingsFrontClicked()
 {
-    if (m_frontDisplayWidget) {
-        m_frontDisplayWidget->clearAllDrawings();
+    if (m_frontPaintingOverlay) {
+        m_frontPaintingOverlay->clearAllDrawings();
     }
 }
 
 // {{ AURA-X: Add - 绘图同步槽函数实现. Approval: 寸止(ID:drawing_sync). }}
 void MutiCamApp::onDrawingSync(const QString& viewName)
 {
-    // 获取发送信号的VideoDisplayWidget
-    VideoDisplayWidget* sourceWidget = qobject_cast<VideoDisplayWidget*>(sender());
-    if (!sourceWidget) {
+    // 获取发送信号的PaintingOverlay
+    PaintingOverlay* sourceOverlay = qobject_cast<PaintingOverlay*>(sender());
+    if (!sourceOverlay) {
         return;
     }
     
-    // 获取源widget的绘图状态
-    VideoDisplayWidget::DrawingState state = sourceWidget->getDrawingState();
+    // 获取源overlay的绘图状态
+    PaintingOverlay::DrawingState state = sourceOverlay->getDrawingState();
     
     // 根据视图名称确定同步目标：主界面视图和选项卡视图分别同步
-    QList<VideoDisplayWidget*> targetWidgets;
+    QList<PaintingOverlay*> targetOverlays;
     
     // 判断源视图是主界面视图还是选项卡视图
     if (viewName == "vertical" || viewName == "left" || viewName == "front") {
         // 主界面视图：同步到对应的选项卡视图
-        if (viewName == "vertical" && m_verticalDisplayWidget2) {
-            targetWidgets.append(m_verticalDisplayWidget2);
-        } else if (viewName == "left" && m_leftDisplayWidget2) {
-            targetWidgets.append(m_leftDisplayWidget2);
-        } else if (viewName == "front" && m_frontDisplayWidget2) {
-            targetWidgets.append(m_frontDisplayWidget2);
+        if (viewName == "vertical" && m_verticalPaintingOverlay2) {
+            targetOverlays.append(m_verticalPaintingOverlay2);
+        } else if (viewName == "left" && m_leftPaintingOverlay2) {
+            targetOverlays.append(m_leftPaintingOverlay2);
+        } else if (viewName == "front" && m_frontPaintingOverlay2) {
+            targetOverlays.append(m_frontPaintingOverlay2);
         }
     } else if (viewName == "vertical2" || viewName == "left2" || viewName == "front2") {
         // 选项卡视图：同步到对应的主界面视图
-        if (viewName == "vertical2" && m_verticalDisplayWidget) {
-            targetWidgets.append(m_verticalDisplayWidget);
-        } else if (viewName == "left2" && m_leftDisplayWidget) {
-            targetWidgets.append(m_leftDisplayWidget);
-        } else if (viewName == "front2" && m_frontDisplayWidget) {
-            targetWidgets.append(m_frontDisplayWidget);
+        if (viewName == "vertical2" && m_verticalPaintingOverlay) {
+            targetOverlays.append(m_verticalPaintingOverlay);
+        } else if (viewName == "left2" && m_leftPaintingOverlay) {
+            targetOverlays.append(m_leftPaintingOverlay);
+        } else if (viewName == "front2" && m_frontPaintingOverlay) {
+            targetOverlays.append(m_frontPaintingOverlay);
         }
     }
     
     // 同步到目标视图
-    for (VideoDisplayWidget* widget : targetWidgets) {
-        if (widget && widget != sourceWidget) {
+    for (PaintingOverlay* overlay : targetOverlays) {
+        if (overlay && overlay != sourceOverlay) {
             // 临时断开信号连接，避免循环触发
-            disconnect(widget, &VideoDisplayWidget::drawingDataChanged, 
+            disconnect(overlay, &PaintingOverlay::drawingCompleted, 
                       this, &MutiCamApp::onDrawingSync);
             
             // 设置绘图状态
-            widget->setDrawingState(state);
+            overlay->setDrawingState(state);
             
             // 重新连接信号
-            connect(widget, &VideoDisplayWidget::drawingDataChanged,
+            connect(overlay, &PaintingOverlay::drawingCompleted,
                    this, &MutiCamApp::onDrawingSync);
         }
     }
@@ -1250,6 +1378,35 @@ VideoDisplayWidget* MutiCamApp::getActiveVideoWidget()
         default:
             return m_verticalDisplayWidget; // 默认返回垂直视图
     }
+}
+
+void MutiCamApp::syncOverlayTransforms(const QString& viewName)
+{
+    VideoDisplayWidget* videoWidget = getVideoDisplayWidget(viewName);
+    PaintingOverlay* paintingOverlay = getPaintingOverlay(viewName);
+
+    if (videoWidget && paintingOverlay) {
+        // 从视频显示控件获取当前的偏移和缩放比例
+        QPointF offset = videoWidget->getImageOffset();
+        double scale = videoWidget->getScaleFactor();
+        QSize imageSize = videoWidget->getImageSize();
+        
+        // 将这些变换信息设置到绘画层
+        paintingOverlay->setTransforms(offset, scale, imageSize);
+    }
+}
+
+void MutiCamApp::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+    
+    // 同步所有视图的坐标变换
+    syncOverlayTransforms("vertical");
+    syncOverlayTransforms("left");
+    syncOverlayTransforms("front");
+    syncOverlayTransforms("vertical2");
+    syncOverlayTransforms("left2");
+    syncOverlayTransforms("front2");
 }
 
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
