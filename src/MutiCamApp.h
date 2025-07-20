@@ -163,8 +163,6 @@ private:
     };
     
     QCache<QString, CachedFrame> m_frameCache;           ///< 帧缓存
-    std::chrono::steady_clock::time_point m_lastUpdateTime; ///< 上次更新时间
-    static constexpr double UPDATE_INTERVAL = 1.0 / 60.0;   ///< 更新间隔（60fps限制）
     static constexpr int CACHE_TIMEOUT_MS = 500;            ///< 缓存超时时间（毫秒）
     static constexpr int MAX_CACHED_FRAMES = 10;             ///< 最大缓存帧数
     
@@ -303,11 +301,6 @@ private:
      QPointF windowToImageCoordinates(VideoDisplayWidget* widget, const QPoint& windowPos);
      
      // 性能优化相关方法
-     /**
-      * @brief 检查是否需要更新（更新频率控制）
-      * @return 是否需要更新
-      */
-     bool shouldUpdate();
      
      /**
       * @brief 获取缓存的帧

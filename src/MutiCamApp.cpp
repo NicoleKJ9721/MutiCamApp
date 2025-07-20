@@ -25,7 +25,6 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
     // m_isDrawingMode和m_activeView已移除，绘图状态现在由VideoDisplayWidget管理
     , m_frameCache(MAX_CACHED_FRAMES)  // 初始化缓存，设置最大缓存数量
-    , m_lastUpdateTime(std::chrono::steady_clock::now())  // 初始化更新时间
     , m_verticalDisplayWidget(nullptr)
     , m_leftDisplayWidget(nullptr)
     , m_frontDisplayWidget(nullptr)
