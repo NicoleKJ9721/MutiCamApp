@@ -450,14 +450,18 @@ void PaintingOverlay::handlePointDrawingClick(const QPointF& pos)
 void PaintingOverlay::handleLineDrawingClick(const QPointF& pos)
 {
     if (!m_hasCurrentLine) {
-        // 开始新线段
-        m_currentLine.points.clear();
+        // 开始新线段 - 完全重新初始化对象
+        m_currentLine = LineObject(); // 重置为默认值
         m_currentLine.points.append(pos);
         m_currentLine.start = pos;
         m_hasCurrentLine = true;
     } else {
-        // 完成线段
-        m_currentLine.points.append(pos);
+        // 完成线段 - 确认第二个点的位置
+        if (m_currentLine.points.size() >= 2) {
+            m_currentLine.points[1] = pos; // 确认第二个点位置
+        } else {
+            m_currentLine.points.append(pos); // 如果只有一个点，添加第二个点
+        }
         m_currentLine.end = pos;
         m_currentLine.label = QString("L%1").arg(m_lines.size() + 1);
         
@@ -734,11 +738,6 @@ void PaintingOverlay::drawLines(QPainter& painter, const DrawingContext& ctx) co
     for (const auto& line : m_lines) {
         drawSingleLine(painter, line, false, ctx);
     }
-    
-    // 绘制当前正在绘制的直线（实时预览）
-    if (m_hasCurrentLine && !m_currentLine.points.isEmpty()) {
-        drawSingleLine(painter, m_currentLine, true, ctx);
-    }
 }
 
 void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, bool isCurrentDrawing, const DrawingContext& ctx) const
@@ -758,25 +757,24 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
         return; // 两点过于接近，无法确定方向
     }
     
-    // 使用简单可靠的方向向量延伸方法，让QPainter自动裁剪
-    // 向后延伸足够长的距离（在图像坐标系中，5000像素足以覆盖任何合理的显示区域）
-    QPointF extendedStart = start - direction * 5000.0;
-    // 向前延伸足够长的距离
-    QPointF extendedEnd = end + direction * 5000.0;
+    // 使用与平行线和两线一致的延伸方法
+    QPointF extendedStart, extendedEnd;
+    calculateExtendedLine(start, end, extendedStart, extendedEnd);
     
     // 使用预创建的画笔或根据需要创建特定颜色的画笔
     int desiredThickness = qMax(2, static_cast<int>(line.thickness * 2.0 * ctx.scale));
-    
+
     QPen linePen = createPen(line.color, desiredThickness, ctx.scale);
     linePen.setCapStyle(Qt::RoundCap);
-    
-    if (line.isDashed) {
-        // Draw dashed line
+
+    // 根据绘制状态决定线条样式
+    if (line.isDashed || isCurrentDrawing) {
+        // 虚线：原本就是虚线 或 当前正在绘制（预览状态）
         linePen.setStyle(Qt::DashLine);
         painter.setPen(linePen);
         painter.drawLine(extendedStart, extendedEnd);
     } else {
-        // Draw extended line to boundary
+        // 实线：已完成的直线
         painter.setPen(linePen);
         painter.drawLine(extendedStart, extendedEnd);
     }
@@ -1163,8 +1161,14 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         QPointF extStart2, extEnd2;
         calculateExtendedLine(parallelStart, parallelEnd, extStart2, extEnd2);
 
-        // 绘制第二条平行线（使用绿色）
-        painter.setPen(ctx.greenPen);
+        // 绘制第二条平行线（根据完成状态决定样式）
+        if (parallel.isCompleted) {
+            // 完成状态：实线
+            painter.setPen(ctx.greenPen);
+        } else {
+            // 预览状态：虚线
+            painter.setPen(ctx.greenDashedPen);
+        }
         painter.drawLine(extStart2, extEnd2);
     }
 
@@ -1288,9 +1292,15 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         if (hasSecondPoint) {
             QPointF extStart1, extEnd1;
             calculateExtendedLine(p1, p2, extStart1, extEnd1);
-            
-            // 使用绿色画笔
-            painter.setPen(ctx.greenPen);
+
+            // 根据第一条线的完成状态决定样式
+            if (twoLines.points.size() >= 2) {
+                // 第一条线已确定：实线
+                painter.setPen(ctx.greenPen);
+            } else {
+                // 第一条线预览状态：虚线
+                painter.setPen(ctx.greenDashedPen);
+            }
             painter.drawLine(extStart1, extEnd1);
         }
     }
@@ -1315,9 +1325,15 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
             // 计算第二条线延伸到图像边界
             QPointF extStart2, extEnd2;
             calculateExtendedLine(start2, end2, extStart2, extEnd2);
-            
-            // 使用绿色画笔
-            painter.setPen(ctx.greenPen);
+
+            // 根据第二条线的完成状态决定样式
+            if (twoLines.points.size() >= 4) {
+                // 第二条线已确定：实线
+                painter.setPen(ctx.greenPen);
+            } else {
+                // 第二条线预览状态：虚线
+                painter.setPen(ctx.greenDashedPen);
+            }
             painter.drawLine(extStart2, extEnd2);
         }
     }
