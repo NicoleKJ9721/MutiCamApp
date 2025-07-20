@@ -11,3 +11,4 @@
 - 分层渲染优化3完成：1. PaintingOverlay::paintEvent添加透明背景填充确保鼠标事件捕获 2. MutiCamApp::installMouseEventFilters函数已清空 3. MutiCamApp::eventFilter简化为只调用基类实现 4. VideoDisplayWidget保持纯显示职责，无鼠标事件处理函数 5. 绘图功能事件流已修复，PaintingOverlay直接处理所有鼠标事件
 - 绘图功能事件穿透问题修复：在PaintingOverlay::mousePressEvent和mouseMoveEvent中添加event->accept()调用，防止鼠标事件穿透到下层VideoDisplayWidget，确保绘图功能正常工作和鼠标光标正确显示为十字形
 - 项目采用分层渲染架构：VideoDisplayWidget负责显示视频帧，PaintingOverlay负责透明覆盖层绘图交互。当前正在从旧代码迁移绘图功能到新架构，已修复字体缩放、直线预览、平行线预览等功能。
+- 为主界面视图添加可见性控制优化：在onCameraFrameReady函数中为主界面视图添加Tab可见性检查，只有当前Tab是主界面(index=0)时才更新主视图，以节省性能。修改位置：src/MutiCamApp.cpp第387-391行。

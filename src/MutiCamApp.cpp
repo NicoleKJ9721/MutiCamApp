@@ -384,7 +384,8 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     else if (cameraId == "left") tabWidget = m_leftDisplayWidget2;
     else if (cameraId == "front") tabWidget = m_frontDisplayWidget2;
 
-    if (mainWidget) {
+    // 只有当主界面Tab可见时才更新主视图，以节省性能
+    if (mainWidget && ui->tabWidget->currentIndex() == 0) {
         mainWidget->setVideoFrame(matToQPixmap(frame));
         // 同步主界面视图的坐标变换
         syncOverlayTransforms(cameraId);
@@ -947,8 +948,19 @@ void MutiCamApp::onTabChanged(int index)
 {
     // 根据选项卡索引更新对应的视图
     // 0: 主界面, 1: 垂直视图, 2: 左视图, 3: 前视图, 4: 设置
-    
-    if (index == 1) { // 垂直视图选项卡
+
+    if (index == 0) { // 主界面
+        // 切换回主界面时，更新所有主视图以显示最新帧
+        if (!m_currentFrameVertical.empty()) {
+            updateVideoDisplayWidget("vertical", m_currentFrameVertical);
+        }
+        if (!m_currentFrameLeft.empty()) {
+            updateVideoDisplayWidget("left", m_currentFrameLeft);
+        }
+        if (!m_currentFrameFront.empty()) {
+            updateVideoDisplayWidget("front", m_currentFrameFront);
+        }
+    } else if (index == 1) { // 垂直视图选项卡
         if (!m_currentFrameVertical.empty()) {
             // 使用VideoDisplayWidget显示，自动包含绘画数据
             updateVideoDisplayWidget("vertical2", m_currentFrameVertical);
@@ -964,7 +976,7 @@ void MutiCamApp::onTabChanged(int index)
             updateVideoDisplayWidget("front2", m_currentFrameFront);
         }
     }
-    
+
     qDebug() << "Tab changed to index:" << index;
 }
 
