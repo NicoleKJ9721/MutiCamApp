@@ -350,6 +350,27 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
         }
     }
 
+    // 处理圆形预览逻辑
+    if (m_hasCurrentCircle) {
+        if (m_currentCircle.points.size() == 1) {
+            // 第二个点预览：添加第二个点
+            m_currentCircle.points.append(imagePos);
+        } else if (m_currentCircle.points.size() == 2) {
+            // 第二个点预览：更新第二个点位置
+            m_currentCircle.points[1] = imagePos;
+        } else if (m_currentCircle.points.size() == 3) {
+            // 第三个点预览：更新第三个点位置
+            m_currentCircle.points[2] = imagePos;
+        }
+    }
+
+    // 处理精细圆预览逻辑
+    if (m_hasCurrentFineCircle && m_currentFineCircle.points.size() >= 1) {
+        // 精细圆：鼠标位置作为半径参考点
+        m_currentMousePos = imagePos;
+        m_hasValidMousePos = true;
+    }
+
     // 处理平行线预览逻辑
     if (m_hasCurrentParallel && m_currentParallel.points.size() == 2) {
         // 平行线绘制：只有在有2个点后才进行第三个点的预览
@@ -462,9 +483,13 @@ void PaintingOverlay::handleCircleDrawingClick(const QPointF& imagePos)
         m_currentCircle = CircleObject();
         m_currentCircle.points.append(imagePos);
         m_hasCurrentCircle = true;
-    } else if (m_currentCircle.points.size() < 3) {
-        // 添加第二个或第三个点
-        m_currentCircle.points.append(imagePos);
+    } else if (m_currentCircle.points.size() == 2) {
+        // 确认第二个点，添加第三个点用于预览
+        m_currentCircle.points[1] = imagePos; // 确认第二个点的位置
+        m_currentCircle.points.append(imagePos); // 添加第三个点（将在鼠标移动时更新）
+    } else if (m_currentCircle.points.size() == 3) {
+        // 确认第三个点，完成圆形
+        m_currentCircle.points[2] = imagePos; // 确认第三个点的位置
 
         if (m_currentCircle.points.size() == 3) {
             // 计算圆心和半径
@@ -790,11 +815,6 @@ void PaintingOverlay::drawCircles(QPainter& painter, const DrawingContext& ctx) 
     for (const auto& circle : m_circles) {
         drawSingleCircle(painter, circle, ctx);
     }
-    
-    // 绘制当前正在绘制的圆形（实时预览）
-    if (m_hasCurrentCircle && !m_currentCircle.points.isEmpty()) {
-        drawSingleCircle(painter, m_currentCircle, ctx);
-    }
 }
 
 void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& circle, const DrawingContext& ctx) const
@@ -851,42 +871,66 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         }
     }
     
-    // 如果圆形已完成，绘制圆形
-    if (circle.isCompleted && circle.points.size() >= 3) {
-        const QPointF& centerImage = circle.center;
-        double radiusImage = circle.radius;
-        
-        // 手动计算与 drawSingleLine 一致的线条粗细
-        int desiredThickness = qMax(2, static_cast<int>(circle.thickness * 2.0 * ctx.scale));
-        
-        // 绘制圆形（使用绿色）
-        painter.setPen(ctx.greenPen);
+    // 如果有3个点，绘制圆形（包括预览状态）
+    if (circle.points.size() >= 3) {
+        QPointF centerImage;
+        double radiusImage;
+
+        if (circle.isCompleted) {
+            // 已完成的圆形，使用存储的圆心和半径
+            centerImage = circle.center;
+            radiusImage = circle.radius;
+        } else {
+            // 预览状态，实时计算圆心和半径
+            if (!calculateCircleFromThreePoints(circle.points, centerImage, radiusImage)) {
+                // 如果计算失败，不绘制圆形
+                return;
+            }
+        }
+
+        // 绘制圆形（使用绿色，预览时使用虚线）
+        if (circle.isCompleted) {
+            painter.setPen(ctx.greenPen);
+        } else {
+            painter.setPen(ctx.greenDashedPen); // 预览时使用虚线
+        }
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
         
-        // 动态计算圆心标记尺寸
-        double centerMarkRadius = qMax(3.0, 6.0 * ctx.scale);
-        
-        // 绘制圆心 - 白色边框 + 红色实心圆
-        painter.setPen(ctx.whitePen);
+        // 动态计算圆心标记尺寸（与画点功能相同）
+        const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+        const double centerMarkRadius = 15 * heightScale;
+
+        // 绘制圆心 - 红色实心圆
+        painter.setPen(Qt::NoPen);
         painter.setBrush(ctx.redBrush);
         painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
-        
-        // 显示圆心坐标和半径 - 让两个文本框紧挨着排列
-        QString centerText = QString::asprintf("(%.1f,%.1f)", circle.center.x(), circle.center.y());
-        QString radiusText = QString::asprintf("R=%.1f", circle.radius);
-        
-        // 使用已计算的文本布局参数，直接使用期望的屏幕像素值
-        
-        // 1. 绘制第一个文本框（坐标文本）- 使用圆形颜色
-        drawTextWithBackground(painter, centerImage, centerText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, QPointF(textOffset, -textOffset));
-        
-        // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
-        QFontMetrics fm(ctx.font);
-        QRect centerTextRect = fm.boundingRect(centerText);
-        double centerTextHeight = centerTextRect.height() + 2 * textPadding;
-        QPointF radiusAnchorPoint = centerImage + QPointF(textOffset, -textOffset + centerTextHeight);
-        drawTextWithBackground(painter, radiusAnchorPoint, radiusText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
+
+        // 只在圆形完成后显示文字信息
+        if (circle.isCompleted) {
+            // 显示圆心坐标和半径 - 使用与点相同的布局方式
+            QString centerText = QString::asprintf("(%.1f,%.1f)", circle.center.x(), circle.center.y());
+            QString radiusText = QString::asprintf("R=%.1f", circle.radius);
+
+            // 计算将文本框定位到圆心右上角所需的偏移量（与点的布局一致）
+            QFontMetrics fm(ctx.font);
+            QRect centerTextBoundingRect = fm.boundingRect(centerText);
+            double centerBgHeight = centerTextBoundingRect.height() + 2 * textPadding;
+
+            // 第一个文本框偏移量（与点相同：右上角）
+            QPointF centerOffset(centerMarkRadius, -centerMarkRadius - centerBgHeight);
+
+            // 1. 绘制第一个文本框（坐标文本）- 使用绿色
+            drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::green, Qt::black, textPadding, bgBorderWidth, centerOffset);
+
+            // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
+            QRect radiusTextBoundingRect = fm.boundingRect(radiusText);
+            double radiusBgHeight = radiusTextBoundingRect.height() + 2 * textPadding;
+            QPointF radiusOffset(centerMarkRadius, -centerMarkRadius - centerBgHeight + centerBgHeight);
+
+            // 绘制第二个文本框（半径文本）- 使用绿色
+            drawTextWithBackground(painter, centerImage, radiusText, ctx.font, Qt::green, Qt::black, textPadding, bgBorderWidth, radiusOffset);
+        }
     }
 }
 
@@ -895,11 +939,6 @@ void PaintingOverlay::drawFineCircles(QPainter& painter, const DrawingContext& c
     // 绘制已完成的精细圆
     for (const auto& fineCircle : m_fineCircles) {
         drawSingleFineCircle(painter, fineCircle, ctx);
-    }
-    
-    // 绘制当前正在绘制的精细圆（实时预览）
-    if (m_hasCurrentFineCircle && !m_currentFineCircle.points.isEmpty()) {
-        drawSingleFineCircle(painter, m_currentFineCircle, ctx);
     }
 }
 
@@ -987,11 +1026,6 @@ void PaintingOverlay::drawParallels(QPainter& painter, const DrawingContext& ctx
     // 绘制已完成的平行线
     for (const auto& parallel : m_parallels) {
         drawSingleParallel(painter, parallel, ctx);
-    }
-    
-    // 绘制当前正在绘制的平行线（实时预览）
-    if (m_hasCurrentParallel && !m_currentParallel.points.isEmpty()) {
-        drawSingleParallel(painter, m_currentParallel, ctx);
     }
 }
 
@@ -1173,11 +1207,6 @@ void PaintingOverlay::drawTwoLines(QPainter& painter, const DrawingContext& ctx)
     // 绘制已完成的两线
     for (const auto& twoLine : m_twoLines) {
         drawSingleTwoLines(painter, twoLine, ctx);
-    }
-    
-    // 绘制当前正在绘制的两线（实时预览）
-    if (m_hasCurrentTwoLines && !m_currentTwoLines.points.isEmpty()) {
-        drawSingleTwoLines(painter, m_currentTwoLines, ctx);
     }
 }
 
@@ -1368,8 +1397,41 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
 
 void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const
 {
-    if (!m_hasValidMousePos) return;
-    // 我们将在这里添加所有工具的预览逻辑
+    // 绘制当前正在绘制的图形预览
+    switch (m_currentDrawingTool) {
+        case DrawingTool::Line:
+            if (m_hasCurrentLine && !m_currentLine.points.isEmpty()) {
+                drawSingleLine(painter, m_currentLine, true, ctx);
+            }
+            break;
+
+        case DrawingTool::Circle:
+            if (m_hasCurrentCircle && !m_currentCircle.points.isEmpty()) {
+                drawSingleCircle(painter, m_currentCircle, ctx);
+            }
+            break;
+
+        case DrawingTool::FineCircle:
+            if (m_hasCurrentFineCircle && !m_currentFineCircle.points.isEmpty()) {
+                drawSingleFineCircle(painter, m_currentFineCircle, ctx);
+            }
+            break;
+
+        case DrawingTool::Parallel:
+            if (m_hasCurrentParallel && !m_currentParallel.points.isEmpty()) {
+                drawSingleParallel(painter, m_currentParallel, ctx);
+            }
+            break;
+
+        case DrawingTool::TwoLines:
+            if (m_hasCurrentTwoLines && !m_currentTwoLines.points.isEmpty()) {
+                drawSingleTwoLines(painter, m_currentTwoLines, ctx);
+            }
+            break;
+
+        default:
+            break;
+    }
 }
 
 void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
