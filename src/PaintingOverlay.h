@@ -215,7 +215,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     QString getSelectedObjectInfo() const;
 
 signals:
-    void drawingCompleted(const QString& result); // 绘图完成信号
+    void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
     void measurementCompleted(const QString& viewName, const QString& result); // 测量完成信号
     void drawingDataChanged(const QString& viewName); // 绘图数据变化信号

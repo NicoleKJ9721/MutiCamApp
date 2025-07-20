@@ -258,6 +258,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_leftPaintingOverlay) {
         connect(m_leftPaintingOverlay, &PaintingOverlay::measurementCompleted,
@@ -265,6 +267,8 @@ void MutiCamApp::connectSignalsAndSlots()
         connect(m_leftPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
     }
     if (m_frontPaintingOverlay) {
@@ -274,6 +278,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_verticalPaintingOverlay2) {
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -281,6 +287,8 @@ void MutiCamApp::connectSignalsAndSlots()
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
     }
     if (m_leftPaintingOverlay2) {
@@ -290,6 +298,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
+                this, &MutiCamApp::onDrawingSync);
     }
     if (m_frontPaintingOverlay2) {
         connect(m_frontPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -297,6 +307,8 @@ void MutiCamApp::connectSignalsAndSlots()
         connect(m_frontPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
     }
 }
@@ -1146,20 +1158,7 @@ void MutiCamApp::initializeVideoDisplayWidgets()
         leftContainer2->show();
         frontContainer2->show();
         
-        // 连接PaintingOverlay的drawingCompleted信号进行视图同步
-        connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
-        connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
-        connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
-        
-        connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
-        connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
-        connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
-                this, &MutiCamApp::onDrawingSync);
+        // 注意：PaintingOverlay的信号连接已在前面的代码中完成，这里不需要重复连接
         
         qDebug() << "硬件加速显示控件已通过布局管理器正确替换 QLabel";
         qDebug() << "硬件加速控件几何信息:";
@@ -1322,22 +1321,22 @@ void MutiCamApp::onDrawingSync(const QString& viewName)
     QList<PaintingOverlay*> targetOverlays;
     
     // 判断源视图是主界面视图还是选项卡视图
-    if (viewName == "vertical" || viewName == "left" || viewName == "front") {
+    if (viewName == "Vertical" || viewName == "Left" || viewName == "Front") {
         // 主界面视图：同步到对应的选项卡视图
-        if (viewName == "vertical" && m_verticalPaintingOverlay2) {
+        if (viewName == "Vertical" && m_verticalPaintingOverlay2) {
             targetOverlays.append(m_verticalPaintingOverlay2);
-        } else if (viewName == "left" && m_leftPaintingOverlay2) {
+        } else if (viewName == "Left" && m_leftPaintingOverlay2) {
             targetOverlays.append(m_leftPaintingOverlay2);
-        } else if (viewName == "front" && m_frontPaintingOverlay2) {
+        } else if (viewName == "Front" && m_frontPaintingOverlay2) {
             targetOverlays.append(m_frontPaintingOverlay2);
         }
-    } else if (viewName == "vertical2" || viewName == "left2" || viewName == "front2") {
+    } else if (viewName == "Vertical2" || viewName == "Left2" || viewName == "Front2") {
         // 选项卡视图：同步到对应的主界面视图
-        if (viewName == "vertical2" && m_verticalPaintingOverlay) {
+        if (viewName == "Vertical2" && m_verticalPaintingOverlay) {
             targetOverlays.append(m_verticalPaintingOverlay);
-        } else if (viewName == "left2" && m_leftPaintingOverlay) {
+        } else if (viewName == "Left2" && m_leftPaintingOverlay) {
             targetOverlays.append(m_leftPaintingOverlay);
-        } else if (viewName == "front2" && m_frontPaintingOverlay) {
+        } else if (viewName == "Front2" && m_frontPaintingOverlay) {
             targetOverlays.append(m_frontPaintingOverlay);
         }
     }

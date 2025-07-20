@@ -41,14 +41,17 @@ void PaintingOverlay::startDrawing(DrawingTool tool)
     m_currentDrawingTool = tool;
     m_isDrawingMode = true;
     m_selectionEnabled = false;
-    
+
+    // 清除选择状态（从选择模式切换到绘画模式时）
+    clearSelection();
+
     // 清除当前绘制状态
     m_hasCurrentLine = false;
     m_hasCurrentCircle = false;
     m_hasCurrentParallel = false;
     m_hasCurrentTwoLines = false;
     m_currentPoints.clear();
-    
+
     setCursor(Qt::CrossCursor);
     update();
 }
@@ -65,8 +68,9 @@ void PaintingOverlay::stopDrawing()
     m_hasCurrentTwoLines = false;
     m_currentPoints.clear();
 
-    // 停止绘制模式时重新启用选择模式
+    // 停止绘制模式时重新启用选择模式并清除选择状态
     m_selectionEnabled = true;
+    clearSelection();
 
     setCursor(Qt::ArrowCursor);
     update();
@@ -214,7 +218,11 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         
         // 现在坐标系原点就是图像左上角，所有绘制函数可以直接使用图像坐标
         // 传递绘制上下文，避免重复创建对象
-        // 1. 绘制所有已完成的图形
+
+        // 1. 先绘制选中状态高亮（作为底层外描边）
+        drawSelectionHighlights(painter);
+
+        // 2. 绘制所有已完成的图形（在高亮之上）
         drawPoints(painter, ctx);
         drawLines(painter, ctx);
         drawLineSegments(painter, ctx);
@@ -222,14 +230,11 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         drawFineCircles(painter, ctx);
         drawParallels(painter, ctx);
         drawTwoLines(painter, ctx);
-        
-        // 2. 【关键】绘制当前正在预览的图形
+
+        // 3. 【关键】绘制当前正在预览的图形（在最上层）
         if (m_isDrawingMode) {
             drawCurrentPreview(painter, ctx);
         }
-
-        // 3. 绘制选中状态高亮
-        drawSelectionHighlights(painter);
         
         painter.restore();
     }
@@ -1376,6 +1381,14 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
     // 获取绘图上下文
     const DrawingContext& ctx = m_cachedDrawingContext;
 
+    // 创建高亮画笔（蓝色，适中粗细）- 使用正确的缩放补偿
+    QPen highlightPen(Qt::blue);
+    highlightPen.setWidthF(qMax(1.0, 4.0 / ctx.scale)); // 确保在屏幕上看起来是4像素宽
+    highlightPen.setCapStyle(Qt::RoundCap);
+    highlightPen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(highlightPen);
+    painter.setBrush(Qt::NoBrush);
+
     // 高亮选中的点
     for (int index : m_selectedPoints) {
         if (index >= 0 && index < m_points.size()) {
@@ -1383,47 +1396,63 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             if (!point.isVisible) continue;
 
             // 绘制高亮圆环
-            double highlightRadius = qMax(15.0, 20.0 * ctx.scale);
-            painter.setPen(QPen(Qt::red, qMax(2, static_cast<int>(3.0 * ctx.scale))));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(point.position, highlightRadius, highlightRadius);
+            double radius = 25.0 * std::max(1.0, std::min(ctx.scale, 4.0));
+            painter.drawEllipse(point.position, radius, radius);
         }
     }
 
-    // 高亮选中的线
+    // 高亮选中的线 - 使用更粗的画笔绘制外描边
+    QPen thickHighlightPen(Qt::blue);
+    thickHighlightPen.setWidthF(qMax(1.0, 8.0 / ctx.scale)); // 更粗的外描边
+    thickHighlightPen.setCapStyle(Qt::RoundCap);
+    thickHighlightPen.setJoinStyle(Qt::RoundJoin);
+
     for (int index : m_selectedLines) {
         if (index >= 0 && index < m_lines.size()) {
             const LineObject& line = m_lines[index];
             if (!line.isVisible || line.points.size() < 2) continue;
 
-            // 绘制高亮线条
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
-            painter.drawLine(line.points[0], line.points[1]);
+            // 绘制延伸的高亮线（更粗的外描边）
+            painter.setPen(thickHighlightPen);
+            QPointF direction = line.points[1] - line.points[0];
+            QPointF extendedStart = line.points[0] - direction * 5000.0;
+            QPointF extendedEnd = line.points[1] + direction * 5000.0;
+            painter.drawLine(extendedStart, extendedEnd);
         }
     }
 
-    // 高亮选中的线段
+    // 恢复原来的画笔
+    painter.setPen(highlightPen);
+
+    // 高亮选中的线段 - 使用更粗的画笔绘制外描边
     for (int index : m_selectedLineSegments) {
         if (index >= 0 && index < m_lineSegments.size()) {
             const LineSegmentObject& lineSegment = m_lineSegments[index];
             if (!lineSegment.isVisible || lineSegment.points.size() < 2) continue;
 
-            // 绘制高亮线段
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
+            // 绘制高亮线段（更粗的外描边）
+            painter.setPen(thickHighlightPen);
             painter.drawLine(lineSegment.points[0], lineSegment.points[1]);
         }
     }
+
+    // 恢复原来的画笔
+    painter.setPen(highlightPen);
 
     // 高亮选中的圆
     for (int index : m_selectedCircles) {
         if (index >= 0 && index < m_circles.size()) {
             const CircleObject& circle = m_circles[index];
-            if (!circle.isVisible || !circle.isCompleted) continue;
+            if (!circle.isVisible || circle.points.size() < 3) continue;
 
-            // 绘制高亮圆
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(circle.center, circle.radius, circle.radius);
+            // 计算圆心和半径
+            QPointF center;
+            double radius;
+            if (calculateCircleFromThreePoints(circle.points, center, radius)) {
+                // 绘制稍大的圆环作为外描边
+                double highlightRadius = radius + qMax(2.0, 3.0 / ctx.scale);
+                painter.drawEllipse(center, highlightRadius, highlightRadius);
+            }
         }
     }
 
@@ -1433,21 +1462,19 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             const FineCircleObject& fineCircle = m_fineCircles[index];
             if (!fineCircle.isVisible || !fineCircle.isCompleted) continue;
 
-            // 绘制高亮精细圆
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(fineCircle.center, fineCircle.radius, fineCircle.radius);
+            // 绘制稍大的圆环作为外描边
+            double highlightRadius = fineCircle.radius + qMax(2.0, 3.0 / ctx.scale);
+            painter.drawEllipse(fineCircle.center, highlightRadius, highlightRadius);
         }
     }
 
-    // 高亮选中的平行线
+    // 高亮选中的平行线 - 使用更粗的画笔绘制外描边
     for (int index : m_selectedParallels) {
         if (index >= 0 && index < m_parallels.size()) {
             const ParallelObject& parallel = m_parallels[index];
             if (!parallel.isVisible || !parallel.isCompleted) continue;
 
-            // 绘制高亮平行线
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
+            painter.setPen(thickHighlightPen);
 
             // 高亮第一条线
             if (parallel.points.size() >= 2) {
@@ -1468,14 +1495,16 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
         }
     }
 
-    // 高亮选中的两线
+    // 恢复原来的画笔
+    painter.setPen(highlightPen);
+
+    // 高亮选中的两线 - 使用更粗的画笔绘制外描边
     for (int index : m_selectedTwoLines) {
         if (index >= 0 && index < m_twoLines.size()) {
             const TwoLinesObject& twoLines = m_twoLines[index];
             if (!twoLines.isVisible || !twoLines.isCompleted) continue;
 
-            // 绘制高亮两线
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
+            painter.setPen(thickHighlightPen);
 
             // 高亮第一条线
             if (twoLines.points.size() >= 2) {
@@ -1493,15 +1522,20 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
         }
     }
 
-    // 高亮选中的平行线中线
+    // 恢复原来的画笔
+    painter.setPen(highlightPen);
+
+    // 高亮选中的平行线中线 - 使用更粗的画笔绘制外描边
     for (int index : m_selectedParallelMiddleLines) {
         if (index >= 0 && index < m_parallels.size()) {
             const ParallelObject& parallel = m_parallels[index];
             if (!parallel.isVisible || !parallel.isCompleted) continue;
 
-            // 绘制高亮中线
-            painter.setPen(QPen(Qt::red, qMax(3, static_cast<int>(4.0 * ctx.scale))));
-            painter.drawLine(parallel.midStart, parallel.midEnd);
+            // 绘制高亮中线（延伸到图像边界，更粗的外描边）
+            painter.setPen(thickHighlightPen);
+            QPointF extMidStart, extMidEnd;
+            calculateExtendedLine(parallel.midStart, parallel.midEnd, extMidStart, extMidEnd);
+            painter.drawLine(extMidStart, extMidEnd);
         }
     }
 }
@@ -1680,7 +1714,7 @@ void PaintingOverlay::commitDrawingAction(const DrawingAction& action)
             break;
     }
     
-    emit drawingCompleted(result);
+    emit drawingCompleted(m_viewName);
 }
 
 // 几何计算方法实现
@@ -2265,7 +2299,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
 
 
     // 检查点击是否命中任何对象
-    int pointIndex = hitTestPoint(pos, 20.0);
+    int pointIndex = hitTestPoint(pos, 30.0); // 增加点的命中容差
 
     if (pointIndex >= 0) {
 
@@ -2281,8 +2315,8 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         }
         foundSelection = true;
     }
-    
-    int lineIndex = hitTestLine(pos, 10.0);
+
+    int lineIndex = hitTestLine(pos, 20.0); // 增加线的命中容差
     if (lineIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedLines.contains(lineIndex)) {
@@ -2297,7 +2331,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         foundSelection = true;
     }
     
-    int circleIndex = hitTestCircle(pos, 10.0);
+    int circleIndex = hitTestCircle(pos, 20.0); // 增加圆的命中容差
     if (circleIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedCircles.contains(circleIndex)) {
@@ -2313,7 +2347,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试线段
-    int lineSegmentIndex = hitTestLineSegment(pos, 10.0);
+    int lineSegmentIndex = hitTestLineSegment(pos, 20.0); // 增加线段的命中容差
     if (lineSegmentIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedLineSegments.contains(lineSegmentIndex)) {
@@ -2329,7 +2363,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试精细圆
-    int fineCircleIndex = hitTestFineCircle(pos, 10.0);
+    int fineCircleIndex = hitTestFineCircle(pos, 20.0); // 增加精细圆的命中容差
     if (fineCircleIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedFineCircles.contains(fineCircleIndex)) {
@@ -2345,7 +2379,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试平行线
-    int parallelIndex = hitTestParallel(pos, 10.0);
+    int parallelIndex = hitTestParallel(pos, 20.0); // 增加平行线的命中容差
     if (parallelIndex != -1 && !foundSelection) {
         if (parallelIndex < -999) {
             // 这是中线命中，提取实际索引
@@ -2377,7 +2411,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试两线
-    int twoLinesIndex = hitTestTwoLines(pos, 10.0);
+    int twoLinesIndex = hitTestTwoLines(pos, 20.0); // 增加两线的命中容差
     if (twoLinesIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedTwoLines.contains(twoLinesIndex)) {
