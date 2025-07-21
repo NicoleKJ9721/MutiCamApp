@@ -168,6 +168,9 @@ private:
     
     // 渲染缓冲区
     QMap<QString, cv::Mat> m_renderBuffers;              ///< 各视图的渲染缓冲区
+
+    // 图像转换优化缓冲区
+    mutable cv::Mat m_rgbConvertBuffer;                  ///< RGB转换缓冲区，避免重复分配
     
     // 硬件加速显示控件
     VideoDisplayWidget* m_verticalDisplayWidget;         ///< 垂直视图显示控件

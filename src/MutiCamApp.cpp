@@ -455,35 +455,69 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
     if (mat.empty()) {
         return QPixmap();
     }
-    
+
     try {
-        cv::Mat rgbMat;
-        
-        // 根据通道数进行转换
+        QImage qimg;
+
+        // 性能优化：减少内存拷贝的图像转换
+        // 优化策略：1)预分配缓冲区 2)避免不必要的copy() 3)直接数据指针访问
         if (mat.channels() == 1) {
-            // 灰度图像转RGB
-            cv::cvtColor(mat, rgbMat, cv::COLOR_GRAY2RGB);
+            // 灰度图像：检查是否需要拷贝
+            if (mat.isContinuous()) {
+                // 连续内存：可以安全地直接使用数据指针
+                qimg = QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_Grayscale8);
+                // 立即转换为QPixmap以确保数据安全
+            } else {
+                // 非连续内存：需要拷贝
+                qimg = QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_Grayscale8).copy();
+            }
         } else if (mat.channels() == 3) {
-            // BGR转RGB
-            cv::cvtColor(mat, rgbMat, cv::COLOR_BGR2RGB);
+            // BGR图像：使用预分配缓冲区优化转换
+            // 检查并调整转换缓冲区大小
+            if (m_rgbConvertBuffer.rows != mat.rows ||
+                m_rgbConvertBuffer.cols != mat.cols ||
+                m_rgbConvertBuffer.type() != CV_8UC3) {
+                m_rgbConvertBuffer.create(mat.rows, mat.cols, CV_8UC3);
+            }
+
+            // 使用预分配缓冲区进行颜色转换，避免内存分配
+            cv::cvtColor(mat, m_rgbConvertBuffer, cv::COLOR_BGR2RGB);
+
+            // 创建QImage，直接使用缓冲区数据（缓冲区在对象生命周期内有效）
+            qimg = QImage(m_rgbConvertBuffer.data, m_rgbConvertBuffer.cols, m_rgbConvertBuffer.rows,
+                         m_rgbConvertBuffer.step, QImage::Format_RGB888);
+        } else if (mat.channels() == 4) {
+            // RGBA图像：优化处理
+            if (mat.isContinuous()) {
+                // 连续内存：直接使用
+                qimg = QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGBA8888);
+            } else {
+                // 非连续内存：需要拷贝
+                qimg = QImage(mat.data, mat.cols, mat.rows, mat.step, QImage::Format_RGBA8888).copy();
+            }
         } else {
-            // 其他格式直接使用
-            rgbMat = mat;
+            // 不支持的格式：转换为灰度
+            cv::Mat grayMat;
+            if (mat.channels() > 4) {
+                // 多通道图像，取第一个通道
+                cv::extractChannel(mat, grayMat, 0);
+            } else {
+                cv::cvtColor(mat, grayMat, cv::COLOR_BGR2GRAY);
+            }
+            qimg = QImage(grayMat.data, grayMat.cols, grayMat.rows,
+                         grayMat.step, QImage::Format_Grayscale8).copy();
         }
-        
-        // 创建QImage
-        QImage qimg(rgbMat.data, rgbMat.cols, rgbMat.rows, 
-                   rgbMat.step, QImage::Format_RGB888);
-        
-        // 转换为QPixmap
+
+        // 立即转换为QPixmap以确保数据安全和性能
+        // QPixmap::fromImage会进行必要的数据拷贝，确保数据独立性
         QPixmap pixmap = QPixmap::fromImage(qimg);
-        
+
         // 根据参数决定是否设置设备像素比
         if (setDevicePixelRatio) {
             qreal devicePixelRatio = qApp->devicePixelRatio();
             pixmap.setDevicePixelRatio(devicePixelRatio);
         }
-        
+
         return pixmap;
         
     } catch (const std::exception& e) {
