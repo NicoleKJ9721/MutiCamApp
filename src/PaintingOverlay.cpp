@@ -2654,8 +2654,8 @@ int PaintingOverlay::hitTestCircle(const QPointF& testPos, double tolerance) con
         }
         
         double distance = sqrt(pow(testPos.x() - center.x(), 2) + pow(testPos.y() - center.y(), 2));
-        // 修改逻辑：点击圆内部或圆周附近都能选中
-        if (distance <= radius + tolerance) {
+        // 修改逻辑：只有在圆周附近才能选中
+        if (abs(distance - radius) <= tolerance) {
             return i;
         }
     }
@@ -2683,8 +2683,8 @@ int PaintingOverlay::hitTestFineCircle(const QPointF& testPos, double tolerance)
         if (!fineCircle.isVisible || !fineCircle.isCompleted) continue;
 
         double distance = sqrt(pow(testPos.x() - fineCircle.center.x(), 2) + pow(testPos.y() - fineCircle.center.y(), 2));
-        // 点击圆内部或圆周附近都能选中
-        if (distance <= fineCircle.radius + tolerance) {
+        // 只有在圆周附近才能选中
+        if (abs(distance - fineCircle.radius) <= tolerance) {
             return i;
         }
     }
