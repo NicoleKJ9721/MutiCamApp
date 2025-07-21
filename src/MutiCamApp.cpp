@@ -1388,22 +1388,25 @@ void MutiCamApp::onClearDrawingsClicked()
 
 void MutiCamApp::onClearDrawingsVerticalClicked()
 {
-    if (m_verticalPaintingOverlay) {
-        m_verticalPaintingOverlay->clearAllDrawings();
+    // 清空选项卡的垂直视图，同步机制会自动同步到主界面
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->clearAllDrawings();
     }
 }
 
 void MutiCamApp::onClearDrawingsLeftClicked()
 {
-    if (m_leftPaintingOverlay) {
-        m_leftPaintingOverlay->clearAllDrawings();
+    // 清空选项卡的左侧视图，同步机制会自动同步到主界面
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->clearAllDrawings();
     }
 }
 
 void MutiCamApp::onClearDrawingsFrontClicked()
 {
-    if (m_frontPaintingOverlay) {
-        m_frontPaintingOverlay->clearAllDrawings();
+    // 清空选项卡的对向视图，同步机制会自动同步到主界面
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->clearAllDrawings();
     }
 }
 
@@ -1418,22 +1421,25 @@ void MutiCamApp::onUndoDrawingClicked()
 
 void MutiCamApp::onUndoDrawingVerticalClicked()
 {
-    if (m_verticalPaintingOverlay) {
-        m_verticalPaintingOverlay->undoLastDrawing();
+    // 撤销选项卡的垂直视图，同步机制会自动同步到主界面
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->undoLastDrawing();
     }
 }
 
 void MutiCamApp::onUndoDrawingLeftClicked()
 {
-    if (m_leftPaintingOverlay) {
-        m_leftPaintingOverlay->undoLastDrawing();
+    // 撤销选项卡的左侧视图，同步机制会自动同步到主界面
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->undoLastDrawing();
     }
 }
 
 void MutiCamApp::onUndoDrawingFrontClicked()
 {
-    if (m_frontPaintingOverlay) {
-        m_frontPaintingOverlay->undoLastDrawing();
+    // 撤销选项卡的对向视图，同步机制会自动同步到主界面
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->undoLastDrawing();
     }
 }
 

@@ -97,6 +97,10 @@ void PaintingOverlay::clearAllDrawings()
     m_twoLines.clear();
     m_drawingHistory.clear();
     clearSelection();
+
+    // 发送同步信号
+    emit drawingDataChanged(m_viewName);
+
     update();
 }
 
