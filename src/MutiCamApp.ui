@@ -918,7 +918,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销识别</string>
+                 <string>撤销测量</string>
                 </property>
                </widget>
               </item>
@@ -1027,7 +1027,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销</string>
+                 <string>撤销绘画</string>
                 </property>
                </widget>
               </item>
@@ -1040,7 +1040,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>清除</string>
+                 <string>清空绘画</string>
                 </property>
                </widget>
               </item>
@@ -1313,7 +1313,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销识别</string>
+                 <string>撤销测量</string>
                 </property>
                </widget>
               </item>
@@ -1419,7 +1419,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销</string>
+                 <string>撤销绘画</string>
                 </property>
                </widget>
               </item>
@@ -1432,7 +1432,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>清除</string>
+                 <string>清空绘画</string>
                 </property>
                </widget>
               </item>
@@ -1705,7 +1705,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销识别</string>
+                 <string>撤销测量</string>
                 </property>
                </widget>
               </item>
@@ -1811,7 +1811,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>撤销</string>
+                 <string>撤销绘画</string>
                 </property>
                </widget>
               </item>
@@ -1824,7 +1824,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>清除</string>
+                 <string>清空绘画</string>
                 </property>
                </widget>
               </item>
