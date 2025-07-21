@@ -586,8 +586,14 @@
                         <height>16777215</height>
                        </size>
                       </property>
+                      <property name="text">
+                       <string/>
+                      </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
+                      </property>
+                      <property name="placeholderText">
+                       <string>0</string>
                       </property>
                      </widget>
                     </item>
@@ -626,19 +632,6 @@
                     </property>
                     <layout class="QHBoxLayout" name="horizontalLayout">
                      <item>
-                      <widget class="QPushButton" name="btnCan1StepDet">
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>撤销上步</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <widget class="QPushButton" name="btnCircleDet">
                        <property name="font">
                         <font>
@@ -661,6 +654,19 @@
                        </property>
                        <property name="text">
                         <string>直线查找</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnCan1StepDet">
+                       <property name="font">
+                        <font>
+                         <pointsize>9</pointsize>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>撤销上步</string>
                        </property>
                       </widget>
                      </item>
@@ -836,6 +842,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>0</string>
                 </property>
                </widget>
               </item>
@@ -1212,6 +1221,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>0</string>
                 </property>
                </widget>
               </item>
@@ -1652,6 +1664,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>0</string>
                 </property>
                </widget>
               </item>
