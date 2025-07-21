@@ -131,6 +131,18 @@ private slots:
     void onUndoDrawingLeftClicked();
     void onUndoDrawingFrontClicked();
 
+    /**
+     * @brief 网格相关槽函数
+     */
+    void onGridDensityChanged();           // 主界面网格密度变化
+    void onGridDensityVerticalChanged();   // 垂直视图网格密度变化
+    void onGridDensityLeftChanged();       // 左侧视图网格密度变化
+    void onGridDensityFrontChanged();      // 对向视图网格密度变化
+    void onCancelGridsClicked();           // 主界面取消网格
+    void onCancelGridsVerticalClicked();   // 垂直视图取消网格
+    void onCancelGridsLeftClicked();       // 左侧视图取消网格
+    void onCancelGridsFrontClicked();      // 对向视图取消网格
+
     // {{ AURA-X: Add - 绘图同步槽函数. Approval: 寸止(ID:drawing_sync). }}
     void onDrawingSync(const QString& viewName);
 

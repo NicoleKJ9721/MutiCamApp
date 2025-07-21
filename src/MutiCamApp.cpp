@@ -246,6 +246,25 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnCan1StepDrawFront, &QPushButton::clicked,
             this, &MutiCamApp::onUndoDrawingFrontClicked);
 
+    // 连接网格相关信号
+    connect(ui->leGridDensity, &QLineEdit::textChanged,
+            this, &MutiCamApp::onGridDensityChanged);
+    connect(ui->leGridDensVertical, &QLineEdit::textChanged,
+            this, &MutiCamApp::onGridDensityVerticalChanged);
+    connect(ui->leGridDensLeft, &QLineEdit::textChanged,
+            this, &MutiCamApp::onGridDensityLeftChanged);
+    connect(ui->leGridDensFront, &QLineEdit::textChanged,
+            this, &MutiCamApp::onGridDensityFrontChanged);
+
+    connect(ui->btnCancelGrids, &QPushButton::clicked,
+            this, &MutiCamApp::onCancelGridsClicked);
+    connect(ui->btnCancelGridsVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onCancelGridsVerticalClicked);
+    connect(ui->btnCancelGridsLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onCancelGridsLeftClicked);
+    connect(ui->btnCancelGridsFront, &QPushButton::clicked,
+            this, &MutiCamApp::onCancelGridsFrontClicked);
+
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
@@ -1416,6 +1435,119 @@ void MutiCamApp::onUndoDrawingFrontClicked()
     if (m_frontPaintingOverlay) {
         m_frontPaintingOverlay->undoLastDrawing();
     }
+}
+
+// 网格相关槽函数实现
+void MutiCamApp::onGridDensityChanged()
+{
+    QString text = ui->leGridDensity->text();
+    bool ok;
+    int spacing = text.toInt(&ok);
+
+    if (ok && spacing >= 0) {
+        // 确保网格间距至少为10（如果不为0）
+        if (spacing > 0 && spacing < 10) {
+            spacing = 10;
+            ui->leGridDensity->setText(QString::number(spacing));
+        }
+
+        // 设置主界面所有视图的网格
+        if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->setGridSpacing(spacing);
+        if (m_leftPaintingOverlay) m_leftPaintingOverlay->setGridSpacing(spacing);
+        if (m_frontPaintingOverlay) m_frontPaintingOverlay->setGridSpacing(spacing);
+    }
+}
+
+void MutiCamApp::onGridDensityVerticalChanged()
+{
+    QString text = ui->leGridDensVertical->text();
+    bool ok;
+    int spacing = text.toInt(&ok);
+
+    if (ok && spacing >= 0) {
+        // 确保网格间距至少为10（如果不为0）
+        if (spacing > 0 && spacing < 10) {
+            spacing = 10;
+            ui->leGridDensVertical->setText(QString::number(spacing));
+        }
+
+        // 设置垂直视图的网格
+        if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->setGridSpacing(spacing);
+    }
+}
+
+void MutiCamApp::onGridDensityLeftChanged()
+{
+    QString text = ui->leGridDensLeft->text();
+    bool ok;
+    int spacing = text.toInt(&ok);
+
+    if (ok && spacing >= 0) {
+        // 确保网格间距至少为10（如果不为0）
+        if (spacing > 0 && spacing < 10) {
+            spacing = 10;
+            ui->leGridDensLeft->setText(QString::number(spacing));
+        }
+
+        // 设置左侧视图的网格
+        if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->setGridSpacing(spacing);
+    }
+}
+
+void MutiCamApp::onGridDensityFrontChanged()
+{
+    QString text = ui->leGridDensFront->text();
+    bool ok;
+    int spacing = text.toInt(&ok);
+
+    if (ok && spacing >= 0) {
+        // 确保网格间距至少为10（如果不为0）
+        if (spacing > 0 && spacing < 10) {
+            spacing = 10;
+            ui->leGridDensFront->setText(QString::number(spacing));
+        }
+
+        // 设置对向视图的网格
+        if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->setGridSpacing(spacing);
+    }
+}
+
+void MutiCamApp::onCancelGridsClicked()
+{
+    // 清空主界面网格密度输入框
+    ui->leGridDensity->clear();
+
+    // 取消主界面所有视图的网格
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->setGridSpacing(0);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->setGridSpacing(0);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->setGridSpacing(0);
+}
+
+void MutiCamApp::onCancelGridsVerticalClicked()
+{
+    // 清空垂直视图网格密度输入框
+    ui->leGridDensVertical->clear();
+
+    // 取消垂直视图的网格
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->setGridSpacing(0);
+}
+
+void MutiCamApp::onCancelGridsLeftClicked()
+{
+    // 清空左侧视图网格密度输入框
+    ui->leGridDensLeft->clear();
+
+    // 取消左侧视图的网格
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->setGridSpacing(0);
+}
+
+void MutiCamApp::onCancelGridsFrontClicked()
+{
+    // 清空对向视图网格密度输入框
+    ui->leGridDensFront->clear();
+
+    // 取消对向视图的网格
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->setGridSpacing(0);
 }
 
 // {{ AURA-X: Add - 记录最后活动overlay槽函数实现. Approval: 寸止(ID:last_active_overlay). }}

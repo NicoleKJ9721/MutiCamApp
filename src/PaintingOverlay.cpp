@@ -29,6 +29,13 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_drawingContextValid(false)
     , m_hasCurrentLineSegment(false)
     , m_hasCurrentFineCircle(false)
+    , m_gridSpacing(0)              // 默认不显示网格
+    , m_gridColor(Qt::red)          // 红色网格
+    , m_gridStyle(Qt::DashLine)     // 虚线样式
+    , m_gridWidth(1)                // 线宽1像素
+    , m_gridCacheValid(false)       // 网格缓存初始无效
+    , m_lastGridImageSize(QSize())  // 初始图像尺寸
+    , m_lastGridSpacing(0)          // 初始网格间距
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -154,6 +161,12 @@ void PaintingOverlay::setTransforms(const QPointF& offset, double scale, const Q
 {
     m_imageOffset = offset;
     m_scaleFactor = scale;
+
+    // 如果图像尺寸发生变化，使网格缓存失效
+    if (m_imageSize != imageSize) {
+        m_gridCacheValid = false;
+    }
+
     m_imageSize = imageSize;
     update();
 }
@@ -235,6 +248,9 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         
         // 现在坐标系原点就是图像左上角，所有绘制函数可以直接使用图像坐标
         // 传递绘制上下文，避免重复创建对象
+
+        // 0. 首先绘制网格（作为最底层背景）
+        drawGrid(painter, ctx);
 
         // 1. 先绘制选中状态高亮（作为底层外描边）
         drawSelectionHighlights(painter);
@@ -3405,4 +3421,111 @@ bool PaintingOverlay::isPointOnLineSegment(const QPointF& point, const QPointF& 
 
     // 垂足在线段范围内（严格限制在线段内）
     return (t >= 0.0 && t <= 1.0);
+}
+
+// 网格功能实现
+void PaintingOverlay::setGridSpacing(int spacing)
+{
+    if (m_gridSpacing != spacing) {
+        m_gridSpacing = spacing;
+        m_gridCacheValid = false; // 使网格缓存失效
+        update(); // 触发重绘
+    }
+}
+
+void PaintingOverlay::setGridColor(const QColor& color)
+{
+    if (m_gridColor != color) {
+        m_gridColor = color;
+        m_gridCacheValid = false; // 使网格缓存失效
+        update(); // 触发重绘
+    }
+}
+
+void PaintingOverlay::setGridStyle(Qt::PenStyle style)
+{
+    if (m_gridStyle != style) {
+        m_gridStyle = style;
+        m_gridCacheValid = false; // 使网格缓存失效
+        update(); // 触发重绘
+    }
+}
+
+void PaintingOverlay::setGridWidth(int width)
+{
+    if (m_gridWidth != width) {
+        m_gridWidth = width;
+        m_gridCacheValid = false; // 使网格缓存失效
+        update(); // 触发重绘
+    }
+}
+
+int PaintingOverlay::getGridSpacing() const
+{
+    return m_gridSpacing;
+}
+
+QColor PaintingOverlay::getGridColor() const
+{
+    return m_gridColor;
+}
+
+Qt::PenStyle PaintingOverlay::getGridStyle() const
+{
+    return m_gridStyle;
+}
+
+int PaintingOverlay::getGridWidth() const
+{
+    return m_gridWidth;
+}
+
+void PaintingOverlay::drawGrid(QPainter& painter, const DrawingContext& ctx) const
+{
+    // 如果网格间距为0或负数，则不绘制网格
+    if (m_gridSpacing <= 0) {
+        return;
+    }
+
+    // 检查是否需要重新计算网格（性能优化）
+    bool needsRecalculation = !m_gridCacheValid ||
+                             m_lastGridImageSize != m_imageSize ||
+                             m_lastGridSpacing != m_gridSpacing;
+
+    if (needsRecalculation) {
+        // 更新缓存状态
+        m_gridCacheValid = true;
+        m_lastGridImageSize = m_imageSize;
+        m_lastGridSpacing = m_gridSpacing;
+    }
+
+    // 保存当前画笔状态
+    painter.save();
+
+    // 关闭抗锯齿以获得清晰的像素级线条
+    painter.setRenderHint(QPainter::Antialiasing, false);
+
+    // 设置网格线的画笔
+    QPen gridPen(m_gridColor);
+    gridPen.setWidth(m_gridWidth);
+    gridPen.setStyle(m_gridStyle);
+    gridPen.setCosmetic(true); // 确保像素对齐，不受坐标变换影响
+    painter.setPen(gridPen);
+
+    // 获取图像尺寸（在图像坐标系中）
+    int imageWidth = m_imageSize.width();
+    int imageHeight = m_imageSize.height();
+
+    // 绘制垂直线
+    for (int x = 0; x <= imageWidth; x += m_gridSpacing) {
+        painter.drawLine(x, 0, x, imageHeight);
+    }
+
+    // 绘制水平线
+    for (int y = 0; y <= imageHeight; y += m_gridSpacing) {
+        painter.drawLine(0, y, imageWidth, y);
+    }
+
+    // 恢复画笔状态
+    painter.restore();
 }

@@ -214,6 +214,16 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void clearSelection();
     QString getSelectedObjectInfo() const;
 
+    // 网格功能
+    void setGridSpacing(int spacing);
+    void setGridColor(const QColor& color);
+    void setGridStyle(Qt::PenStyle style);
+    void setGridWidth(int width);
+    int getGridSpacing() const;
+    QColor getGridColor() const;
+    Qt::PenStyle getGridStyle() const;
+    int getGridWidth() const;
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
@@ -289,7 +299,19 @@ private:
     // 视图名称
     QString m_viewName;
 
+    // 网格相关成员变量
+    int m_gridSpacing;          // 网格间距，0表示不显示网格
+    QColor m_gridColor;         // 网格颜色
+    Qt::PenStyle m_gridStyle;   // 网格线样式
+    int m_gridWidth;            // 网格线宽度
+
+    // 网格缓存相关
+    mutable bool m_gridCacheValid;      // 网格缓存是否有效
+    mutable QSize m_lastGridImageSize;  // 上次绘制网格时的图像尺寸
+    mutable int m_lastGridSpacing;      // 上次绘制网格时的间距
+
     // 私有绘图方法
+    void drawGrid(QPainter& painter, const DrawingContext& ctx) const;
     void drawPoints(QPainter& painter, const DrawingContext& ctx) const;
     void drawLines(QPainter& painter, const DrawingContext& ctx) const;
     void drawLineSegments(QPainter& painter, const DrawingContext& ctx) const;
