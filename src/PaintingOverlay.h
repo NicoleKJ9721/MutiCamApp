@@ -353,6 +353,15 @@ private:
     // 绘图上下文管理
     void updateDrawingContext() const;
     bool needsDrawingContextUpdate() const;
+
+    // 复合测量功能
+    void performComplexMeasurement(const QString& measurementType);
+    double calculatePointToLineDistance(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
+    double calculatePointToCircleDistance(const QPointF& point, const QPointF& circleCenter, double radius, bool toCircumference = true) const;
+    QString analyzeLineCircleRelation(const QPointF& lineStart, const QPointF& lineEnd, const QPointF& circleCenter, double radius) const;
+    double calculateLineSegmentAngle(const QPointF& line1Start, const QPointF& line1End, const QPointF& line2Start, const QPointF& line2End) const;
+    QPointF calculatePerpendicularFoot(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
+    bool isPointOnLineSegment(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd, double tolerance) const;
     
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);
