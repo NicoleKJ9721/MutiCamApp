@@ -122,9 +122,22 @@ private slots:
     void onClearDrawingsVerticalClicked();
     void onClearDrawingsLeftClicked();
     void onClearDrawingsFrontClicked();
-    
+
+    /**
+     * @brief 撤销上一步绘画按钮点击事件处理
+     */
+    void onUndoDrawingClicked();
+    void onUndoDrawingVerticalClicked();
+    void onUndoDrawingLeftClicked();
+    void onUndoDrawingFrontClicked();
+
     // {{ AURA-X: Add - 绘图同步槽函数. Approval: 寸止(ID:drawing_sync). }}
     void onDrawingSync(const QString& viewName);
+
+    /**
+     * @brief 记录最后活动的PaintingOverlay
+     */
+    void onOverlayActivated(PaintingOverlay* overlay);
     
     /**
      * @brief 选项卡切换事件处理
@@ -191,6 +204,9 @@ private:
     PaintingOverlay* m_verticalPaintingOverlay2;
     PaintingOverlay* m_leftPaintingOverlay2;
     PaintingOverlay* m_frontPaintingOverlay2;
+
+    // 记录最后活动的PaintingOverlay，用于撤销功能
+    PaintingOverlay* m_lastActivePaintingOverlay;
     
     /**
      * @brief 初始化相机系统

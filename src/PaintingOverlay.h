@@ -219,6 +219,7 @@ signals:
     void selectionChanged(const QString& info);   // 选择变化信号
     void measurementCompleted(const QString& viewName, const QString& result); // 测量完成信号
     void drawingDataChanged(const QString& viewName); // 绘图数据变化信号
+    void overlayActivated(PaintingOverlay* overlay); // overlay被激活信号
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -272,6 +273,7 @@ private:
     QSet<int> m_selectedParallels;
     QSet<int> m_selectedTwoLines;
     QSet<int> m_selectedParallelMiddleLines;
+    QSet<int> m_selectedBisectorLines; // 选中的角平分线
     
     // 绘图上下文缓存
     mutable DrawingContext m_cachedDrawingContext;

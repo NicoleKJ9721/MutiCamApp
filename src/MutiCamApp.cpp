@@ -31,6 +31,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_verticalDisplayWidget2(nullptr)
     , m_leftDisplayWidget2(nullptr)
     , m_frontDisplayWidget2(nullptr)
+    , m_lastActivePaintingOverlay(nullptr)
 {
     ui->setupUi(this);
     
@@ -234,7 +235,17 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onClearDrawingsLeftClicked);
     connect(ui->btnClearDrawingsFront, &QPushButton::clicked,
             this, &MutiCamApp::onClearDrawingsFrontClicked);
-    
+
+    // 连接撤销按钮信号
+    connect(ui->btnCan1StepDraw, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDrawingClicked);
+    connect(ui->btnCan1StepDrawVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDrawingVerticalClicked);
+    connect(ui->btnCan1StepDrawLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDrawingLeftClicked);
+    connect(ui->btnCan1StepDrawFront, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDrawingFrontClicked);
+
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
@@ -259,6 +270,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
     if (m_leftPaintingOverlay) {
         connect(m_leftPaintingOverlay, &PaintingOverlay::measurementCompleted,
@@ -269,6 +282,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
     if (m_frontPaintingOverlay) {
         connect(m_frontPaintingOverlay, &PaintingOverlay::measurementCompleted,
@@ -279,6 +294,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
     if (m_verticalPaintingOverlay2) {
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -289,6 +306,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
     if (m_leftPaintingOverlay2) {
         connect(m_leftPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -299,6 +318,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
     if (m_frontPaintingOverlay2) {
         connect(m_frontPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -309,6 +330,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::overlayActivated,
+                this, &MutiCamApp::onOverlayActivated);
     }
 }
 
@@ -1305,10 +1328,25 @@ PaintingOverlay* MutiCamApp::getPaintingOverlay(const QString& viewName)
 
 PaintingOverlay* MutiCamApp::getActivePaintingOverlay()
 {
+    // 首先尝试获取当前焦点的PaintingOverlay
+    QWidget* focusWidget = QApplication::focusWidget();
+    if (auto* overlay = qobject_cast<PaintingOverlay*>(focusWidget)) {
+        return overlay;
+    }
+
+    // 如果没有焦点overlay，使用记录的最后活动overlay
     int currentTab = ui->tabWidget->currentIndex();
     if (currentTab == 0) {
-        // 主界面，返回当前活动的主视图PaintingOverlay
-        // 这里可以根据具体需求返回特定视图，暂时返回垂直视图
+        // 主界面，优先使用记录的最后活动overlay
+        if (m_lastActivePaintingOverlay) {
+            // 确保最后活动的overlay是主界面的overlay
+            if (m_lastActivePaintingOverlay == m_verticalPaintingOverlay ||
+                m_lastActivePaintingOverlay == m_leftPaintingOverlay ||
+                m_lastActivePaintingOverlay == m_frontPaintingOverlay) {
+                return m_lastActivePaintingOverlay;
+            }
+        }
+        // 如果没有记录或记录的不是主界面overlay，返回垂直视图作为默认
         return m_verticalPaintingOverlay;
     } else if (currentTab == 1) {
         return m_verticalPaintingOverlay2;
@@ -1348,6 +1386,42 @@ void MutiCamApp::onClearDrawingsFrontClicked()
     if (m_frontPaintingOverlay) {
         m_frontPaintingOverlay->clearAllDrawings();
     }
+}
+
+// {{ AURA-X: Add - 撤销绘图按钮槽函数实现. Approval: 寸止(ID:undo_buttons). }}
+void MutiCamApp::onUndoDrawingClicked()
+{
+    PaintingOverlay* overlay = getActivePaintingOverlay();
+    if (overlay) {
+        overlay->undoLastDrawing();
+    }
+}
+
+void MutiCamApp::onUndoDrawingVerticalClicked()
+{
+    if (m_verticalPaintingOverlay) {
+        m_verticalPaintingOverlay->undoLastDrawing();
+    }
+}
+
+void MutiCamApp::onUndoDrawingLeftClicked()
+{
+    if (m_leftPaintingOverlay) {
+        m_leftPaintingOverlay->undoLastDrawing();
+    }
+}
+
+void MutiCamApp::onUndoDrawingFrontClicked()
+{
+    if (m_frontPaintingOverlay) {
+        m_frontPaintingOverlay->undoLastDrawing();
+    }
+}
+
+// {{ AURA-X: Add - 记录最后活动overlay槽函数实现. Approval: 寸止(ID:last_active_overlay). }}
+void MutiCamApp::onOverlayActivated(PaintingOverlay* overlay)
+{
+    m_lastActivePaintingOverlay = overlay;
 }
 
 // {{ AURA-X: Add - 绘图同步槽函数实现. Approval: 寸止(ID:drawing_sync). }}
