@@ -3,6 +3,7 @@
 
 #include <QApplication>
 #include <QMessageBox>
+#include <QDebug>
 #include <iostream>
 #ifdef _WIN32
 #include <windows.h>
@@ -11,12 +12,49 @@
 #endif
 #pragma comment(lib, "user32.lib")
 
+#ifdef _WIN32
+// 自定义消息处理器，解决Windows下qDebug中文乱码问题
+void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    // 获取消息类型前缀
+    QString prefix;
+    switch (type) {
+    case QtDebugMsg:    prefix = "Debug: "; break;
+    case QtWarningMsg:  prefix = "Warning: "; break;
+    case QtCriticalMsg: prefix = "Critical: "; break;
+    case QtFatalMsg:    prefix = "Fatal: "; break;
+    case QtInfoMsg:     prefix = "Info: "; break;
+    }
+
+    // 构建完整消息
+    QString fullMessage = prefix + msg + "\n";
+
+    // 转换为UTF-8字节数组
+    QByteArray utf8Data = fullMessage.toUtf8();
+
+    // 使用Windows API直接输出到控制台
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole != INVALID_HANDLE_VALUE) {
+        DWORD written;
+        WriteConsoleA(hConsole, utf8Data.constData(), utf8Data.length(), &written, nullptr);
+    }
+
+    // 如果是致命错误，终止程序
+    if (type == QtFatalMsg) {
+        abort();
+    }
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
     // 设置控制台编码为UTF-8，修复中文乱码
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+
+    // 安装自定义消息处理器，解决qDebug中文乱码问题
+    qInstallMessageHandler(customMessageOutput);
 
     // 注意：不使用_O_U8TEXT模式，因为会与qDebug冲突
     // _setmode(_fileno(stdout), _O_U8TEXT);
