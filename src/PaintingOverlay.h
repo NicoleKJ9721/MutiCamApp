@@ -15,6 +15,13 @@
 #include <QBrush>
 #include <QMenu>
 #include <QAction>
+#include <QTime>
+#include <opencv2/opencv.hpp>
+#include "image_processing/edge_detector.h"
+#include "image_processing/shape_detector.h"
+
+// 前向声明
+class MutiCamApp;
 
 class PaintingOverlay : public QWidget
 {
@@ -30,7 +37,9 @@ public:
         Circle,
         FineCircle,
         Parallel,
-        TwoLines
+        TwoLines,
+        ROI_LineDetect,    // ROI直线检测
+        ROI_CircleDetect   // ROI圆形检测
     };
 
     // 绘图对象结构体
@@ -154,6 +163,36 @@ public:
         bool hasIntersection = false;
     };
 
+    // ROI检测对象结构体
+    struct ROIObject {
+        QVector<QPointF> points;        // ROI矩形的两个对角点
+        bool isCompleted = false;       // 是否完成绘制
+        QColor color = Qt::yellow;      // ROI矩形颜色
+        int thickness = 2;              // 线条粗细
+        bool isDashed = true;           // 虚线显示
+        QString label;                  // 标签
+        bool isVisible = true;          // 是否可见
+        DrawingTool detectionType;      // 检测类型（直线或圆形）
+        bool isDetecting = false;       // 是否正在检测中
+
+        // 获取ROI矩形
+        QRectF getRect() const {
+            if (points.size() >= 2) {
+                QPointF topLeft = points[0];
+                QPointF bottomRight = points[1];
+
+                // 确保topLeft在左上角，bottomRight在右下角
+                double left = qMin(topLeft.x(), bottomRight.x());
+                double top = qMin(topLeft.y(), bottomRight.y());
+                double width = qAbs(bottomRight.x() - topLeft.x());
+                double height = qAbs(bottomRight.y() - topLeft.y());
+
+                return QRectF(left, top, width, height);
+            }
+            return QRectF();
+        }
+    };
+
     // 绘图动作结构体（用于历史记录）
     struct DrawingAction {
         enum Type {
@@ -164,13 +203,15 @@ public:
             AddFineCircle,
             AddParallel,
             AddTwoLines,
+            AddROI,
             DeletePoint,
             DeleteLine,
             DeleteLineSegment,
             DeleteCircle,
             DeleteFineCircle,
             DeleteParallel,
-            DeleteTwoLines
+            DeleteTwoLines,
+            DeleteROI
         };
         
         Type type;
@@ -187,10 +228,12 @@ public:
         QVector<FineCircleObject> fineCircles;
         QVector<ParallelObject> parallels;
         QVector<TwoLinesObject> twoLines;
+        QVector<ROIObject> rois;
         QStack<DrawingAction> history;
     };
 
 explicit PaintingOverlay(QWidget *parent = nullptr);
+    ~PaintingOverlay();
 
     // 公共接口，由 MutiCamApp 调用
     void startDrawing(DrawingTool tool);
@@ -224,6 +267,11 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     Qt::PenStyle getGridStyle() const;
     int getGridWidth() const;
 
+    // 参数设置接口
+    void setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params);
+    void setLineDetectionParams(const ShapeDetector::LineDetectionParams& params);
+    void setCircleDetectionParams(const ShapeDetector::CircleDetectionParams& params);
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
@@ -238,6 +286,12 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
+    // 自动检测相关方法
+    void performAutoDetection(const ROIObject& roi);
+    cv::Mat getCurrentFrameFromParent() const;
+    void performLineDetection(const cv::Mat& frame, const cv::Rect& roi);
+    void performCircleDetection(const cv::Mat& frame, const cv::Rect& roi);
+
     // 绘图模式相关
     bool m_isDrawingMode;
     DrawingTool m_currentDrawingTool;
@@ -250,6 +304,7 @@ private:
     QVector<FineCircleObject> m_fineCircles;
     QVector<ParallelObject> m_parallels;
     QVector<TwoLinesObject> m_twoLines;
+    QVector<ROIObject> m_rois;
     
     // 当前正在绘制的数据
     LineObject m_currentLine;
@@ -264,6 +319,8 @@ private:
     bool m_hasCurrentParallel;
     TwoLinesObject m_currentTwoLines;
     bool m_hasCurrentTwoLines;
+    ROIObject m_currentROI;
+    bool m_hasCurrentROI;
     QVector<QPointF> m_currentPoints; // 当前绘制过程中的临时点
 
     // 鼠标预览位置
@@ -284,6 +341,7 @@ private:
     QSet<int> m_selectedTwoLines;
     QSet<int> m_selectedParallelMiddleLines;
     QSet<int> m_selectedBisectorLines; // 选中的角平分线
+    QSet<int> m_selectedROIs;
     
     // 绘图上下文缓存
     mutable DrawingContext m_cachedDrawingContext;
@@ -298,6 +356,15 @@ private:
     
     // 视图名称
     QString m_viewName;
+
+    // 图像处理相关
+    EdgeDetector* m_edgeDetector;
+    ShapeDetector* m_shapeDetector;
+
+    // 性能优化相关
+    cv::Mat m_lastProcessedFrame;       // 上次处理的帧
+    QString m_lastFrameHash;            // 上次帧的哈希值
+    QTime m_lastDetectionTime;          // 上次检测时间
 
     // 网格相关成员变量
     int m_gridSpacing;          // 网格间距，0表示不显示网格
@@ -319,6 +386,7 @@ private:
     void drawFineCircles(QPainter& painter, const DrawingContext& ctx) const;
     void drawParallels(QPainter& painter, const DrawingContext& ctx) const;
     void drawTwoLines(QPainter& painter, const DrawingContext& ctx) const;
+    void drawROIs(QPainter& painter, const DrawingContext& ctx) const;
     
     // 单个对象绘制方法
     void drawSinglePoint(QPainter& painter, const QPointF& point, int index, const DrawingContext& ctx) const;
@@ -328,6 +396,7 @@ private:
     void drawSingleFineCircle(QPainter& painter, const FineCircleObject& fineCircle, const DrawingContext& ctx) const;
     void drawSingleParallel(QPainter& painter, const ParallelObject& parallel, const DrawingContext& ctx) const;
     void drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx) const;
+    void drawSingleROI(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const;
     
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;
@@ -341,8 +410,9 @@ private:
     void handleFineCircleDrawingClick(const QPointF& pos);
     void handleParallelDrawingClick(const QPointF& pos);
     void handleTwoLinesDrawingClick(const QPointF& pos);
+    void handleROIDrawingClick(const QPointF& pos);
     void handleSelectionClick(const QPointF& pos, bool ctrlPressed);
-    
+
     // 命中测试方法
     int hitTestPoint(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestLine(const QPointF& pos, double tolerance = 5.0) const;
@@ -351,6 +421,7 @@ private:
     int hitTestFineCircle(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestParallel(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestTwoLines(const QPointF& pos, double tolerance = 5.0) const;
+    int hitTestROI(const QPointF& pos, double tolerance = 5.0) const;
     
     // 几何计算方法
     bool calculateCircleFromThreePoints(const QVector<QPointF>& points, QPointF& center, double& radius) const;
@@ -399,7 +470,8 @@ private:
     void setFineCirclesData(const QVector<FineCircleObject>& fineCircles);
     void setParallelLinesData(const QVector<ParallelObject>& parallels);
     void setTwoLinesData(const QVector<TwoLinesObject>& twoLines);
-    
+    void setROIsData(const QVector<ROIObject>& rois);
+
     // 当前绘制数据管理
     void setCurrentLineData(const LineObject& currentLine);
     void clearCurrentLineData();
@@ -413,6 +485,9 @@ private:
     void clearCurrentParallelData();
     void setCurrentTwoLinesData(const TwoLinesObject& currentTwoLines);
     void clearCurrentTwoLinesData();
+    void setCurrentROIData(const ROIObject& currentROI);
+    void clearCurrentROIData();
+
 };
 
 #endif // PAINTINGOVERLAY_H

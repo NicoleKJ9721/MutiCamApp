@@ -43,6 +43,12 @@ set(srcs
     src/camera/camera_manager.cpp
     src/camera/camera_thread.cpp
     src/camera/hikvision_camera.cpp
+
+    # 图像处理模块
+    src/image_processing/edge_detector.h
+    src/image_processing/edge_detector.cpp
+    src/image_processing/shape_detector.h
+    src/image_processing/shape_detector.cpp
 )
 
 # Specify MSVC UTF-8 encoding   

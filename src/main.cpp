@@ -17,6 +17,10 @@ int main(int argc, char *argv[])
     // 设置控制台编码为UTF-8，修复中文乱码
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
+
+    // 注意：不使用_O_U8TEXT模式，因为会与qDebug冲突
+    // _setmode(_fileno(stdout), _O_U8TEXT);
+    // _setmode(_fileno(stderr), _O_U8TEXT);
 #endif
 
     // Qt 5.14+推荐的高DPI策略
@@ -25,7 +29,7 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication a(argc, argv);
-    
+
     // 测试依赖库是否正确配置
     std::cout << "=== 依赖库测试开始 ===" << std::endl;
     

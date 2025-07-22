@@ -333,6 +333,18 @@
 			"MU",
 			"UVLADIE3JM/moc_dependencies_test.cpp",
 			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/image_processing/edge_detector.h",
+			"MU",
+			"UHP4T6SU7E/moc_edge_detector.cpp",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/image_processing/shape_detector.h",
+			"MU",
+			"UHP4T6SU7E/moc_shape_detector.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
@@ -427,6 +439,16 @@
 		],
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/dependencies_test.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/image_processing/edge_detector.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/image_processing/shape_detector.cpp",
 			"MU",
 			null
 		],

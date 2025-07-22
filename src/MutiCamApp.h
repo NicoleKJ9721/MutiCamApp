@@ -15,6 +15,8 @@
 #include <QCache>
 #include <cmath>
 #include <opencv2/opencv.hpp>
+#include "image_processing/edge_detector.h"
+#include "image_processing/shape_detector.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -29,6 +31,26 @@ public:
 
     MutiCamApp(QWidget *parent = nullptr);
     ~MutiCamApp();
+
+    /**
+     * @brief 获取指定视图的当前帧
+     * @param viewName 视图名称
+     * @return 当前帧的cv::Mat，如果没有则返回空Mat
+     */
+    cv::Mat getCurrentFrame(const QString& viewName) const;
+
+    /**
+     * @brief 启动自动检测
+     * @param viewName 视图名称，空字符串表示当前活动视图
+     * @param detectionType 检测类型（直线或圆形）
+     */
+    void startAutoDetection(const QString& viewName, PaintingOverlay::DrawingTool detectionType);
+
+    /**
+     * @brief 获取当前活动视图名称
+     * @return 当前活动视图名称
+     */
+    QString getCurrentActiveViewName() const;
 
 private slots:
     /**
@@ -132,6 +154,18 @@ private slots:
     void onUndoDrawingFrontClicked();
 
     /**
+     * @brief 自动检测按钮点击事件处理
+     */
+    void onAutoLineDetectionClicked();      // 主界面直线查找
+    void onAutoCircleDetectionClicked();    // 主界面圆查找
+    void onAutoLineDetectionVerticalClicked();  // 垂直视图直线查找
+    void onAutoCircleDetectionVerticalClicked(); // 垂直视图圆查找
+    void onAutoLineDetectionLeftClicked();      // 左侧视图直线查找
+    void onAutoCircleDetectionLeftClicked();    // 左侧视图圆查找
+    void onAutoLineDetectionFrontClicked();     // 对向视图直线查找
+    void onAutoCircleDetectionFrontClicked();   // 对向视图圆查找
+
+    /**
      * @brief 网格相关槽函数
      */
     void onGridDensityChanged();           // 主界面网格密度变化
@@ -156,6 +190,8 @@ private slots:
      * @param index 选项卡索引
      */
     void onTabChanged(int index);
+
+
 
 private:
     Ui_MutiCamApp* ui;
@@ -381,6 +417,37 @@ private:
       * @param frame 图像帧
       */
      void updateVideoDisplayWidget(const QString& viewName, const cv::Mat& frame);
+
+private:
+     /**
+      * @brief 从UI获取边缘检测参数
+      * @return EdgeDetector参数结构体
+      */
+     EdgeDetector::EdgeDetectionParams getEdgeDetectionParams() const;
+
+     /**
+      * @brief 从UI获取直线检测参数
+      * @return ShapeDetector直线检测参数结构体
+      */
+     ShapeDetector::LineDetectionParams getLineDetectionParams() const;
+
+     /**
+      * @brief 从UI获取圆形检测参数
+      * @return ShapeDetector圆形检测参数结构体
+      */
+     ShapeDetector::CircleDetectionParams getCircleDetectionParams() const;
+
+     /**
+      * @brief 配置检测参数
+      * @param overlay PaintingOverlay指针
+      * @param detectionType 检测类型
+      */
+     void configureDetectionParameters(PaintingOverlay* overlay, PaintingOverlay::DrawingTool detectionType);
+
+     /**
+      * @brief 初始化检测参数默认值
+      */
+     void initializeDetectionParameters();
      
 
      

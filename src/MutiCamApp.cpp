@@ -1,4 +1,5 @@
 #include "MutiCamApp.h"
+#include "ui_MutiCamApp.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -265,6 +266,24 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnCancelGridsFront, &QPushButton::clicked,
             this, &MutiCamApp::onCancelGridsFrontClicked);
 
+    // 连接自动检测按钮信号
+    connect(ui->btnLineDet, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoLineDetectionClicked);
+    connect(ui->btnCircleDet, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoCircleDetectionClicked);
+    connect(ui->btnLineDetVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoLineDetectionVerticalClicked);
+    connect(ui->btnCircleDetVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoCircleDetectionVerticalClicked);
+    connect(ui->btnLineDetLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoLineDetectionLeftClicked);
+    connect(ui->btnCircleDetLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoCircleDetectionLeftClicked);
+    connect(ui->btnLineDetFront, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoLineDetectionFrontClicked);
+    connect(ui->btnCircleDetFront, &QPushButton::clicked,
+            this, &MutiCamApp::onAutoCircleDetectionFrontClicked);
+
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
@@ -352,6 +371,9 @@ void MutiCamApp::connectSignalsAndSlots()
         connect(m_frontPaintingOverlay2, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
     }
+
+    // 设置自动检测参数的默认值
+    initializeDetectionParameters();
 }
 
 void MutiCamApp::onStartMeasureClicked()
@@ -418,6 +440,15 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 {
     if (frame.empty()) return;
 
+    // 存储当前帧供自动检测使用
+    if (cameraId == "vertical") {
+        m_currentFrameVertical = frame.clone();
+    } else if (cameraId == "left") {
+        m_currentFrameLeft = frame.clone();
+    } else if (cameraId == "front") {
+        m_currentFrameFront = frame.clone();
+    }
+
     VideoDisplayWidget* mainWidget = getVideoDisplayWidget(cameraId);
     VideoDisplayWidget* tabWidget = nullptr;
 
@@ -431,7 +462,7 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         // 同步主界面视图的坐标变换
         syncOverlayTransforms(cameraId);
     }
-    
+
     // 只有当对应的Tab页可见时才更新，以节省性能
     if (tabWidget && tabWidget->isVisible()) {
         tabWidget->setVideoFrame(matToQPixmap(frame));
@@ -1329,19 +1360,29 @@ VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
 
 PaintingOverlay* MutiCamApp::getPaintingOverlay(const QString& viewName)
 {
+    qDebug() << "getPaintingOverlay called with viewName:" << viewName;
+
     if (viewName == "vertical") {
+        qDebug() << "返回 m_verticalPaintingOverlay:" << (m_verticalPaintingOverlay ? "有效" : "空指针");
         return m_verticalPaintingOverlay;
     } else if (viewName == "left") {
+        qDebug() << "返回 m_leftPaintingOverlay:" << (m_leftPaintingOverlay ? "有效" : "空指针");
         return m_leftPaintingOverlay;
     } else if (viewName == "front") {
+        qDebug() << "返回 m_frontPaintingOverlay:" << (m_frontPaintingOverlay ? "有效" : "空指针");
         return m_frontPaintingOverlay;
     } else if (viewName == "vertical2") {
+        qDebug() << "返回 m_verticalPaintingOverlay2:" << (m_verticalPaintingOverlay2 ? "有效" : "空指针");
         return m_verticalPaintingOverlay2;
     } else if (viewName == "left2") {
+        qDebug() << "返回 m_leftPaintingOverlay2:" << (m_leftPaintingOverlay2 ? "有效" : "空指针");
         return m_leftPaintingOverlay2;
     } else if (viewName == "front2") {
+        qDebug() << "返回 m_frontPaintingOverlay2:" << (m_frontPaintingOverlay2 ? "有效" : "空指针");
         return m_frontPaintingOverlay2;
     }
+
+    qDebug() << "未找到匹配的视图名称：" << viewName;
     return nullptr;
 }
 
@@ -1663,6 +1704,303 @@ void MutiCamApp::resizeEvent(QResizeEvent* event)
     syncOverlayTransforms("vertical2");
     syncOverlayTransforms("left2");
     syncOverlayTransforms("front2");
+}
+
+cv::Mat MutiCamApp::getCurrentFrame(const QString& viewName) const
+{
+    // 移除视图名称中的数字后缀（如"vertical2" -> "vertical"）
+    QString baseName = viewName;
+    if (baseName.endsWith("2")) {
+        baseName.chop(1);
+    }
+
+    // 转换为小写进行比较
+    QString lowerBaseName = baseName.toLower();
+
+    qDebug() << "getCurrentFrame called with viewName:" << viewName << "baseName:" << baseName << "lowerBaseName:" << lowerBaseName;
+
+    if (lowerBaseName == "vertical") {
+        qDebug() << "返回vertical帧，尺寸：" << m_currentFrameVertical.cols << "x" << m_currentFrameVertical.rows;
+        return m_currentFrameVertical;
+    } else if (lowerBaseName == "left") {
+        qDebug() << "返回left帧，尺寸：" << m_currentFrameLeft.cols << "x" << m_currentFrameLeft.rows;
+        return m_currentFrameLeft;
+    } else if (lowerBaseName == "front") {
+        qDebug() << "返回front帧，尺寸：" << m_currentFrameFront.cols << "x" << m_currentFrameFront.rows;
+        return m_currentFrameFront;
+    }
+
+    qDebug() << "未找到匹配的视图名称：" << viewName;
+    return cv::Mat(); // 返回空Mat
+}
+
+// 自动检测槽函数实现
+void MutiCamApp::onAutoLineDetectionClicked()
+{
+    // 主界面的直线检测按钮 - 同时在所有视图中启用检测模式
+    qDebug() << "主界面直线检测按钮被点击 - 启用所有视图";
+
+    // 在所有视图中启用直线检测模式
+    startAutoDetection("vertical", PaintingOverlay::DrawingTool::ROI_LineDetect);
+    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_LineDetect);
+    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_LineDetect);
+
+    // 更新状态栏提示
+    statusBar()->showMessage("直线检测模式已启用 - 请在任意视图中框选ROI区域", 5000);
+}
+
+void MutiCamApp::onAutoCircleDetectionClicked()
+{
+    // 主界面的圆形检测按钮 - 同时在所有视图中启用检测模式
+    qDebug() << "主界面圆形检测按钮被点击 - 启用所有视图";
+
+    // 在所有视图中启用圆形检测模式
+    startAutoDetection("vertical", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+
+    // 更新状态栏提示
+    statusBar()->showMessage("圆形检测模式已启用 - 请在任意视图中框选ROI区域", 5000);
+}
+
+void MutiCamApp::onAutoLineDetectionVerticalClicked()
+{
+    startAutoDetection("vertical2", PaintingOverlay::DrawingTool::ROI_LineDetect);
+}
+
+void MutiCamApp::onAutoCircleDetectionVerticalClicked()
+{
+    startAutoDetection("vertical2", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+}
+
+void MutiCamApp::onAutoLineDetectionLeftClicked()
+{
+    qDebug() << "左侧视图直线检测按钮被点击";
+    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_LineDetect);
+}
+
+void MutiCamApp::onAutoCircleDetectionLeftClicked()
+{
+    qDebug() << "左侧视图圆形检测按钮被点击";
+    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+}
+
+void MutiCamApp::onAutoLineDetectionFrontClicked()
+{
+    qDebug() << "对向视图直线检测按钮被点击";
+    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_LineDetect);
+}
+
+void MutiCamApp::onAutoCircleDetectionFrontClicked()
+{
+    qDebug() << "对向视图圆形检测按钮被点击";
+    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+}
+
+void MutiCamApp::startAutoDetection(const QString& viewName, PaintingOverlay::DrawingTool detectionType)
+{
+    // 确定目标视图
+    QString targetView = viewName;
+    if (targetView.isEmpty()) {
+        // 如果没有指定视图，使用当前活动的视图
+        targetView = getCurrentActiveViewName();
+    }
+
+    // 获取对应的PaintingOverlay
+    PaintingOverlay* overlay = getPaintingOverlay(targetView);
+    if (!overlay) {
+        qDebug() << "无法获取视图的PaintingOverlay：" << targetView;
+        QMessageBox::warning(this, "错误", QString("无法获取视图 %1 的PaintingOverlay").arg(targetView));
+        return;
+    }
+    qDebug() << "成功获取PaintingOverlay：" << targetView;
+
+    // 检查是否有当前帧
+    cv::Mat currentFrame = getCurrentFrame(targetView);
+    if (currentFrame.empty()) {
+        qDebug() << "当前视图没有图像帧：" << targetView;
+        QMessageBox::warning(this, "自动检测",
+                            QString("当前视图 %1 没有图像，请先启动相机").arg(targetView));
+        return;
+    }
+    qDebug() << "当前帧尺寸：" << currentFrame.cols << "x" << currentFrame.rows;
+
+    // 配置检测参数
+    configureDetectionParameters(overlay, detectionType);
+
+    // 启动ROI绘制模式
+    overlay->startDrawing(detectionType);
+
+    // 给用户提示
+    QString detectionTypeName = (detectionType == PaintingOverlay::DrawingTool::ROI_LineDetect) ? "直线" : "圆形";
+    QString message = QString("请在 %1 视图中框选ROI区域进行%2检测").arg(targetView).arg(detectionTypeName);
+
+    // 更新状态栏
+    statusBar()->showMessage(message, 5000);
+
+    qDebug() << "启动自动检测：" << targetView << detectionTypeName;
+}
+
+QString MutiCamApp::getCurrentActiveViewName() const
+{
+    // 根据当前Tab页确定活动视图
+    int currentIndex = ui->tabWidget->currentIndex();
+    switch (currentIndex) {
+        case 0: // 主界面
+            // 在主界面中，需要确定哪个视图是活动的
+            // 这里简化处理，返回垂直视图
+            return "vertical";
+        case 1: // 垂直视图Tab
+            return "vertical2";
+        case 2: // 左侧视图Tab
+            return "left2";
+        case 3: // 对向视图Tab
+            return "front2";
+        default:
+            return "vertical";
+    }
+}
+
+EdgeDetector::EdgeDetectionParams MutiCamApp::getEdgeDetectionParams() const
+{
+    EdgeDetector::EdgeDetectionParams params;
+
+    // 从UI获取Canny边缘检测参数
+    bool ok;
+    double lowThreshold = ui->ledCannyLineLow->text().toDouble(&ok);
+    if (ok && lowThreshold >= 0 && lowThreshold <= 255) {
+        params.lowThreshold = lowThreshold;
+    } else {
+        qDebug() << "无效的Canny低阈值，使用默认值50";
+        params.lowThreshold = 50.0;
+    }
+
+    double highThreshold = ui->ledCannyLineHigh->text().toDouble(&ok);
+    if (ok && highThreshold >= 0 && highThreshold <= 255) {
+        params.highThreshold = highThreshold;
+    } else {
+        qDebug() << "无效的Canny高阈值，使用默认值150";
+        params.highThreshold = 150.0;
+    }
+
+    // 确保低阈值小于高阈值
+    if (params.lowThreshold >= params.highThreshold) {
+        qDebug() << "Canny阈值关系错误，自动调整";
+        params.lowThreshold = params.highThreshold * 0.5;
+    }
+
+    return params;
+}
+
+ShapeDetector::LineDetectionParams MutiCamApp::getLineDetectionParams() const
+{
+    ShapeDetector::LineDetectionParams params;
+
+    // 从UI获取直线检测参数
+    bool ok;
+    int threshold = ui->ledLineDetThreshold->text().toInt(&ok);
+    if (ok && threshold > 0 && threshold <= 1000) {
+        params.threshold = threshold;
+    } else {
+        qDebug() << "无效的直线检测阈值，使用默认值50";
+        params.threshold = 50;
+    }
+
+    double minLineLength = ui->ledLineDetMinLength->text().toDouble(&ok);
+    if (ok && minLineLength >= 0 && minLineLength <= 1000) {
+        params.minLineLength = minLineLength;
+    } else {
+        qDebug() << "无效的最小线段长度，使用默认值50";
+        params.minLineLength = 50.0;
+    }
+
+    double maxLineGap = ui->ledLineDetMaxGap->text().toDouble(&ok);
+    if (ok && maxLineGap >= 0 && maxLineGap <= 100) {
+        params.maxLineGap = maxLineGap;
+    } else {
+        qDebug() << "无效的最大线段间隙，使用默认值10";
+        params.maxLineGap = 10.0;
+    }
+
+    return params;
+}
+
+ShapeDetector::CircleDetectionParams MutiCamApp::getCircleDetectionParams() const
+{
+    ShapeDetector::CircleDetectionParams params;
+
+    // 从UI获取圆形检测参数
+    bool ok;
+    double param1 = ui->ledCannyCircleHigh->text().toDouble(&ok);
+    if (ok && param1 > 0 && param1 <= 500) {
+        params.param1 = param1;
+    } else {
+        qDebug() << "无效的圆形检测Param1，使用默认值200";
+        params.param1 = 200.0;
+    }
+
+    double param2 = ui->ledCircleDetParam2->text().toDouble(&ok);
+    if (ok && param2 > 0 && param2 <= 200) {
+        params.param2 = param2;
+    } else {
+        qDebug() << "无效的圆形检测Param2，使用默认值50";
+        params.param2 = 50.0;
+    }
+
+    return params;
+}
+
+void MutiCamApp::configureDetectionParameters(PaintingOverlay* overlay, PaintingOverlay::DrawingTool detectionType)
+{
+    if (!overlay) return;
+
+    // 获取EdgeDetector和ShapeDetector（通过PaintingOverlay的公共接口）
+    // 由于PaintingOverlay的图像处理器是私有的，我们需要添加公共接口
+    // 这里先记录参数，实际应用需要在PaintingOverlay中添加参数设置接口
+
+    EdgeDetector::EdgeDetectionParams edgeParams = getEdgeDetectionParams();
+    qDebug() << "边缘检测参数 - 低阈值:" << edgeParams.lowThreshold
+             << "高阈值:" << edgeParams.highThreshold;
+
+    if (detectionType == PaintingOverlay::DrawingTool::ROI_LineDetect) {
+        ShapeDetector::LineDetectionParams lineParams = getLineDetectionParams();
+        qDebug() << "直线检测参数 - 阈值:" << lineParams.threshold
+                 << "最小长度:" << lineParams.minLineLength
+                 << "最大间隙:" << lineParams.maxLineGap;
+    } else if (detectionType == PaintingOverlay::DrawingTool::ROI_CircleDetect) {
+        ShapeDetector::CircleDetectionParams circleParams = getCircleDetectionParams();
+        qDebug() << "圆形检测参数 - Param1:" << circleParams.param1
+                 << "Param2:" << circleParams.param2;
+    }
+
+    // 应用参数设置
+    overlay->setEdgeDetectionParams(edgeParams);
+
+    if (detectionType == PaintingOverlay::DrawingTool::ROI_LineDetect) {
+        ShapeDetector::LineDetectionParams lineParams = getLineDetectionParams();
+        overlay->setLineDetectionParams(lineParams);
+    } else if (detectionType == PaintingOverlay::DrawingTool::ROI_CircleDetect) {
+        ShapeDetector::CircleDetectionParams circleParams = getCircleDetectionParams();
+        overlay->setCircleDetectionParams(circleParams);
+    }
+}
+
+void MutiCamApp::initializeDetectionParameters()
+{
+    // 设置边缘检测默认参数
+    ui->ledCannyLineLow->setText("50");      // Canny低阈值
+    ui->ledCannyLineHigh->setText("150");    // Canny高阈值
+
+    // 设置直线检测默认参数
+    ui->ledLineDetThreshold->setText("50");     // 霍夫变换阈值
+    ui->ledLineDetMinLength->setText("50");     // 最小线段长度
+    ui->ledLineDetMaxGap->setText("10");        // 最大线段间隙
+
+    // 设置圆形检测默认参数
+    ui->ledCannyCircleHigh->setText("200");     // 圆形检测Canny高阈值
+    ui->ledCircleDetParam2->setText("50");      // 圆形检测累加器阈值
+
+    qDebug() << "自动检测参数默认值已设置";
 }
 
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}

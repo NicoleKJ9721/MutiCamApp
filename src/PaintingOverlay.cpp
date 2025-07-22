@@ -1,4 +1,5 @@
 #include "PaintingOverlay.h"
+#include "MutiCamApp.h"
 #include <QApplication>
 #include <QDebug>
 #include <QtMath>
@@ -14,7 +15,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-PaintingOverlay::PaintingOverlay(QWidget *parent) 
+PaintingOverlay::PaintingOverlay(QWidget *parent)
     : QWidget(parent)
     , m_isDrawingMode(false)
     , m_currentDrawingTool(DrawingTool::None)
@@ -22,6 +23,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_hasCurrentCircle(false)
     , m_hasCurrentParallel(false)
     , m_hasCurrentTwoLines(false)
+    , m_hasCurrentROI(false)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_scaleFactor(1.0)
@@ -36,6 +38,8 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
+    , m_edgeDetector(nullptr)
+    , m_shapeDetector(nullptr)
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -44,10 +48,36 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
 
     // 设置焦点策略，使PaintingOverlay能够接收焦点
     setFocusPolicy(Qt::ClickFocus);
+
+    // 初始化图像处理对象
+    m_edgeDetector = new EdgeDetector();
+    m_shapeDetector = new ShapeDetector();
+}
+
+PaintingOverlay::~PaintingOverlay()
+{
+    // 清理图像处理对象
+    if (m_edgeDetector) {
+        delete m_edgeDetector;
+        m_edgeDetector = nullptr;
+    }
+
+    if (m_shapeDetector) {
+        delete m_shapeDetector;
+        m_shapeDetector = nullptr;
+    }
+
+    // 清理缓存的图像数据
+    if (!m_lastProcessedFrame.empty()) {
+        m_lastProcessedFrame.release();
+    }
+
+    qDebug() << "PaintingOverlay析构完成";
 }
 
 void PaintingOverlay::startDrawing(DrawingTool tool)
 {
+    qDebug() << "PaintingOverlay::startDrawing called with tool:" << static_cast<int>(tool);
     m_currentDrawingTool = tool;
     m_isDrawingMode = true;
     m_selectionEnabled = false;
@@ -60,6 +90,7 @@ void PaintingOverlay::startDrawing(DrawingTool tool)
     m_hasCurrentCircle = false;
     m_hasCurrentParallel = false;
     m_hasCurrentTwoLines = false;
+    m_hasCurrentROI = false;
     m_currentPoints.clear();
 
     setCursor(Qt::CrossCursor);
@@ -76,6 +107,7 @@ void PaintingOverlay::stopDrawing()
     m_hasCurrentCircle = false;
     m_hasCurrentParallel = false;
     m_hasCurrentTwoLines = false;
+    m_hasCurrentROI = false;
     m_currentPoints.clear();
 
     // 停止绘制模式时重新启用选择模式并清除选择状态
@@ -267,6 +299,7 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         drawFineCircles(painter, ctx);
         drawParallels(painter, ctx);
         drawTwoLines(painter, ctx);
+        drawROIs(painter, ctx);
 
         // 3. 【关键】绘制当前正在预览的图形（在最上层）
         if (m_isDrawingMode) {
@@ -292,7 +325,8 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
             bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() ||
                                !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() ||
                                !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() ||
-                               !m_selectedLineSegments.isEmpty() || !m_selectedParallelMiddleLines.isEmpty();
+                               !m_selectedLineSegments.isEmpty() || !m_selectedParallelMiddleLines.isEmpty() ||
+                               !m_selectedROIs.isEmpty();
 
             if (!hasSelection) {
                 stopDrawing();
@@ -321,9 +355,11 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
     }
     
     if (!m_isDrawingMode) {
+        qDebug() << "鼠标点击但不在绘制模式";
         return;
     }
-    
+
+    qDebug() << "鼠标点击，当前绘制工具：" << static_cast<int>(m_currentDrawingTool);
     switch (m_currentDrawingTool) {
         case DrawingTool::Point:
             handlePointDrawingClick(imagePos);
@@ -345,6 +381,10 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
             break;
         case DrawingTool::LineSegment:
             handleLineSegmentDrawingClick(imagePos);
+            break;
+        case DrawingTool::ROI_LineDetect:
+        case DrawingTool::ROI_CircleDetect:
+            handleROIDrawingClick(imagePos);
             break;
         default:
             break;
@@ -425,9 +465,20 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
         m_currentParallel.points[2] = imagePos;
     }
 
+    // 处理ROI预览逻辑
+    if (m_hasCurrentROI && !m_currentROI.isCompleted) {
+        if (m_currentROI.points.size() == 1) {
+            // ROI绘制：添加第二个点进行实时预览
+            m_currentROI.points.append(imagePos);
+        } else if (m_currentROI.points.size() >= 2) {
+            // ROI绘制：更新第二个点进行实时预览
+            m_currentROI.points[1] = imagePos;
+        }
+    }
+
     // 只在绘图模式或有当前绘制对象时更新
     if (m_isDrawingMode || m_hasCurrentLine || m_hasCurrentCircle ||
-        m_hasCurrentFineCircle || m_hasCurrentParallel || m_hasCurrentTwoLines) {
+        m_hasCurrentFineCircle || m_hasCurrentParallel || m_hasCurrentTwoLines || m_hasCurrentROI) {
         update(); // 更新预览
     }
 }
@@ -445,7 +496,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
                        !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() ||
                        !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() ||
                        !m_selectedLineSegments.isEmpty() || !m_selectedParallelMiddleLines.isEmpty() ||
-                       !m_selectedBisectorLines.isEmpty();
+                       !m_selectedBisectorLines.isEmpty() || !m_selectedROIs.isEmpty();
     
     if (!hasSelection) {
         QWidget::contextMenuEvent(event);
@@ -1546,6 +1597,13 @@ void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext
             }
             break;
 
+        case DrawingTool::ROI_LineDetect:
+        case DrawingTool::ROI_CircleDetect:
+            if (m_hasCurrentROI && !m_currentROI.points.isEmpty()) {
+                drawSingleROI(painter, m_currentROI, ctx);
+            }
+            break;
+
         default:
             break;
     }
@@ -2136,6 +2194,7 @@ void PaintingOverlay::clearSelection()
     m_selectedTwoLines.clear();
     m_selectedParallelMiddleLines.clear();
     m_selectedBisectorLines.clear(); // 清除角平分线选择
+    m_selectedROIs.clear(); // 清除ROI选择
     update();
 }
 
@@ -2161,7 +2220,10 @@ QString PaintingOverlay::getSelectedObjectInfo() const
     if (!m_selectedTwoLines.isEmpty()) {
         info << QString("选中双线: %1个").arg(m_selectedTwoLines.size());
     }
-    
+    if (!m_selectedROIs.isEmpty()) {
+        info << QString("选中ROI: %1个").arg(m_selectedROIs.size());
+    }
+
     return info.join(", ");
 }
 
@@ -2227,6 +2289,15 @@ void PaintingOverlay::deleteSelectedObjects()
     for (int index : twoLinesIndices) {
         if (index >= 0 && index < m_twoLines.size()) {
             m_twoLines.removeAt(index);
+        }
+    }
+
+    // 删除选中的ROI
+    QList<int> roiIndices = m_selectedROIs.values();
+    std::sort(roiIndices.rbegin(), roiIndices.rend());
+    for (int index : roiIndices) {
+        if (index >= 0 && index < m_rois.size()) {
+            m_rois.removeAt(index);
         }
     }
 
@@ -2712,6 +2783,22 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
                 clearSelection();
                 m_selectedTwoLines.insert(twoLinesIndex);
             }
+        }
+        foundSelection = true;
+    }
+
+    // 测试ROI
+    int roiIndex = hitTestROI(pos, 20.0); // 增加ROI的命中容差
+    if (roiIndex >= 0 && !foundSelection) {
+        if (ctrlPressed) {
+            if (m_selectedROIs.contains(roiIndex)) {
+                m_selectedROIs.remove(roiIndex);
+            } else {
+                m_selectedROIs.insert(roiIndex);
+            }
+        } else {
+            clearSelection();
+            m_selectedROIs.insert(roiIndex);
         }
         foundSelection = true;
     }
@@ -3532,4 +3619,518 @@ void PaintingOverlay::drawGrid(QPainter& painter, const DrawingContext& ctx) con
 
     // 恢复画笔状态
     painter.restore();
+}
+
+// ROI相关方法实现
+void PaintingOverlay::drawROIs(QPainter& painter, const DrawingContext& ctx) const
+{
+    for (const auto& roi : m_rois) {
+        if (roi.isVisible) {
+            drawSingleROI(painter, roi, ctx);
+        }
+    }
+}
+
+void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const
+{
+    if (roi.points.size() < 2) {
+        return;
+    }
+
+    // 获取ROI矩形
+    QRectF rect = roi.getRect();
+    if (rect.isEmpty()) {
+        return;
+    }
+
+    // 创建ROI画笔
+    QPen roiPen = createPen(roi.color, roi.thickness, ctx.scale, roi.isDashed);
+    painter.setPen(roiPen);
+    painter.setBrush(Qt::NoBrush);
+
+    // 绘制ROI矩形
+    painter.drawRect(rect);
+
+    // 绘制标签
+    if (!roi.label.isEmpty()) {
+        QString displayText = roi.label;
+        if (roi.isDetecting) {
+            displayText += " (检测中...)";
+        }
+
+        QPointF labelPos = rect.topLeft() + QPointF(5, -5);
+        drawTextWithBackground(painter, labelPos, displayText, roi.color, Qt::white);
+    }
+
+    // 如果正在检测，绘制检测类型提示
+    if (roi.isDetecting) {
+        QString typeText;
+        if (roi.detectionType == DrawingTool::ROI_LineDetect) {
+            typeText = "直线检测";
+        } else if (roi.detectionType == DrawingTool::ROI_CircleDetect) {
+            typeText = "圆形检测";
+        }
+
+        if (!typeText.isEmpty()) {
+            QPointF typePos = rect.center();
+            drawTextWithBackground(painter, typePos, typeText, Qt::yellow, Qt::black);
+        }
+    }
+}
+
+void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
+{
+    qDebug() << "handleROIDrawingClick called at position:" << pos;
+    qDebug() << "m_hasCurrentROI:" << m_hasCurrentROI << "points size:" << (m_hasCurrentROI ? m_currentROI.points.size() : 0);
+    if (!m_hasCurrentROI) {
+        // 开始绘制ROI
+        m_currentROI = ROIObject();
+        m_currentROI.points.append(pos);
+        m_currentROI.detectionType = m_currentDrawingTool;
+        m_currentROI.label = QString("ROI_%1").arg(m_rois.size() + 1);
+        m_currentROI.color = Qt::red;        // 使用红色更明显
+        m_currentROI.thickness = 3;          // 更粗的线条
+        m_hasCurrentROI = true;
+
+        qDebug() << "开始绘制ROI，起点：" << pos;
+    } else if (m_currentROI.points.size() >= 1 && !m_currentROI.isCompleted) {
+        // 完成ROI绘制
+        qDebug() << "准备完成ROI绘制，当前points数量：" << m_currentROI.points.size();
+        if (m_currentROI.points.size() == 1) {
+            m_currentROI.points.append(pos);
+        } else {
+            m_currentROI.points[1] = pos;  // 更新第二个点
+        }
+        m_currentROI.isCompleted = true;
+
+        qDebug() << "完成ROI绘制，终点：" << pos;
+
+        // 添加到ROI列表
+        m_rois.append(m_currentROI);
+
+        // 记录历史
+        DrawingAction action;
+        action.type = DrawingAction::AddROI;
+        action.index = m_rois.size() - 1;
+        commitDrawingAction(action);
+
+        // 立即执行自动检测
+        performAutoDetection(m_currentROI);
+
+        // 清除当前ROI数据
+        clearCurrentROIData();
+
+        // 发出信号
+        emit drawingCompleted(m_viewName);
+        emit drawingDataChanged(m_viewName);
+    } else {
+        qDebug() << "ROI点击未处理 - hasCurrentROI:" << m_hasCurrentROI
+                 << "points size:" << (m_hasCurrentROI ? m_currentROI.points.size() : 0)
+                 << "isCompleted:" << (m_hasCurrentROI ? m_currentROI.isCompleted : false);
+    }
+
+    update();
+}
+
+int PaintingOverlay::hitTestROI(const QPointF& testPos, double tolerance) const
+{
+    for (int i = 0; i < m_rois.size(); ++i) {
+        const ROIObject& roi = m_rois[i];
+        if (!roi.isVisible || !roi.isCompleted) continue;
+
+        QRectF rect = roi.getRect();
+
+        // 检查是否在矩形边界附近
+        if (qAbs(testPos.x() - rect.left()) <= tolerance ||
+            qAbs(testPos.x() - rect.right()) <= tolerance ||
+            qAbs(testPos.y() - rect.top()) <= tolerance ||
+            qAbs(testPos.y() - rect.bottom()) <= tolerance) {
+
+            // 进一步检查是否在矩形范围内
+            if (rect.contains(testPos)) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+void PaintingOverlay::setCurrentROIData(const ROIObject& currentROI)
+{
+    m_currentROI = currentROI;
+    m_hasCurrentROI = true;
+}
+
+void PaintingOverlay::clearCurrentROIData()
+{
+    m_currentROI = ROIObject();
+    m_hasCurrentROI = false;
+}
+
+void PaintingOverlay::setROIsData(const QVector<ROIObject>& rois)
+{
+    m_rois = rois;
+    update();
+}
+
+void PaintingOverlay::performAutoDetection(const ROIObject& roi)
+{
+    if (!m_edgeDetector || !m_shapeDetector) {
+        qDebug() << "图像处理器未初始化";
+        return;
+    }
+
+    // 检测频率限制（避免过于频繁的检测）
+    if (m_lastDetectionTime.isValid() && m_lastDetectionTime.msecsTo(QTime::currentTime()) < 500) {
+        qDebug() << "检测频率过高，跳过本次检测";
+        return;
+    }
+    m_lastDetectionTime = QTime::currentTime();
+
+    qDebug() << "执行自动检测 - ROI:" << roi.getRect();
+    qDebug() << "检测类型:" << (roi.detectionType == DrawingTool::ROI_LineDetect ? "直线" : "圆形");
+
+    // 获取当前帧图像
+    cv::Mat currentFrame = getCurrentFrameFromParent();
+    if (currentFrame.empty()) {
+        QString errorMsg = "检测失败：无法获取当前图像帧";
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, errorMsg);
+
+        // 显示用户友好的错误提示
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "自动检测错误",
+                               "无法获取当前图像，请确保相机已启动并正在采集图像。");
+        }
+        return;
+    }
+
+    // 转换ROI坐标为OpenCV Rect
+    QRectF roiRect = roi.getRect();
+    cv::Rect cvRoi(
+        static_cast<int>(roiRect.x()),
+        static_cast<int>(roiRect.y()),
+        static_cast<int>(roiRect.width()),
+        static_cast<int>(roiRect.height())
+    );
+
+    // 验证ROI区域有效性
+    if (cvRoi.x < 0 || cvRoi.y < 0 ||
+        cvRoi.x + cvRoi.width > currentFrame.cols ||
+        cvRoi.y + cvRoi.height > currentFrame.rows ||
+        cvRoi.width < 10 || cvRoi.height < 10) {
+
+        QString errorMsg = QString("检测失败：ROI区域无效 - 位置(%1,%2) 尺寸(%3x%4) 图像尺寸(%5x%6)")
+                          .arg(cvRoi.x).arg(cvRoi.y)
+                          .arg(cvRoi.width).arg(cvRoi.height)
+                          .arg(currentFrame.cols).arg(currentFrame.rows);
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, "检测失败：ROI区域无效或过小");
+
+        // 显示详细错误信息
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "ROI区域错误",
+                               "选择的ROI区域无效，请确保：\n"
+                               "1. ROI区域完全在图像范围内\n"
+                               "2. ROI区域足够大（至少10x10像素）");
+        }
+        return;
+    }
+
+    // 显示检测开始提示
+    QString detectionTypeName = (roi.detectionType == DrawingTool::ROI_LineDetect) ? "直线" : "圆形";
+    emit measurementCompleted(m_viewName, QString("开始%1检测...").arg(detectionTypeName));
+
+    if (roi.detectionType == DrawingTool::ROI_LineDetect) {
+        performLineDetection(currentFrame, cvRoi);
+    } else if (roi.detectionType == DrawingTool::ROI_CircleDetect) {
+        performCircleDetection(currentFrame, cvRoi);
+    }
+}
+
+cv::Mat PaintingOverlay::getCurrentFrameFromParent() const
+{
+    qDebug() << "getCurrentFrameFromParent called for view:" << m_viewName;
+
+    // 通过父窗口获取当前帧
+    QWidget* parentWidget = this->parentWidget();
+    while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+        parentWidget = parentWidget->parentWidget();
+    }
+
+    if (auto* mainWindow = qobject_cast<QMainWindow*>(parentWidget)) {
+        // 尝试转换为MutiCamApp
+        if (auto* mutiCamApp = qobject_cast<MutiCamApp*>(mainWindow)) {
+            cv::Mat frame = mutiCamApp->getCurrentFrame(m_viewName);
+            qDebug() << "获取到的帧尺寸：" << frame.cols << "x" << frame.rows;
+            return frame;
+        } else {
+            qDebug() << "无法转换为MutiCamApp";
+        }
+    } else {
+        qDebug() << "无法找到主窗口";
+    }
+
+    return cv::Mat();
+}
+
+void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect& roi)
+{
+    qDebug() << "开始直线检测...";
+    QTime startTime = QTime::currentTime();
+
+    // 1. 边缘检测
+    cv::Mat edges;
+    if (!m_edgeDetector->detectEdgesInROI(frame, roi, edges)) {
+        QString errorMsg = "直线检测失败：边缘检测错误";
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, errorMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "边缘检测失败",
+                               "无法在选定区域检测到边缘，请尝试：\n"
+                               "1. 调整Canny边缘检测参数\n"
+                               "2. 选择包含更明显边缘的区域\n"
+                               "3. 改善图像光照条件");
+        }
+        return;
+    }
+
+    // 检查边缘图像是否有足够的边缘点
+    int edgePixels = cv::countNonZero(edges);
+    if (edgePixels < 50) {
+        QString errorMsg = QString("直线检测失败：边缘点过少(%1个)").arg(edgePixels);
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, "直线检测失败：检测区域边缘特征不足");
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::information(parentWidget, "边缘特征不足",
+                                   "选定区域的边缘特征不足以进行直线检测，建议：\n"
+                                   "1. 降低Canny边缘检测阈值\n"
+                                   "2. 选择包含更清晰直线的区域");
+        }
+        return;
+    }
+
+    // 2. 直线检测
+    QVector<ShapeDetector::DetectedLine> detectedLines;
+    if (!m_shapeDetector->detectLinesInROI(edges, roi, detectedLines)) {
+        QString errorMsg = "直线检测失败：霍夫变换检测错误";
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, errorMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "直线检测失败",
+                               "霍夫变换直线检测失败，请检查：\n"
+                               "1. 直线检测参数设置\n"
+                               "2. 图像处理器状态");
+        }
+        return;
+    }
+
+    if (detectedLines.isEmpty()) {
+        QString infoMsg = "直线检测完成：未发现符合条件的直线";
+        qDebug() << infoMsg;
+        emit measurementCompleted(m_viewName, infoMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::information(parentWidget, "未检测到直线",
+                                   "在选定区域未检测到符合条件的直线，建议：\n"
+                                   "1. 降低直线检测阈值\n"
+                                   "2. 减小最小线段长度要求\n"
+                                   "3. 增大最大线段间隙\n"
+                                   "4. 选择包含更明显直线的区域");
+        }
+        return;
+    }
+
+    qDebug() << QString("检测到 %1 条直线").arg(detectedLines.size());
+
+    // 3. 选择最佳直线
+    ShapeDetector::DetectedLine bestLine = m_shapeDetector->selectBestLine(detectedLines);
+
+    // 4. 转换为LineObject并添加到绘图数据
+    LineObject detectedLineObj;
+    detectedLineObj.points.append(QPointF(bestLine.start.x(), bestLine.start.y()));
+    detectedLineObj.points.append(QPointF(bestLine.end.x(), bestLine.end.y()));
+    detectedLineObj.isCompleted = true;
+    detectedLineObj.color = Qt::magenta; // 紫色表示自动检测结果
+    detectedLineObj.thickness = 3;
+    detectedLineObj.label = QString("自动检测直线 (长度: %.1f px, 角度: %.1f°, 置信度: %.1f)")
+                           .arg(bestLine.length).arg(bestLine.angle).arg(bestLine.confidence);
+    detectedLineObj.showLength = true;
+    detectedLineObj.length = bestLine.length;
+
+    // 添加到线段列表
+    m_lines.append(detectedLineObj);
+
+    // 记录历史
+    DrawingAction action;
+    action.type = DrawingAction::AddLine;
+    action.index = m_lines.size() - 1;
+    commitDrawingAction(action);
+
+    // 发出信号
+    QString result = QString("自动直线检测成功：长度 %.1f 像素，角度 %.1f° (共检测到%2条直线)")
+                    .arg(bestLine.length).arg(bestLine.angle).arg(detectedLines.size());
+    emit measurementCompleted(m_viewName, result);
+    emit drawingDataChanged(m_viewName);
+
+    int elapsedMs = startTime.msecsTo(QTime::currentTime());
+    qDebug() << "直线检测完成：" << result;
+    qDebug() << QString("检测统计 - 边缘点数: %1, 候选直线: %2, 最佳直线置信度: %.2f, 耗时: %3ms")
+                .arg(edgePixels).arg(detectedLines.size()).arg(bestLine.confidence).arg(elapsedMs);
+    update();
+}
+
+void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rect& roi)
+{
+    qDebug() << "开始圆形检测...";
+    QTime startTime = QTime::currentTime();
+
+    // 1. 预处理图像（转换为灰度图）
+    cv::Mat grayFrame;
+    if (!EdgeDetector::preprocessImage(frame, grayFrame)) {
+        QString errorMsg = "圆形检测失败：图像预处理错误";
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, errorMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "图像预处理失败",
+                               "无法将图像转换为灰度图，请检查图像格式。");
+        }
+        return;
+    }
+
+    // 2. 圆形检测
+    QVector<ShapeDetector::DetectedCircle> detectedCircles;
+    if (!m_shapeDetector->detectCirclesInROI(grayFrame, roi, detectedCircles)) {
+        QString errorMsg = "圆形检测失败：霍夫圆变换检测错误";
+        qDebug() << errorMsg;
+        emit measurementCompleted(m_viewName, errorMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::warning(parentWidget, "圆形检测失败",
+                               "霍夫圆变换检测失败，请检查：\n"
+                               "1. 圆形检测参数设置\n"
+                               "2. 图像处理器状态");
+        }
+        return;
+    }
+
+    if (detectedCircles.isEmpty()) {
+        QString infoMsg = "圆形检测完成：未发现符合条件的圆形";
+        qDebug() << infoMsg;
+        emit measurementCompleted(m_viewName, infoMsg);
+
+        QWidget* parentWidget = this->parentWidget();
+        while (parentWidget && !qobject_cast<QMainWindow*>(parentWidget)) {
+            parentWidget = parentWidget->parentWidget();
+        }
+        if (parentWidget) {
+            QMessageBox::information(parentWidget, "未检测到圆形",
+                                   "在选定区域未检测到符合条件的圆形，建议：\n"
+                                   "1. 降低圆形检测阈值(Param2)\n"
+                                   "2. 调整Canny边缘检测阈值(Param1)\n"
+                                   "3. 检查半径范围设置\n"
+                                   "4. 选择包含更明显圆形的区域");
+        }
+        return;
+    }
+
+    qDebug() << QString("检测到 %1 个圆形").arg(detectedCircles.size());
+
+    // 3. 选择最佳圆形
+    ShapeDetector::DetectedCircle bestCircle = m_shapeDetector->selectBestCircle(detectedCircles);
+
+    // 4. 转换为CircleObject并添加到绘图数据
+    CircleObject detectedCircleObj;
+    detectedCircleObj.points.append(QPointF(bestCircle.center.x(), bestCircle.center.y()));
+    detectedCircleObj.points.append(QPointF(bestCircle.center.x() + bestCircle.radius, bestCircle.center.y()));
+    detectedCircleObj.isCompleted = true;
+    detectedCircleObj.color = Qt::magenta; // 紫色表示自动检测结果
+    detectedCircleObj.thickness = 3;
+    detectedCircleObj.center = QPointF(bestCircle.center.x(), bestCircle.center.y());
+    detectedCircleObj.radius = bestCircle.radius;
+    detectedCircleObj.label = QString("自动检测圆形 (半径: %1 px, 中心: (%2,%3), 置信度: %.1f)")
+                             .arg(bestCircle.radius)
+                             .arg(bestCircle.center.x()).arg(bestCircle.center.y())
+                             .arg(bestCircle.confidence);
+
+    // 添加到圆形列表
+    m_circles.append(detectedCircleObj);
+
+    // 记录历史
+    DrawingAction action;
+    action.type = DrawingAction::AddCircle;
+    action.index = m_circles.size() - 1;
+    commitDrawingAction(action);
+
+    // 发出信号
+    QString result = QString("自动圆形检测成功：半径 %1 像素，置信度 %.1f (共检测到%2个圆形)")
+                    .arg(bestCircle.radius).arg(bestCircle.confidence).arg(detectedCircles.size());
+    emit measurementCompleted(m_viewName, result);
+    emit drawingDataChanged(m_viewName);
+
+    int elapsedMs = startTime.msecsTo(QTime::currentTime());
+    qDebug() << "圆形检测完成：" << result;
+    qDebug() << QString("检测统计 - 候选圆形: %1, 最佳圆形中心: (%2,%3), 耗时: %4ms")
+                .arg(detectedCircles.size()).arg(bestCircle.center.x()).arg(bestCircle.center.y()).arg(elapsedMs);
+    update();
+}
+
+void PaintingOverlay::setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params)
+{
+    if (m_edgeDetector) {
+        m_edgeDetector->setParams(params);
+        qDebug() << "边缘检测参数已更新";
+    }
+}
+
+void PaintingOverlay::setLineDetectionParams(const ShapeDetector::LineDetectionParams& params)
+{
+    if (m_shapeDetector) {
+        m_shapeDetector->setLineDetectionParams(params);
+        qDebug() << "直线检测参数已更新";
+    }
+}
+
+void PaintingOverlay::setCircleDetectionParams(const ShapeDetector::CircleDetectionParams& params)
+{
+    if (m_shapeDetector) {
+        m_shapeDetector->setCircleDetectionParams(params);
+        qDebug() << "圆形检测参数已更新";
+    }
 }
