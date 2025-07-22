@@ -120,14 +120,87 @@ void PaintingOverlay::stopDrawing()
 
 void PaintingOverlay::clearAllDrawings()
 {
-    m_points.clear();
-    m_lines.clear();
-    m_lineSegments.clear(); // 清除复合测量生成的线段
-    m_circles.clear();
-    m_fineCircles.clear();
-    m_parallels.clear();
-    m_twoLines.clear();
-    m_drawingHistory.clear();
+    // 只清空手动绘制的图形，保留自动检测的结果
+    clearManualDrawings();
+}
+
+void PaintingOverlay::clearManualDrawings()
+{
+    // 收集需要删除的手动绘制图形的索引
+    QSet<int> pointsToRemove, linesToRemove, lineSegmentsToRemove;
+    QSet<int> circlesToRemove, fineCirclesToRemove, parallelsToRemove;
+    QSet<int> twoLinesToRemove, roisToRemove;
+
+    // 遍历历史记录，找出所有手动绘制的图形
+    for (const DrawingAction& action : m_drawingHistory) {
+        if (action.source == DrawingAction::ManualDrawing) {
+            switch (action.type) {
+                case DrawingAction::AddPoint:
+                    if (action.index < m_points.size()) {
+                        pointsToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddLine:
+                    if (action.index < m_lines.size()) {
+                        linesToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddLineSegment:
+                    if (action.index < m_lineSegments.size()) {
+                        lineSegmentsToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddCircle:
+                    if (action.index < m_circles.size()) {
+                        circlesToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddFineCircle:
+                    if (action.index < m_fineCircles.size()) {
+                        fineCirclesToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddParallel:
+                    if (action.index < m_parallels.size()) {
+                        parallelsToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddTwoLines:
+                    if (action.index < m_twoLines.size()) {
+                        twoLinesToRemove.insert(action.index);
+                    }
+                    break;
+                case DrawingAction::AddROI:
+                    if (action.index < m_rois.size()) {
+                        roisToRemove.insert(action.index);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    // 从后往前删除图形（避免索引变化问题）
+    removeItemsByIndices(m_points, pointsToRemove);
+    removeItemsByIndices(m_lines, linesToRemove);
+    removeItemsByIndices(m_lineSegments, lineSegmentsToRemove);
+    removeItemsByIndices(m_circles, circlesToRemove);
+    removeItemsByIndices(m_fineCircles, fineCirclesToRemove);
+    removeItemsByIndices(m_parallels, parallelsToRemove);
+    removeItemsByIndices(m_twoLines, twoLinesToRemove);
+    removeItemsByIndices(m_rois, roisToRemove);
+
+    // 清理历史记录中的手动绘制操作
+    QStack<DrawingAction> newHistory;
+    for (const DrawingAction& action : m_drawingHistory) {
+        if (action.source != DrawingAction::ManualDrawing) {
+            newHistory.push(action);
+        }
+    }
+    m_drawingHistory = newHistory;
+
+    // 清除选择状态
     clearSelection();
 
     // 发送同步信号
@@ -138,59 +211,32 @@ void PaintingOverlay::clearAllDrawings()
 
 void PaintingOverlay::undoLastDrawing()
 {
-    if (m_drawingHistory.isEmpty()) {
-        return;
+    // 从历史记录中找到最后一次手动绘制操作
+    for (int i = m_drawingHistory.size() - 1; i >= 0; --i) {
+        if (m_drawingHistory[i].source == DrawingAction::ManualDrawing) {
+            DrawingAction action = m_drawingHistory[i];
+            m_drawingHistory.removeAt(i);
+
+            // 执行撤销操作
+            undoAction(action);
+            return;
+        }
     }
+}
 
-    DrawingAction action = m_drawingHistory.pop();
+void PaintingOverlay::undoLastDetection()
+{
+    // 从历史记录中找到最后一次自动检测操作
+    for (int i = m_drawingHistory.size() - 1; i >= 0; --i) {
+        if (m_drawingHistory[i].source == DrawingAction::AutoDetection) {
+            DrawingAction action = m_drawingHistory[i];
+            m_drawingHistory.removeAt(i);
 
-    switch (action.type) {
-        case DrawingAction::AddPoint:
-            if (!m_points.isEmpty()) {
-                m_points.removeLast(); // 移除最后添加的点
-            }
-            break;
-        case DrawingAction::AddLine:
-            if (!m_lines.isEmpty()) {
-                m_lines.removeLast(); // 移除最后添加的线
-            }
-            break;
-        case DrawingAction::AddLineSegment:
-            if (!m_lineSegments.isEmpty()) {
-                m_lineSegments.removeLast(); // 移除最后添加的线段
-            }
-            break;
-        case DrawingAction::AddCircle:
-            if (!m_circles.isEmpty()) {
-                m_circles.removeLast(); // 移除最后添加的圆
-            }
-            break;
-        case DrawingAction::AddFineCircle:
-            if (!m_fineCircles.isEmpty()) {
-                m_fineCircles.removeLast(); // 移除最后添加的精细圆
-            }
-            break;
-        case DrawingAction::AddParallel:
-            if (!m_parallels.isEmpty()) {
-                m_parallels.removeLast(); // 移除最后添加的平行线
-            }
-            break;
-        case DrawingAction::AddTwoLines:
-            if (!m_twoLines.isEmpty()) {
-                m_twoLines.removeLast(); // 移除最后添加的两线
-            }
-            break;
-        default:
-            break;
+            // 执行撤销操作
+            undoAction(action);
+            return;
+        }
     }
-
-    // 清除选择状态
-    clearSelection();
-
-    // 发送同步信号
-    emit drawingDataChanged(m_viewName);
-
-    update();
 }
 
 void PaintingOverlay::setTransforms(const QPointF& offset, double scale, const QSize& imageSize)
@@ -603,6 +649,7 @@ void PaintingOverlay::handlePointDrawingClick(const QPointF& pos)
     
     DrawingAction action;
     action.type = DrawingAction::AddPoint;
+    action.source = DrawingAction::ManualDrawing;  // 手动绘制
     action.index = m_points.size() - 1;
     commitDrawingAction(action);
 }
@@ -633,6 +680,7 @@ void PaintingOverlay::handleLineDrawingClick(const QPointF& pos)
         
         DrawingAction action;
         action.type = DrawingAction::AddLine;
+        action.source = DrawingAction::ManualDrawing;  // 手动绘制
         action.index = m_lines.size() - 1;
         commitDrawingAction(action);
         
@@ -670,6 +718,7 @@ void PaintingOverlay::handleCircleDrawingClick(const QPointF& imagePos)
 
                 DrawingAction action;
                 action.type = DrawingAction::AddCircle;
+                action.source = DrawingAction::ManualDrawing;  // 手动绘制
                 action.index = m_circles.size() - 1;
                 commitDrawingAction(action);
 
@@ -710,6 +759,7 @@ void PaintingOverlay::handleFineCircleDrawingClick(const QPointF& pos)
                 
                 DrawingAction action;
                 action.type = DrawingAction::AddFineCircle;
+                action.source = DrawingAction::ManualDrawing;  // 手动绘制
                 action.index = m_fineCircles.size();
                 action.data = result;
                 commitDrawingAction(action);
@@ -780,6 +830,7 @@ void PaintingOverlay::handleParallelDrawingClick(const QPointF& imagePos)
 
                 DrawingAction action;
                 action.type = DrawingAction::AddParallel;
+                action.source = DrawingAction::ManualDrawing;  // 手动绘制
                 action.index = m_parallels.size() - 1;
                 commitDrawingAction(action);
 
@@ -843,6 +894,7 @@ void PaintingOverlay::handleTwoLinesDrawingClick(const QPointF& imagePos)
 
                 DrawingAction action;
                 action.type = DrawingAction::AddTwoLines;
+                action.source = DrawingAction::ManualDrawing;  // 手动绘制
                 action.index = m_twoLines.size() - 1;
                 commitDrawingAction(action);
 
@@ -1931,10 +1983,66 @@ void PaintingOverlay::drawTextInRect(QPainter& painter, const QRectF& rect, cons
 
 // 已删除QPointF版本的drawTextInRect重载，统一使用calculateTextWithBackgroundRect + drawTextInRect(QRectF)组合
 
+void PaintingOverlay::undoAction(const DrawingAction& action)
+{
+    switch (action.type) {
+        case DrawingAction::AddPoint:
+            if (!m_points.isEmpty()) {
+                m_points.removeLast(); // 移除最后添加的点
+            }
+            break;
+        case DrawingAction::AddLine:
+            if (!m_lines.isEmpty()) {
+                m_lines.removeLast(); // 移除最后添加的线
+            }
+            break;
+        case DrawingAction::AddLineSegment:
+            if (!m_lineSegments.isEmpty()) {
+                m_lineSegments.removeLast(); // 移除最后添加的线段
+            }
+            break;
+        case DrawingAction::AddCircle:
+            if (!m_circles.isEmpty()) {
+                m_circles.removeLast(); // 移除最后添加的圆
+            }
+            break;
+        case DrawingAction::AddFineCircle:
+            if (!m_fineCircles.isEmpty()) {
+                m_fineCircles.removeLast(); // 移除最后添加的精细圆
+            }
+            break;
+        case DrawingAction::AddParallel:
+            if (!m_parallels.isEmpty()) {
+                m_parallels.removeLast(); // 移除最后添加的平行线
+            }
+            break;
+        case DrawingAction::AddTwoLines:
+            if (!m_twoLines.isEmpty()) {
+                m_twoLines.removeLast(); // 移除最后添加的两线
+            }
+            break;
+        case DrawingAction::AddROI:
+            if (!m_rois.isEmpty()) {
+                m_rois.removeLast(); // 移除最后添加的ROI
+            }
+            break;
+        default:
+            break;
+    }
+
+    // 清除选择状态
+    clearSelection();
+
+    // 发送同步信号
+    emit drawingDataChanged(m_viewName);
+
+    update();
+}
+
 void PaintingOverlay::commitDrawingAction(const DrawingAction& action)
 {
     m_drawingHistory.push(action);
-    
+
     // 发射信号通知外部绘图完成
     QString result;
     QString viewName = m_viewName.isEmpty() ? "Unknown" : m_viewName;
@@ -2364,6 +2472,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     // 记录历史
     DrawingAction action;
     action.type = DrawingAction::AddLineSegment;
+    action.source = DrawingAction::ManualDrawing;  // 手动绘制
     action.index = m_lineSegments.size() - 1;
     commitDrawingAction(action);
 
@@ -3711,6 +3820,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         // 记录历史
         DrawingAction action;
         action.type = DrawingAction::AddROI;
+        action.source = DrawingAction::ManualDrawing;  // 手动绘制ROI
         action.index = m_rois.size() - 1;
         commitDrawingAction(action);
 
@@ -3991,6 +4101,7 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     // 记录历史
     DrawingAction action;
     action.type = DrawingAction::AddLine;
+    action.source = DrawingAction::AutoDetection;  // 自动检测
     action.index = m_lines.size() - 1;
     commitDrawingAction(action);
 
@@ -4095,6 +4206,7 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     // 记录历史
     DrawingAction action;
     action.type = DrawingAction::AddCircle;
+    action.source = DrawingAction::AutoDetection;  // 自动检测
     action.index = m_circles.size() - 1;
     commitDrawingAction(action);
 
@@ -4109,6 +4221,26 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     qDebug() << QString("检测统计 - 候选圆形: %1, 最佳圆形中心: (%2,%3), 耗时: %4ms")
                 .arg(detectedCircles.size()).arg(bestCircle.center.x()).arg(bestCircle.center.y()).arg(elapsedMs);
     update();
+}
+
+// 模板方法实现：按索引删除容器中的元素
+template<typename T>
+void PaintingOverlay::removeItemsByIndices(QVector<T>& container, const QSet<int>& indicesToRemove)
+{
+    if (indicesToRemove.isEmpty()) {
+        return;
+    }
+
+    // 将索引转换为列表并排序（从大到小，避免删除时索引变化）
+    QList<int> sortedIndices = indicesToRemove.values();
+    std::sort(sortedIndices.begin(), sortedIndices.end(), std::greater<int>());
+
+    // 从后往前删除
+    for (int index : sortedIndices) {
+        if (index >= 0 && index < container.size()) {
+            container.removeAt(index);
+        }
+    }
 }
 
 void PaintingOverlay::setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params)

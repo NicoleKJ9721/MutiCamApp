@@ -237,7 +237,7 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnClearDrawingsFront, &QPushButton::clicked,
             this, &MutiCamApp::onClearDrawingsFrontClicked);
 
-    // 连接撤销按钮信号
+    // 连接撤销绘画按钮信号
     connect(ui->btnCan1StepDraw, &QPushButton::clicked,
             this, &MutiCamApp::onUndoDrawingClicked);
     connect(ui->btnCan1StepDrawVertical, &QPushButton::clicked,
@@ -246,6 +246,16 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onUndoDrawingLeftClicked);
     connect(ui->btnCan1StepDrawFront, &QPushButton::clicked,
             this, &MutiCamApp::onUndoDrawingFrontClicked);
+
+    // 连接撤销检测按钮信号
+    connect(ui->btnCan1StepDet, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDetectionClicked);
+    connect(ui->btnCan1StepDetVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDetectionVerticalClicked);
+    connect(ui->btnCan1StepDetLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDetectionLeftClicked);
+    connect(ui->btnCan1StepDetFront, &QPushButton::clicked,
+            this, &MutiCamApp::onUndoDetectionFrontClicked);
 
     // 连接网格相关信号
     connect(ui->leGridDensity, &QLineEdit::textChanged,
@@ -1474,6 +1484,39 @@ void MutiCamApp::onUndoDrawingFrontClicked()
     // 撤销选项卡的对向视图，同步机制会自动同步到主界面
     if (m_frontPaintingOverlay2) {
         m_frontPaintingOverlay2->undoLastDrawing();
+    }
+}
+
+// {{ AURA-X: Add - 撤销自动检测按钮槽函数实现. Approval: 寸止(ID:undo_detection_buttons). }}
+void MutiCamApp::onUndoDetectionClicked()
+{
+    PaintingOverlay* overlay = getActivePaintingOverlay();
+    if (overlay) {
+        overlay->undoLastDetection();
+    }
+}
+
+void MutiCamApp::onUndoDetectionVerticalClicked()
+{
+    // 撤销选项卡的垂直视图的自动检测，同步机制会自动同步到主界面
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->undoLastDetection();
+    }
+}
+
+void MutiCamApp::onUndoDetectionLeftClicked()
+{
+    // 撤销选项卡的左侧视图的自动检测，同步机制会自动同步到主界面
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->undoLastDetection();
+    }
+}
+
+void MutiCamApp::onUndoDetectionFrontClicked()
+{
+    // 撤销选项卡的对向视图的自动检测，同步机制会自动同步到主界面
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->undoLastDetection();
     }
 }
 

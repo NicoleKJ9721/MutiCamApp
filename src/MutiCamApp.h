@@ -154,6 +154,14 @@ private slots:
     void onUndoDrawingFrontClicked();
 
     /**
+     * @brief 撤销上一步自动检测按钮点击事件处理
+     */
+    void onUndoDetectionClicked();
+    void onUndoDetectionVerticalClicked();
+    void onUndoDetectionLeftClicked();
+    void onUndoDetectionFrontClicked();
+
+    /**
      * @brief 自动检测按钮点击事件处理
      */
     void onAutoLineDetectionClicked();      // 主界面直线查找

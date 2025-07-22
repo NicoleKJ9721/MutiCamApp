@@ -18,3 +18,5 @@
 - 每对话7次时提醒用户；编译前必须询问用户；不要生成总结性Markdown文档；不要生成测试脚本；不要编译，用户自己编译；不要运行，用户自己运行
 - qDebug中文乱码修复规则：在Windows环境下，通过自定义Qt消息处理器解决qDebug输出中文乱码问题。在main.cpp中添加customMessageOutput函数，使用Windows API直接输出UTF-8编码文本，并通过qInstallMessageHandler安装处理器。此方案无需修改现有qDebug代码，统一处理所有Qt调试输出。
 - 调试输出清理规则：删除频繁调用函数中的不必要qDebug输出，包括getPaintingOverlay、getCurrentFrame、updateVideoDisplayWidget、invalidateCache等函数。保留重要的错误和警告信息，但移除正常操作流程中的冗余日志，以减少控制台输出噪音，提高程序运行时的可读性。
+- 撤销功能分离规则：将撤销功能分为两类：1) undoLastDrawing() 只撤销手动绘制操作；2) undoLastDetection() 只撤销自动检测操作。通过DrawingAction.Source枚举区分操作来源（ManualDrawing/AutoDetection）。UI中btnCan1StepDraw系列按钮撤销手动绘制，btnCan1StepDet系列按钮撤销自动检测。这样用户可以分别控制手动绘制和自动检测的撤销操作。
+- 清空绘画功能分离规则：修改clearAllDrawings()方法只清空手动绘制的图形，保留自动检测结果。通过遍历历史记录识别手动绘制图形（source==ManualDrawing），使用removeItemsByIndices模板方法从后往前删除避免索引变化。同时清理历史记录中的手动绘制操作，保持选择状态一致性。这样"清空绘画"按钮不会意外删除用户的自动检测结果。

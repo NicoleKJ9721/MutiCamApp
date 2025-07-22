@@ -213,10 +213,16 @@ public:
             DeleteTwoLines,
             DeleteROI
         };
-        
+
+        enum Source {
+            ManualDrawing,    // 手动绘制
+            AutoDetection     // 自动检测
+        };
+
         Type type;
-        int index; // 在对应容器中的索引
-        QVariant data; // 存储对象数据
+        Source source;        // 操作来源：手动绘制或自动检测
+        int index;           // 在对应容器中的索引
+        QVariant data;       // 存储对象数据
     };
 
     // 绘图状态结构体
@@ -238,8 +244,10 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     // 公共接口，由 MutiCamApp 调用
     void startDrawing(DrawingTool tool);
     void stopDrawing();
-    void clearAllDrawings();
-    void undoLastDrawing();
+    void clearAllDrawings();          // 清空手动绘制的图形
+    void clearManualDrawings();       // 清空手动绘制的图形（内部实现）
+    void undoLastDrawing();           // 撤销最后一次手动绘制
+    void undoLastDetection();         // 撤销最后一次自动检测
     void deleteSelectedObjects();
     void createLineFromSelectedPoints();
     void setTransforms(const QPointF& offset, double scale, const QSize& imageSize); // 用于同步坐标系
@@ -460,7 +468,12 @@ private:
     
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);
+    void undoAction(const DrawingAction& action);  // 执行具体的撤销操作
     void onSelectionChanged();
+
+    // 辅助方法：按索引删除容器中的元素
+    template<typename T>
+    void removeItemsByIndices(QVector<T>& container, const QSet<int>& indicesToRemove);
     
     // 数据设置方法（用于与MutiCamApp同步）
     void setPointsData(const QVector<QPointF>& points);
