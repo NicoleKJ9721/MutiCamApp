@@ -17,3 +17,4 @@
 - 当你感觉上下文不够用时，提醒用户新建对话
 - 每对话7次时提醒用户；编译前必须询问用户；不要生成总结性Markdown文档；不要生成测试脚本；不要编译，用户自己编译；不要运行，用户自己运行
 - qDebug中文乱码修复规则：在Windows环境下，通过自定义Qt消息处理器解决qDebug输出中文乱码问题。在main.cpp中添加customMessageOutput函数，使用Windows API直接输出UTF-8编码文本，并通过qInstallMessageHandler安装处理器。此方案无需修改现有qDebug代码，统一处理所有Qt调试输出。
+- 调试输出清理规则：删除频繁调用函数中的不必要qDebug输出，包括getPaintingOverlay、getCurrentFrame、updateVideoDisplayWidget、invalidateCache等函数。保留重要的错误和警告信息，但移除正常操作流程中的冗余日志，以减少控制台输出噪音，提高程序运行时的可读性。

@@ -745,7 +745,7 @@ void MutiCamApp::updateViewDisplay(const QString& viewName)
     }
     
     if (!mainLabel || !tabWidget || !currentFrame || currentFrame->empty()) {
-        qDebug() << "无法更新" << viewName << "视图显示 - 缺少必要数据";
+        // 静默返回，避免频繁的调试输出
         return;
     }
     
@@ -770,8 +770,8 @@ void MutiCamApp::updateViewDisplay(const QString& viewName)
     if (!qimg.isNull()) {
         tabWidget->setVideoFrame(QPixmap::fromImage(qimg));
     }
-    
-    qDebug() << "已更新" << viewName << "视图显示";
+
+    // 移除频繁的更新日志，避免控制台输出过多
 }
 
 QPointF MutiCamApp::windowToImageCoordinates(QLabel* label, const QPoint& windowPos)
@@ -851,12 +851,12 @@ void MutiCamApp::invalidateCache(const QString& viewName)
         // 清空所有缓存
         m_frameCache.clear();
         m_renderBuffers.clear();  // 同时清理渲染缓冲区
-        qDebug() << "已清空所有帧缓存和渲染缓冲区";
+        // 静默清理，避免频繁日志输出
     } else {
         // 清空指定视图的缓存
         m_frameCache.remove(viewName);
         m_renderBuffers.remove(viewName);  // 清理对应的渲染缓冲区
-        qDebug() << "已清空" << viewName << "视图的帧缓存和渲染缓冲区";
+        // 静默清理，避免频繁日志输出
     }
 }
 
@@ -1360,29 +1360,22 @@ VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
 
 PaintingOverlay* MutiCamApp::getPaintingOverlay(const QString& viewName)
 {
-    qDebug() << "getPaintingOverlay called with viewName:" << viewName;
-
     if (viewName == "vertical") {
-        qDebug() << "返回 m_verticalPaintingOverlay:" << (m_verticalPaintingOverlay ? "有效" : "空指针");
         return m_verticalPaintingOverlay;
     } else if (viewName == "left") {
-        qDebug() << "返回 m_leftPaintingOverlay:" << (m_leftPaintingOverlay ? "有效" : "空指针");
         return m_leftPaintingOverlay;
     } else if (viewName == "front") {
-        qDebug() << "返回 m_frontPaintingOverlay:" << (m_frontPaintingOverlay ? "有效" : "空指针");
         return m_frontPaintingOverlay;
     } else if (viewName == "vertical2") {
-        qDebug() << "返回 m_verticalPaintingOverlay2:" << (m_verticalPaintingOverlay2 ? "有效" : "空指针");
         return m_verticalPaintingOverlay2;
     } else if (viewName == "left2") {
-        qDebug() << "返回 m_leftPaintingOverlay2:" << (m_leftPaintingOverlay2 ? "有效" : "空指针");
         return m_leftPaintingOverlay2;
     } else if (viewName == "front2") {
-        qDebug() << "返回 m_frontPaintingOverlay2:" << (m_frontPaintingOverlay2 ? "有效" : "空指针");
         return m_frontPaintingOverlay2;
     }
 
-    qDebug() << "未找到匹配的视图名称：" << viewName;
+    // 只在找不到匹配视图时输出警告
+    qDebug() << "Warning: 未找到匹配的视图名称：" << viewName;
     return nullptr;
 }
 
@@ -1717,20 +1710,16 @@ cv::Mat MutiCamApp::getCurrentFrame(const QString& viewName) const
     // 转换为小写进行比较
     QString lowerBaseName = baseName.toLower();
 
-    qDebug() << "getCurrentFrame called with viewName:" << viewName << "baseName:" << baseName << "lowerBaseName:" << lowerBaseName;
-
     if (lowerBaseName == "vertical") {
-        qDebug() << "返回vertical帧，尺寸：" << m_currentFrameVertical.cols << "x" << m_currentFrameVertical.rows;
         return m_currentFrameVertical;
     } else if (lowerBaseName == "left") {
-        qDebug() << "返回left帧，尺寸：" << m_currentFrameLeft.cols << "x" << m_currentFrameLeft.rows;
         return m_currentFrameLeft;
     } else if (lowerBaseName == "front") {
-        qDebug() << "返回front帧，尺寸：" << m_currentFrameFront.cols << "x" << m_currentFrameFront.rows;
         return m_currentFrameFront;
     }
 
-    qDebug() << "未找到匹配的视图名称：" << viewName;
+    // 只在找不到匹配视图时输出警告
+    qDebug() << "Warning: 未找到匹配的视图名称：" << viewName;
     return cv::Mat(); // 返回空Mat
 }
 

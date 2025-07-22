@@ -355,11 +355,11 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
     }
     
     if (!m_isDrawingMode) {
-        qDebug() << "鼠标点击但不在绘制模式";
+        // 静默返回，避免频繁的鼠标事件日志
         return;
     }
 
-    qDebug() << "鼠标点击，当前绘制工具：" << static_cast<int>(m_currentDrawingTool);
+    // 移除频繁的鼠标点击日志
     switch (m_currentDrawingTool) {
         case DrawingTool::Point:
             handlePointDrawingClick(imagePos);
