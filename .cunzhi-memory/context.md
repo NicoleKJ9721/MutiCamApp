@@ -1,15 +1,15 @@
 # 项目上下文信息
 
-- 项目当前状态：编译问题已解决，程序能正常运行并显示UI，OpenCV 4.10.0和海康SDK配置正常，检测到3个设备，依赖库测试通过
-- 第二阶段开发要求：1.生成总结性Markdown文档 2.不生成测试脚本 3.不编译项目 4.不运行项目 - 专注于相机控制模块的海康SDK封装和多线程图像采集实现
-- 第二阶段相机控制模块开发已完成。主要成果：1)完整实现海康威视SDK封装(HikvisionCamera类)，包括设备枚举、连接管理、图像采集、参数设置、触发模式等功能；2)实现多线程图像采集(CameraThread类)，为每个相机提供独立线程，支持帧率控制、暂停恢复、性能统计；3)完善相机管理器(CameraManager类)，提供统一的多相机管理接口，支持批量操作和状态监控；4)创建了详细的开发总结文档。模块具备线程安全、错误处理、性能监控等特性，为第三阶段测量管理模块提供了稳定的图像数据源。
-- OpenCV并行后端加载失败问题：官网预编译版本默认不包含TBB/OneTBB/OpenMP等并行处理库，这是正常现象。警告信息不影响程序功能，OpenCV会自动回退到单线程处理。如需性能优化可考虑使用Intel优化版本或自行编译支持并行的OpenCV版本。当前项目建议忽略这些警告。
-- VideoDisplayWidget直线绘制功能优化已完成状态：1)drawSingleLine函数已完全按照Python版本样式重构-端点从大绿色圆(半径10)改为小圆点(半径3)使用线条颜色，角度文本从中点移至起点附近(偏移20px)，背景从白色边框改为纯黑色背景，文本和度数符号颜色使用line.color保持一致性；2)所有绘制函数的文字定位已优化-drawPoints/drawSingleCircle/drawSingleFineCircle/drawSingleParallel/drawSingleTwoLines等函数文字位置从固定偏移改为根据textRect.height()动态计算，背景框bgRect的y坐标调整，消除文字上方多余间距；3)文字背景框大小问题已解决-所有函数的padding从固定值改为根据fontSize动态计算，不同文字类型设置不同padding系数和最小值；4)代码质量提升机会已识别-A)代码结构重构(绘制策略模式) B)常量统一管理(配置类) C)绘制性能优化(脏区域检测) D)代码文档完善 E)单元测试框架 F)错误处理增强。当前所有绘制功能样式已与Python版本一致，性能优化已完成，代码无诊断问题。重要：严格遵守项目规则-不编译/不运行/不生成文档/不生成测试脚本。
-- VideoDisplayWidget性能优化已完成状态：1)DrawingContext缓存系统已实现-避免重复坐标转换计算，在图像尺寸变化时自动失效重建；2)字体大小修复已完成-解决高DPI环境下绘图文字过小问题；3)局部刷新+节流机制已实现-mouseMoveEvent中添加60fps更新频率限制，使用updateImageRect()替代全屏update()，为直线/平行线/两点线等绘图工具计算精确预览区域；4)编译错误已修复-删除VideoDisplayWidget.h中不存在的DrawingStructs.h包含语句；5)关键文件修改-VideoDisplayWidget.h添加缓存变量和updateImageRect函数声明，VideoDisplayWidget.cpp实现完整缓存逻辑、节流机制和局部刷新；6)绘图结构体定义-LineObject/CircleObject/ParallelObject等直接在VideoDisplayWidget.h中定义，无需外部依赖；7)性能提升预期-解决大视图绘图卡顿，鼠标移动更流畅，CPU使用率显著降低。代码修改完成，编译错误已解决，等待用户测试验证性能效果。重要：严格遵守项目规则-不编译/不运行/不生成文档/不生成测试脚本。
-- 绘制数据同步问题已解决：修复了MutiCamApp.cpp中onDrawingDataChanged函数的类型错误（LineData->LineObject等），添加了VideoDisplayWidget.h中缺失的getter方法，确保主界面和选项卡绘制数据正确同步。编译已通过，无需生成文档、测试或运行程序。
-- 线段功能开发状态：1. LineSegmentObject结构体已在VideoDisplayWidget.h中定义，包含points(QVector<QPointF>)、isCompleted、color、thickness、isDashed成员；2. VideoDisplayWidget.cpp中已实现完整的线段功能：数据管理(setLineSegmentsData)、绘制(drawSingleLineSegment)、交互(右键菜单点与点创建线段)、选择(hitTestLineSegment、selectObject)、删除(deleteSelectedObjects)；3. 刚修复的关键问题：Qt 6.8兼容性-将QSet.toList()改为构造函数方式，线段颜色统一为绿色；4. 线段通过选中两个点后右键菜单'点与点'选项创建；5. 所有相关方法已集成到现有的绘图和选择系统中
-- 分层渲染优化3完成：1. PaintingOverlay::paintEvent添加透明背景填充确保鼠标事件捕获 2. MutiCamApp::installMouseEventFilters函数已清空 3. MutiCamApp::eventFilter简化为只调用基类实现 4. VideoDisplayWidget保持纯显示职责，无鼠标事件处理函数 5. 绘图功能事件流已修复，PaintingOverlay直接处理所有鼠标事件
-- 绘图功能事件穿透问题修复：在PaintingOverlay::mousePressEvent和mouseMoveEvent中添加event->accept()调用，防止鼠标事件穿透到下层VideoDisplayWidget，确保绘图功能正常工作和鼠标光标正确显示为十字形
-- 项目采用分层渲染架构：VideoDisplayWidget负责显示视频帧，PaintingOverlay负责透明覆盖层绘图交互。当前正在从旧代码迁移绘图功能到新架构，已修复字体缩放、直线预览、平行线预览等功能。
-- 为主界面视图添加可见性控制优化：在onCameraFrameReady函数中为主界面视图添加Tab可见性检查，只有当前Tab是主界面(index=0)时才更新主视图，以节省性能。修改位置：src/MutiCamApp.cpp第387-391行。
-- 复合测量功能已实现完成：1)扩展右键菜单支持点与线距离、点与圆距离、线与圆关系、线段夹角四种复合测量；2)实现几何计算算法包括点到直线距离公式、点到圆距离计算、直线与圆相交判断、两线段夹角计算；3)集成到现有选择系统，根据选中图形类型动态显示可用测量选项；4)测量结果通过measurementCompleted信号显示在状态栏和弹窗中。修改文件：src/PaintingOverlay.h添加方法声明，src/PaintingOverlay.cpp实现完整功能。功能已完成，等待用户测试。
+## 项目架构和技术栈
+- 项目当前状态：C++重构完成，功能稳定运行，保存图像功能已优化（异步保存、最高画质、字体大小基于图像分辨率）
+- 项目架构：分层渲染架构，VideoDisplayWidget显示视频，PaintingOverlay处理绘图交互
+- 技术栈：Qt6 + OpenCV 4.10.0 + 海康SDK，CMake构建，QtConcurrent异步处理
+## 核心功能模块
+- 相机控制模块：海康威视SDK封装，多线程图像采集，相机管理器统一接口
+- 绘制功能模块：直线、圆形、平行线、两点线等绘制工具，与Python版本样式一致
+- 性能优化：DrawingContext缓存系统，局部刷新机制，60fps更新频率限制
+## 当前功能状态
+- 保存图像功能：已完全优化（异步保存、100%画质、字体1.5%图像高度、padding fontSize*0.5）
+- 绘制功能：直线、圆形、平行线、两点线、线段等，样式与Python版本一致
+- 测量功能：复合测量（点线距离、点圆距离、线圆关系、线段夹角）
+- 性能优化：DrawingContext缓存、局部刷新、60fps限制、Tab可见性控制

@@ -917,7 +917,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
     // 预计算常量（匹配Python版本）
     const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
     const double innerRadius = 20 * heightScale;
-    const double textpadding = qMax(4.0, ctx.fontSize * 2);
+    const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     
     for (int i = 0; i < m_points.size(); ++i) {
         const QPointF& point = m_points[i].position;  // 直接使用图像坐标
@@ -1006,7 +1006,7 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     
     // 动态计算文本布局参数
     double textOffset = qMax(8.0, 10.0 * ctx.scale);
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
     // 计算角度文本框定位到起始点右上方所需的精确偏移量
@@ -1041,7 +1041,7 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
     int connectionLineWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
     // 只在绘制过程中显示辅助点，圆形完成后不显示
@@ -1161,7 +1161,7 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
     double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
     double textOffset = qMax(8.0, 10.0 * ctx.scale);
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
     // 只在绘制过程中显示辅助点，精细圆完成后不显示
@@ -1250,7 +1250,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     double desiredThickness = parallel.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
@@ -1438,7 +1438,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     double desiredThickness = twoLines.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
@@ -1579,7 +1579,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         
         // 动态计算文本布局参数，直接使用期望的屏幕像素值
         double textOffset = qMax(8.0, 10.0 * ctx.scale);
-        double textPadding = qMax(16.0, ctx.fontSize * 2);
+        double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
         int bgBorderWidth = 1;
         
         // 检查交点是否在视图范围内，如果不在则使用两线中间区域作为文字锚点
@@ -1887,26 +1887,31 @@ QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bo
 QFont PaintingOverlay::createFont(int targetScreenSize, double scale) const
 {
     QFont font;
-    // 内部进行补偿，确保在屏幕上看起来是 targetScreenSize 大小
-    font.setPointSizeF(qMax(8.0, targetScreenSize / scale));
+    // {{ AURA-X: Modify - 基于图像分辨率的字体大小，不受显示缩放影响. Approval: 寸止(ID:font_size_fix). }}
+    // 直接使用目标大小，不进行缩放补偿，因为字体大小已经基于图像分辨率计算
+    font.setPointSizeF(qMax(8.0, static_cast<double>(targetScreenSize)));
     font.setBold(true);
     return font;
 }
 
 double PaintingOverlay::calculateFontSize() const
 {
-    // Calculate font size based on user view scaling, consistent with parallel line logic
+    // {{ AURA-X: Modify - 基于图像分辨率计算字体大小，而不是显示缩放比例. Approval: 寸止(ID:font_size_fix). }}
     if (m_imageSize.isEmpty()) {
         return 8.0; // Default font size
     }
 
-    // Use the same logic as parallel lines for consistent user experience
-    double scaleFactor = m_scaleFactor;
-    const double heightScale = std::max(0.8, std::min(scaleFactor, 4.0));
-    const double fontSizeBase = std::max(0.8, 0.6 + (0.8 * heightScale));
+    // 基于图像实际分辨率计算字体大小，确保保存时文字大小合适
+    // 使用图像高度作为基准，2448x2048分辨率下字体大小约为30像素
+    double imageHeight = m_imageSize.height();
+    double baseFontSize = imageHeight / 66.67;  // 基础字体大小：图像高度的1.5%
 
-    // Scale up to match the expected font size range for UI rendering
-    return fontSizeBase * 8.0;
+    // 限制字体大小范围，确保可读性
+    double fontSize = qMax(14.0, qMin(baseFontSize, 50.0));
+
+    qDebug() << "字体大小计算：图像尺寸" << m_imageSize << "，基础字体大小" << baseFontSize << "，最终字体大小" << fontSize;
+
+    return fontSize;
 }
 
 void PaintingOverlay::drawTextWithBackground(QPainter& painter,
@@ -2613,7 +2618,7 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
 
     // 动态计算文本布局参数
     double textOffset = qMax(8.0, 10.0 * ctx.scale);
-    double textPadding = qMax(4.0, ctx.fontSize * 2);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
 
     // 计算第一个文本框（长度）定位到中点右上方所需的精确偏移量
