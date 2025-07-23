@@ -236,6 +236,11 @@ private slots:
      */
     void onUISizeChanged();
 
+    /**
+     * @brief 相机序列号参数改变槽函数（重新初始化相机系统）
+     */
+    void onCameraSerialChanged();
+
 protected:
     /**
      * @brief 窗口大小改变事件处理
@@ -467,9 +472,19 @@ private:
      void connectSettingsSignals();
 
      /**
+      * @brief 连接相机管理器信号
+      */
+     void connectCameraManagerSignals();
+
+     /**
       * @brief 根据设置参数应用UI尺寸
       */
      void applyUISizeFromSettings();
+
+     /**
+      * @brief 重新初始化相机系统（当序列号参数改变时）
+      */
+     void reinitializeCameraSystem();
      
      /**
       * @brief 更新VideoDisplayWidget的绘制数据

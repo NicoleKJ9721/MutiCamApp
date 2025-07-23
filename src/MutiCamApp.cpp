@@ -46,12 +46,11 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     
     // 初始化硬件加速显示控件
     initializeVideoDisplayWidgets();
-    
-    // 初始化相机系统
-    initializeCameraSystem();
-    
+
     // 初始化设置管理器
     initializeSettingsManager();
+
+    // 注意：相机系统将在点击"开始测量"时初始化
 
     // 连接信号和槽
     connectSignalsAndSlots();
@@ -124,39 +123,77 @@ void MutiCamApp::initializeCameraSystem()
     try {
         // 创建相机管理器
         m_cameraManager = std::make_unique<MutiCam::Camera::CameraManager>(this);
-        
-        // 枚举可用设备
-        auto devices = MutiCam::Camera::CameraManager::enumerateDevices();
-        
-        if (devices.empty()) {
-            qDebug() << "No cameras found";
+
+        // 从参数设置中获取相机序列号
+        if (!m_settingsManager) {
+            qDebug() << "Settings manager not initialized, cannot get camera serial numbers";
             return;
         }
-        
-        // 添加找到的相机（最多添加3个相机对应3个视图）
-        int cameraCount = std::min(static_cast<int>(devices.size()), 3);
-        
-        for (int i = 0; i < cameraCount; ++i) {
-            std::string cameraId;
-            switch (i) {
-                case 0: cameraId = "vertical"; break;
-                case 1: cameraId = "left"; break;
-                case 2: cameraId = "front"; break;
+
+        const auto& settings = m_settingsManager->getCurrentSettings();
+
+        // 定义相机ID和对应的序列号
+        std::vector<std::pair<std::string, std::string>> cameraConfigs = {
+            {"vertical", settings.verCamSN.toStdString()},
+            {"left", settings.leftCamSN.toStdString()},
+            {"front", settings.frontCamSN.toStdString()}
+        };
+
+        // 枚举可用设备（用于验证序列号是否存在）
+        auto availableDevices = MutiCam::Camera::CameraManager::enumerateDevices();
+
+        if (availableDevices.empty()) {
+            qDebug() << "No cameras found in system";
+            statusBar()->showMessage("系统中未发现任何相机设备", 5000);
+            return;
+        }
+
+        qDebug() << "Available camera devices:";
+        for (const auto& device : availableDevices) {
+            qDebug() << "  -" << QString::fromStdString(device);
+        }
+
+        // 根据参数设置中的序列号添加相机
+        for (const auto& config : cameraConfigs) {
+            const std::string& cameraId = config.first;
+            const std::string& serialNumber = config.second;
+
+            // 检查序列号是否为空
+            if (serialNumber.empty()) {
+                qDebug() << "Camera serial number not set for:" << cameraId.c_str();
+                continue;
             }
-            
-            if (m_cameraManager->addCamera(cameraId, devices[i])) {
-                qDebug() << "Added camera:" << cameraId.c_str() << "Serial:" << devices[i].c_str();
+
+            // 检查序列号是否在可用设备列表中
+            bool deviceFound = std::find(availableDevices.begin(), availableDevices.end(), serialNumber) != availableDevices.end();
+
+            if (!deviceFound) {
+                qDebug() << "Camera with serial number" << serialNumber.c_str() << "not found for" << cameraId.c_str();
+                QString statusMsg = QString("未找到序列号为 %1 的相机（%2视图）")
+                                  .arg(QString::fromStdString(serialNumber))
+                                  .arg(QString::fromStdString(cameraId));
+                statusBar()->showMessage(statusMsg, 5000);
+                continue;
+            }
+
+            // 尝试添加相机
+            if (m_cameraManager->addCamera(cameraId, serialNumber)) {
+                qDebug() << "Successfully added camera:" << cameraId.c_str() << "Serial:" << serialNumber.c_str();
             } else {
-                qDebug() << "Failed to add camera:" << cameraId.c_str();
+                qDebug() << "Failed to add camera:" << cameraId.c_str() << "Serial:" << serialNumber.c_str();
+                QString statusMsg = QString("无法连接序列号为 %1 的相机（%2视图）")
+                                  .arg(QString::fromStdString(serialNumber))
+                                  .arg(QString::fromStdString(cameraId));
+                statusBar()->showMessage(statusMsg, 5000);
             }
         }
-        
+
     } catch (const std::exception& e) {
         qDebug() << "Error initializing camera system:" << e.what();
-        QMessageBox::warning(this, "相机初始化错误", 
-                           QString("相机系统初始化失败: %1").arg(e.what()));
+        QString statusMsg = QString("相机系统初始化失败: %1").arg(e.what());
+        statusBar()->showMessage(statusMsg, 5000);
     }
- }
+}
 
 // calculateLineIntersection 方法已迁移到 VideoDisplayWidget
 
@@ -332,16 +369,8 @@ void MutiCamApp::connectSignalsAndSlots()
 
     // 连接参数输入框的实时保存信号
     connectSettingsSignals();
-    
-    // 连接相机管理器信号
-    if (m_cameraManager) {
-        connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraFrameReady,
-                this, &MutiCamApp::onCameraFrameReady);
-        connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraStateChanged,
-                this, &MutiCamApp::onCameraStateChanged);
-        connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraError,
-                this, &MutiCamApp::onCameraError);
-    }
+
+    // 注意：相机管理器信号将在相机系统初始化时连接
     
     // 连接PaintingOverlay的测量结果信号和绘图同步信号
     if (m_verticalPaintingOverlay) {
@@ -429,33 +458,56 @@ void MutiCamApp::connectSignalsAndSlots()
 
 void MutiCamApp::onStartMeasureClicked()
 {
-    if (!m_cameraManager) {
-        QMessageBox::warning(this, "错误", "相机管理器未初始化");
-        return;
-    }
-    
     try {
         qDebug() << "Starting measurement...";
-        
+
+        // 如果相机管理器未初始化，先初始化相机系统
+        if (!m_cameraManager) {
+            qDebug() << "相机管理器未初始化，正在初始化相机系统...";
+            statusBar()->showMessage("正在连接相机...", 3000);
+
+            // 初始化相机系统
+            initializeCameraSystem();
+
+            // 连接相机管理器信号（必须在初始化后立即连接）
+            if (m_cameraManager) {
+                connectCameraManagerSignals();
+            }
+
+            // 检查是否成功初始化
+            if (!m_cameraManager) {
+                QMessageBox::warning(this, "相机连接失败",
+                                   "无法初始化相机系统，请检查：\n"
+                                   "1. 相机设备是否正确连接\n"
+                                   "2. 参数设置中的相机序列号是否正确\n"
+                                   "3. 相机驱动是否正常安装");
+                return;
+            }
+        }
+
         // 启动所有相机
         if (m_cameraManager->startAllCameras()) {
             m_isMeasuring = true;
-            
+
             // 更新按钮状态
             ui->btnStartMeasure->setEnabled(false);
             ui->btnStopMeasure->setEnabled(true);
-            
+
             // 更新状态栏或显示信息
             statusBar()->showMessage("测量已开始 - 图像采集中...");
-            
+
             qDebug() << "Measurement started successfully";
         } else {
-            QMessageBox::warning(this, "启动失败", "无法启动相机，请检查相机连接");
+            QMessageBox::warning(this, "启动失败",
+                               "无法启动相机采集，请检查：\n"
+                               "1. 相机是否正确连接\n"
+                               "2. 相机是否被其他程序占用\n"
+                               "3. 参数设置中的序列号是否正确");
         }
-        
+
     } catch (const std::exception& e) {
         qDebug() << "Error starting measurement:" << e.what();
-        QMessageBox::critical(this, "启动错误", 
+        QMessageBox::critical(this, "启动错误",
                             QString("启动测量时发生错误: %1").arg(e.what()));
     }
 }
@@ -489,6 +541,12 @@ void MutiCamApp::onStopMeasureClicked()
 
 void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& frame)
 {
+    static int frameCount = 0;
+    frameCount++;
+    if (frameCount % 30 == 0) { // 每30帧打印一次，避免日志过多
+        qDebug() << "接收到相机帧：" << cameraId << "帧大小：" << frame.cols << "x" << frame.rows;
+    }
+
     if (frame.empty()) return;
 
     // 存储当前帧供自动检测使用
@@ -2686,14 +2744,41 @@ void MutiCamApp::onSettingsTextChanged()
     }
 }
 
+void MutiCamApp::onCameraSerialChanged()
+{
+    // 保存设置
+    if (m_settingsManager) {
+        m_settingsManager->saveSettingsDelayed(this);
+    }
+
+    // 如果相机系统已经初始化，则重新初始化
+    if (m_cameraManager) {
+        // 延迟重新初始化相机系统（避免用户快速输入时频繁重新初始化）
+        static QTimer* reinitTimer = nullptr;
+        if (!reinitTimer) {
+            reinitTimer = new QTimer(this);
+            reinitTimer->setSingleShot(true);
+            reinitTimer->setInterval(2000); // 2秒延迟
+            connect(reinitTimer, &QTimer::timeout, this, &MutiCamApp::reinitializeCameraSystem);
+        }
+
+        // 重启定时器
+        reinitTimer->start();
+
+        qDebug() << "相机序列号参数已改变，将在2秒后重新初始化相机系统";
+    } else {
+        qDebug() << "相机序列号参数已改变，将在下次开始测量时使用新的序列号";
+    }
+}
+
 void MutiCamApp::connectSettingsSignals()
 {
     // 连接所有参数输入框的textChanged信号到实时保存槽函数
 
-    // 相机参数
-    connect(ui->ledVerCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
-    connect(ui->ledLeftCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
-    connect(ui->ledFrontCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    // 相机参数（特殊处理：改变时重新初始化相机系统）
+    connect(ui->ledVerCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onCameraSerialChanged);
+    connect(ui->ledLeftCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onCameraSerialChanged);
+    connect(ui->ledFrontCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onCameraSerialChanged);
 
     // 直线查找参数
     connect(ui->ledCannyLineLow, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
@@ -2786,6 +2871,55 @@ void MutiCamApp::onUISizeChanged()
     m_isUpdatingUISize = false;
 
     qDebug() << "根据参数调整窗口大小：" << newWidth << "x" << newHeight;
+}
+
+void MutiCamApp::reinitializeCameraSystem()
+{
+    qDebug() << "重新初始化相机系统...";
+
+    // 停止当前的相机系统
+    if (m_cameraManager) {
+        // 停止所有相机采集
+        m_cameraManager->stopAllCameras();
+
+        // 断开所有相机连接
+        m_cameraManager->disconnectAllCameras();
+
+        // 重置相机管理器
+        m_cameraManager.reset();
+    }
+
+    // 重新初始化相机系统
+    initializeCameraSystem();
+
+    // 重新连接相机管理器信号
+    if (m_cameraManager) {
+        connectCameraManagerSignals();
+    }
+
+    qDebug() << "相机系统重新初始化完成";
+}
+
+void MutiCamApp::connectCameraManagerSignals()
+{
+    if (!m_cameraManager) {
+        qDebug() << "相机管理器未初始化，无法连接信号";
+        return;
+    }
+
+    // 连接相机帧就绪信号
+    connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraFrameReady,
+            this, &MutiCamApp::onCameraFrameReady);
+
+    // 连接相机状态变化信号
+    connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraStateChanged,
+            this, &MutiCamApp::onCameraStateChanged);
+
+    // 连接相机错误信号
+    connect(m_cameraManager.get(), &MutiCam::Camera::CameraManager::cameraError,
+            this, &MutiCamApp::onCameraError);
+
+    qDebug() << "相机管理器信号连接完成";
 }
 
 void MutiCamApp::applyUISizeFromSettings()

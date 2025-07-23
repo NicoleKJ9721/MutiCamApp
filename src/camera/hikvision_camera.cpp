@@ -559,6 +559,13 @@ void HikvisionCamera::processFrame(unsigned char* pData, MV_FRAME_OUT_INFO_EX* p
     if (!pData || !pFrameInfo || !m_isStreaming) {
         return;
     }
+
+    static int callbackCount = 0;
+    callbackCount++;
+    if (callbackCount % 30 == 0) { // 每30帧打印一次
+        qDebug() << "相机回调函数被调用，序列号：" << m_params.serialNumber.c_str()
+                 << "帧大小：" << pFrameInfo->nWidth << "x" << pFrameInfo->nHeight;
+    }
     
     try {
         // 重置帧超时定时器（线程安全）
