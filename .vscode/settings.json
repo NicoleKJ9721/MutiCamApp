@@ -84,6 +84,9 @@
         "qpixmap": "cpp",
         "qcursor": "cpp",
         "qvector2d": "cpp",
-        "qapplication": "cpp"
+        "qapplication": "cpp",
+        "memory_resource": "cpp",
+        "random": "cpp",
+        "source_location": "cpp"
     }
 }

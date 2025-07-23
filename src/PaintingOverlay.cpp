@@ -916,7 +916,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
 
     // 预计算常量（匹配Python版本）
     const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
-    const double innerRadius = 20 * heightScale;
+    const double innerRadius = 12 * heightScale;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     
     for (int i = 0; i < m_points.size(); ++i) {
@@ -1109,7 +1109,7 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         
         // 动态计算圆心标记尺寸（与画点功能相同）
         const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
-        const double centerMarkRadius = 15 * heightScale;
+        const double centerMarkRadius = 12 * heightScale;
 
         // 绘制圆心 - 红色实心圆
         painter.setPen(Qt::NoPen);
@@ -1209,7 +1209,9 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
 
         // 绘制圆心标记（使用红色，与简单圆保持一致）
-        double centerMarkRadius = qMax(4.0, 6.0 * ctx.scale);
+        // 动态计算圆心标记尺寸（与简单圆功能相同）
+        const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+        const double centerMarkRadius = 12 * heightScale;
         painter.setPen(Qt::NoPen);
         painter.setBrush(ctx.redBrush);
         painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
