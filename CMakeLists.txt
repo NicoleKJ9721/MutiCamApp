@@ -34,6 +34,8 @@ set(srcs
     src/PaintingOverlay.h
     src/SettingsManager.cpp
     src/SettingsManager.h
+    src/LogManager.cpp
+    src/LogManager.h
     src/dependencies_test.cpp
     src/dependencies_test.h
     src/MutiCamApp.ui

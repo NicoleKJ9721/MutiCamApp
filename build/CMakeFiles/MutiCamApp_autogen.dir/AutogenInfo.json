@@ -297,6 +297,12 @@
 	"HEADERS" : 
 	[
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/LogManager.h",
+			"MU",
+			"UVLADIE3JM/moc_LogManager.cpp",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/MutiCamApp.h",
 			"MU",
 			"UVLADIE3JM/moc_MutiCamApp.cpp",
@@ -425,6 +431,11 @@
 	"SETTINGS_FILE" : "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/CMakeFiles/MutiCamApp_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/LogManager.cpp",
+			"MU",
+			null
+		],
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/MutiCamApp.cpp",
 			"MU",

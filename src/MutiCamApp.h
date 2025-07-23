@@ -23,6 +23,7 @@
 #include "image_processing/edge_detector.h"
 #include "image_processing/shape_detector.h"
 #include "SettingsManager.h"
+#include "LogManager.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -467,6 +468,11 @@ private:
      void initializeSettingsManager();
 
      /**
+      * @brief 初始化日志管理器
+      */
+     void initializeLogManager();
+
+     /**
       * @brief 连接参数设置的实时保存信号
       */
      void connectSettingsSignals();
@@ -569,6 +575,9 @@ private:
 
      // 设置管理器
      SettingsManager* m_settingsManager;
+
+     // 日志管理器
+     LogManager* m_logManager;
 
      // UI尺寸双向绑定相关
      bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发

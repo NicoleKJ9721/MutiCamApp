@@ -40,12 +40,16 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_saveProgressDialog(nullptr)
     , m_saveWatcher(nullptr)
     , m_settingsManager(nullptr)
+    , m_logManager(nullptr)
     , m_isUpdatingUISize(false)
 {
     ui->setupUi(this);
     
     // 初始化硬件加速显示控件
     initializeVideoDisplayWidgets();
+
+    // 初始化日志管理器（优先初始化，其他模块可能需要使用）
+    initializeLogManager();
 
     // 初始化设置管理器
     initializeSettingsManager();
@@ -461,10 +465,20 @@ void MutiCamApp::onStartMeasureClicked()
     try {
         qDebug() << "Starting measurement...";
 
+        // 记录测量开始操作
+        if (m_logManager) {
+            m_logManager->logMeasurementOperation("开始测量按钮被点击");
+        }
+
         // 如果相机管理器未初始化，先初始化相机系统
         if (!m_cameraManager) {
             qDebug() << "相机管理器未初始化，正在初始化相机系统...";
             statusBar()->showMessage("正在连接相机...", 3000);
+
+            // 记录相机初始化开始
+            if (m_logManager) {
+                m_logManager->logCameraOperation("开始初始化相机系统");
+            }
 
             // 初始化相机系统
             initializeCameraSystem();
@@ -472,6 +486,9 @@ void MutiCamApp::onStartMeasureClicked()
             // 连接相机管理器信号（必须在初始化后立即连接）
             if (m_cameraManager) {
                 connectCameraManagerSignals();
+                if (m_logManager) {
+                    m_logManager->logCameraOperation("相机管理器信号连接完成");
+                }
             }
 
             // 检查是否成功初始化
@@ -496,8 +513,18 @@ void MutiCamApp::onStartMeasureClicked()
             // 更新状态栏或显示信息
             statusBar()->showMessage("测量已开始 - 图像采集中...");
 
+            // 记录成功启动日志
+            if (m_logManager) {
+                m_logManager->logCameraOperation("所有相机启动成功，开始测量");
+            }
+
             qDebug() << "Measurement started successfully";
         } else {
+            // 记录启动失败日志
+            if (m_logManager) {
+                m_logManager->logError("相机启动失败", "无法启动相机采集");
+            }
+
             QMessageBox::warning(this, "启动失败",
                                "无法启动相机采集，请检查：\n"
                                "1. 相机是否正确连接\n"
@@ -517,25 +544,40 @@ void MutiCamApp::onStopMeasureClicked()
     if (!m_cameraManager) {
         return;
     }
-    
+
     try {
         qDebug() << "Stopping measurement...";
-        
+
+        // 记录停止测量操作
+        if (m_logManager) {
+            m_logManager->logMeasurementOperation("停止测量按钮被点击");
+        }
+
         // 停止所有相机
         m_cameraManager->stopAllCameras();
         m_isMeasuring = false;
-        
+
         // 更新按钮状态
         ui->btnStartMeasure->setEnabled(true);
         ui->btnStopMeasure->setEnabled(false);
-        
+
         // 更新状态栏
         statusBar()->showMessage("测量已停止");
-        
+
+        // 记录成功停止日志
+        if (m_logManager) {
+            m_logManager->logMeasurementOperation("测量已成功停止");
+        }
+
         qDebug() << "Measurement stopped successfully";
-        
+
     } catch (const std::exception& e) {
         qDebug() << "Error stopping measurement:" << e.what();
+
+        // 记录停止失败日志
+        if (m_logManager) {
+            m_logManager->logError("停止测量失败", e.what());
+        }
     }
 }
 
@@ -711,6 +753,11 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
 // 画点功能实现
 void MutiCamApp::onDrawPointClicked()
 {
+    // 记录绘制操作
+    if (m_logManager) {
+        m_logManager->logDrawingOperation("开始绘制点", "设置所有视图为点绘制模式");
+    }
+
     // 命令所有视图进入"画点"模式
     if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
     if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
@@ -1640,9 +1687,17 @@ void MutiCamApp::onSaveImageClicked()
     // 主界面保存图像按钮 - 异步保存所有视图的图像
     qDebug() << "主界面保存图像按钮被点击 - 异步保存所有视图";
 
+    // 记录保存图像操作
+    if (m_logManager) {
+        m_logManager->logUIOperation("主界面保存图像按钮被点击", "异步保存所有视图");
+    }
+
     // 检查是否已有保存任务在进行
     if (m_saveWatcher && m_saveWatcher->isRunning()) {
         qDebug() << "保存任务正在进行中，忽略重复点击";
+        if (m_logManager) {
+            m_logManager->logWarning("保存任务重复点击", "保存任务正在进行中");
+        }
         return;
     }
 
@@ -2742,6 +2797,11 @@ void MutiCamApp::onSettingsTextChanged()
     if (m_settingsManager) {
         m_settingsManager->saveSettingsDelayed(this);
     }
+
+    // 记录参数修改日志
+    if (m_logManager) {
+        m_logManager->logSettingsOperation("参数设置已修改", "实时保存到配置文件");
+    }
 }
 
 void MutiCamApp::onCameraSerialChanged()
@@ -2749,6 +2809,11 @@ void MutiCamApp::onCameraSerialChanged()
     // 保存设置
     if (m_settingsManager) {
         m_settingsManager->saveSettingsDelayed(this);
+    }
+
+    // 记录相机序列号修改日志
+    if (m_logManager) {
+        m_logManager->logParameterChange("相机序列号", "旧值", "新值");
     }
 
     // 如果相机系统已经初始化，则重新初始化
@@ -2765,8 +2830,15 @@ void MutiCamApp::onCameraSerialChanged()
         // 重启定时器
         reinitTimer->start();
 
+        if (m_logManager) {
+            m_logManager->logCameraOperation("相机序列号已修改", "", "将在2秒后重新初始化相机系统");
+        }
+
         qDebug() << "相机序列号参数已改变，将在2秒后重新初始化相机系统";
     } else {
+        if (m_logManager) {
+            m_logManager->logCameraOperation("相机序列号已修改", "", "将在下次开始测量时使用新的序列号");
+        }
         qDebug() << "相机序列号参数已改变，将在下次开始测量时使用新的序列号";
     }
 }
@@ -2920,6 +2992,31 @@ void MutiCamApp::connectCameraManagerSignals()
             this, &MutiCamApp::onCameraError);
 
     qDebug() << "相机管理器信号连接完成";
+}
+
+void MutiCamApp::initializeLogManager()
+{
+    try {
+        // 创建日志管理器（暂时不绑定UI组件）
+        m_logManager = new LogManager(nullptr, this);
+
+        // 设置日志级别为INFO
+        m_logManager->setLogLevel(LogLevel::INFO);
+
+        // 启用文件日志
+        m_logManager->setFileLoggingEnabled(true);
+
+        // 暂时禁用UI日志显示（可以后续添加UI组件时启用）
+        m_logManager->setUILoggingEnabled(false);
+
+        // 记录系统启动日志
+        m_logManager->logUIOperation("应用程序启动", "MutiCamApp C++版本启动");
+
+        qDebug() << "日志管理器初始化完成";
+
+    } catch (const std::exception& e) {
+        qDebug() << "日志管理器初始化失败：" << e.what();
+    }
 }
 
 void MutiCamApp::applyUISizeFromSettings()
