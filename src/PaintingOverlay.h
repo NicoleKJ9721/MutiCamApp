@@ -259,6 +259,9 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     DrawingState getDrawingState() const;
     void setDrawingState(const DrawingState& state);
 
+    // 渲染所有绘制内容到指定的QPainter（用于保存可视化图像）
+    void renderToImage(QPainter& painter, const QSize& imageSize);
+
     // 选择功能
     void enableSelection(bool enabled);
     bool isSelectionEnabled() const;

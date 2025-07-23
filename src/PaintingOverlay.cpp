@@ -4266,3 +4266,71 @@ void PaintingOverlay::setCircleDetectionParams(const ShapeDetector::CircleDetect
         qDebug() << "圆形检测参数已更新";
     }
 }
+
+void PaintingOverlay::renderToImage(QPainter& painter, const QSize& imageSize)
+{
+    // 设置临时的图像尺寸和变换参数
+    QSize originalImageSize = m_imageSize;
+    QPointF originalOffset = m_imageOffset;
+    double originalScale = m_scaleFactor;
+
+    // 为渲染设置1:1映射
+    m_imageSize = imageSize;
+    m_imageOffset = QPointF(0, 0);
+    m_scaleFactor = 1.0;
+
+    try {
+        // 使用与paintEvent相同的绘制逻辑
+        if (!m_imageSize.isEmpty()) {
+            painter.save();
+
+            // 设置坐标变换（1:1映射，无偏移）
+            QTransform transform;
+            transform.translate(m_imageOffset.x(), m_imageOffset.y());
+            transform.scale(m_scaleFactor, m_scaleFactor);
+            painter.setTransform(transform);
+
+            // 设置裁剪区域
+            painter.setClipRect(QRect(0, 0, m_imageSize.width(), m_imageSize.height()));
+
+            // 检查是否需要更新DrawingContext缓存
+            if (needsDrawingContextUpdate()) {
+                updateDrawingContext();
+            }
+
+            // 使用缓存的DrawingContext
+            const DrawingContext& ctx = m_cachedDrawingContext;
+
+            // 绘制所有图形元素（与paintEvent相同的顺序）
+            // 0. 首先绘制网格（作为最底层背景）
+            drawGrid(painter, ctx);
+
+            // 1. 先绘制选中状态高亮（作为底层外描边）
+            drawSelectionHighlights(painter);
+
+            // 2. 绘制所有已完成的图形（在高亮之上）
+            drawPoints(painter, ctx);
+            drawLines(painter, ctx);
+            drawLineSegments(painter, ctx);
+            drawCircles(painter, ctx);
+            drawFineCircles(painter, ctx);
+            drawParallels(painter, ctx);
+            drawTwoLines(painter, ctx);
+            drawROIs(painter, ctx);
+
+            // 3. 绘制当前正在预览的图形（在最上层）
+            if (m_isDrawingMode) {
+                drawCurrentPreview(painter, ctx);
+            }
+
+            painter.restore();
+        }
+    } catch (const std::exception& e) {
+        qDebug() << "renderToImage 出错：" << e.what();
+    }
+
+    // 恢复原始的变换参数
+    m_imageSize = originalImageSize;
+    m_imageOffset = originalOffset;
+    m_scaleFactor = originalScale;
+}

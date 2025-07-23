@@ -278,7 +278,17 @@
 		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6QModernWindowsStylePluginTargets-debug.cmake",
 		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6QModernWindowsStylePluginTargets-relwithdebinfo.cmake",
 		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6QModernWindowsStylePluginAdditionalTargetInfo.cmake",
-		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6WidgetsVersionlessAliasTargets.cmake"
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Widgets/Qt6WidgetsVersionlessAliasTargets.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentConfigVersion.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentConfigVersionImpl.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentConfig.cmake",
+		"C:/Qt/Tools/CMake_64/share/cmake-3.30/Modules/CMakeFindDependencyMacro.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentDependencies.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentTargets.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentTargets-debug.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentTargets-relwithdebinfo.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentAdditionalTargetInfo.cmake",
+		"C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentVersionlessAliasTargets.cmake"
 	],
 	"CMAKE_SOURCE_DIR" : "D:/AppData/Documents/GitHub/MutiCamApp_Cpp",
 	"CROSS_CONFIG" : false,
@@ -352,6 +362,7 @@
 	"MOC_COMPILATION_FILE" : "D:/AppData/Documents/GitHub/MutiCamApp_Cpp/build/MutiCamApp_autogen/mocs_compilation.cpp",
 	"MOC_DEFINITIONS" : 
 	[
+		"QT_CONCURRENT_LIB",
 		"QT_CORE_LIB",
 		"QT_GUI_LIB",
 		"QT_WIDGETS_LIB",
@@ -380,7 +391,8 @@
 		"C:/Qt/6.8.0/msvc2022_64/include",
 		"C:/Qt/6.8.0/msvc2022_64/include/QtCore",
 		"C:/Qt/6.8.0/msvc2022_64/mkspecs/win32-msvc",
-		"C:/Qt/6.8.0/msvc2022_64/include/QtGui"
+		"C:/Qt/6.8.0/msvc2022_64/include/QtGui",
+		"C:/Qt/6.8.0/msvc2022_64/include/QtConcurrent"
 	],
 	"MOC_MACRO_NAMES" : 
 	[

@@ -252,6 +252,9 @@ QT_QMAKE_TARGET_MKSPEC:STRING=win32-msvc
 //No help, variable specified on the command line.
 QT_QML_GENERATE_QMLLS_INI:STRING=ON
 
+//The directory containing a CMake configuration file for Qt6Concurrent.
+Qt6Concurrent_DIR:PATH=C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6Concurrent
+
 //The directory containing a CMake configuration file for Qt6CoreTools.
 Qt6CoreTools_DIR:PATH=C:/Qt/6.8.0/msvc2022_64/lib/cmake/Qt6CoreTools
 

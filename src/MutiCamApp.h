@@ -9,6 +9,10 @@
 #include <QMouseEvent>
 #include <QPoint>
 #include <QPointF>
+#include <QProgressDialog>
+#include <QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -160,6 +164,15 @@ private slots:
     void onUndoDetectionVerticalClicked();
     void onUndoDetectionLeftClicked();
     void onUndoDetectionFrontClicked();
+
+    /**
+     * @brief 保存图像按钮点击事件处理
+     */
+    void onSaveImageClicked();
+    void onSaveImageVerticalClicked();
+    void onSaveImageLeftClicked();
+    void onSaveImageFrontClicked();
+    void onAsyncSaveFinished();  // 异步保存完成槽函数
 
     /**
      * @brief 自动检测按钮点击事件处理
@@ -484,7 +497,22 @@ private:
       * @return 当前活动的PaintingOverlay指针
       */
      PaintingOverlay* getActivePaintingOverlay();
-     
+
+     /**
+      * @brief 保存图像相关方法
+      */
+     void saveImages(const QString& viewType);
+     cv::Mat renderVisualizedImage(const cv::Mat& originalFrame, PaintingOverlay* overlay);
+     QString createSaveDirectory(const QString& viewName);
+
+     // 异步保存相关方法
+     void saveImagesAsync(const QStringList& viewTypes);
+     void saveImagesSynchronous(const QStringList& viewTypes);
+
+     // 异步保存相关成员变量
+     QProgressDialog* m_saveProgressDialog;
+     QFutureWatcher<void>* m_saveWatcher;
+
      // 硬件加速显示方法已迁移到VideoDisplayWidget
       
 

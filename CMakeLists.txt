@@ -21,7 +21,7 @@ set(OpenCV_BIN_DIR ${OPENCV_DIR}/bin)
 set(HIKVISION_INCLUDE_DIRS ${HIKVISION_DIR}/include)
 set(HIKVISION_LIB_DIR ${HIKVISION_DIR}/lib)
 
-find_package(Qt6 COMPONENTS Widgets REQUIRED) # Qt COMPONENTS
+find_package(Qt6 COMPONENTS Widgets Concurrent REQUIRED) # Qt COMPONENTS
 
 # 手动指定源文件，确保所有文件都被包含
 set(srcs
@@ -88,7 +88,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # 链接Qt6库
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Concurrent)
 
 
 # 复制OpenCV DLL到输出目录

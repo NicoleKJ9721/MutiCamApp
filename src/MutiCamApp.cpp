@@ -9,6 +9,10 @@
 #include <QResizeEvent>
 #include <QCursor>
 #include <QStackedLayout>
+#include <QDir>
+#include <QDateTime>
+#include <QFile>
+#include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -33,6 +37,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_leftDisplayWidget2(nullptr)
     , m_frontDisplayWidget2(nullptr)
     , m_lastActivePaintingOverlay(nullptr)
+    , m_saveProgressDialog(nullptr)
+    , m_saveWatcher(nullptr)
 {
     ui->setupUi(this);
     
@@ -51,6 +57,11 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     
     // 安装鼠标事件过滤器
     installMouseEventFilters();
+
+    // 初始化异步保存组件
+    m_saveWatcher = new QFutureWatcher<void>(this);
+    connect(m_saveWatcher, &QFutureWatcher<void>::finished,
+            this, &MutiCamApp::onAsyncSaveFinished);
 }
 
 MutiCamApp::~MutiCamApp()
@@ -256,6 +267,16 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onUndoDetectionLeftClicked);
     connect(ui->btnCan1StepDetFront, &QPushButton::clicked,
             this, &MutiCamApp::onUndoDetectionFrontClicked);
+
+    // 连接保存图像按钮信号
+    connect(ui->btnSaveImage, &QPushButton::clicked,
+            this, &MutiCamApp::onSaveImageClicked);
+    connect(ui->btnSaveImageVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onSaveImageVerticalClicked);
+    connect(ui->btnSaveImageLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onSaveImageLeftClicked);
+    connect(ui->btnSaveImageFront, &QPushButton::clicked,
+            this, &MutiCamApp::onSaveImageFrontClicked);
 
     // 连接网格相关信号
     connect(ui->leGridDensity, &QLineEdit::textChanged,
@@ -1520,6 +1541,361 @@ void MutiCamApp::onUndoDetectionFrontClicked()
     }
 }
 
+// {{ AURA-X: Add - 保存图像按钮槽函数实现. Approval: 寸止(ID:save_image_buttons). }}
+void MutiCamApp::onSaveImageClicked()
+{
+    // 主界面保存图像按钮 - 异步保存所有视图的图像
+    qDebug() << "主界面保存图像按钮被点击 - 异步保存所有视图";
+
+    // 检查是否已有保存任务在进行
+    if (m_saveWatcher && m_saveWatcher->isRunning()) {
+        qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 异步保存所有三个视图的图像
+    QStringList viewTypes = {"vertical", "left", "front"};
+    saveImagesAsync(viewTypes);
+}
+
+void MutiCamApp::onSaveImageVerticalClicked()
+{
+    qDebug() << "垂直视图保存图像按钮被点击 - 异步保存";
+
+    // 检查是否已有保存任务在进行
+    if (m_saveWatcher && m_saveWatcher->isRunning()) {
+        qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 异步保存垂直视图
+    QStringList viewTypes = {"vertical"};
+    saveImagesAsync(viewTypes);
+}
+
+void MutiCamApp::onSaveImageLeftClicked()
+{
+    qDebug() << "左侧视图保存图像按钮被点击 - 异步保存";
+
+    // 检查是否已有保存任务在进行
+    if (m_saveWatcher && m_saveWatcher->isRunning()) {
+        qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 异步保存左侧视图
+    QStringList viewTypes = {"left"};
+    saveImagesAsync(viewTypes);
+}
+
+void MutiCamApp::onSaveImageFrontClicked()
+{
+    qDebug() << "对向视图保存图像按钮被点击 - 异步保存";
+
+    // 检查是否已有保存任务在进行
+    if (m_saveWatcher && m_saveWatcher->isRunning()) {
+        qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 异步保存对向视图
+    QStringList viewTypes = {"front"};
+    saveImagesAsync(viewTypes);
+}
+
+void MutiCamApp::saveImages(const QString& viewType)
+{
+    try {
+        qDebug() << "开始保存" << viewType << "视图图像";
+
+        // 输出OpenCV版本和编码器信息（只在第一次保存时输出）
+        static bool infoShown = false;
+        if (!infoShown) {
+            qDebug() << "OpenCV版本：" << CV_VERSION;
+            qDebug() << "OpenCV主版本：" << CV_MAJOR_VERSION;
+            qDebug() << "OpenCV次版本：" << CV_MINOR_VERSION;
+
+            // 检查JPEG编码器支持
+            std::vector<int> params;
+            params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            params.push_back(100);  // 100%质量，最高画质
+
+            // 创建一个小的测试图像
+            cv::Mat testImg = cv::Mat::zeros(10, 10, CV_8UC3);
+            QString testJpgPath = "D:/opencv_test.jpg";
+            bool jpegSupported = cv::imwrite(testJpgPath.toLocal8Bit().toStdString(), testImg, params);
+            qDebug() << "JPEG编码器支持：" << (jpegSupported ? "是" : "否");
+            if (jpegSupported && QFile::exists(testJpgPath)) {
+                QFile::remove(testJpgPath);
+            }
+
+            infoShown = true;
+        }
+
+        // 获取对应视图的绘制覆盖层
+        PaintingOverlay* overlay = nullptr;
+        QString viewName;
+
+        // 【关键修复】主界面保存应该使用主界面的overlay，不是标签页的overlay
+        if (viewType == "vertical") {
+            overlay = m_verticalPaintingOverlay;  // 使用主界面的overlay
+            viewName = "垂直";
+            qDebug() << "使用主界面垂直视图overlay：" << overlay;
+        } else if (viewType == "left") {
+            overlay = m_leftPaintingOverlay;      // 使用主界面的overlay
+            viewName = "左侧";
+            qDebug() << "使用主界面左侧视图overlay：" << overlay;
+        } else if (viewType == "front") {
+            overlay = m_frontPaintingOverlay;     // 使用主界面的overlay
+            viewName = "对向";
+            qDebug() << "使用主界面对向视图overlay：" << overlay;
+        } else {
+            qDebug() << "未知的视图类型：" << viewType;
+            return;
+        }
+
+        // 获取当前帧
+        cv::Mat currentFrame = getCurrentFrame(viewType);
+        qDebug() << "获取到的帧信息：";
+        qDebug() << "  - 是否为空：" << (currentFrame.empty() ? "是" : "否");
+        if (!currentFrame.empty()) {
+            qDebug() << "  - 尺寸：" << currentFrame.cols << "x" << currentFrame.rows;
+            qDebug() << "  - 通道数：" << currentFrame.channels();
+            qDebug() << "  - 数据类型：" << currentFrame.type();
+        }
+
+        if (currentFrame.empty()) {
+            QString errorMsg = QString("%1视图没有可用的图像帧").arg(viewName);
+            qDebug() << errorMsg;
+            qDebug() << "可能的原因：";
+            qDebug() << "  1. 相机未启动或未连接";
+            qDebug() << "  2. 相机数据流中断";
+            qDebug() << "  3. onCameraFrameReady未被调用";
+            QMessageBox::warning(this, "保存失败", errorMsg + "\n\n请检查相机是否正常工作。");
+            return;
+        }
+
+        // 创建保存目录
+        QString saveDir = createSaveDirectory(viewName);
+        if (saveDir.isEmpty()) {
+            QString errorMsg = "创建保存目录失败";
+            qDebug() << errorMsg;
+            QMessageBox::warning(this, "保存失败", errorMsg);
+            return;
+        }
+
+        // 生成文件名
+        QString currentTime = QDateTime::currentDateTime().toString("hh-mm-ss");
+        QString originFileName = QString("%1_origin.jpg").arg(currentTime);
+        QString visualFileName = QString("%1_visual.jpg").arg(currentTime);
+        QString originPath = QDir(saveDir).filePath(originFileName);
+        QString visualPath = QDir(saveDir).filePath(visualFileName);
+
+        // 保存原始图像
+        qDebug() << "尝试保存原始图像：";
+        qDebug() << "  - 文件路径：" << originPath;
+        qDebug() << "  - 图像尺寸：" << currentFrame.cols << "x" << currentFrame.rows;
+        qDebug() << "  - 图像格式：" << currentFrame.type();
+        qDebug() << "  - 数据是否连续：" << (currentFrame.isContinuous() ? "是" : "否");
+        qDebug() << "  - 步长：" << currentFrame.step;
+
+        // 检查目录是否存在
+        QFileInfo fileInfo(originPath);
+        QDir parentDir = fileInfo.absoluteDir();
+        if (!parentDir.exists()) {
+            qDebug() << "错误：父目录不存在：" << parentDir.absolutePath();
+        } else {
+            qDebug() << "父目录存在：" << parentDir.absolutePath();
+        }
+
+        // 检查文件路径长度
+        if (originPath.length() > 260) {
+            qDebug() << "警告：文件路径可能过长：" << originPath.length() << "字符";
+        }
+
+        // 确保图像数据是连续的
+        cv::Mat frameToSave;
+        if (currentFrame.isContinuous()) {
+            frameToSave = currentFrame;
+            qDebug() << "图像数据已连续，直接保存";
+        } else {
+            frameToSave = currentFrame.clone();
+            qDebug() << "图像数据不连续，创建连续副本";
+        }
+
+        // 添加OpenCV保存诊断
+        qDebug() << "OpenCV保存诊断：";
+        qDebug() << "  - 图像类型：" << frameToSave.type() << "(期望：16=CV_8UC3, 0=CV_8UC1)";
+        qDebug() << "  - 图像深度：" << frameToSave.depth() << "(期望：0=CV_8U)";
+        qDebug() << "  - 图像通道：" << frameToSave.channels();
+        qDebug() << "  - 图像为空：" << (frameToSave.empty() ? "是" : "否");
+        qDebug() << "  - 数据指针：" << (frameToSave.data ? "有效" : "无效");
+
+        // 尝试使用英文路径测试OpenCV
+        QString testPath = QString("D:/test_%1.jpg").arg(QDateTime::currentDateTime().toString("hhmmss"));
+        qDebug() << "  - 测试英文路径：" << testPath;
+        bool testResult = cv::imwrite(testPath.toLocal8Bit().toStdString(), frameToSave);
+        qDebug() << "  - 英文路径保存结果：" << (testResult ? "成功" : "失败");
+        if (testResult && QFile::exists(testPath)) {
+            QFile::remove(testPath); // 清理测试文件
+            qDebug() << "  - 确认：OpenCV功能正常，问题可能是中文路径";
+        }
+
+        // 测试不同的路径编码方式
+        qDebug() << "  - 测试路径编码方式：";
+        qDebug() << "    * toStdString():" << QString::fromStdString(originPath.toStdString());
+        qDebug() << "    * toLocal8Bit():" << QString::fromLocal8Bit(originPath.toLocal8Bit());
+        qDebug() << "    * toUtf8():" << QString::fromUtf8(originPath.toUtf8());
+
+        // 现在主要保存方法已经使用Local8Bit编码，应该能成功
+        qDebug() << "  - 注意：主要保存方法现在使用Local8Bit编码";
+
+        // 设置最高JPEG质量参数
+        std::vector<int> compression_params;
+        compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+        compression_params.push_back(100);  // 100%质量，最高画质
+        qDebug() << "使用OpenCV保存，JPEG质量：100%（最高画质）";
+
+        bool saveResult = cv::imwrite(originPath.toLocal8Bit().toStdString(), frameToSave, compression_params);
+        if (saveResult) {
+            qDebug() << "原始图像保存成功：" << originPath;
+
+            // 验证文件是否真的存在
+            if (QFile::exists(originPath)) {
+                QFileInfo savedFile(originPath);
+                qDebug() << "文件确认存在，大小：" << savedFile.size() << "字节";
+            } else {
+                qDebug() << "警告：cv::imwrite返回成功但文件不存在";
+            }
+        } else {
+            qDebug() << "原始图像保存失败：" << originPath;
+            qDebug() << "可能的原因：";
+            qDebug() << "  1. 磁盘空间不足";
+            qDebug() << "  2. 文件路径包含非法字符";
+            qDebug() << "  3. 权限不足";
+            qDebug() << "  4. 图像数据格式不支持";
+
+            // 尝试备用保存方法：使用QImage保存
+            qDebug() << "尝试使用QImage备用保存方法...";
+            try {
+                QImage qimg;
+                if (frameToSave.channels() == 3) {
+                    cv::Mat rgbFrame;
+                    cv::cvtColor(frameToSave, rgbFrame, cv::COLOR_BGR2RGB);
+                    // 使用copy构造，避免引用临时数据
+                    qimg = QImage(rgbFrame.data, rgbFrame.cols, rgbFrame.rows,
+                                 rgbFrame.step, QImage::Format_RGB888).copy();
+                } else if (frameToSave.channels() == 1) {
+                    // 使用copy构造，避免引用临时数据
+                    qimg = QImage(frameToSave.data, frameToSave.cols, frameToSave.rows,
+                                 frameToSave.step, QImage::Format_Grayscale8).copy();
+                }
+
+                qDebug() << "使用QImage备用保存，JPEG质量：100%（最高画质）";
+                if (!qimg.isNull() && qimg.save(originPath, "JPEG", 100)) {  // 100%质量，最高画质
+                    qDebug() << "使用QImage备用方法保存成功：" << originPath;
+                } else {
+                    qDebug() << "QImage备用方法也保存失败";
+                }
+            } catch (const std::exception& e) {
+                qDebug() << "QImage备用保存方法出错：" << e.what();
+            } catch (...) {
+                qDebug() << "QImage备用保存方法出现未知错误";
+            }
+        }
+
+        // 保存可视化图像
+        if (overlay) {
+            qDebug() << "开始渲染可视化图像...";
+            cv::Mat visualFrame = renderVisualizedImage(currentFrame, overlay);
+
+            qDebug() << "可视化图像渲染结果：";
+            qDebug() << "  - 是否为空：" << (visualFrame.empty() ? "是" : "否");
+            if (!visualFrame.empty()) {
+                qDebug() << "  - 尺寸：" << visualFrame.cols << "x" << visualFrame.rows;
+                qDebug() << "  - 通道数：" << visualFrame.channels();
+                qDebug() << "  - 数据是否连续：" << (visualFrame.isContinuous() ? "是" : "否");
+
+                // 确保可视化图像数据是连续的
+                cv::Mat visualFrameToSave;
+                if (visualFrame.isContinuous()) {
+                    visualFrameToSave = visualFrame;
+                    qDebug() << "可视化图像数据已连续，直接保存";
+                } else {
+                    visualFrameToSave = visualFrame.clone();
+                    qDebug() << "可视化图像数据不连续，创建连续副本";
+                }
+
+                // 添加可视化图像OpenCV保存诊断
+                qDebug() << "可视化图像OpenCV保存诊断：";
+                qDebug() << "  - 图像类型：" << visualFrameToSave.type();
+                qDebug() << "  - 图像深度：" << visualFrameToSave.depth();
+                qDebug() << "  - 图像通道：" << visualFrameToSave.channels();
+                qDebug() << "  - 图像为空：" << (visualFrameToSave.empty() ? "是" : "否");
+
+                // 设置最高JPEG质量参数
+                std::vector<int> visual_compression_params;
+                visual_compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+                visual_compression_params.push_back(100);  // 100%质量，最高画质
+
+                bool visualSaveResult = cv::imwrite(visualPath.toLocal8Bit().toStdString(), visualFrameToSave, visual_compression_params);
+                if (visualSaveResult) {
+                    qDebug() << "可视化图像保存成功：" << visualPath;
+
+                    // 验证文件是否真的存在
+                    if (QFile::exists(visualPath)) {
+                        QFileInfo savedFile(visualPath);
+                        qDebug() << "可视化文件确认存在，大小：" << savedFile.size() << "字节";
+                    } else {
+                        qDebug() << "警告：可视化图像cv::imwrite返回成功但文件不存在";
+                    }
+                } else {
+                    qDebug() << "可视化图像保存失败：" << visualPath;
+
+                    // 尝试备用保存方法：使用QImage保存
+                    qDebug() << "尝试使用QImage备用保存可视化图像...";
+                    try {
+                        QImage qimg;
+                        if (visualFrameToSave.channels() == 3) {
+                            cv::Mat rgbFrame;
+                            cv::cvtColor(visualFrameToSave, rgbFrame, cv::COLOR_BGR2RGB);
+                            // 使用copy构造，避免引用临时数据
+                            qimg = QImage(rgbFrame.data, rgbFrame.cols, rgbFrame.rows,
+                                         rgbFrame.step, QImage::Format_RGB888).copy();
+                        } else if (visualFrameToSave.channels() == 1) {
+                            // 使用copy构造，避免引用临时数据
+                            qimg = QImage(visualFrameToSave.data, visualFrameToSave.cols, visualFrameToSave.rows,
+                                         visualFrameToSave.step, QImage::Format_Grayscale8).copy();
+                        }
+
+                        if (!qimg.isNull() && qimg.save(visualPath, "JPEG", 100)) {  // 100%质量，最高画质
+                            qDebug() << "使用QImage备用方法保存可视化图像成功：" << visualPath;
+                        } else {
+                            qDebug() << "QImage备用方法保存可视化图像也失败";
+                        }
+                    } catch (const std::exception& e) {
+                        qDebug() << "QImage备用保存可视化图像出错：" << e.what();
+                    } catch (...) {
+                        qDebug() << "QImage备用保存可视化图像出现未知错误";
+                    }
+                }
+            } else {
+                qDebug() << "可视化图像渲染失败，跳过保存";
+            }
+        } else {
+            qDebug() << "警告：overlay为空，无法渲染可视化图像";
+        }
+
+        // 更新状态栏
+        statusBar()->showMessage(QString("%1视图图像保存完成").arg(viewName), 2000);
+
+    } catch (const std::exception& e) {
+        QString errorMsg = QString("保存图像时出错：%1").arg(e.what());
+        qDebug() << errorMsg;
+        QMessageBox::critical(this, "保存错误", errorMsg);
+    }
+}
+
 // 网格相关槽函数实现
 void MutiCamApp::onGridDensityChanged()
 {
@@ -2039,3 +2415,216 @@ void MutiCamApp::initializeDetectionParameters()
 // displayImageWithHardwareAcceleration方法已迁移到VideoDisplayWidget
 
 // 类型转换函数已移除，VideoDisplayWidget现在使用自己的数据类型
+
+QString MutiCamApp::createSaveDirectory(const QString& viewName)
+{
+    try {
+        // 基础路径
+        QString basePath = "D:/CamImage";
+        QString today = QDateTime::currentDateTime().toString("yyyy.MM.dd");
+
+        // 创建目录路径：D:/CamImage/年.月.日/视图名称/
+        QString dateDir = QDir(basePath).filePath(today);
+        QString viewDir = QDir(dateDir).filePath(viewName);
+
+        qDebug() << "创建保存目录：" << viewDir;
+
+        // 确保目录存在
+        QDir dir;
+        if (!dir.mkpath(viewDir)) {
+            qDebug() << "创建保存目录失败：" << viewDir;
+            return QString();
+        }
+
+        qDebug() << "保存目录创建成功：" << viewDir;
+        return viewDir;
+
+    } catch (const std::exception& e) {
+        qDebug() << "创建保存目录时出错：" << e.what();
+        return QString();
+    }
+}
+
+cv::Mat MutiCamApp::renderVisualizedImage(const cv::Mat& originalFrame, PaintingOverlay* overlay)
+{
+    qDebug() << "renderVisualizedImage 开始";
+    qDebug() << "  - 原始图像是否为空：" << (originalFrame.empty() ? "是" : "否");
+    qDebug() << "  - overlay是否为空：" << (overlay ? "否" : "是");
+
+    if (originalFrame.empty()) {
+        qDebug() << "错误：原始图像为空";
+        return cv::Mat();
+    }
+
+    if (!overlay) {
+        qDebug() << "错误：overlay为空";
+        return cv::Mat();
+    }
+
+    try {
+        qDebug() << "开始创建可视化图像...";
+        // 创建原始图像的副本作为基础
+        cv::Mat visualFrame = originalFrame.clone();
+        qDebug() << "原始图像副本创建成功，尺寸：" << visualFrame.cols << "x" << visualFrame.rows;
+
+        // 创建一个QImage用于绘制
+        qDebug() << "开始创建QImage，通道数：" << visualFrame.channels();
+        QImage qimg;
+        if (visualFrame.channels() == 3) {
+            qDebug() << "处理3通道图像（BGR转RGB）";
+            // BGR转RGB
+            cv::cvtColor(visualFrame, visualFrame, cv::COLOR_BGR2RGB);
+            // 使用copy构造，确保数据安全
+            qimg = QImage(visualFrame.data, visualFrame.cols, visualFrame.rows,
+                         visualFrame.step, QImage::Format_RGB888).copy();
+        } else if (visualFrame.channels() == 1) {
+            qDebug() << "处理1通道图像（灰度）";
+            // 使用copy构造，确保数据安全
+            qimg = QImage(visualFrame.data, visualFrame.cols, visualFrame.rows,
+                         visualFrame.step, QImage::Format_Grayscale8).copy();
+        } else {
+            qDebug() << "错误：不支持的图像格式，通道数：" << visualFrame.channels();
+            return cv::Mat();
+        }
+
+        qDebug() << "QImage创建成功，尺寸：" << qimg.width() << "x" << qimg.height();
+
+        // 创建QPainter在QImage上绘制
+        QPainter painter(&qimg);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+
+        // 让overlay在painter上绘制所有图形
+        qDebug() << "调用overlay->renderToImage()";
+        overlay->renderToImage(painter, qimg.size());
+
+        painter.end();
+        qDebug() << "QPainter绘制完成";
+
+        // 将QImage转换回cv::Mat
+        qDebug() << "开始将QImage转换回cv::Mat";
+        cv::Mat result;
+        try {
+            if (qimg.format() == QImage::Format_RGB888) {
+                qDebug() << "转换RGB888格式";
+                // 确保使用clone()创建独立的数据副本
+                result = cv::Mat(qimg.height(), qimg.width(), CV_8UC3,
+                               (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
+                cv::cvtColor(result, result, cv::COLOR_RGB2BGR);
+            } else if (qimg.format() == QImage::Format_Grayscale8) {
+                qDebug() << "转换灰度格式";
+                // 确保使用clone()创建独立的数据副本
+                result = cv::Mat(qimg.height(), qimg.width(), CV_8UC1,
+                               (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
+            } else {
+                qDebug() << "错误：不支持的QImage格式：" << qimg.format();
+                return cv::Mat();
+            }
+
+            qDebug() << "可视化图像渲染完成，结果尺寸：" << result.cols << "x" << result.rows;
+            return result;
+        } catch (const std::exception& e) {
+            qDebug() << "QImage转cv::Mat时出错：" << e.what();
+            return cv::Mat();
+        }
+
+    } catch (const std::exception& e) {
+        qDebug() << "渲染可视化图像时出错：" << e.what();
+        return cv::Mat();
+    }
+}
+
+// {{ AURA-X: Add - 异步保存图像方法实现. Approval: 寸止(ID:async_save). }}
+void MutiCamApp::saveImagesAsync(const QStringList& viewTypes)
+{
+    // 创建进度对话框
+    QString progressText = viewTypes.size() > 1 ?
+        QString("正在保存 %1 个视图的图像...").arg(viewTypes.size()) :
+        QString("正在保存%1视图图像...").arg(viewTypes.first() == "vertical" ? "垂直" :
+                                        viewTypes.first() == "left" ? "左侧" : "对向");
+
+    m_saveProgressDialog = new QProgressDialog(progressText, "取消", 0, viewTypes.size(), this);
+    m_saveProgressDialog->setWindowModality(Qt::WindowModal);
+    m_saveProgressDialog->setMinimumDuration(0);  // 立即显示
+    m_saveProgressDialog->setValue(0);
+    m_saveProgressDialog->show();
+
+    // 禁用相关的保存按钮，防止重复点击
+    if (viewTypes.size() > 1) {
+        // 主界面保存所有视图
+        ui->btnSaveImage->setEnabled(false);
+    } else {
+        // 单个视图保存，禁用对应的按钮
+        QString viewType = viewTypes.first();
+        if (viewType == "vertical") {
+            ui->btnSaveImageVertical->setEnabled(false);
+        } else if (viewType == "left") {
+            ui->btnSaveImageLeft->setEnabled(false);
+        } else if (viewType == "front") {
+            ui->btnSaveImageFront->setEnabled(false);
+        }
+        // 同时也禁用主界面保存按钮，避免冲突
+        ui->btnSaveImage->setEnabled(false);
+    }
+
+    // 启动异步任务
+    QFuture<void> future = QtConcurrent::run([this, viewTypes]() {
+        saveImagesSynchronous(viewTypes);
+    });
+
+    m_saveWatcher->setFuture(future);
+}
+
+void MutiCamApp::saveImagesSynchronous(const QStringList& viewTypes)
+{
+    try {
+        for (int i = 0; i < viewTypes.size(); ++i) {
+            const QString& viewType = viewTypes[i];
+
+            // 在主线程中更新进度（线程安全）
+            QMetaObject::invokeMethod(this, [this, i]() {
+                if (m_saveProgressDialog) {
+                    m_saveProgressDialog->setValue(i);
+                    m_saveProgressDialog->setLabelText(QString("正在保存第 %1 个视图...").arg(i + 1));
+                }
+            }, Qt::QueuedConnection);
+
+            // 检查是否被取消
+            if (m_saveProgressDialog && m_saveProgressDialog->wasCanceled()) {
+                qDebug() << "用户取消了保存操作";
+                break;
+            }
+
+            // 执行实际的保存操作
+            saveImages(viewType);
+
+            qDebug() << "完成保存视图：" << viewType;
+        }
+
+        qDebug() << "所有视图保存完成";
+
+    } catch (const std::exception& e) {
+        qDebug() << "异步保存过程中出错：" << e.what();
+    }
+}
+
+void MutiCamApp::onAsyncSaveFinished()
+{
+    qDebug() << "异步保存任务完成";
+
+    // 关闭进度对话框
+    if (m_saveProgressDialog) {
+        m_saveProgressDialog->setValue(m_saveProgressDialog->maximum());
+        m_saveProgressDialog->close();
+        m_saveProgressDialog->deleteLater();
+        m_saveProgressDialog = nullptr;
+    }
+
+    // 重新启用所有保存按钮
+    ui->btnSaveImage->setEnabled(true);
+    ui->btnSaveImageVertical->setEnabled(true);
+    ui->btnSaveImageLeft->setEnabled(true);
+    ui->btnSaveImageFront->setEnabled(true);
+
+    // 更新状态栏提示
+    statusBar()->showMessage("图像保存完成", 3000);
+}
