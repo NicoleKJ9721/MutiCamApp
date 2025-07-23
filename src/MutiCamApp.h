@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QTimer>
 #include <QMouseEvent>
+#include <QResizeEvent>
 #include <QPoint>
 #include <QPointF>
 #include <QProgressDialog>
@@ -21,6 +22,7 @@
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
 #include "image_processing/shape_detector.h"
+#include "SettingsManager.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -218,7 +220,28 @@ private slots:
      */
     void onViewDoubleClicked(const QString& viewName);
 
+    /**
+     * @brief 设置加载完成槽函数
+     * @param success 是否成功
+     */
+    void onSettingsLoaded(bool success);
 
+    /**
+     * @brief 参数输入框文本改变槽函数（实时保存）
+     */
+    void onSettingsTextChanged();
+
+    /**
+     * @brief UI尺寸参数改变槽函数（调整窗口大小）
+     */
+    void onUISizeChanged();
+
+protected:
+    /**
+     * @brief 窗口大小改变事件处理
+     * @param event 大小改变事件
+     */
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     Ui_MutiCamApp* ui;
@@ -330,12 +353,7 @@ private:
      * @brief 事件过滤器
      */
     bool eventFilter(QObject* obj, QEvent* event) override;
-    
-    /**
-     * @brief 窗口大小改变事件
-     */
-    void resizeEvent(QResizeEvent* event) override;
-    
+
     // {{ AURA-X: Delete - 残留的标签点击处理方法. Approval: 寸止(ID:cleanup). }}
     // 标签点击处理已移除，现在直接使用VideoDisplayWidget
     
@@ -437,6 +455,21 @@ private:
       * @brief 初始化硬件加速显示控件
       */
      void initializeVideoDisplayWidgets();
+
+     /**
+      * @brief 初始化设置管理器
+      */
+     void initializeSettingsManager();
+
+     /**
+      * @brief 连接参数设置的实时保存信号
+      */
+     void connectSettingsSignals();
+
+     /**
+      * @brief 根据设置参数应用UI尺寸
+      */
+     void applyUISizeFromSettings();
      
      /**
       * @brief 更新VideoDisplayWidget的绘制数据
@@ -518,6 +551,12 @@ private:
      // 异步保存相关成员变量
      QProgressDialog* m_saveProgressDialog;
      QFutureWatcher<void>* m_saveWatcher;
+
+     // 设置管理器
+     SettingsManager* m_settingsManager;
+
+     // UI尺寸双向绑定相关
+     bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发
 
      // 硬件加速显示方法已迁移到VideoDisplayWidget
       

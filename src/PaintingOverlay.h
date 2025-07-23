@@ -447,6 +447,9 @@ private:
     // 坐标转换方法
     QPointF widgetToImage(const QPointF& widgetPos) const;
     QPointF imageToWidget(const QPointF& imagePos) const;
+
+    // 边界检查方法
+    bool isPointInImageBounds(const QPointF& imagePos) const;
     
     // 绘图辅助方法
     QPen createPen(const QColor& color, int width, double scale, bool dashed = false) const;

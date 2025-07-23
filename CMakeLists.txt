@@ -32,6 +32,8 @@ set(srcs
     src/VideoDisplayWidget.h
     src/PaintingOverlay.cpp
     src/PaintingOverlay.h
+    src/SettingsManager.cpp
+    src/SettingsManager.h
     src/dependencies_test.cpp
     src/dependencies_test.h
     src/MutiCamApp.ui

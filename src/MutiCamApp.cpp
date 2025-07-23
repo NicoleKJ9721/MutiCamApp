@@ -39,6 +39,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_lastActivePaintingOverlay(nullptr)
     , m_saveProgressDialog(nullptr)
     , m_saveWatcher(nullptr)
+    , m_settingsManager(nullptr)
+    , m_isUpdatingUISize(false)
 {
     ui->setupUi(this);
     
@@ -48,9 +50,12 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     // 初始化相机系统
     initializeCameraSystem();
     
+    // 初始化设置管理器
+    initializeSettingsManager();
+
     // 连接信号和槽
     connectSignalsAndSlots();
-    
+
     // 设置初始状态
     ui->btnStartMeasure->setEnabled(true);
     ui->btnStopMeasure->setEnabled(false);
@@ -102,8 +107,14 @@ MutiCamApp::~MutiCamApp()
         delete m_frontDisplayWidget;
         m_frontDisplayWidget = nullptr;
     }
-    
-    delete ui; 
+
+    // 清理设置管理器
+    if (m_settingsManager) {
+        delete m_settingsManager;
+        m_settingsManager = nullptr;
+    }
+
+    delete ui;
     
     qDebug() << "MutiCamApp destructor completed";
 }
@@ -318,6 +329,9 @@ void MutiCamApp::connectSignalsAndSlots()
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
+
+    // 连接参数输入框的实时保存信号
+    connectSettingsSignals();
     
     // 连接相机管理器信号
     if (m_cameraManager) {
@@ -2126,19 +2140,6 @@ void MutiCamApp::syncOverlayTransforms(const QString& viewName)
     }
 }
 
-void MutiCamApp::resizeEvent(QResizeEvent* event)
-{
-    QMainWindow::resizeEvent(event);
-    
-    // 同步所有视图的坐标变换
-    syncOverlayTransforms("vertical");
-    syncOverlayTransforms("left");
-    syncOverlayTransforms("front");
-    syncOverlayTransforms("vertical2");
-    syncOverlayTransforms("left2");
-    syncOverlayTransforms("front2");
-}
-
 cv::Mat MutiCamApp::getCurrentFrame(const QString& viewName) const
 {
     // 移除视图名称中的数字后缀（如"vertical2" -> "vertical"）
@@ -2648,4 +2649,167 @@ void MutiCamApp::onAsyncSaveFinished()
 
     // 更新状态栏提示
     statusBar()->showMessage("图像保存完成", 3000);
+}
+
+void MutiCamApp::initializeSettingsManager()
+{
+    // 创建设置管理器
+    m_settingsManager = new SettingsManager("./Settings/settings.json", this);
+
+    // 连接设置管理器信号
+    connect(m_settingsManager, &SettingsManager::settingsLoaded,
+            this, &MutiCamApp::onSettingsLoaded);
+
+    // 加载设置到UI
+    m_settingsManager->loadSettingsToUI(this);
+
+    // 根据加载的UI尺寸参数调整窗口大小
+    applyUISizeFromSettings();
+
+    qDebug() << "设置管理器初始化完成（实时保存模式）";
+}
+
+void MutiCamApp::onSettingsLoaded(bool success)
+{
+    if (success) {
+        qDebug() << "设置加载成功";
+    } else {
+        qDebug() << "设置加载失败";
+    }
+}
+
+void MutiCamApp::onSettingsTextChanged()
+{
+    // 延迟保存设置到文件（避免频繁保存）
+    if (m_settingsManager) {
+        m_settingsManager->saveSettingsDelayed(this);
+    }
+}
+
+void MutiCamApp::connectSettingsSignals()
+{
+    // 连接所有参数输入框的textChanged信号到实时保存槽函数
+
+    // 相机参数
+    connect(ui->ledVerCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledLeftCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledFrontCamSN, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+
+    // 直线查找参数
+    connect(ui->ledCannyLineLow, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledCannyLineHigh, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledLineDetThreshold, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledLineDetMinLength, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledLineDetMaxGap, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+
+    // 圆查找参数
+    connect(ui->ledCannyCircleLow, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledCannyCircleHigh, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledCircleDetParam2, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+
+    // UI尺寸参数（双向绑定）
+    connect(ui->ledUIWidth, &QLineEdit::textChanged, this, &MutiCamApp::onUISizeChanged);
+    connect(ui->ledUIHeight, &QLineEdit::textChanged, this, &MutiCamApp::onUISizeChanged);
+
+    qDebug() << "参数输入框实时保存信号连接完成";
+}
+
+void MutiCamApp::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+
+    // 同步所有视图的坐标变换
+    syncOverlayTransforms("vertical");
+    syncOverlayTransforms("left");
+    syncOverlayTransforms("front");
+    syncOverlayTransforms("vertical2");
+    syncOverlayTransforms("left2");
+    syncOverlayTransforms("front2");
+
+    // 如果正在更新UI尺寸，避免循环触发
+    if (m_isUpdatingUISize) {
+        return;
+    }
+
+    // 更新UI尺寸参数
+    QSize newSize = event->size();
+
+    // 设置标志位，避免循环触发
+    m_isUpdatingUISize = true;
+
+    // 更新UI中的尺寸参数
+    ui->ledUIWidth->setText(QString::number(newSize.width()));
+    ui->ledUIHeight->setText(QString::number(newSize.height()));
+
+    // 保存设置到文件
+    if (m_settingsManager) {
+        m_settingsManager->saveSettingsDelayed(this);
+    }
+
+    // 重置标志位
+    m_isUpdatingUISize = false;
+
+    qDebug() << "窗口大小改变：" << newSize.width() << "x" << newSize.height();
+}
+
+void MutiCamApp::onUISizeChanged()
+{
+    // 如果正在更新UI尺寸，避免循环触发
+    if (m_isUpdatingUISize) {
+        return;
+    }
+
+    // 从UI获取新的尺寸
+    bool widthOk, heightOk;
+    int newWidth = ui->ledUIWidth->text().toInt(&widthOk);
+    int newHeight = ui->ledUIHeight->text().toInt(&heightOk);
+
+    // 验证输入的有效性
+    if (!widthOk || !heightOk || newWidth < 800 || newHeight < 600 ||
+        newWidth > 4000 || newHeight > 3000) {
+        qDebug() << "无效的UI尺寸参数，忽略调整";
+        return;
+    }
+
+    // 设置标志位，避免循环触发
+    m_isUpdatingUISize = true;
+
+    // 调整窗口大小
+    resize(newWidth, newHeight);
+
+    // 保存设置到文件
+    if (m_settingsManager) {
+        m_settingsManager->saveSettingsDelayed(this);
+    }
+
+    // 重置标志位
+    m_isUpdatingUISize = false;
+
+    qDebug() << "根据参数调整窗口大小：" << newWidth << "x" << newHeight;
+}
+
+void MutiCamApp::applyUISizeFromSettings()
+{
+    // 从UI参数获取尺寸
+    bool widthOk, heightOk;
+    int width = ui->ledUIWidth->text().toInt(&widthOk);
+    int height = ui->ledUIHeight->text().toInt(&heightOk);
+
+    // 验证参数有效性
+    if (widthOk && heightOk && width >= 800 && height >= 600 &&
+        width <= 4000 && height <= 3000) {
+
+        // 设置标志位，避免触发resizeEvent中的参数更新
+        m_isUpdatingUISize = true;
+
+        // 调整窗口大小
+        resize(width, height);
+
+        // 重置标志位
+        m_isUpdatingUISize = false;
+
+        qDebug() << "程序启动时应用UI尺寸：" << width << "x" << height;
+    } else {
+        qDebug() << "UI尺寸参数无效，使用默认窗口大小";
+    }
 }

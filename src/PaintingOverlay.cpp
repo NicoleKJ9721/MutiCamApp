@@ -391,7 +391,12 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 
     QPointF imagePos = widgetToImage(event->pos());
 
-
+    // 检查坐标是否在图像范围内
+    if (!isPointInImageBounds(imagePos)) {
+        // 坐标在图像外，不处理绘制事件
+        QWidget::mousePressEvent(event);
+        return;
+    }
 
     if (m_selectionEnabled) {
         // 处理选择逻辑
@@ -449,6 +454,14 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
     lastUpdateTime = currentTime;
     
     QPointF imagePos = widgetToImage(event->pos());
+
+    // 检查坐标是否在图像范围内
+    if (!isPointInImageBounds(imagePos)) {
+        // 坐标在图像外，清除鼠标位置信息
+        m_hasValidMousePos = false;
+        return;
+    }
+
     m_currentMousePos = imagePos;
     m_hasValidMousePos = true;
 
@@ -1890,6 +1903,17 @@ QPointF PaintingOverlay::imageToWidget(const QPointF& imagePos) const
     // 正向坐标变换
     QPointF widgetPos = imagePos * m_scaleFactor + m_imageOffset;
     return widgetPos;
+}
+
+bool PaintingOverlay::isPointInImageBounds(const QPointF& imagePos) const
+{
+    // 检查坐标是否在图像范围内
+    if (m_imageSize.isEmpty()) {
+        return false;
+    }
+
+    return (imagePos.x() >= 0 && imagePos.x() < m_imageSize.width() &&
+            imagePos.y() >= 0 && imagePos.y() < m_imageSize.height());
 }
 
 QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bool dashed) const
