@@ -289,11 +289,13 @@ signals:
     void measurementCompleted(const QString& viewName, const QString& result); // 测量完成信号
     void drawingDataChanged(const QString& viewName); // 绘图数据变化信号
     void overlayActivated(PaintingOverlay* overlay); // overlay被激活信号
+    void viewDoubleClicked(const QString& viewName); // 视图双击信号
 
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:

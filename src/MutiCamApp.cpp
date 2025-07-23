@@ -341,6 +341,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::viewDoubleClicked,
+                this, &MutiCamApp::onViewDoubleClicked);
     }
     if (m_leftPaintingOverlay) {
         connect(m_leftPaintingOverlay, &PaintingOverlay::measurementCompleted,
@@ -353,6 +355,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::viewDoubleClicked,
+                this, &MutiCamApp::onViewDoubleClicked);
     }
     if (m_frontPaintingOverlay) {
         connect(m_frontPaintingOverlay, &PaintingOverlay::measurementCompleted,
@@ -365,6 +369,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::viewDoubleClicked,
+                this, &MutiCamApp::onViewDoubleClicked);
     }
     if (m_verticalPaintingOverlay2) {
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -1115,6 +1121,21 @@ void MutiCamApp::onTabChanged(int index)
     }
 
     qDebug() << "Tab changed to index:" << index;
+}
+
+void MutiCamApp::onViewDoubleClicked(const QString& viewName)
+{
+    // 根据视图名称跳转到对应的选项卡
+    if (viewName == "Vertical") {
+        ui->tabWidget->setCurrentIndex(1); // 垂直视图选项卡
+        qDebug() << "双击垂直视图，跳转到选项卡1";
+    } else if (viewName == "Left") {
+        ui->tabWidget->setCurrentIndex(2); // 左侧视图选项卡
+        qDebug() << "双击左侧视图，跳转到选项卡2";
+    } else if (viewName == "Front") {
+        ui->tabWidget->setCurrentIndex(3); // 对向视图选项卡
+        qDebug() << "双击对向视图，跳转到选项卡3";
+    }
 }
 
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}

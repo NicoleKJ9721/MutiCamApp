@@ -212,6 +212,12 @@ private slots:
      */
     void onTabChanged(int index);
 
+    /**
+     * @brief 视图双击事件处理
+     * @param viewName 视图名称
+     */
+    void onViewDoubleClicked(const QString& viewName);
+
 
 
 private:

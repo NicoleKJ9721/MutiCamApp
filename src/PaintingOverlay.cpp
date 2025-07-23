@@ -529,6 +529,22 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void PaintingOverlay::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    // 只处理左键双击
+    if (event->button() != Qt::LeftButton) {
+        QWidget::mouseDoubleClickEvent(event);
+        return;
+    }
+
+    // 只在主界面视图上启用双击跳转（避免选项卡视图的循环跳转）
+    if (m_viewName == "Vertical" || m_viewName == "Left" || m_viewName == "Front") {
+        emit viewDoubleClicked(m_viewName);
+    }
+
+    QWidget::mouseDoubleClickEvent(event);
+}
+
 void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
 {
     // 只在选择模式下显示右键菜单
