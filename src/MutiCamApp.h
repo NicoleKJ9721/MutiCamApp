@@ -14,6 +14,9 @@
 #include <QtConcurrent>
 #include <QFuture>
 #include <QFutureWatcher>
+#include <QMutex>
+#include <QDateTime>
+#include <QMap>
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -119,6 +122,26 @@ private slots:
      * @param error 错误信息
      */
     void onCameraError(const QString& cameraId, const QString& error);
+
+    /**
+     * @brief 清空报警信息
+     */
+    void onClearAlertsClicked();
+
+    /**
+     * @brief 刷新相机状态
+     */
+    void onRefreshStatusClicked();
+
+    /**
+     * @brief 定时更新相机状态显示
+     */
+    void updateCameraStatusDisplay();
+
+    /**
+     * @brief 更新报警显示（槽函数）
+     */
+    void updateAlertDisplay();
     
     // 绘图、清空、撤销相关槽函数已被通用方法和按钮映射系统替代
 
@@ -240,12 +263,74 @@ private:
 
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
+
+    // 相机状态监控
+    QTimer* m_statusUpdateTimer;                     ///< 状态更新定时器
+
+    // 帧率计算
+    struct FrameRateData {
+        std::chrono::steady_clock::time_point lastFrameTime;
+        int frameCount;
+        double currentFPS;
+
+        FrameRateData() : frameCount(0), currentFPS(0.0) {
+            lastFrameTime = std::chrono::steady_clock::now();
+        }
+    };
+
+    QMutex m_frameRateMutex;                         ///< 帧率数据保护锁
+    QMap<QString, FrameRateData> m_frameRateData;    ///< 各相机帧率数据
+
+    // 报警系统
+    struct AlertMessage {
+        QString message;
+        QString level;  // "info", "warning", "error"
+        QDateTime timestamp;
+
+        AlertMessage() = default;  // 默认构造函数
+
+        AlertMessage(const QString& msg, const QString& lvl)
+            : message(msg), level(lvl), timestamp(QDateTime::currentDateTime()) {}
+    };
+
+    QList<AlertMessage> m_alertMessages;             ///< 报警消息列表
+    QMutex m_alertMutex;                            ///< 报警消息保护锁
     
     /**
      * @brief 同步指定视图的视频层和绘画层的坐标变换
      * @param viewName 视图名称 ("vertical", "left", "front", etc.)
      */
     void syncOverlayTransforms(const QString& viewName);
+
+    // 相机状态监控私有方法
+    /**
+     * @brief 更新相机状态总览
+     */
+    void updateCameraOverview();
+
+    /**
+     * @brief 更新单个相机状态显示
+     * @param cameraId 相机ID
+     */
+    void updateSingleCameraStatus(const QString& cameraId);
+
+    /**
+     * @brief 计算并更新帧率
+     * @param cameraId 相机ID
+     */
+    void updateFrameRate(const QString& cameraId);
+
+    /**
+     * @brief 添加报警消息
+     * @param message 消息内容
+     * @param level 消息级别 ("info", "warning", "error")
+     */
+    void addAlertMessage(const QString& message, const QString& level);
+
+    /**
+     * @brief 初始化相机状态监控
+     */
+    void initializeCameraStatusMonitoring();
     
     // 测量状态
     bool m_isMeasuring;

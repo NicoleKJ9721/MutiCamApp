@@ -3,6 +3,7 @@
 #include "camera_controller.h"
 #include "MvCameraControl.h"
 #include <QTimer>
+#include <QMutex>
 #include <atomic>
 
 namespace MutiCam {
@@ -55,6 +56,16 @@ private:
     // 静态回调函数
     static void __stdcall imageCallbackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser);
     void processFrame(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo);
+
+    // SDK管理
+    static bool initializeSDK();
+    static void finalizeSDK();
+    static bool isSDKInitialized();
+
+    // 静态成员变量
+    static std::atomic<bool> s_sdkInitialized;
+    static std::atomic<int> s_instanceCount;
+    static QMutex s_sdkMutex;
     
     // 成员变量
     void* m_hCamera = nullptr;              // 相机句柄

@@ -26,6 +26,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui_MutiCamApp)
     , m_cameraManager(nullptr)
+    , m_statusUpdateTimer(nullptr)
     , m_isMeasuring(false)
     // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
     // m_isDrawingMode和m_activeView已移除，绘图状态现在由VideoDisplayWidget管理
@@ -62,6 +63,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     // 连接信号和槽
     connectSignalsAndSlots();
 
+    // 初始化相机状态监控
+    initializeCameraStatusMonitoring();
+
     // 设置初始状态
     ui->btnStartMeasure->setEnabled(true);
     ui->btnStopMeasure->setEnabled(false);
@@ -78,7 +82,14 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 MutiCamApp::~MutiCamApp()
 {
     qDebug() << "MutiCamApp destructor called";
-    
+
+    // 停止状态更新定时器
+    if (m_statusUpdateTimer) {
+        m_statusUpdateTimer->stop();
+        delete m_statusUpdateTimer;
+        m_statusUpdateTimer = nullptr;
+    }
+
     // 停止测量
     if (m_isMeasuring) {
         onStopMeasureClicked();
@@ -232,6 +243,12 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onStartMeasureClicked);
     connect(ui->btnStopMeasure, &QPushButton::clicked,
             this, &MutiCamApp::onStopMeasureClicked);
+
+    // 连接相机状态监控按钮
+    connect(ui->btnClearAlerts, &QPushButton::clicked,
+            this, &MutiCamApp::onClearAlertsClicked);
+    connect(ui->btnRefreshStatus, &QPushButton::clicked,
+            this, &MutiCamApp::onRefreshStatusClicked);
 
     // 使用新的按钮映射系统连接所有其他按钮
     connectButtonSignals();
@@ -473,6 +490,9 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     if (frame.empty()) return;
 
+    // 更新帧率计算
+    updateFrameRate(cameraId);
+
     // 存储当前帧供自动检测使用
     if (cameraId == "vertical") {
         m_currentFrameVertical = frame.clone();
@@ -507,31 +527,44 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 void MutiCamApp::onCameraStateChanged(const QString& cameraId, MutiCam::Camera::CameraState state)
 {
     qDebug() << "Camera" << cameraId << "state changed to:" << static_cast<int>(state);
-    
+
     // 可以在这里添加状态显示逻辑
     QString stateText;
+    QString alertLevel = "info";
+
     switch (state) {
         case MutiCam::Camera::CameraState::Disconnected:
             stateText = "断开连接";
+            alertLevel = "warning";
             break;
         case MutiCam::Camera::CameraState::Connected:
             stateText = "已连接";
+            alertLevel = "info";
             break;
         case MutiCam::Camera::CameraState::Streaming:
             stateText = "采集中";
+            alertLevel = "info";
             break;
     }
-    
+
     // 更新状态栏显示
     statusBar()->showMessage(QString("相机 %1: %2").arg(cameraId, stateText), 2000);
+
+    // 添加状态变化报警
+    QString alertMessage = QString("%1相机%2").arg(cameraId).arg(stateText);
+    addAlertMessage(alertMessage, alertLevel);
 }
 
 void MutiCamApp::onCameraError(const QString& cameraId, const QString& error)
 {
     qDebug() << "Camera error for" << cameraId << ":" << error;
-    
+
+    // 添加错误报警
+    QString alertMessage = QString("%1相机错误: %2").arg(cameraId).arg(error);
+    addAlertMessage(alertMessage, "error");
+
     // 显示错误信息
-    QMessageBox::warning(this, "相机错误", 
+    QMessageBox::warning(this, "相机错误",
                         QString("相机 %1 发生错误: %2").arg(cameraId, error));
 }
 
@@ -2956,4 +2989,292 @@ void MutiCamApp::connectButtonSignals()
     }
 
     qDebug() << "已连接" << m_buttonMappings.size() << "个按钮信号";
+}
+
+// ==================== 相机状态监控实现 ====================
+
+void MutiCamApp::initializeCameraStatusMonitoring()
+{
+    // 创建状态更新定时器
+    m_statusUpdateTimer = new QTimer(this);
+    connect(m_statusUpdateTimer, &QTimer::timeout,
+            this, &MutiCamApp::updateCameraStatusDisplay);
+
+    // 每2秒更新一次状态显示
+    m_statusUpdateTimer->start(2000);
+
+    // 初始化帧率数据
+    m_frameRateData["vertical"] = FrameRateData();
+    m_frameRateData["left"] = FrameRateData();
+    m_frameRateData["front"] = FrameRateData();
+
+    // 初始化UI显示
+    updateCameraOverview();
+    updateAlertDisplay();
+
+    // 添加系统启动消息
+    addAlertMessage("相机状态监控系统已启动", "info");
+
+    qDebug() << "相机状态监控系统已初始化";
+}
+
+void MutiCamApp::updateCameraStatusDisplay()
+{
+    // 更新总览信息
+    updateCameraOverview();
+
+    // 更新各个相机的状态
+    updateSingleCameraStatus("vertical");
+    updateSingleCameraStatus("left");
+    updateSingleCameraStatus("front");
+}
+
+void MutiCamApp::updateCameraOverview()
+{
+    int totalCameras = 3;
+    int onlineCameras = 0;
+    int offlineCameras = 0;
+
+    if (m_cameraManager) {
+        // 检查各相机状态
+        QStringList cameraIds = {"vertical", "left", "front"};
+        for (const QString& cameraId : cameraIds) {
+            QString stats = m_cameraManager->getCameraStats(cameraId.toStdString());
+            if (stats.contains("State: Streaming") || stats.contains("State: Connected")) {
+                onlineCameras++;
+            } else {
+                offlineCameras++;
+            }
+        }
+    } else {
+        // 相机管理器未初始化，所有相机都离线
+        offlineCameras = totalCameras;
+    }
+
+    // 更新UI显示
+    ui->labelTotalCameras->setText(QString("总相机数: %1").arg(totalCameras));
+    ui->labelOnlineCameras->setText(QString("在线: %1").arg(onlineCameras));
+    ui->labelOfflineCameras->setText(QString("离线: %1").arg(offlineCameras));
+}
+
+void MutiCamApp::updateSingleCameraStatus(const QString& cameraId)
+{
+    // 获取对应的UI控件
+    QLabel* statusLabel = nullptr;
+    QLabel* fpsLabel = nullptr;
+    QLabel* resolutionLabel = nullptr;
+    QLabel* exposureLabel = nullptr;
+    QLabel* gainLabel = nullptr;
+
+    if (cameraId == "vertical") {
+        statusLabel = ui->labelVerticalStatus;
+        fpsLabel = ui->labelVerticalFPS;
+        resolutionLabel = ui->labelVerticalResolution;
+        exposureLabel = ui->labelVerticalExposure;
+        gainLabel = ui->labelVerticalGain;
+    } else if (cameraId == "left") {
+        statusLabel = ui->labelLeftStatus;
+        fpsLabel = ui->labelLeftFPS;
+        resolutionLabel = ui->labelLeftResolution;
+        exposureLabel = ui->labelLeftExposure;
+        gainLabel = ui->labelLeftGain;
+    } else if (cameraId == "front") {
+        statusLabel = ui->labelFrontStatus;
+        fpsLabel = ui->labelFrontFPS;
+        resolutionLabel = ui->labelFrontResolution;
+        exposureLabel = ui->labelFrontExposure;
+        gainLabel = ui->labelFrontGain;
+    }
+
+    if (!statusLabel || !fpsLabel || !resolutionLabel || !exposureLabel || !gainLabel) {
+        return;
+    }
+
+    // 默认离线状态
+    QString statusText = "离线";
+    QString statusColor = "color: red;";
+    QString fpsText = "-- fps";
+    QString resolutionText = "--";
+    QString exposureText = "-- μs";
+    QString gainText = "--dB";
+
+    if (m_cameraManager) {
+        QString stats = m_cameraManager->getCameraStats(cameraId.toStdString());
+
+        if (stats.contains("State: Streaming")) {
+            statusText = "采集中";
+            statusColor = "color: green;";
+
+            // 解析参数信息
+            QStringList lines = stats.split('\n');
+            for (const QString& line : lines) {
+                if (line.contains("Resolution:")) {
+                    QString resolution = line.split(":").last().trimmed();
+                    resolutionText = resolution;
+                } else if (line.contains("Exposure:")) {
+                    QString exposure = line.split(":").last().trimmed();
+                    // 直接显示微秒值
+                    exposureText = exposure;
+                } else if (line.contains("Gain:")) {
+                    QString gain = line.split(":").last().trimmed();
+                    gainText = gain + "dB";
+                }
+            }
+
+            // 获取帧率
+            QMutexLocker locker(&m_frameRateMutex);
+            if (m_frameRateData.contains(cameraId)) {
+                double fps = m_frameRateData[cameraId].currentFPS;
+                fpsText = QString::number(fps, 'f', 1) + " fps";
+            }
+
+        } else if (stats.contains("State: Connected")) {
+            statusText = "已连接";
+            statusColor = "color: orange;";
+        }
+    }
+
+    // 更新UI显示
+    statusLabel->setText(statusText);
+    statusLabel->setStyleSheet(statusColor);
+    fpsLabel->setText(fpsText);
+    resolutionLabel->setText(resolutionText);
+    exposureLabel->setText(exposureText);
+    gainLabel->setText(gainText);
+
+    // 设置离线状态的灰色显示
+    if (statusText == "离线") {
+        fpsLabel->setStyleSheet("color: gray;");
+        resolutionLabel->setStyleSheet("color: gray;");
+        exposureLabel->setStyleSheet("color: gray;");
+        gainLabel->setStyleSheet("color: gray;");
+    } else {
+        fpsLabel->setStyleSheet("");
+        resolutionLabel->setStyleSheet("");
+        exposureLabel->setStyleSheet("");
+        gainLabel->setStyleSheet("");
+    }
+}
+
+void MutiCamApp::updateFrameRate(const QString& cameraId)
+{
+    QMutexLocker locker(&m_frameRateMutex);
+
+    if (!m_frameRateData.contains(cameraId)) {
+        m_frameRateData[cameraId] = FrameRateData();
+    }
+
+    auto& data = m_frameRateData[cameraId];
+    auto currentTime = std::chrono::steady_clock::now();
+
+    data.frameCount++;
+
+    // 每30帧计算一次帧率
+    if (data.frameCount >= 30) {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+            currentTime - data.lastFrameTime).count();
+
+        if (duration > 0) {
+            data.currentFPS = (data.frameCount * 1000.0) / duration;
+        }
+
+        // 重置计数器
+        data.frameCount = 0;
+        data.lastFrameTime = currentTime;
+    }
+}
+
+void MutiCamApp::addAlertMessage(const QString& message, const QString& level)
+{
+    {
+        QMutexLocker locker(&m_alertMutex);
+
+        // 添加新的报警消息
+        m_alertMessages.append(AlertMessage(message, level));
+
+        // 限制报警消息数量，保留最新的100条
+        while (m_alertMessages.size() > 100) {
+            m_alertMessages.removeFirst();
+        }
+    } // 释放锁
+
+    // 在主线程中更新显示（在锁外调用，避免死锁）
+    QMetaObject::invokeMethod(this, "updateAlertDisplay", Qt::QueuedConnection);
+}
+
+void MutiCamApp::updateAlertDisplay()
+{
+    QString htmlContent;
+
+    // 复制消息列表，减少锁持有时间
+    QList<AlertMessage> messagesCopy;
+    {
+        QMutexLocker locker(&m_alertMutex);
+        messagesCopy = m_alertMessages;
+    } // 释放锁
+
+    // 从最新的消息开始显示（倒序）
+    for (int i = messagesCopy.size() - 1; i >= 0; --i) {
+        const auto& alert = messagesCopy[i];
+        QString color;
+
+        if (alert.level == "error") {
+            color = "#ff0000";  // 红色
+        } else if (alert.level == "warning") {
+            color = "#ff8000";  // 橙色
+        } else {
+            color = "#008000";  // 绿色
+        }
+
+        QString timeStr = alert.timestamp.toString("yyyy-MM-dd hh:mm:ss");
+        htmlContent += QString("<p style=\"margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">"
+                              "<span style=\"color:%1;\">[%2] %3 - %4</span></p>")
+                              .arg(color)
+                              .arg(alert.level.toUpper())
+                              .arg(alert.message)
+                              .arg(timeStr);
+    }
+
+    // 设置HTML内容
+    QString fullHtml = QString("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
+                              "<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" />"
+                              "<style type=\"text/css\">p, li { white-space: pre-wrap; }</style></head>"
+                              "<body style=\"font-family:'Microsoft YaHei UI'; font-size:9pt; font-weight:400; font-style:normal;\">"
+                              "%1</body></html>").arg(htmlContent);
+
+    ui->textEditAlerts->setHtml(fullHtml);
+
+    // 滚动到底部显示最新消息
+    QTextCursor cursor = ui->textEditAlerts->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    ui->textEditAlerts->setTextCursor(cursor);
+}
+
+void MutiCamApp::onClearAlertsClicked()
+{
+    {
+        QMutexLocker locker(&m_alertMutex);
+
+        // 清空报警消息列表
+        m_alertMessages.clear();
+    } // 释放锁
+
+    // 清空UI显示
+    ui->textEditAlerts->clear();
+
+    // 添加清空操作的提示信息（在锁外调用，避免死锁）
+    addAlertMessage("报警信息已清空", "info");
+
+    qDebug() << "报警信息已清空";
+}
+
+void MutiCamApp::onRefreshStatusClicked()
+{
+    // 立即更新一次状态显示
+    updateCameraStatusDisplay();
+
+    // 添加刷新操作的提示信息
+    addAlertMessage("状态信息已刷新", "info");
+
+    qDebug() << "相机状态已手动刷新";
 }

@@ -8,20 +8,33 @@
 namespace MutiCam {
 namespace Camera {
 
+// 静态成员变量定义
+std::atomic<bool> HikvisionCamera::s_sdkInitialized{false};
+std::atomic<int> HikvisionCamera::s_instanceCount{0};
+QMutex HikvisionCamera::s_sdkMutex;
+
 /**
  * @brief HikvisionCamera实现
  */
-HikvisionCamera::HikvisionCamera(QObject* parent) 
+HikvisionCamera::HikvisionCamera(QObject* parent)
     : ICameraController()
     , m_frameTimer(new QTimer(this)) {
-    
+
     setParent(parent);
-    
+
+    // 增加实例计数
+    s_instanceCount++;
+
+    // 初始化SDK（如果还未初始化）
+    if (!s_sdkInitialized.load()) {
+        initializeSDK();
+    }
+
     // 初始化帧超时定时器
     m_frameTimer->setSingleShot(true);
     m_frameTimer->setInterval(5000); // 5秒超时
     QObject::connect(m_frameTimer, &QTimer::timeout, this, &HikvisionCamera::onFrameTimeout);
-    
+
     // 初始化相机参数
     m_params.serialNumber = "";
     m_params.exposureTime = 10000;
@@ -30,10 +43,10 @@ HikvisionCamera::HikvisionCamera(QObject* parent)
     m_params.pixelFormat = "Mono8";
     m_params.width = 1920;
     m_params.height = 1080;
-    
+
     // 初始化性能统计
     m_lastStatsTime = std::chrono::steady_clock::now();
-    
+
     m_state = CameraState::Disconnected;
 }
 
@@ -45,11 +58,19 @@ HikvisionCamera::~HikvisionCamera() {
     if (m_state != CameraState::Disconnected) {
         disconnect();
     }
-    
+
     // 释放转换缓冲区
     if (m_pConvertBuffer) {
         delete[] m_pConvertBuffer;
         m_pConvertBuffer = nullptr;
+    }
+
+    // 减少实例计数
+    s_instanceCount--;
+
+    // 如果是最后一个实例，清理SDK
+    if (s_instanceCount.load() == 0 && s_sdkInitialized.load()) {
+        finalizeSDK();
     }
 }
 
@@ -273,22 +294,22 @@ cv::Mat HikvisionCamera::getLatestFrame() {
 
 std::vector<std::string> HikvisionCamera::enumerateDevices() {
     std::vector<std::string> devices;
-    
-    // 初始化SDK
-    int nRet = MV_CC_Initialize();
-    if (MV_OK != nRet) {
-        qDebug() << "Failed to initialize MVS SDK, error code:" << nRet;
-        return devices;
+
+    // 确保SDK已初始化
+    if (!s_sdkInitialized.load()) {
+        if (!initializeSDK()) {
+            qDebug() << "Failed to initialize MVS SDK for enumeration";
+            return devices;
+        }
     }
     
     // 枚举设备
     MV_CC_DEVICE_INFO_LIST stDeviceList;
     memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
     
-    nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
+    int nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
     if (MV_OK != nRet) {
         qDebug() << "Failed to enumerate devices, error code:" << nRet;
-        MV_CC_Finalize();
         return devices;
     }
     
@@ -316,10 +337,7 @@ std::vector<std::string> HikvisionCamera::enumerateDevices() {
             devices.push_back(serialNumber);
         }
     }
-    
-    // 清理SDK
-    MV_CC_Finalize();
-    
+
     return devices;
 }
 
@@ -386,21 +404,21 @@ void HikvisionCamera::onFrameTimeout() {
 }
 
 bool HikvisionCamera::openDevice(const std::string& serialNumber) {
-    // 初始化SDK
-    int nRet = MV_CC_Initialize();
-    if (MV_OK != nRet) {
-        setError("Failed to initialize MVS SDK");
-        return false;
+    // 确保SDK已初始化
+    if (!s_sdkInitialized.load()) {
+        if (!initializeSDK()) {
+            setError("Failed to initialize MVS SDK");
+            return false;
+        }
     }
     
     // 枚举设备
     MV_CC_DEVICE_INFO_LIST stDeviceList;
     memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
     
-    nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
+    int nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
     if (MV_OK != nRet) {
         setError("Failed to enumerate devices");
-        MV_CC_Finalize();
         return false;
     }
     
@@ -431,7 +449,6 @@ bool HikvisionCamera::openDevice(const std::string& serialNumber) {
     
     if (nullptr == pTargetDevice) {
         setError("Device with specified serial number not found");
-        MV_CC_Finalize();
         return false;
     }
     
@@ -439,7 +456,6 @@ bool HikvisionCamera::openDevice(const std::string& serialNumber) {
     nRet = MV_CC_CreateHandle(&m_hCamera, pTargetDevice);
     if (MV_OK != nRet) {
         setError("Failed to create device handle");
-        MV_CC_Finalize();
         return false;
     }
     
@@ -449,7 +465,6 @@ bool HikvisionCamera::openDevice(const std::string& serialNumber) {
         setError("Failed to open device");
         MV_CC_DestroyHandle(m_hCamera);
         m_hCamera = nullptr;
-        MV_CC_Finalize();
         return false;
     }
     
@@ -474,10 +489,7 @@ bool HikvisionCamera::closeDevice() {
     }
     
     m_hCamera = nullptr;
-    
-    // 清理SDK
-    MV_CC_Finalize();
-    
+
     return true;
 }
 
@@ -627,6 +639,41 @@ void HikvisionCamera::processFrame(unsigned char* pData, MV_FRAME_OUT_INFO_EX* p
         qDebug() << "Exception in processFrame:" << e.what();
         setError(std::string("Frame processing error: ") + e.what());
     }
+}
+
+// SDK管理静态方法实现
+bool HikvisionCamera::initializeSDK() {
+    QMutexLocker locker(&s_sdkMutex);
+
+    if (s_sdkInitialized.load()) {
+        return true;
+    }
+
+    int nRet = MV_CC_Initialize();
+    if (MV_OK != nRet) {
+        qDebug() << "Failed to initialize MVS SDK, error code:" << nRet;
+        return false;
+    }
+
+    s_sdkInitialized = true;
+    qDebug() << "MVS SDK initialized successfully";
+    return true;
+}
+
+void HikvisionCamera::finalizeSDK() {
+    QMutexLocker locker(&s_sdkMutex);
+
+    if (!s_sdkInitialized.load()) {
+        return;
+    }
+
+    MV_CC_Finalize();
+    s_sdkInitialized = false;
+    qDebug() << "MVS SDK finalized";
+}
+
+bool HikvisionCamera::isSDKInitialized() {
+    return s_sdkInitialized.load();
 }
 
 } // namespace Camera

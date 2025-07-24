@@ -2676,7 +2676,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               <string>color: green;</string>
              </property>
              <property name="text">
-              <string>在线: 2</string>
+              <string>在线: 0</string>
              </property>
             </widget>
            </item>
@@ -2692,7 +2692,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               <string>color: red;</string>
              </property>
              <property name="text">
-              <string>离线: 1</string>
+              <string>离线: 3</string>
              </property>
             </widget>
            </item>
@@ -2744,10 +2744,10 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                   </font>
                  </property>
                  <property name="styleSheet">
-                  <string>color: green;</string>
+                  <string notr="true">color: red;</string>
                  </property>
                  <property name="text">
-                  <string>在线</string>
+                  <string>离线</string>
                  </property>
                 </widget>
                </item>
@@ -2778,7 +2778,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelVerticalFPS">
                  <property name="text">
-                  <string>30.2 fps</string>
+                  <string>-- fps</string>
                  </property>
                 </widget>
                </item>
@@ -2797,7 +2797,6 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_verticalResolution">
                <item>
@@ -2810,7 +2809,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelVerticalResolution">
                  <property name="text">
-                  <string>1920x1080</string>
+                  <string>--</string>
                  </property>
                 </widget>
                </item>
@@ -2841,7 +2840,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelVerticalExposure">
                  <property name="text">
-                  <string>15.6ms</string>
+                  <string>--ms</string>
                  </property>
                 </widget>
                </item>
@@ -2872,7 +2871,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelVerticalGain">
                  <property name="text">
-                  <string>2.5dB</string>
+                  <string>--dB</string>
                  </property>
                 </widget>
                </item>
@@ -2924,10 +2923,10 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                   </font>
                  </property>
                  <property name="styleSheet">
-                  <string>color: green;</string>
+                  <string notr="true">color: red;</string>
                  </property>
                  <property name="text">
-                  <string>在线</string>
+                  <string>离线</string>
                  </property>
                 </widget>
                </item>
@@ -2958,7 +2957,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelLeftFPS">
                  <property name="text">
-                  <string>29.8 fps</string>
+                  <string>-- fps</string>
                  </property>
                 </widget>
                </item>
@@ -2977,7 +2976,6 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_leftResolution">
                <item>
@@ -2990,7 +2988,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelLeftResolution">
                  <property name="text">
-                  <string>1920x1080</string>
+                  <string>--</string>
                  </property>
                 </widget>
                </item>
@@ -3021,7 +3019,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelLeftExposure">
                  <property name="text">
-                  <string>16.2ms</string>
+                  <string>--ms</string>
                  </property>
                 </widget>
                </item>
@@ -3052,7 +3050,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                <item>
                 <widget class="QLabel" name="labelLeftGain">
                  <property name="text">
-                  <string>3.1dB</string>
+                  <string>--dB</string>
                  </property>
                 </widget>
                </item>
@@ -3137,8 +3135,14 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontFPS">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="styleSheet">
-                  <string>color: gray;</string>
+                  <string notr="true"/>
                  </property>
                  <property name="text">
                   <string>-- fps</string>
@@ -3160,7 +3164,6 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_frontResolution">
                <item>
@@ -3172,8 +3175,14 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontResolution">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="styleSheet">
-                  <string>color: gray;</string>
+                  <string notr="true"/>
                  </property>
                  <property name="text">
                   <string>--</string>
@@ -3206,8 +3215,14 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontExposure">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="styleSheet">
-                  <string>color: gray;</string>
+                  <string notr="true"/>
                  </property>
                  <property name="text">
                   <string>--ms</string>
@@ -3240,8 +3255,14 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelFrontGain">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="styleSheet">
-                  <string>color: gray;</string>
+                  <string notr="true"/>
                  </property>
                  <property name="text">
                   <string>--dB</string>
