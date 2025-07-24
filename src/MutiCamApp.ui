@@ -2797,37 +2797,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_verticalTemp">
-               <item>
-                <widget class="QLabel" name="labelVerticalTempTitle">
-                 <property name="text">
-                  <string>温度:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelVerticalTemp">
-                 <property name="text">
-                  <string>42.5°C</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_verticalTemp">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
+             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_verticalResolution">
                <item>
@@ -3007,37 +2977,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_leftTemp">
-               <item>
-                <widget class="QLabel" name="labelLeftTempTitle">
-                 <property name="text">
-                  <string>温度:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelLeftTemp">
-                 <property name="text">
-                  <string>41.2°C</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_leftTemp">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
+             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_leftResolution">
                <item>
@@ -3220,40 +3160,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
               </layout>
              </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_frontTemp">
-               <item>
-                <widget class="QLabel" name="labelFrontTempTitle">
-                 <property name="text">
-                  <string>温度:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="labelFrontTemp">
-                 <property name="styleSheet">
-                  <string>color: gray;</string>
-                 </property>
-                 <property name="text">
-                  <string>--°C</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_frontTemp">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
+             <!-- 温度显示已隐藏 - 普通工业相机不支持温度读取 -->
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_frontResolution">
                <item>
