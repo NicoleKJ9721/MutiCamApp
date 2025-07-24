@@ -56,6 +56,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 注意：相机系统将在点击"开始测量"时初始化
 
+    // 初始化按钮映射
+    initializeButtonMappings();
+
     // 连接信号和槽
     connectSignalsAndSlots();
 
@@ -224,113 +227,17 @@ void MutiCamApp::initializeCameraSystem()
 
 void MutiCamApp::connectSignalsAndSlots()
 {
-    // 连接按钮信号
-    connect(ui->btnStartMeasure, &QPushButton::clicked, 
+    // 连接基本控制按钮信号（不在映射表中的按钮）
+    connect(ui->btnStartMeasure, &QPushButton::clicked,
             this, &MutiCamApp::onStartMeasureClicked);
-    connect(ui->btnStopMeasure, &QPushButton::clicked, 
+    connect(ui->btnStopMeasure, &QPushButton::clicked,
             this, &MutiCamApp::onStopMeasureClicked);
-    
-    // 连接画点按钮信号
-    connect(ui->btnDrawPoint, &QPushButton::clicked, 
-            this, &MutiCamApp::onDrawPointClicked);
-    connect(ui->btnDrawPointVertical, &QPushButton::clicked, 
-            this, &MutiCamApp::onDrawPointVerticalClicked);
-    connect(ui->btnDrawPointLeft, &QPushButton::clicked, 
-            this, &MutiCamApp::onDrawPointLeftClicked);
-    connect(ui->btnDrawPointFront, &QPushButton::clicked, 
-            this, &MutiCamApp::onDrawPointFrontClicked);
-    
-    // 连接画直线按钮信号
-    connect(ui->btnDrawStraight, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawLineClicked);
-    connect(ui->btnDrawStraightVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawLineVerticalClicked);
-    connect(ui->btnDrawStraightLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawLineLeftClicked);
-    connect(ui->btnDrawStraightFront, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawLineFrontClicked);
-    
-    // 连接画圆形按钮信号
-    connect(ui->btnDrawSimpleCircle, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawSimpleCircleClicked);
-    connect(ui->btnDrawSimpleCircleVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawSimpleCircleVerticalClicked);
-    connect(ui->btnDrawSimpleCircleLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawSimpleCircleLeftClicked);
-    connect(ui->btnDrawSimpleCircleFront, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawSimpleCircleFrontClicked);
-    
-    // 连接精细圆按钮信号
-    connect(ui->btnDrawFineCircle, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawFineCircleClicked);
-    connect(ui->btnDrawFineCircleVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawFineCircleVerticalClicked);
-    connect(ui->btnDrawFineCircleLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawFineCircleLeftClicked);
-    connect(ui->btnDrawFineCircleFront, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawFineCircleFrontClicked);
-    
-    // 连接平行线按钮信号
-    connect(ui->btnDrawParallel, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawParallelClicked);
-    connect(ui->btnDrawParallelVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawParallelVerticalClicked);
-    connect(ui->btnDrawParallelLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawParallelLeftClicked);
-    connect(ui->btnDrawParallelFront, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawParallelFrontClicked);
-    
-    // 连接线与线绘制按钮
-    connect(ui->btnDraw2Line, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawTwoLinesClicked);
-    connect(ui->btnDraw2LineVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawTwoLinesClicked);
-    connect(ui->btnDraw2LineLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawTwoLinesClicked);
-    connect(ui->btnDraw2LineFront, &QPushButton::clicked,
-            this, &MutiCamApp::onDrawTwoLinesClicked);
-    
-    // 连接清空按钮信号
-    connect(ui->btnClearDrawings, &QPushButton::clicked,
-            this, &MutiCamApp::onClearDrawingsClicked);
-    connect(ui->btnClearDrawingsVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onClearDrawingsVerticalClicked);
-    connect(ui->btnClearDrawingsLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onClearDrawingsLeftClicked);
-    connect(ui->btnClearDrawingsFront, &QPushButton::clicked,
-            this, &MutiCamApp::onClearDrawingsFrontClicked);
 
-    // 连接撤销绘画按钮信号
-    connect(ui->btnCan1StepDraw, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDrawingClicked);
-    connect(ui->btnCan1StepDrawVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDrawingVerticalClicked);
-    connect(ui->btnCan1StepDrawLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDrawingLeftClicked);
-    connect(ui->btnCan1StepDrawFront, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDrawingFrontClicked);
+    // 使用新的按钮映射系统连接所有其他按钮
+    connectButtonSignals();
+    // 所有绘图、清空、撤销、保存按钮的连接已移至按钮映射系统
 
-    // 连接撤销检测按钮信号
-    connect(ui->btnCan1StepDet, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDetectionClicked);
-    connect(ui->btnCan1StepDetVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDetectionVerticalClicked);
-    connect(ui->btnCan1StepDetLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDetectionLeftClicked);
-    connect(ui->btnCan1StepDetFront, &QPushButton::clicked,
-            this, &MutiCamApp::onUndoDetectionFrontClicked);
-
-    // 连接保存图像按钮信号
-    connect(ui->btnSaveImage, &QPushButton::clicked,
-            this, &MutiCamApp::onSaveImageClicked);
-    connect(ui->btnSaveImageVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onSaveImageVerticalClicked);
-    connect(ui->btnSaveImageLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onSaveImageLeftClicked);
-    connect(ui->btnSaveImageFront, &QPushButton::clicked,
-            this, &MutiCamApp::onSaveImageFrontClicked);
-
-    // 连接网格相关信号
+    // 连接网格相关信号（LineEdit信号不在按钮映射中）
     connect(ui->leGridDensity, &QLineEdit::textChanged,
             this, &MutiCamApp::onGridDensityChanged);
     connect(ui->leGridDensVertical, &QLineEdit::textChanged,
@@ -340,32 +247,7 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->leGridDensFront, &QLineEdit::textChanged,
             this, &MutiCamApp::onGridDensityFrontChanged);
 
-    connect(ui->btnCancelGrids, &QPushButton::clicked,
-            this, &MutiCamApp::onCancelGridsClicked);
-    connect(ui->btnCancelGridsVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onCancelGridsVerticalClicked);
-    connect(ui->btnCancelGridsLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onCancelGridsLeftClicked);
-    connect(ui->btnCancelGridsFront, &QPushButton::clicked,
-            this, &MutiCamApp::onCancelGridsFrontClicked);
-
-    // 连接自动检测按钮信号
-    connect(ui->btnLineDet, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoLineDetectionClicked);
-    connect(ui->btnCircleDet, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoCircleDetectionClicked);
-    connect(ui->btnLineDetVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoLineDetectionVerticalClicked);
-    connect(ui->btnCircleDetVertical, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoCircleDetectionVerticalClicked);
-    connect(ui->btnLineDetLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoLineDetectionLeftClicked);
-    connect(ui->btnCircleDetLeft, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoCircleDetectionLeftClicked);
-    connect(ui->btnLineDetFront, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoLineDetectionFrontClicked);
-    connect(ui->btnCircleDetFront, &QPushButton::clicked,
-            this, &MutiCamApp::onAutoCircleDetectionFrontClicked);
+    // 网格取消按钮和自动检测按钮的连接已移至按钮映射系统
 
     // 连接选项卡切换信号
     connect(ui->tabWidget, &QTabWidget::currentChanged,
@@ -750,43 +632,7 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
     }
 }
 
-// 画点功能实现
-void MutiCamApp::onDrawPointClicked()
-{
-    // 记录绘制操作
-    if (m_logManager) {
-        m_logManager->logDrawingOperation("开始绘制点", "设置所有视图为点绘制模式");
-    }
-
-    // 命令所有视图进入"画点"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-}
-
-void MutiCamApp::onDrawPointVerticalClicked()
-{
-    // 只命令垂直视图进入"画点"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-}
-
-void MutiCamApp::onDrawPointLeftClicked()
-{
-    // 只命令左视图进入"画点"模式
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-}
-
-void MutiCamApp::onDrawPointFrontClicked()
-{
-    // 只命令前视图进入"画点"模式
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Point);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Point);
-}
+// 绘图功能槽函数已被通用方法替代，通过按钮映射系统调用
 
 // setDrawingMode和exitDrawingMode方法已移除 - 现在直接通过按钮槽函数调用VideoDisplayWidget的startDrawing方法
 
@@ -1025,38 +871,7 @@ void MutiCamApp::invalidateCache(const QString& viewName)
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
 // displayImageOnLabel方法已迁移到VideoDisplayWidget
 
-// 直线绘制槽函数实现
-void MutiCamApp::onDrawLineClicked()
-{
-    // 命令所有视图进入"画线"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-}
-
-void MutiCamApp::onDrawLineVerticalClicked()
-{
-    // 只命令垂直视图进入"画线"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-}
-
-void MutiCamApp::onDrawLineLeftClicked()
-{
-    // 只命令左视图进入"画线"模式
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-}
-
-void MutiCamApp::onDrawLineFrontClicked()
-{
-    // 只命令前视图进入"画线"模式
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Line);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Line);
-}
+// 直线绘制槽函数已被通用方法替代
 
 // 直线绘制相关方法实现
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
@@ -1068,115 +883,9 @@ void MutiCamApp::onDrawLineFrontClicked()
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
 // drawSingleLine、drawDashedLine、calculateLineAngle方法已迁移到VideoDisplayWidget
 
-// 圆形绘制槽函数实现
-void MutiCamApp::onDrawSimpleCircleClicked()
-{
-    // 命令所有视图进入"画圆"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-}
+// 圆形绘制槽函数已被通用方法替代
 
-void MutiCamApp::onDrawSimpleCircleVerticalClicked()
-{
-    // 只命令垂直视图进入"画圆"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-}
-
-void MutiCamApp::onDrawSimpleCircleLeftClicked()
-{
-    // 只命令左视图进入"画圆"模式
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-}
-
-void MutiCamApp::onDrawSimpleCircleFrontClicked()
-{
-    // 只命令前视图进入"画圆"模式
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Circle);
-}
-
-void MutiCamApp::onDrawFineCircleClicked()
-{
-    // 命令所有视图进入"精细圆"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-}
-
-void MutiCamApp::onDrawFineCircleVerticalClicked()
-{
-    // 只命令垂直视图进入"精细圆"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-}
-
-void MutiCamApp::onDrawFineCircleLeftClicked()
-{
-    // 只命令左视图进入"精细圆"模式
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-}
-
-void MutiCamApp::onDrawFineCircleFrontClicked()
-{
-    // 只命令前视图进入"精细圆"模式
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
-}
-
-// 平行线绘制按钮点击事件处理
-void MutiCamApp::onDrawParallelClicked()
-{
-    // 命令所有视图进入"平行线"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-}
-
-void MutiCamApp::onDrawParallelVerticalClicked()
-{
-    // 只命令垂直视图进入"平行线"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-}
-
-void MutiCamApp::onDrawParallelLeftClicked()
-{
-    // 只命令左视图进入"平行线"模式
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-}
-
-void MutiCamApp::onDrawParallelFrontClicked()
-{
-    // 只命令前视图进入"平行线"模式
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::Parallel);
-}
-
-// 线与线绘制按钮点击事件处理
-void MutiCamApp::onDrawTwoLinesClicked()
-{
-    // 命令所有视图进入"两线测量"模式
-    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-    if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-    if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(PaintingOverlay::DrawingTool::TwoLines);
-}
+// 平行线和两线测量槽函数已被通用方法替代
 
 // 线与线绘制相关方法实现
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
@@ -1582,104 +1291,7 @@ PaintingOverlay* MutiCamApp::getActivePaintingOverlay()
     return nullptr;
 }
 
-// {{ AURA-X: Add - 清空绘图按钮槽函数实现. Approval: 寸止(ID:clear_buttons). }}
-void MutiCamApp::onClearDrawingsClicked()
-{
-    PaintingOverlay* overlay = getActivePaintingOverlay();
-    if (overlay) {
-        overlay->clearAllDrawings();
-    }
-}
-
-void MutiCamApp::onClearDrawingsVerticalClicked()
-{
-    // 清空选项卡的垂直视图，同步机制会自动同步到主界面
-    if (m_verticalPaintingOverlay2) {
-        m_verticalPaintingOverlay2->clearAllDrawings();
-    }
-}
-
-void MutiCamApp::onClearDrawingsLeftClicked()
-{
-    // 清空选项卡的左侧视图，同步机制会自动同步到主界面
-    if (m_leftPaintingOverlay2) {
-        m_leftPaintingOverlay2->clearAllDrawings();
-    }
-}
-
-void MutiCamApp::onClearDrawingsFrontClicked()
-{
-    // 清空选项卡的对向视图，同步机制会自动同步到主界面
-    if (m_frontPaintingOverlay2) {
-        m_frontPaintingOverlay2->clearAllDrawings();
-    }
-}
-
-// {{ AURA-X: Add - 撤销绘图按钮槽函数实现. Approval: 寸止(ID:undo_buttons). }}
-void MutiCamApp::onUndoDrawingClicked()
-{
-    PaintingOverlay* overlay = getActivePaintingOverlay();
-    if (overlay) {
-        overlay->undoLastDrawing();
-    }
-}
-
-void MutiCamApp::onUndoDrawingVerticalClicked()
-{
-    // 撤销选项卡的垂直视图，同步机制会自动同步到主界面
-    if (m_verticalPaintingOverlay2) {
-        m_verticalPaintingOverlay2->undoLastDrawing();
-    }
-}
-
-void MutiCamApp::onUndoDrawingLeftClicked()
-{
-    // 撤销选项卡的左侧视图，同步机制会自动同步到主界面
-    if (m_leftPaintingOverlay2) {
-        m_leftPaintingOverlay2->undoLastDrawing();
-    }
-}
-
-void MutiCamApp::onUndoDrawingFrontClicked()
-{
-    // 撤销选项卡的对向视图，同步机制会自动同步到主界面
-    if (m_frontPaintingOverlay2) {
-        m_frontPaintingOverlay2->undoLastDrawing();
-    }
-}
-
-// {{ AURA-X: Add - 撤销自动检测按钮槽函数实现. Approval: 寸止(ID:undo_detection_buttons). }}
-void MutiCamApp::onUndoDetectionClicked()
-{
-    PaintingOverlay* overlay = getActivePaintingOverlay();
-    if (overlay) {
-        overlay->undoLastDetection();
-    }
-}
-
-void MutiCamApp::onUndoDetectionVerticalClicked()
-{
-    // 撤销选项卡的垂直视图的自动检测，同步机制会自动同步到主界面
-    if (m_verticalPaintingOverlay2) {
-        m_verticalPaintingOverlay2->undoLastDetection();
-    }
-}
-
-void MutiCamApp::onUndoDetectionLeftClicked()
-{
-    // 撤销选项卡的左侧视图的自动检测，同步机制会自动同步到主界面
-    if (m_leftPaintingOverlay2) {
-        m_leftPaintingOverlay2->undoLastDetection();
-    }
-}
-
-void MutiCamApp::onUndoDetectionFrontClicked()
-{
-    // 撤销选项卡的对向视图的自动检测，同步机制会自动同步到主界面
-    if (m_frontPaintingOverlay2) {
-        m_frontPaintingOverlay2->undoLastDetection();
-    }
-}
+// 清空、撤销绘图和撤销检测槽函数已被通用方法替代
 
 // {{ AURA-X: Add - 保存图像按钮槽函数实现. Approval: 寸止(ID:save_image_buttons). }}
 void MutiCamApp::onSaveImageClicked()
@@ -3043,4 +2655,305 @@ void MutiCamApp::applyUISizeFromSettings()
     } else {
         qDebug() << "UI尺寸参数无效，使用默认窗口大小";
     }
+}
+
+// ==================== 通用按钮处理方法实现 ====================
+
+void MutiCamApp::startDrawingTool(PaintingOverlay::DrawingTool tool, const QString& viewName)
+{
+    // 记录绘制操作
+    if (m_logManager) {
+        QString toolName;
+        switch (tool) {
+            case PaintingOverlay::DrawingTool::Point: toolName = "点"; break;
+            case PaintingOverlay::DrawingTool::Line: toolName = "直线"; break;
+            case PaintingOverlay::DrawingTool::Circle: toolName = "圆形"; break;
+            case PaintingOverlay::DrawingTool::FineCircle: toolName = "精细圆"; break;
+            case PaintingOverlay::DrawingTool::Parallel: toolName = "平行线"; break;
+            case PaintingOverlay::DrawingTool::TwoLines: toolName = "两线测量"; break;
+            default: toolName = "未知工具"; break;
+        }
+        m_logManager->logDrawingOperation(QString("开始绘制%1").arg(toolName),
+                                        QString("视图: %1").arg(viewName));
+    }
+
+    // 根据视图名称启动对应的绘图工具
+    if (viewName == "all") {
+        // 所有视图
+        if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(tool);
+        if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(tool);
+        if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(tool);
+        if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(tool);
+        if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(tool);
+        if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(tool);
+    } else if (viewName == "vertical") {
+        // 垂直视图
+        if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->startDrawing(tool);
+        if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->startDrawing(tool);
+    } else if (viewName == "left") {
+        // 左视图
+        if (m_leftPaintingOverlay) m_leftPaintingOverlay->startDrawing(tool);
+        if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->startDrawing(tool);
+    } else if (viewName == "front") {
+        // 前视图
+        if (m_frontPaintingOverlay) m_frontPaintingOverlay->startDrawing(tool);
+        if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->startDrawing(tool);
+    }
+}
+
+void MutiCamApp::clearDrawings(const QString& viewName)
+{
+    if (viewName == "all") {
+        // 清空所有视图
+        PaintingOverlay* overlay = getActivePaintingOverlay();
+        if (overlay) {
+            overlay->clearAllDrawings();
+        }
+    } else if (viewName == "vertical") {
+        if (m_verticalPaintingOverlay2) {
+            m_verticalPaintingOverlay2->clearAllDrawings();
+        }
+    } else if (viewName == "left") {
+        if (m_leftPaintingOverlay2) {
+            m_leftPaintingOverlay2->clearAllDrawings();
+        }
+    } else if (viewName == "front") {
+        if (m_frontPaintingOverlay2) {
+            m_frontPaintingOverlay2->clearAllDrawings();
+        }
+    }
+}
+
+void MutiCamApp::undoOperation(const QString& viewName, bool isDetection)
+{
+    PaintingOverlay* overlay = nullptr;
+
+    if (viewName == "all") {
+        overlay = getActivePaintingOverlay();
+    } else if (viewName == "vertical") {
+        overlay = m_verticalPaintingOverlay2;
+    } else if (viewName == "left") {
+        overlay = m_leftPaintingOverlay2;
+    } else if (viewName == "front") {
+        overlay = m_frontPaintingOverlay2;
+    }
+
+    if (overlay) {
+        if (isDetection) {
+            overlay->undoLastDetection();
+        } else {
+            overlay->undoLastDrawing();
+        }
+    }
+}
+
+void MutiCamApp::saveImage(const QString& viewName)
+{
+    if (viewName == "all") {
+        onSaveImageClicked();
+    } else if (viewName == "vertical") {
+        onSaveImageVerticalClicked();
+    } else if (viewName == "left") {
+        onSaveImageLeftClicked();
+    } else if (viewName == "front") {
+        onSaveImageFrontClicked();
+    }
+}
+
+void MutiCamApp::initializeButtonMappings()
+{
+    m_buttonMappings.clear();
+
+    // 绘图工具按钮映射
+    // 点绘制按钮
+    m_buttonMappings.emplace_back(ui->btnDrawPoint,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Point, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::Point);
+    m_buttonMappings.emplace_back(ui->btnDrawPointVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Point, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::Point);
+    m_buttonMappings.emplace_back(ui->btnDrawPointLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Point, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::Point);
+    m_buttonMappings.emplace_back(ui->btnDrawPointFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Point, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::Point);
+
+    // 直线绘制按钮
+    m_buttonMappings.emplace_back(ui->btnDrawStraight,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Line, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::Line);
+    m_buttonMappings.emplace_back(ui->btnDrawStraightVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Line, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::Line);
+    m_buttonMappings.emplace_back(ui->btnDrawStraightLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Line, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::Line);
+    m_buttonMappings.emplace_back(ui->btnDrawStraightFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Line, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::Line);
+
+    // 圆形绘制按钮
+    m_buttonMappings.emplace_back(ui->btnDrawSimpleCircle,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Circle, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::Circle);
+    m_buttonMappings.emplace_back(ui->btnDrawSimpleCircleVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Circle, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::Circle);
+    m_buttonMappings.emplace_back(ui->btnDrawSimpleCircleLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Circle, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::Circle);
+    m_buttonMappings.emplace_back(ui->btnDrawSimpleCircleFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Circle, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::Circle);
+
+    // 精细圆绘制按钮
+    m_buttonMappings.emplace_back(ui->btnDrawFineCircle,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::FineCircle, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::FineCircle);
+    m_buttonMappings.emplace_back(ui->btnDrawFineCircleVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::FineCircle, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::FineCircle);
+    m_buttonMappings.emplace_back(ui->btnDrawFineCircleLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::FineCircle, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::FineCircle);
+    m_buttonMappings.emplace_back(ui->btnDrawFineCircleFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::FineCircle, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::FineCircle);
+
+    // 平行线绘制按钮
+    m_buttonMappings.emplace_back(ui->btnDrawParallel,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Parallel, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::Parallel);
+    m_buttonMappings.emplace_back(ui->btnDrawParallelVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Parallel, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::Parallel);
+    m_buttonMappings.emplace_back(ui->btnDrawParallelLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Parallel, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::Parallel);
+    m_buttonMappings.emplace_back(ui->btnDrawParallelFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::Parallel, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::Parallel);
+
+    // 两线测量按钮
+    m_buttonMappings.emplace_back(ui->btnDraw2Line,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::TwoLines, "all"); },
+        "drawing", "all", PaintingOverlay::DrawingTool::TwoLines);
+    m_buttonMappings.emplace_back(ui->btnDraw2LineVertical,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::TwoLines, "vertical"); },
+        "drawing", "vertical", PaintingOverlay::DrawingTool::TwoLines);
+    m_buttonMappings.emplace_back(ui->btnDraw2LineLeft,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::TwoLines, "left"); },
+        "drawing", "left", PaintingOverlay::DrawingTool::TwoLines);
+    m_buttonMappings.emplace_back(ui->btnDraw2LineFront,
+        [this]() { startDrawingTool(PaintingOverlay::DrawingTool::TwoLines, "front"); },
+        "drawing", "front", PaintingOverlay::DrawingTool::TwoLines);
+
+    // 清空按钮
+    m_buttonMappings.emplace_back(ui->btnClearDrawings,
+        [this]() { clearDrawings("all"); },
+        "clear", "all");
+    m_buttonMappings.emplace_back(ui->btnClearDrawingsVertical,
+        [this]() { clearDrawings("vertical"); },
+        "clear", "vertical");
+    m_buttonMappings.emplace_back(ui->btnClearDrawingsLeft,
+        [this]() { clearDrawings("left"); },
+        "clear", "left");
+    m_buttonMappings.emplace_back(ui->btnClearDrawingsFront,
+        [this]() { clearDrawings("front"); },
+        "clear", "front");
+
+    // 撤销绘图按钮
+    m_buttonMappings.emplace_back(ui->btnCan1StepDraw,
+        [this]() { undoOperation("all", false); },
+        "undo", "all");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDrawVertical,
+        [this]() { undoOperation("vertical", false); },
+        "undo", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDrawLeft,
+        [this]() { undoOperation("left", false); },
+        "undo", "left");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDrawFront,
+        [this]() { undoOperation("front", false); },
+        "undo", "front");
+
+    // 撤销检测按钮
+    m_buttonMappings.emplace_back(ui->btnCan1StepDet,
+        [this]() { undoOperation("all", true); },
+        "undo", "all");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDetVertical,
+        [this]() { undoOperation("vertical", true); },
+        "undo", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDetLeft,
+        [this]() { undoOperation("left", true); },
+        "undo", "left");
+    m_buttonMappings.emplace_back(ui->btnCan1StepDetFront,
+        [this]() { undoOperation("front", true); },
+        "undo", "front");
+
+    // 保存图像按钮
+    m_buttonMappings.emplace_back(ui->btnSaveImage,
+        [this]() { saveImage("all"); },
+        "save", "all");
+    m_buttonMappings.emplace_back(ui->btnSaveImageVertical,
+        [this]() { saveImage("vertical"); },
+        "save", "vertical");
+    m_buttonMappings.emplace_back(ui->btnSaveImageLeft,
+        [this]() { saveImage("left"); },
+        "save", "left");
+    m_buttonMappings.emplace_back(ui->btnSaveImageFront,
+        [this]() { saveImage("front"); },
+        "save", "front");
+
+    // 网格取消按钮
+    m_buttonMappings.emplace_back(ui->btnCancelGrids,
+        [this]() { onCancelGridsClicked(); },
+        "grid", "all");
+    m_buttonMappings.emplace_back(ui->btnCancelGridsVertical,
+        [this]() { onCancelGridsVerticalClicked(); },
+        "grid", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCancelGridsLeft,
+        [this]() { onCancelGridsLeftClicked(); },
+        "grid", "left");
+    m_buttonMappings.emplace_back(ui->btnCancelGridsFront,
+        [this]() { onCancelGridsFrontClicked(); },
+        "grid", "front");
+
+    // 自动检测按钮
+    m_buttonMappings.emplace_back(ui->btnLineDet,
+        [this]() { onAutoLineDetectionClicked(); },
+        "detection", "all");
+    m_buttonMappings.emplace_back(ui->btnCircleDet,
+        [this]() { onAutoCircleDetectionClicked(); },
+        "detection", "all");
+    m_buttonMappings.emplace_back(ui->btnLineDetVertical,
+        [this]() { onAutoLineDetectionVerticalClicked(); },
+        "detection", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCircleDetVertical,
+        [this]() { onAutoCircleDetectionVerticalClicked(); },
+        "detection", "vertical");
+    m_buttonMappings.emplace_back(ui->btnLineDetLeft,
+        [this]() { onAutoLineDetectionLeftClicked(); },
+        "detection", "left");
+    m_buttonMappings.emplace_back(ui->btnCircleDetLeft,
+        [this]() { onAutoCircleDetectionLeftClicked(); },
+        "detection", "left");
+    m_buttonMappings.emplace_back(ui->btnLineDetFront,
+        [this]() { onAutoLineDetectionFrontClicked(); },
+        "detection", "front");
+    m_buttonMappings.emplace_back(ui->btnCircleDetFront,
+        [this]() { onAutoCircleDetectionFrontClicked(); },
+        "detection", "front");
+}
+
+void MutiCamApp::connectButtonSignals()
+{
+    // 使用映射表连接所有按钮信号
+    for (const auto& mapping : m_buttonMappings) {
+        if (mapping.button && mapping.handler) {
+            connect(mapping.button, &QPushButton::clicked, mapping.handler);
+        }
+    }
+
+    qDebug() << "已连接" << m_buttonMappings.size() << "个按钮信号";
 }

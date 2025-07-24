@@ -24,6 +24,7 @@
 #include "image_processing/shape_detector.h"
 #include "SettingsManager.h"
 #include "LogManager.h"
+#include <functional>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -32,6 +33,21 @@
 class MutiCamApp : public QMainWindow
 {
     Q_OBJECT
+
+public:
+    // 按钮映射结构，用于统一处理按钮连接
+    struct ButtonMapping {
+        QPushButton* button;
+        std::function<void()> handler;
+        QString category;           // 按钮类别：drawing, clear, undo, detection, save, grid
+        QString viewName;          // 视图名称：all, vertical, left, front
+        PaintingOverlay::DrawingTool tool; // 绘图工具类型
+
+        ButtonMapping() : button(nullptr), tool(PaintingOverlay::DrawingTool::None) {}
+        ButtonMapping(QPushButton* btn, std::function<void()> h, const QString& cat,
+                     const QString& view, PaintingOverlay::DrawingTool t = PaintingOverlay::DrawingTool::None)
+            : button(btn), handler(h), category(cat), viewName(view), tool(t) {}
+    };
 
 public:
     // 绘制数据结构已迁移到VideoDisplayWidget.h中
@@ -104,69 +120,7 @@ private slots:
      */
     void onCameraError(const QString& cameraId, const QString& error);
     
-    /**
-     * @brief 画点按钮点击事件处理
-     */
-    void onDrawPointClicked();
-    void onDrawPointVerticalClicked();
-    void onDrawPointLeftClicked();
-    void onDrawPointFrontClicked();
-    
-    /**
-     * @brief 画直线按钮点击事件处理
-     */
-    void onDrawLineClicked();
-    void onDrawLineVerticalClicked();
-    void onDrawLineLeftClicked();
-    void onDrawLineFrontClicked();
-    
-    /**
-     * @brief 画圆按钮点击事件处理
-     */
-    void onDrawSimpleCircleClicked();
-    void onDrawSimpleCircleVerticalClicked();
-    void onDrawSimpleCircleLeftClicked();
-    void onDrawSimpleCircleFrontClicked();
-    
-    /**
-     * @brief 画精细圆按钮点击事件处理
-     */
-    void onDrawFineCircleClicked();
-    void onDrawFineCircleVerticalClicked();
-    void onDrawFineCircleLeftClicked();
-    void onDrawFineCircleFrontClicked();
-    
-    /**
-     * @brief 画平行线按钮点击事件处理
-     */
-    void onDrawParallelClicked();
-    void onDrawParallelVerticalClicked();
-    void onDrawParallelLeftClicked();
-    void onDrawParallelFrontClicked();
-    
-    /**
-     * @brief 清空绘图按钮点击事件处理
-     */
-    void onClearDrawingsClicked();
-    void onClearDrawingsVerticalClicked();
-    void onClearDrawingsLeftClicked();
-    void onClearDrawingsFrontClicked();
-
-    /**
-     * @brief 撤销上一步绘画按钮点击事件处理
-     */
-    void onUndoDrawingClicked();
-    void onUndoDrawingVerticalClicked();
-    void onUndoDrawingLeftClicked();
-    void onUndoDrawingFrontClicked();
-
-    /**
-     * @brief 撤销上一步自动检测按钮点击事件处理
-     */
-    void onUndoDetectionClicked();
-    void onUndoDetectionVerticalClicked();
-    void onUndoDetectionLeftClicked();
-    void onUndoDetectionFrontClicked();
+    // 绘图、清空、撤销相关槽函数已被通用方法和按钮映射系统替代
 
     /**
      * @brief 保存图像按钮点击事件处理
@@ -242,6 +196,33 @@ private slots:
      */
     void onCameraSerialChanged();
 
+    // 通用按钮处理方法
+    /**
+     * @brief 通用绘图工具启动方法
+     * @param tool 绘图工具类型
+     * @param viewName 目标视图名称（"all", "vertical", "left", "front"）
+     */
+    void startDrawingTool(PaintingOverlay::DrawingTool tool, const QString& viewName);
+
+    /**
+     * @brief 通用清空绘图方法
+     * @param viewName 目标视图名称
+     */
+    void clearDrawings(const QString& viewName);
+
+    /**
+     * @brief 通用撤销方法
+     * @param viewName 目标视图名称
+     * @param isDetection 是否为撤销检测（true）还是撤销绘图（false）
+     */
+    void undoOperation(const QString& viewName, bool isDetection);
+
+    /**
+     * @brief 通用保存图像方法
+     * @param viewName 目标视图名称
+     */
+    void saveImage(const QString& viewName);
+
 protected:
     /**
      * @brief 窗口大小改变事件处理
@@ -251,7 +232,12 @@ protected:
 
 private:
     Ui_MutiCamApp* ui;
-    
+
+    // 按钮映射管理
+    std::vector<ButtonMapping> m_buttonMappings;
+    void initializeButtonMappings();
+    void connectButtonSignals();
+
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
     
@@ -343,10 +329,7 @@ private:
     
     // 所有绘图处理方法已迁移到 VideoDisplayWidget
     
-    /**
-     * @brief 线与线按钮点击事件处理
-     */
-    void onDrawTwoLinesClicked();
+    // 线与线按钮点击事件处理已被通用方法替代
     
     // 几何计算方法已迁移到 VideoDisplayWidget
     
