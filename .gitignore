@@ -10,3 +10,4 @@
 /build
 build/CMakeFiles/3.30.5/CMakeDetermineCompilerABI_CXX.bin
 build/CMakeCache.txt
+.vscode/launch.json
