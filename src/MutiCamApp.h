@@ -178,6 +178,18 @@ private slots:
     void onCancelGridsLeftClicked();       // 左侧视图取消网格
     void onCancelGridsFrontClicked();      // 对向视图取消网格
 
+    /**
+     * @brief 载物台控制按钮点击事件处理
+     */
+    void onMoveXLeftClicked();             // X轴负方向移动
+    void onMoveXRightClicked();            // X轴正方向移动
+    void onMoveYUpClicked();               // Y轴正方向移动
+    void onMoveYDownClicked();             // Y轴负方向移动
+    void onMoveZUpClicked();               // Z轴正方向移动
+    void onMoveZDownClicked();             // Z轴负方向移动
+    void onStageHomeClicked();             // 回到原点
+    void onStageStopClicked();             // 紧急停止
+
     // {{ AURA-X: Add - 绘图同步槽函数. Approval: 寸止(ID:drawing_sync). }}
     void onDrawingSync(const QString& viewName);
 
@@ -263,6 +275,9 @@ private:
 
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
+
+    // 载物台控制
+    double getCurrentStepSize() const;               ///< 获取当前选择的步长
 
     // 相机状态监控
     QTimer* m_statusUpdateTimer;                     ///< 状态更新定时器

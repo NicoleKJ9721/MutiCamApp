@@ -250,6 +250,24 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnRefreshStatus, &QPushButton::clicked,
             this, &MutiCamApp::onRefreshStatusClicked);
 
+    // 连接载物台控制按钮
+    connect(ui->btnMoveXLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveXLeftClicked);
+    connect(ui->btnMoveXRight, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveXRightClicked);
+    connect(ui->btnMoveYUp, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYUpClicked);
+    connect(ui->btnMoveYDown, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYDownClicked);
+    connect(ui->btnMoveZUp, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZUpClicked);
+    connect(ui->btnMoveZDown, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZDownClicked);
+    connect(ui->btnStageHome, &QPushButton::clicked,
+            this, &MutiCamApp::onStageHomeClicked);
+    connect(ui->btnStageStop, &QPushButton::clicked,
+            this, &MutiCamApp::onStageStopClicked);
+
     // 使用新的按钮映射系统连接所有其他按钮
     connectButtonSignals();
     // 所有绘图、清空、撤销、保存按钮的连接已移至按钮映射系统
@@ -3277,4 +3295,80 @@ void MutiCamApp::onRefreshStatusClicked()
     addAlertMessage("状态信息已刷新", "info");
 
     qDebug() << "相机状态已手动刷新";
+}
+
+// 载物台控制槽函数实现
+void MutiCamApp::onMoveXLeftClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "X轴负方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // 这里应该调用载物台控制器的相对移动函数
+    // stageController->moveRelative(-stepSize, 0, 0);
+}
+
+void MutiCamApp::onMoveXRightClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "X轴正方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // stageController->moveRelative(stepSize, 0, 0);
+}
+
+void MutiCamApp::onMoveYUpClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "Y轴正方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // stageController->moveRelative(0, stepSize, 0);
+}
+
+void MutiCamApp::onMoveYDownClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "Y轴负方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // stageController->moveRelative(0, -stepSize, 0);
+}
+
+void MutiCamApp::onMoveZUpClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "Z轴正方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // stageController->moveRelative(0, 0, stepSize);
+}
+
+void MutiCamApp::onMoveZDownClicked()
+{
+    double stepSize = getCurrentStepSize();
+    qDebug() << "Z轴负方向移动，步长：" << stepSize << "mm";
+    // TODO: 实现实际的载物台移动逻辑
+    // stageController->moveRelative(0, 0, -stepSize);
+}
+
+void MutiCamApp::onStageHomeClicked()
+{
+    qDebug() << "载物台回到原点";
+    // TODO: 实现实际的载物台回原点逻辑
+    // stageController->moveToHome();
+}
+
+void MutiCamApp::onStageStopClicked()
+{
+    qDebug() << "载物台紧急停止";
+    // TODO: 实现实际的载物台紧急停止逻辑
+    // stageController->emergencyStop();
+}
+
+double MutiCamApp::getCurrentStepSize() const
+{
+    if (ui->radioStep01->isChecked()) {
+        return 0.1;
+    } else if (ui->radioStep1->isChecked()) {
+        return 1.0;
+    } else if (ui->radioStep10->isChecked()) {
+        return 10.0;
+    }
+    return 0.1; // 默认步长
 }

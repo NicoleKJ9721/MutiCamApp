@@ -3473,79 +3473,189 @@ li.checked::marker { content: &quot;\2612&quot;; }
           <property name="title">
            <string>载物台控制</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_stageControl">
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelXTarget">
-             <property name="text">
-              <string>X目标位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="lineEditXTarget">
-             <property name="text">
-              <string>125.456</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="btnMoveX">
-             <property name="text">
-              <string>移动X</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelYTarget">
-             <property name="text">
-              <string>Y目标位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="lineEditYTarget">
-             <property name="text">
-              <string>89.234</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QPushButton" name="btnMoveY">
-             <property name="text">
-              <string>移动Y</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="labelZTarget">
-             <property name="text">
-              <string>Z目标位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLineEdit" name="lineEditZTarget">
-             <property name="text">
-              <string>67.890</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QPushButton" name="btnMoveZ">
-             <property name="text">
-              <string>移动Z</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="3">
-            <layout class="QHBoxLayout" name="horizontalLayout_stageButtons">
+          <layout class="QVBoxLayout" name="verticalLayout_stageControl">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
              <item>
-              <widget class="QPushButton" name="btnMoveAll">
+              <widget class="QLabel" name="labelStepSize">
                <property name="text">
-                <string>移动到目标位置</string>
+                <string>移动步长:</string>
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep01">
+               <property name="text">
+                <string>0.1mm</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep1">
+               <property name="text">
+                <string>1mm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep10">
+               <property name="text">
+                <string>10mm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_stepSize">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_xyControl">
+             <item>
+              <widget class="QGroupBox" name="groupBoxXYControl">
+               <property name="title">
+                <string>X-Y轴控制</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_xyControl">
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="btnMoveYUp">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QPushButton" name="btnMoveXLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>X-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLabel" name="labelXYCenter">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="text">
+                   <string>X-Y</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <widget class="QPushButton" name="btnMoveXRight">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>X+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QPushButton" name="btnMoveYDown">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y-</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBoxZControl">
+               <property name="title">
+                <string>Z轴控制</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_zControl">
+                <item>
+                 <widget class="QPushButton" name="btnMoveZUp">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelZCenter">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="text">
+                   <string>Z轴</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnMoveZDown">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z-</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_stageButtons">
              <item>
               <widget class="QPushButton" name="btnStageHome">
                <property name="text">
