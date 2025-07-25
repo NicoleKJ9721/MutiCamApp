@@ -2642,6 +2642,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelVerticalFPS">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>-- fps</string>
                  </property>
@@ -2673,6 +2679,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelVerticalResolution">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--</string>
                  </property>
@@ -2704,6 +2716,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelVerticalExposure">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--ms</string>
                  </property>
@@ -2735,6 +2753,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelVerticalGain">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--dB</string>
                  </property>
@@ -2821,6 +2845,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelLeftFPS">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>-- fps</string>
                  </property>
@@ -2852,6 +2882,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelLeftResolution">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--</string>
                  </property>
@@ -2883,6 +2919,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelLeftExposure">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--ms</string>
                  </property>
@@ -2914,6 +2956,12 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                </item>
                <item>
                 <widget class="QLabel" name="labelLeftGain">
+                 <property name="font">
+                  <font>
+                   <pointsize>9</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>--dB</string>
                  </property>
