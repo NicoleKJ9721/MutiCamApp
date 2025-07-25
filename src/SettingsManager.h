@@ -47,9 +47,9 @@ public:
          */
         Settings() :
             // 相机参数默认值
-            verCamSN("K02663713"),
-            leftCamSN("Vir77537160"),
-            frontCamSN("Vir77537142"),
+            verCamSN("Vir21084717"),
+            leftCamSN("Vir21128616"),
+            frontCamSN("Vir158888"),
             
             // 直线查找参数默认值
             cannyLineLow(50),
@@ -64,8 +64,8 @@ public:
             circleDetParam2(50),
             
             // UI尺寸参数默认值
-            uiWidth(2230),
-            uiHeight(1300)
+            uiWidth(800),
+            uiHeight(600)
         {}
     };
 

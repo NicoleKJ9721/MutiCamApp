@@ -14,9 +14,9 @@ class SettingsManager:
         # 设置默认值
         self.default_settings = {
             # 相机参数
-            "VerCamSN": "K02663713",
-            "LeftCamSN": "Vir77537160",
-            "FrontCamSN": "Vir77537142",
+            "VerCamSN": "Vir21084717",
+            "LeftCamSN": "Vir21128616",
+            "FrontCamSN": "Vir158888",
             
             # 直线查找参数
             "CannyLineLow": 50,
