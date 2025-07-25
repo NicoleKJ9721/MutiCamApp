@@ -36,6 +36,8 @@ set(srcs
     src/SettingsManager.h
     src/LogManager.cpp
     src/LogManager.h
+    src/TrajectoryRecorder.cpp
+    src/TrajectoryRecorder.h
     src/dependencies_test.cpp
     src/dependencies_test.h
     src/MutiCamApp.ui

@@ -27,6 +27,7 @@
 #include "image_processing/shape_detector.h"
 #include "SettingsManager.h"
 #include "LogManager.h"
+#include "TrajectoryRecorder.h"
 #include <functional>
 
 #ifndef M_PI
@@ -190,6 +191,16 @@ private slots:
     void onStageHomeClicked();             // 回到原点
     void onStageStopClicked();             // 紧急停止
 
+    /**
+     * @brief 轨迹记录控制槽函数
+     */
+    void onTrajectoryStartClicked();       // 开始记录轨迹
+    void onTrajectoryStopClicked();        // 停止记录轨迹
+    void onTrajectoryClearClicked();       // 清空轨迹
+    void onTrajectoryExportClicked();      // 导出轨迹
+    void onTrajectoryPointRecorded(const TrajectoryPoint& point);  // 轨迹点记录
+    void onTrajectoryStatisticsUpdated(const TrajectoryStatistics& stats);  // 统计信息更新
+
     // {{ AURA-X: Add - 绘图同步槽函数. Approval: 寸止(ID:drawing_sync). }}
     void onDrawingSync(const QString& viewName);
 
@@ -278,6 +289,10 @@ private:
 
     // 载物台控制
     double getCurrentStepSize() const;               ///< 获取当前选择的步长
+    std::unique_ptr<TrajectoryRecorder> m_trajectoryRecorder;  ///< 轨迹记录器
+    double m_currentX, m_currentY, m_currentZ;       ///< 当前载物台位置
+    void updateCurrentPosition(double deltaX, double deltaY, double deltaZ);  ///< 更新当前位置
+    void updateTrajectoryDisplay();                  ///< 更新轨迹显示
 
     // 相机状态监控
     QTimer* m_statusUpdateTimer;                     ///< 状态更新定时器
@@ -554,6 +569,11 @@ private:
       * @brief 初始化日志管理器
       */
      void initializeLogManager();
+
+     /**
+      * @brief 初始化轨迹记录器
+      */
+     void initializeTrajectoryRecorder();
 
      /**
       * @brief 连接参数设置的实时保存信号

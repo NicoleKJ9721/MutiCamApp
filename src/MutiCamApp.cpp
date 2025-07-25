@@ -43,9 +43,12 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_settingsManager(nullptr)
     , m_logManager(nullptr)
     , m_isUpdatingUISize(false)
+    , m_currentX(0.0)
+    , m_currentY(0.0)
+    , m_currentZ(0.0)
 {
     ui->setupUi(this);
-    
+
     // 初始化硬件加速显示控件
     initializeVideoDisplayWidgets();
 
@@ -54,6 +57,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 初始化设置管理器
     initializeSettingsManager();
+
+    // 初始化轨迹记录器
+    initializeTrajectoryRecorder();
 
     // 注意：相机系统将在点击"开始测量"时初始化
 
@@ -267,6 +273,16 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onStageHomeClicked);
     connect(ui->btnStageStop, &QPushButton::clicked,
             this, &MutiCamApp::onStageStopClicked);
+
+    // 连接轨迹记录按钮
+    connect(ui->btnTrajectoryStart, &QPushButton::clicked,
+            this, &MutiCamApp::onTrajectoryStartClicked);
+    connect(ui->btnTrajectoryStop, &QPushButton::clicked,
+            this, &MutiCamApp::onTrajectoryStopClicked);
+    connect(ui->btnTrajectoryClear, &QPushButton::clicked,
+            this, &MutiCamApp::onTrajectoryClearClicked);
+    connect(ui->btnTrajectoryExport, &QPushButton::clicked,
+            this, &MutiCamApp::onTrajectoryExportClicked);
 
     // 使用新的按钮映射系统连接所有其他按钮
     connectButtonSignals();
@@ -3302,8 +3318,16 @@ void MutiCamApp::onMoveXLeftClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "X轴负方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(-stepSize, 0, 0);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("x-", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
-    // 这里应该调用载物台控制器的相对移动函数
     // stageController->moveRelative(-stepSize, 0, 0);
 }
 
@@ -3311,6 +3335,15 @@ void MutiCamApp::onMoveXRightClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "X轴正方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(stepSize, 0, 0);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("x+", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
     // stageController->moveRelative(stepSize, 0, 0);
 }
@@ -3319,6 +3352,15 @@ void MutiCamApp::onMoveYUpClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "Y轴正方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(0, stepSize, 0);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("y+", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
     // stageController->moveRelative(0, stepSize, 0);
 }
@@ -3327,6 +3369,15 @@ void MutiCamApp::onMoveYDownClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "Y轴负方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(0, -stepSize, 0);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("y-", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
     // stageController->moveRelative(0, -stepSize, 0);
 }
@@ -3335,6 +3386,15 @@ void MutiCamApp::onMoveZUpClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "Z轴正方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(0, 0, stepSize);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("z+", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
     // stageController->moveRelative(0, 0, stepSize);
 }
@@ -3343,6 +3403,15 @@ void MutiCamApp::onMoveZDownClicked()
 {
     double stepSize = getCurrentStepSize();
     qDebug() << "Z轴负方向移动，步长：" << stepSize << "mm";
+
+    // 更新当前位置
+    updateCurrentPosition(0, 0, -stepSize);
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordMovement("z-", stepSize, m_currentX, m_currentY, m_currentZ);
+    }
+
     // TODO: 实现实际的载物台移动逻辑
     // stageController->moveRelative(0, 0, -stepSize);
 }
@@ -3350,6 +3419,16 @@ void MutiCamApp::onMoveZDownClicked()
 void MutiCamApp::onStageHomeClicked()
 {
     qDebug() << "载物台回到原点";
+
+    // 重置当前位置
+    m_currentX = m_currentY = m_currentZ = 0.0;
+    updateCurrentPosition(0, 0, 0);  // 更新UI显示
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordPoint(m_currentX, m_currentY, m_currentZ, "home");
+    }
+
     // TODO: 实现实际的载物台回原点逻辑
     // stageController->moveToHome();
 }
@@ -3357,6 +3436,12 @@ void MutiCamApp::onStageHomeClicked()
 void MutiCamApp::onStageStopClicked()
 {
     qDebug() << "载物台紧急停止";
+
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        m_trajectoryRecorder->recordPoint(m_currentX, m_currentY, m_currentZ, "emergency_stop");
+    }
+
     // TODO: 实现实际的载物台紧急停止逻辑
     // stageController->emergencyStop();
 }
@@ -3371,4 +3456,117 @@ double MutiCamApp::getCurrentStepSize() const
         return 10.0;
     }
     return 0.1; // 默认步长
+}
+
+void MutiCamApp::initializeTrajectoryRecorder()
+{
+    m_trajectoryRecorder = std::make_unique<TrajectoryRecorder>(this);
+
+    // 连接轨迹记录器信号
+    connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::pointRecorded,
+            this, &MutiCamApp::onTrajectoryPointRecorded);
+    connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::statisticsUpdated,
+            this, &MutiCamApp::onTrajectoryStatisticsUpdated);
+    connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::recordingStarted,
+            this, [this]() {
+                ui->btnTrajectoryStart->setEnabled(false);
+                ui->btnTrajectoryStop->setEnabled(true);
+                ui->labelTrajectoryStatus->setText("记录中");
+                ui->labelTrajectoryStatus->setStyleSheet("color: green; font-weight: bold;");
+            });
+    connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::recordingStopped,
+            this, [this]() {
+                ui->btnTrajectoryStart->setEnabled(true);
+                ui->btnTrajectoryStop->setEnabled(false);
+                ui->labelTrajectoryStatus->setText("已停止");
+                ui->labelTrajectoryStatus->setStyleSheet("color: orange; font-weight: bold;");
+            });
+    connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::trajectoryCleared,
+            this, [this]() {
+                ui->labelTrajectoryPoints->setText("0");
+                ui->labelTrajectoryDistance->setText("0.0 mm");
+                ui->labelTrajectoryStatus->setText("未记录");
+                ui->labelTrajectoryStatus->setStyleSheet("color: gray; font-weight: bold;");
+            });
+
+    qDebug() << "轨迹记录器初始化完成";
+}
+
+void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double deltaZ)
+{
+    m_currentX += deltaX;
+    m_currentY += deltaY;
+    m_currentZ += deltaZ;
+
+    // 更新UI显示的当前位置
+    ui->labelXPositionValue->setText(QString("%1 mm").arg(m_currentX, 0, 'f', 3));
+    ui->labelYPositionValue->setText(QString("%1 mm").arg(m_currentY, 0, 'f', 3));
+    ui->labelZPositionValue->setText(QString("%1 mm").arg(m_currentZ, 0, 'f', 3));
+}
+
+// 轨迹记录槽函数实现
+void MutiCamApp::onTrajectoryStartClicked()
+{
+    if (m_trajectoryRecorder) {
+        m_trajectoryRecorder->startRecording();
+        qDebug() << "开始记录载物台轨迹";
+    }
+}
+
+void MutiCamApp::onTrajectoryStopClicked()
+{
+    if (m_trajectoryRecorder) {
+        m_trajectoryRecorder->stopRecording();
+        qDebug() << "停止记录载物台轨迹";
+    }
+}
+
+void MutiCamApp::onTrajectoryClearClicked()
+{
+    if (m_trajectoryRecorder) {
+        m_trajectoryRecorder->clearTrajectory();
+        qDebug() << "清空载物台轨迹";
+    }
+}
+
+void MutiCamApp::onTrajectoryExportClicked()
+{
+    if (!m_trajectoryRecorder) {
+        return;
+    }
+
+    QString fileName = QString("trajectory_%1.csv")
+                      .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
+    QString filePath = QDir::currentPath() + "/Logs/" + fileName;
+
+    // 确保目录存在
+    QDir().mkpath(QDir::currentPath() + "/Logs");
+
+    if (m_trajectoryRecorder->exportToCsv(filePath)) {
+        qDebug() << "轨迹导出成功:" << filePath;
+        // 可以添加成功提示
+    } else {
+        qWarning() << "轨迹导出失败:" << filePath;
+        // 可以添加错误提示
+    }
+}
+
+void MutiCamApp::onTrajectoryPointRecorded(const TrajectoryPoint& point)
+{
+    Q_UNUSED(point)
+    // 可以在这里添加实时轨迹点处理逻辑
+    updateTrajectoryDisplay();
+}
+
+void MutiCamApp::onTrajectoryStatisticsUpdated(const TrajectoryStatistics& stats)
+{
+    // 更新UI显示的统计信息
+    ui->labelTrajectoryPoints->setText(QString::number(stats.totalPoints));
+    ui->labelTrajectoryDistance->setText(QString("%1 mm").arg(stats.totalDistance, 0, 'f', 2));
+}
+
+void MutiCamApp::updateTrajectoryDisplay()
+{
+    // 这里可以添加轨迹可视化更新逻辑
+    // 例如在某个视图中绘制轨迹路径
 }

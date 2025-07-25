@@ -3742,6 +3742,117 @@ li.checked::marker { content: &quot;\2612&quot;; }
          </widget>
         </item>
         <item>
+         <widget class="QGroupBox" name="groupBoxTrajectoryControl">
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="title">
+           <string>轨迹记录</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_trajectoryControl">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_trajectoryButtons">
+             <item>
+              <widget class="QPushButton" name="btnTrajectoryStart">
+               <property name="text">
+                <string>开始记录</string>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: green; color: white;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnTrajectoryStop">
+               <property name="text">
+                <string>停止记录</string>
+               </property>
+               <property name="styleSheet">
+                <string>background-color: orange; color: white;</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnTrajectoryClear">
+               <property name="text">
+                <string>清空轨迹</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnTrajectoryExport">
+               <property name="text">
+                <string>导出轨迹</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_trajectoryStats">
+             <item row="0" column="0">
+              <widget class="QLabel" name="labelTrajectoryPointsTitle">
+               <property name="text">
+                <string>记录点数:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="labelTrajectoryPoints">
+               <property name="styleSheet">
+                <string>color: blue; font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="labelTrajectoryDistanceTitle">
+               <property name="text">
+                <string>总距离:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="labelTrajectoryDistance">
+               <property name="styleSheet">
+                <string>color: blue; font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>0.0 mm</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="labelTrajectoryStatusTitle">
+               <property name="text">
+                <string>记录状态:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="labelTrajectoryStatus">
+               <property name="styleSheet">
+                <string>color: gray; font-weight: bold;</string>
+               </property>
+               <property name="text">
+                <string>未记录</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_stageControl">
           <property name="orientation">
            <enum>Qt::Orientation::Vertical</enum>

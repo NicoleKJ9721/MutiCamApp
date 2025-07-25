@@ -321,6 +321,12 @@
 			null
 		],
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/TrajectoryRecorder.h",
+			"MU",
+			"UVLADIE3JM/moc_TrajectoryRecorder.cpp",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/VideoDisplayWidget.h",
 			"MU",
 			"UVLADIE3JM/moc_VideoDisplayWidget.cpp",
@@ -448,6 +454,11 @@
 		],
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/SettingsManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/TrajectoryRecorder.cpp",
 			"MU",
 			null
 		],
