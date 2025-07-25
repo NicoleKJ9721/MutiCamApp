@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <algorithm>
 #include <QCache>
 #include <cmath>
 #include <opencv2/opencv.hpp>
@@ -299,12 +300,15 @@ private:
 
     // 帧率计算
     struct FrameRateData {
-        std::chrono::steady_clock::time_point lastFrameTime;
-        int frameCount;
-        double currentFPS;
+        std::chrono::steady_clock::time_point lastCalculateTime;  // 上次计算时间
+        std::vector<std::chrono::steady_clock::time_point> frameTimes;  // 帧时间戳队列
+        double currentFPS;                                        // 当前帧率
+        bool hasFirstFrame;                                       // 是否已收到第一帧
+        static constexpr int WINDOW_SECONDS = 5;                  // 时间窗口：5秒
 
-        FrameRateData() : frameCount(0), currentFPS(0.0) {
-            lastFrameTime = std::chrono::steady_clock::now();
+        FrameRateData() : currentFPS(0.0), hasFirstFrame(false) {
+            lastCalculateTime = std::chrono::steady_clock::now();
+            frameTimes.reserve(300);  // 预分配空间，假设最大60fps*5秒
         }
     };
 

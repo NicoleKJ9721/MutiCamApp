@@ -3034,8 +3034,8 @@ void MutiCamApp::initializeCameraStatusMonitoring()
     connect(m_statusUpdateTimer, &QTimer::timeout,
             this, &MutiCamApp::updateCameraStatusDisplay);
 
-    // 每2秒更新一次状态显示
-    m_statusUpdateTimer->start(2000);
+    // 每1秒更新一次状态显示（配合新的帧率计算算法）
+    m_statusUpdateTimer->start(1000);
 
     // 初始化帧率数据
     m_frameRateData["vertical"] = FrameRateData();
@@ -3158,8 +3158,14 @@ void MutiCamApp::updateSingleCameraStatus(const QString& cameraId)
             // 获取帧率
             QMutexLocker locker(&m_frameRateMutex);
             if (m_frameRateData.contains(cameraId)) {
-                double fps = m_frameRateData[cameraId].currentFPS;
-                fpsText = QString::number(fps, 'f', 1) + " fps";
+                const auto& frameData = m_frameRateData[cameraId];
+                if (!frameData.hasFirstFrame) {
+                    fpsText = "等待帧数据...";
+                } else if (frameData.currentFPS == 0.0) {
+                    fpsText = "计算中...";
+                } else {
+                    fpsText = QString::number(frameData.currentFPS, 'f', 1) + " fps";
+                }
             }
 
         } else if (stats.contains("State: Connected")) {
@@ -3201,20 +3207,55 @@ void MutiCamApp::updateFrameRate(const QString& cameraId)
     auto& data = m_frameRateData[cameraId];
     auto currentTime = std::chrono::steady_clock::now();
 
-    data.frameCount++;
+    // 记录当前帧时间戳
+    data.frameTimes.push_back(currentTime);
 
-    // 每30帧计算一次帧率
-    if (data.frameCount >= 30) {
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-            currentTime - data.lastFrameTime).count();
+    // 记录第一帧
+    if (!data.hasFirstFrame) {
+        data.lastCalculateTime = currentTime;
+        data.hasFirstFrame = true;
+        data.currentFPS = 0.0;  // 第一帧时帧率为0
 
-        if (duration > 0) {
-            data.currentFPS = (data.frameCount * 1000.0) / duration;
+        // 立即触发一次状态更新，显示相机已开始接收帧
+        QMetaObject::invokeMethod(this, [this, cameraId]() {
+            updateSingleCameraStatus(cameraId);
+        }, Qt::QueuedConnection);
+
+        return;
+    }
+
+    // 移除超过时间窗口的旧帧时间戳
+    auto windowStart = currentTime - std::chrono::seconds(FrameRateData::WINDOW_SECONDS);
+    data.frameTimes.erase(
+        std::remove_if(data.frameTimes.begin(), data.frameTimes.end(),
+                      [windowStart](const auto& frameTime) {
+                          return frameTime < windowStart;
+                      }),
+        data.frameTimes.end()
+    );
+
+    // 检查是否需要计算帧率（每1秒计算一次）
+    auto timeSinceLastCalculate = std::chrono::duration_cast<std::chrono::milliseconds>(
+        currentTime - data.lastCalculateTime).count();
+
+    if (timeSinceLastCalculate >= 1000) {  // 1秒 = 1000毫秒
+        // 计算时间窗口内的帧率
+        if (data.frameTimes.size() >= 2) {
+            auto windowDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                data.frameTimes.back() - data.frameTimes.front()).count();
+
+            if (windowDuration > 0) {
+                // 帧率 = (帧数-1) * 1000 / 时间间隔(ms)
+                // 减1是因为N个时间点之间有N-1个间隔
+                data.currentFPS = ((data.frameTimes.size() - 1) * 1000.0) / windowDuration;
+            }
+        } else if (data.frameTimes.size() == 1) {
+            // 只有一帧时，帧率为0
+            data.currentFPS = 0.0;
         }
 
-        // 重置计数器
-        data.frameCount = 0;
-        data.lastFrameTime = currentTime;
+        // 更新计算时间
+        data.lastCalculateTime = currentTime;
     }
 }
 
