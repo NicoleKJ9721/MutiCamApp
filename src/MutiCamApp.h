@@ -2,6 +2,7 @@
 #include "ui_MutiCamApp.h"
 #include "camera/camera_manager.h"
 #include "VideoDisplayWidget.h"
+#include "ZoomPanWidget.h"
 #include "PaintingOverlay.h"
 #include <QMainWindow>
 #include <QLabel>
@@ -243,6 +244,29 @@ private slots:
      */
     void onCameraSerialChanged();
 
+    // 视图控制槽函数
+    /**
+     * @brief 重置垂直视图缩放和平移
+     */
+    void onResetZoomVertical();
+
+    /**
+     * @brief 重置左视图缩放和平移
+     */
+    void onResetZoomLeft();
+
+    /**
+     * @brief 重置前视图缩放和平移
+     */
+    void onResetZoomFront();
+
+    /**
+     * @brief 视图变换改变事件处理
+     * @param zoomFactor 缩放因子
+     * @param panOffset 平移偏移
+     */
+    void onViewTransformChanged(double zoomFactor, const QPointF& panOffset);
+
     // 通用按钮处理方法
     /**
      * @brief 通用绘图工具启动方法
@@ -394,15 +418,15 @@ private:
     // 图像转换优化缓冲区
     mutable cv::Mat m_rgbConvertBuffer;                  ///< RGB转换缓冲区，避免重复分配
     
-    // 硬件加速显示控件
-    VideoDisplayWidget* m_verticalDisplayWidget;         ///< 垂直视图显示控件
-    VideoDisplayWidget* m_leftDisplayWidget;            ///< 左视图显示控件
-    VideoDisplayWidget* m_frontDisplayWidget;           ///< 前视图显示控件
-    
-    // 选项卡VideoDisplayWidget
-    VideoDisplayWidget* m_verticalDisplayWidget2;
-    VideoDisplayWidget* m_leftDisplayWidget2;
-    VideoDisplayWidget* m_frontDisplayWidget2;
+    // 缩放平移显示控件
+    ZoomPanWidget* m_verticalZoomPanWidget;         ///< 垂直视图缩放平移控件
+    ZoomPanWidget* m_leftZoomPanWidget;            ///< 左视图缩放平移控件
+    ZoomPanWidget* m_frontZoomPanWidget;           ///< 前视图缩放平移控件
+
+    // 选项卡ZoomPanWidget
+    ZoomPanWidget* m_verticalZoomPanWidget2;
+    ZoomPanWidget* m_leftZoomPanWidget2;
+    ZoomPanWidget* m_frontZoomPanWidget2;
     
     // PaintingOverlay 成员变量
     PaintingOverlay* m_verticalPaintingOverlay;
@@ -466,21 +490,21 @@ private:
     // 标签点击处理已移除，现在直接使用VideoDisplayWidget
     
     /**
-     * @brief 处理VideoDisplayWidget鼠标点击
-     * @param widget 被点击的VideoDisplayWidget
+     * @brief 处理ZoomPanWidget鼠标点击
+     * @param widget 被点击的ZoomPanWidget
      * @param pos 点击位置
      */
-    void handleVideoWidgetClick(VideoDisplayWidget* widget, const QPoint& pos);
-    
+    void handleZoomPanWidgetClick(ZoomPanWidget* widget, const QPoint& pos);
+
     // {{ AURA-X: Delete - 残留的鼠标移动处理方法. Approval: 寸止(ID:cleanup). }}
-    // 鼠标移动处理已移除，现在直接使用VideoDisplayWidget
-    
+    // 鼠标移动处理已移除，现在直接使用ZoomPanWidget
+
     /**
-     * @brief 处理VideoDisplayWidget鼠标移动事件
-     * @param widget 鼠标所在的VideoDisplayWidget
+     * @brief 处理ZoomPanWidget鼠标移动事件
+     * @param widget 鼠标所在的ZoomPanWidget
      * @param pos 鼠标位置
      */
-    void handleVideoWidgetMouseMove(VideoDisplayWidget* widget, const QPoint& pos);
+    void handleZoomPanWidgetMouseMove(ZoomPanWidget* widget, const QPoint& pos);
     
 
     
@@ -493,10 +517,10 @@ private:
     
     /**
      * @brief 获取视图名称
-     * @param widget VideoDisplayWidget指针
+     * @param widget ZoomPanWidget指针
      * @return 视图名称
      */
-    QString getViewName(VideoDisplayWidget* widget);
+    QString getViewName(ZoomPanWidget* widget);
     
     /**
      * @brief 更新视图显示
@@ -514,11 +538,11 @@ private:
      
      /**
       * @brief 将窗口坐标转换为图像坐标
-      * @param widget VideoDisplayWidget
+      * @param widget ZoomPanWidget
       * @param windowPos 窗口坐标
       * @return 图像坐标
       */
-     QPointF windowToImageCoordinates(VideoDisplayWidget* widget, const QPoint& windowPos);
+     QPointF windowToImageCoordinates(ZoomPanWidget* widget, const QPoint& windowPos);
      
      // 性能优化相关方法
      
@@ -560,9 +584,9 @@ private:
      // 文本绘制方法已迁移到 VideoDisplayWidget
      
      /**
-      * @brief 初始化硬件加速显示控件
+      * @brief 初始化缩放平移显示控件
       */
-     void initializeVideoDisplayWidgets();
+     void initializeZoomPanWidgets();
 
      /**
       * @brief 初始化设置管理器
@@ -600,11 +624,11 @@ private:
      void reinitializeCameraSystem();
      
      /**
-      * @brief 更新VideoDisplayWidget的绘制数据
+      * @brief 更新ZoomPanWidget的绘制数据
       * @param viewName 视图名称
       * @param frame 图像帧
       */
-     void updateVideoDisplayWidget(const QString& viewName, const cv::Mat& frame);
+     void updateZoomPanWidget(const QString& viewName, const cv::Mat& frame);
 
 private:
      /**
@@ -640,17 +664,17 @@ private:
 
      
      /**
-      * @brief 获取指定视图的VideoDisplayWidget
+      * @brief 获取指定视图的ZoomPanWidget
       * @param viewName 视图名称
-      * @return VideoDisplayWidget指针
+      * @return ZoomPanWidget指针
       */
-     VideoDisplayWidget* getVideoDisplayWidget(const QString& viewName);
-     
+     ZoomPanWidget* getZoomPanWidget(const QString& viewName);
+
      /**
-      * @brief 获取当前活动的VideoDisplayWidget（基于当前选项卡）
-      * @return 当前活动的VideoDisplayWidget指针
+      * @brief 获取当前活动的ZoomPanWidget（基于当前选项卡）
+      * @return 当前活动的ZoomPanWidget指针
       */
-     VideoDisplayWidget* getActiveVideoWidget();
+     ZoomPanWidget* getActiveZoomPanWidget();
      
      /**
       * @brief 获取指定视图的PaintingOverlay

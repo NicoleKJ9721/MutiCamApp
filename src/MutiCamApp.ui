@@ -743,6 +743,55 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBoxVerticalViewControl">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>视图控制</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_verticalViewControl">
+              <item>
+               <widget class="QPushButton" name="btnResetZoomVertical">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
+                </property>
+                <property name="toolTip">
+                 <string>重置视图缩放和平移到默认状态</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelZoomInfoVertical">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>缩放: 100%</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBoxVerticalAutoMeasure">
              <property name="font">
               <font>
@@ -1144,6 +1193,55 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
+            <widget class="QGroupBox" name="groupBoxLeftViewControl">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>视图控制</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_leftViewControl">
+              <item>
+               <widget class="QPushButton" name="btnResetZoomLeft">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
+                </property>
+                <property name="toolTip">
+                 <string>重置视图缩放和平移到默认状态</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelZoomInfoLeft">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>缩放: 100%</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBoxLeftAutoMeasure">
              <property name="font">
               <font>
@@ -1532,6 +1630,55 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </property>
                 <property name="placeholderText">
                  <string>0</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBoxFrontViewControl">
+             <property name="font">
+              <font>
+               <pointsize>9</pointsize>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="title">
+              <string>视图控制</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_frontViewControl">
+              <item>
+               <widget class="QPushButton" name="btnResetZoomFront">
+                <property name="font">
+                 <font>
+                  <pointsize>9</pointsize>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
+                </property>
+                <property name="toolTip">
+                 <string>重置视图缩放和平移到默认状态</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelZoomInfoFront">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>缩放: 100%</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
                </widget>
               </item>

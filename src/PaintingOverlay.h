@@ -18,6 +18,9 @@
 #include <QTime>
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
+
+// 前向声明
+class ZoomPanWidget;
 #include "image_processing/shape_detector.h"
 
 // 前向声明

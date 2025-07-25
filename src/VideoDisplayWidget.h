@@ -29,9 +29,11 @@ public:
     
     // 设置视频帧
     void setVideoFrame(const QPixmap& pixmap);
-    
-    // 移除 updateStaticDrawings - 不再需要
-    
+
+    // 设置外部变换参数（由ZoomPanWidget调用）
+    void setExternalTransform(const QPointF& offset, double scaleFactor);
+    void resetExternalTransform();
+
     // 坐标转换辅助函数
     QPointF getImageOffset() const;
     double getScaleFactor() const;
@@ -41,7 +43,11 @@ protected:
     
 private:
     QPixmap m_videoFrame;                           ///< 视频帧
-    // 移除 m_compositionBuffer - 不再需要
+
+    // 外部变换参数（由ZoomPanWidget设置）
+    bool m_hasExternalTransform;                    ///< 是否有外部变换
+    QPointF m_externalOffset;                       ///< 外部偏移
+    double m_externalScaleFactor;                   ///< 外部缩放因子
 
 };
 

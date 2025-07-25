@@ -30,6 +30,8 @@ set(srcs
     src/MutiCamApp.h
     src/VideoDisplayWidget.cpp
     src/VideoDisplayWidget.h
+    src/ZoomPanWidget.cpp
+    src/ZoomPanWidget.h
     src/PaintingOverlay.cpp
     src/PaintingOverlay.h
     src/SettingsManager.cpp

@@ -1,5 +1,6 @@
 #include "MutiCamApp.h"
 #include "ui_MutiCamApp.h"
+#include "ZoomPanWidget.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -29,14 +30,14 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_statusUpdateTimer(nullptr)
     , m_isMeasuring(false)
     // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
-    // m_isDrawingMode和m_activeView已移除，绘图状态现在由VideoDisplayWidget管理
+    // m_isDrawingMode和m_activeView已移除，绘图状态现在由ZoomPanWidget管理
     , m_frameCache(MAX_CACHED_FRAMES)  // 初始化缓存，设置最大缓存数量
-    , m_verticalDisplayWidget(nullptr)
-    , m_leftDisplayWidget(nullptr)
-    , m_frontDisplayWidget(nullptr)
-    , m_verticalDisplayWidget2(nullptr)
-    , m_leftDisplayWidget2(nullptr)
-    , m_frontDisplayWidget2(nullptr)
+    , m_verticalZoomPanWidget(nullptr)
+    , m_leftZoomPanWidget(nullptr)
+    , m_frontZoomPanWidget(nullptr)
+    , m_verticalZoomPanWidget2(nullptr)
+    , m_leftZoomPanWidget2(nullptr)
+    , m_frontZoomPanWidget2(nullptr)
     , m_lastActivePaintingOverlay(nullptr)
     , m_saveProgressDialog(nullptr)
     , m_saveWatcher(nullptr)
@@ -49,8 +50,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 {
     ui->setupUi(this);
 
-    // 初始化硬件加速显示控件
-    initializeVideoDisplayWidgets();
+    // 初始化缩放平移显示控件
+    initializeZoomPanWidgets();
 
     // 初始化日志管理器（优先初始化，其他模块可能需要使用）
     initializeLogManager();
@@ -117,18 +118,30 @@ MutiCamApp::~MutiCamApp()
         qDebug() << "Camera manager cleaned up";
     }
     
-    // 清理 VideoDisplayWidget 资源
-    if (m_verticalDisplayWidget) {
-        delete m_verticalDisplayWidget;
-        m_verticalDisplayWidget = nullptr;
+    // 清理 ZoomPanWidget 资源（PaintingOverlay会作为子控件自动清理）
+    if (m_verticalZoomPanWidget) {
+        delete m_verticalZoomPanWidget;
+        m_verticalZoomPanWidget = nullptr;
     }
-    if (m_leftDisplayWidget) {
-        delete m_leftDisplayWidget;
-        m_leftDisplayWidget = nullptr;
+    if (m_leftZoomPanWidget) {
+        delete m_leftZoomPanWidget;
+        m_leftZoomPanWidget = nullptr;
     }
-    if (m_frontDisplayWidget) {
-        delete m_frontDisplayWidget;
-        m_frontDisplayWidget = nullptr;
+    if (m_frontZoomPanWidget) {
+        delete m_frontZoomPanWidget;
+        m_frontZoomPanWidget = nullptr;
+    }
+    if (m_verticalZoomPanWidget2) {
+        delete m_verticalZoomPanWidget2;
+        m_verticalZoomPanWidget2 = nullptr;
+    }
+    if (m_leftZoomPanWidget2) {
+        delete m_leftZoomPanWidget2;
+        m_leftZoomPanWidget2 = nullptr;
+    }
+    if (m_frontZoomPanWidget2) {
+        delete m_frontZoomPanWidget2;
+        m_frontZoomPanWidget2 = nullptr;
     }
 
     // 清理设置管理器
@@ -389,6 +402,32 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onOverlayActivated);
     }
 
+    // 连接视图控制按钮信号
+    connect(ui->btnResetZoomVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onResetZoomVertical);
+    connect(ui->btnResetZoomLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onResetZoomLeft);
+    connect(ui->btnResetZoomFront, &QPushButton::clicked,
+            this, &MutiCamApp::onResetZoomFront);
+
+    // 连接ZoomPanWidget的视图变换信号
+    if (m_verticalZoomPanWidget2) {
+        connect(m_verticalZoomPanWidget2, &ZoomPanWidget::viewTransformChanged,
+                this, &MutiCamApp::onViewTransformChanged);
+    }
+    if (m_leftZoomPanWidget2) {
+        connect(m_leftZoomPanWidget2, &ZoomPanWidget::viewTransformChanged,
+                this, &MutiCamApp::onViewTransformChanged);
+    }
+    if (m_frontZoomPanWidget2) {
+        connect(m_frontZoomPanWidget2, &ZoomPanWidget::viewTransformChanged,
+                this, &MutiCamApp::onViewTransformChanged);
+    }
+
+    // 连接ZoomPanWidget的鼠标事件信号（如果需要在MutiCamApp中处理）
+    // 注意：由于PaintingOverlay现在是ZoomPanWidget的子控件，
+    // 大部分鼠标事件会直接被PaintingOverlay处理，这里的连接主要用于调试或特殊处理
+
     // 设置自动检测参数的默认值
     initializeDetectionParameters();
 }
@@ -536,12 +575,12 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         m_currentFrameFront = frame.clone();
     }
 
-    VideoDisplayWidget* mainWidget = getVideoDisplayWidget(cameraId);
-    VideoDisplayWidget* tabWidget = nullptr;
+    ZoomPanWidget* mainWidget = getZoomPanWidget(cameraId);
+    ZoomPanWidget* tabWidget = nullptr;
 
-    if (cameraId == "vertical") tabWidget = m_verticalDisplayWidget2;
-    else if (cameraId == "left") tabWidget = m_leftDisplayWidget2;
-    else if (cameraId == "front") tabWidget = m_frontDisplayWidget2;
+    if (cameraId == "vertical") tabWidget = m_verticalZoomPanWidget2;
+    else if (cameraId == "left") tabWidget = m_leftZoomPanWidget2;
+    else if (cameraId == "front") tabWidget = m_frontZoomPanWidget2;
 
     // 只有当主界面Tab可见时才更新主视图，以节省性能
     if (mainWidget && ui->tabWidget->currentIndex() == 0) {
@@ -707,32 +746,32 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
 
 void MutiCamApp::installMouseEventFilters()
 {
-    // 为主界面VideoDisplayWidget安装事件过滤器并启用鼠标追踪
-    if (m_verticalDisplayWidget) {
-        m_verticalDisplayWidget->installEventFilter(this);
-        m_verticalDisplayWidget->setMouseTracking(true);
+    // 为主界面ZoomPanWidget安装事件过滤器并启用鼠标追踪
+    if (m_verticalZoomPanWidget) {
+        m_verticalZoomPanWidget->installEventFilter(this);
+        m_verticalZoomPanWidget->setMouseTracking(true);
     }
-    if (m_leftDisplayWidget) {
-        m_leftDisplayWidget->installEventFilter(this);
-        m_leftDisplayWidget->setMouseTracking(true);
+    if (m_leftZoomPanWidget) {
+        m_leftZoomPanWidget->installEventFilter(this);
+        m_leftZoomPanWidget->setMouseTracking(true);
     }
-    if (m_frontDisplayWidget) {
-        m_frontDisplayWidget->installEventFilter(this);
-        m_frontDisplayWidget->setMouseTracking(true);
+    if (m_frontZoomPanWidget) {
+        m_frontZoomPanWidget->installEventFilter(this);
+        m_frontZoomPanWidget->setMouseTracking(true);
     }
-    
-    // 为选项卡VideoDisplayWidget安装事件过滤器并启用鼠标追踪
-    if (m_verticalDisplayWidget2) {
-        m_verticalDisplayWidget2->installEventFilter(this);
-        m_verticalDisplayWidget2->setMouseTracking(true);
+
+    // 为选项卡ZoomPanWidget安装事件过滤器并启用鼠标追踪
+    if (m_verticalZoomPanWidget2) {
+        m_verticalZoomPanWidget2->installEventFilter(this);
+        m_verticalZoomPanWidget2->setMouseTracking(true);
     }
-    if (m_leftDisplayWidget2) {
-        m_leftDisplayWidget2->installEventFilter(this);
-        m_leftDisplayWidget2->setMouseTracking(true);
+    if (m_leftZoomPanWidget2) {
+        m_leftZoomPanWidget2->installEventFilter(this);
+        m_leftZoomPanWidget2->setMouseTracking(true);
     }
-    if (m_frontDisplayWidget2) {
-        m_frontDisplayWidget2->installEventFilter(this);
-        m_frontDisplayWidget2->setMouseTracking(true);
+    if (m_frontZoomPanWidget2) {
+        m_frontZoomPanWidget2->installEventFilter(this);
+        m_frontZoomPanWidget2->setMouseTracking(true);
     }
 }
 
@@ -760,33 +799,30 @@ QString MutiCamApp::getViewName(QLabel* label)
     return "";
 }
 
-QString MutiCamApp::getViewName(VideoDisplayWidget* widget)
+QString MutiCamApp::getViewName(ZoomPanWidget* widget)
 {
-    if (widget == m_verticalDisplayWidget || widget == m_verticalDisplayWidget2) {
+    if (widget == m_verticalZoomPanWidget || widget == m_verticalZoomPanWidget2) {
         return "vertical";
-    } else if (widget == m_leftDisplayWidget || widget == m_leftDisplayWidget2) {
+    } else if (widget == m_leftZoomPanWidget || widget == m_leftZoomPanWidget2) {
         return "left";
-    } else if (widget == m_frontDisplayWidget || widget == m_frontDisplayWidget2) {
+    } else if (widget == m_frontZoomPanWidget || widget == m_frontZoomPanWidget2) {
         return "front";
     }
     return "";
 }
 
-// handleVideoWidgetClick方法已迁移到VideoDisplayWidget中
+// handleZoomPanWidgetClick方法已迁移到ZoomPanWidget中
 
-// handleVideoWidgetMouseMove方法已迁移到VideoDisplayWidget中
+// handleZoomPanWidgetMouseMove方法已迁移到ZoomPanWidget中
 
-QPointF MutiCamApp::windowToImageCoordinates(VideoDisplayWidget* widget, const QPoint& windowPos)
+QPointF MutiCamApp::windowToImageCoordinates(ZoomPanWidget* widget, const QPoint& windowPos)
 {
-    // 坐标转换方法已移到PaintingOverlay中，这里使用简化的转换逻辑
-    QPointF offset = widget->getImageOffset();
-    double scale = widget->getScaleFactor();
-    
-    // 转换为图像坐标
-    double imageX = (windowPos.x() - offset.x()) / scale;
-    double imageY = (windowPos.y() - offset.y()) / scale;
-    
-    return QPointF(imageX, imageY);
+    // 使用ZoomPanWidget的坐标转换方法
+    if (widget) {
+        return widget->windowToImageCoordinates(windowPos);
+    }
+
+    return QPointF(windowPos);
 }
 
 // {{ AURA-X: Delete - 残留的鼠标移动处理方法. Approval: 寸止(ID:cleanup). }}
@@ -794,34 +830,30 @@ QPointF MutiCamApp::windowToImageCoordinates(VideoDisplayWidget* widget, const Q
 
 void MutiCamApp::updateViewDisplay(const QString& viewName)
 {
-    // 获取对应的标签和帧
-    QLabel* mainLabel = nullptr;
-    VideoDisplayWidget* tabWidget = nullptr;
+    // 获取对应的ZoomPanWidget和帧
+    ZoomPanWidget* tabWidget = nullptr;
     cv::Mat* currentFrame = nullptr;
-    
+
     if (viewName == "vertical") {
-        mainLabel = ui->lbVerticalView;
-        tabWidget = m_verticalDisplayWidget2;
+        tabWidget = m_verticalZoomPanWidget2;
         currentFrame = &m_currentFrameVertical;
     } else if (viewName == "left") {
-        mainLabel = ui->lbLeftView;
-        tabWidget = m_leftDisplayWidget2;
+        tabWidget = m_leftZoomPanWidget2;
         currentFrame = &m_currentFrameLeft;
     } else if (viewName == "front") {
-        mainLabel = ui->lbFrontView;
-        tabWidget = m_frontDisplayWidget2;
+        tabWidget = m_frontZoomPanWidget2;
         currentFrame = &m_currentFrameFront;
     }
-    
-    if (!mainLabel || !tabWidget || !currentFrame || currentFrame->empty()) {
+
+    if (!tabWidget || !currentFrame || currentFrame->empty()) {
         // 静默返回，避免频繁的调试输出
         return;
     }
     
     // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-    // displayImageWithHardwareAcceleration方法已迁移到VideoDisplayWidget
-    // 使用VideoDisplayWidget更新主界面视图
-    updateVideoDisplayWidget(viewName, *currentFrame);
+    // displayImageWithHardwareAcceleration方法已迁移到ZoomPanWidget
+    // 使用ZoomPanWidget更新主界面视图
+    updateZoomPanWidget(viewName, *currentFrame);
     
     // 强制更新选项卡视图，确保绘画数据持久显示
     // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
@@ -990,28 +1022,28 @@ void MutiCamApp::onTabChanged(int index)
     if (index == 0) { // 主界面
         // 切换回主界面时，更新所有主视图以显示最新帧
         if (!m_currentFrameVertical.empty()) {
-            updateVideoDisplayWidget("vertical", m_currentFrameVertical);
+            updateZoomPanWidget("vertical", m_currentFrameVertical);
         }
         if (!m_currentFrameLeft.empty()) {
-            updateVideoDisplayWidget("left", m_currentFrameLeft);
+            updateZoomPanWidget("left", m_currentFrameLeft);
         }
         if (!m_currentFrameFront.empty()) {
-            updateVideoDisplayWidget("front", m_currentFrameFront);
+            updateZoomPanWidget("front", m_currentFrameFront);
         }
     } else if (index == 1) { // 垂直视图选项卡
         if (!m_currentFrameVertical.empty()) {
-            // 使用VideoDisplayWidget显示，自动包含绘画数据
-            updateVideoDisplayWidget("vertical2", m_currentFrameVertical);
+            // 使用ZoomPanWidget显示，自动包含绘画数据
+            updateZoomPanWidget("vertical2", m_currentFrameVertical);
         }
     } else if (index == 2) { // 左视图选项卡
         if (!m_currentFrameLeft.empty()) {
-            // 使用VideoDisplayWidget显示，自动包含绘画数据
-            updateVideoDisplayWidget("left2", m_currentFrameLeft);
+            // 使用ZoomPanWidget显示，自动包含绘画数据
+            updateZoomPanWidget("left2", m_currentFrameLeft);
         }
     } else if (index == 3) { // 前视图选项卡
         if (!m_currentFrameFront.empty()) {
-            // 使用VideoDisplayWidget显示，自动包含绘画数据
-            updateVideoDisplayWidget("front2", m_currentFrameFront);
+            // 使用ZoomPanWidget显示，自动包含绘画数据
+            updateZoomPanWidget("front2", m_currentFrameFront);
         }
     }
 
@@ -1042,90 +1074,65 @@ void MutiCamApp::onViewDoubleClicked(const QString& viewName)
 // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
 // drawTwoLinesOnImage方法已迁移到VideoDisplayWidget
 
-// VideoDisplayWidget 相关函数实现
-void MutiCamApp::initializeVideoDisplayWidgets()
+// ZoomPanWidget 相关函数实现
+void MutiCamApp::initializeZoomPanWidgets()
 {
-    // 创建硬件加速显示控件
-    m_verticalDisplayWidget = new VideoDisplayWidget(this);
-    m_leftDisplayWidget = new VideoDisplayWidget(this);
-    m_frontDisplayWidget = new VideoDisplayWidget(this);
+    // 创建主界面显示控件（禁用缩放平移功能）
+    m_verticalZoomPanWidget = new ZoomPanWidget(this);
+    m_leftZoomPanWidget = new ZoomPanWidget(this);
+    m_frontZoomPanWidget = new ZoomPanWidget(this);
+
+    // 禁用主界面的缩放平移功能
+    m_verticalZoomPanWidget->setZoomRange(1.0, 1.0); // 固定缩放为1.0
+    m_leftZoomPanWidget->setZoomRange(1.0, 1.0);
+    m_frontZoomPanWidget->setZoomRange(1.0, 1.0);
+
+    // 禁用主界面的平移功能（空格+左键）
+    m_verticalZoomPanWidget->setPanEnabled(false);
+    m_leftZoomPanWidget->setPanEnabled(false);
+    m_frontZoomPanWidget->setPanEnabled(false);
+
+    // 创建选项卡ZoomPanWidget（启用缩放平移功能）
+    m_verticalZoomPanWidget2 = new ZoomPanWidget(this);
+    m_leftZoomPanWidget2 = new ZoomPanWidget(this);
+    m_frontZoomPanWidget2 = new ZoomPanWidget(this);
     
-    // 创建选项卡VideoDisplayWidget
-    m_verticalDisplayWidget2 = new VideoDisplayWidget(this);
-    m_leftDisplayWidget2 = new VideoDisplayWidget(this);
-    m_frontDisplayWidget2 = new VideoDisplayWidget(this);
-    
-    // 创建PaintingOverlay控件
-    m_verticalPaintingOverlay = new PaintingOverlay(this);
-    m_leftPaintingOverlay = new PaintingOverlay(this);
-    m_frontPaintingOverlay = new PaintingOverlay(this);
-    
+    // 创建PaintingOverlay控件（作为ZoomPanWidget的子控件）
+    m_verticalPaintingOverlay = new PaintingOverlay(m_verticalZoomPanWidget);
+    m_leftPaintingOverlay = new PaintingOverlay(m_leftZoomPanWidget);
+    m_frontPaintingOverlay = new PaintingOverlay(m_frontZoomPanWidget);
+
     // 创建选项卡PaintingOverlay
-    m_verticalPaintingOverlay2 = new PaintingOverlay(this);
-    m_leftPaintingOverlay2 = new PaintingOverlay(this);
-    m_frontPaintingOverlay2 = new PaintingOverlay(this);
+    m_verticalPaintingOverlay2 = new PaintingOverlay(m_verticalZoomPanWidget2);
+    m_leftPaintingOverlay2 = new PaintingOverlay(m_leftZoomPanWidget2);
+    m_frontPaintingOverlay2 = new PaintingOverlay(m_frontZoomPanWidget2);
     
     // 设置PaintingOverlay的视图名称（用于measurementCompleted信号）
     m_verticalPaintingOverlay->setViewName("Vertical");
     m_leftPaintingOverlay->setViewName("Left");
     m_frontPaintingOverlay->setViewName("Front");
-    
+
     m_verticalPaintingOverlay2->setViewName("Vertical2");
     m_leftPaintingOverlay2->setViewName("Left2");
     m_frontPaintingOverlay2->setViewName("Front2");
-    
-    // 创建叠加容器并使用QStackedLayout
-    QWidget* verticalContainer = new QWidget(this);
-    QWidget* leftContainer = new QWidget(this);
-    QWidget* frontContainer = new QWidget(this);
-    
-    QWidget* verticalContainer2 = new QWidget(this);
-    QWidget* leftContainer2 = new QWidget(this);
-    QWidget* frontContainer2 = new QWidget(this);
-    
-    // 【关键修复】: 为主界面视图创建 QGridLayout 以实现重叠
-    QGridLayout* verticalGrid = new QGridLayout(verticalContainer);
-    QGridLayout* leftGrid = new QGridLayout(leftContainer);
-    QGridLayout* frontGrid = new QGridLayout(frontContainer);
-    
-    // 【关键修复】: 为选项卡视图创建 QGridLayout
-    QGridLayout* verticalGrid2 = new QGridLayout(verticalContainer2);
-    QGridLayout* leftGrid2 = new QGridLayout(leftContainer2);
-    QGridLayout* frontGrid2 = new QGridLayout(frontContainer2);
-    
-    // 【关键修复】: 将两个控件添加到同一个网格单元(0,0)以实现重叠
-    verticalGrid->setContentsMargins(0, 0, 0, 0);
-    verticalGrid->addWidget(m_verticalDisplayWidget, 0, 0);
-    verticalGrid->addWidget(m_verticalPaintingOverlay, 0, 0);
-    
-    leftGrid->setContentsMargins(0, 0, 0, 0);
-    leftGrid->addWidget(m_leftDisplayWidget, 0, 0);
-    leftGrid->addWidget(m_leftPaintingOverlay, 0, 0);
-    
-    frontGrid->setContentsMargins(0, 0, 0, 0);
-    frontGrid->addWidget(m_frontDisplayWidget, 0, 0);
-    frontGrid->addWidget(m_frontPaintingOverlay, 0, 0);
-    
-    // 将选项卡VideoDisplayWidget和PaintingOverlay添加到同一个网格单元
-    verticalGrid2->setContentsMargins(0, 0, 0, 0);
-    verticalGrid2->addWidget(m_verticalDisplayWidget2, 0, 0);
-    verticalGrid2->addWidget(m_verticalPaintingOverlay2, 0, 0);
-    
-    leftGrid2->setContentsMargins(0, 0, 0, 0);
-    leftGrid2->addWidget(m_leftDisplayWidget2, 0, 0);
-    leftGrid2->addWidget(m_leftPaintingOverlay2, 0, 0);
-    
-    frontGrid2->setContentsMargins(0, 0, 0, 0);
-    frontGrid2->addWidget(m_frontDisplayWidget2, 0, 0);
-    frontGrid2->addWidget(m_frontPaintingOverlay2, 0, 0);
-    
 
+    // 将PaintingOverlay关联到ZoomPanWidget
+    m_verticalZoomPanWidget->setPaintingOverlay(m_verticalPaintingOverlay);
+    m_leftZoomPanWidget->setPaintingOverlay(m_leftPaintingOverlay);
+    m_frontZoomPanWidget->setPaintingOverlay(m_frontPaintingOverlay);
+
+    m_verticalZoomPanWidget2->setPaintingOverlay(m_verticalPaintingOverlay2);
+    m_leftZoomPanWidget2->setPaintingOverlay(m_leftPaintingOverlay2);
+    m_frontZoomPanWidget2->setPaintingOverlay(m_frontPaintingOverlay2);
+    
+    // ZoomPanWidget已经内部管理VideoDisplayWidget，不需要复杂的叠加容器
+    // PaintingOverlay将作为ZoomPanWidget的子控件进行管理
     
     // 设置PaintingOverlay为透明背景，使其叠加在VideoDisplayWidget之上
     m_verticalPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
     m_leftPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
     m_frontPaintingOverlay->setAttribute(Qt::WA_TranslucentBackground);
-    
+
     m_verticalPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
     m_leftPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
     m_frontPaintingOverlay2->setAttribute(Qt::WA_TranslucentBackground);
@@ -1144,37 +1151,27 @@ void MutiCamApp::initializeVideoDisplayWidgets()
     QVBoxLayout* frontLayout2 = ui->verticalLayout_frontDisplay;
     
     if (verticalLayout && leftLayout && frontLayout && verticalLayout2 && leftLayout2 && frontLayout2) {
-        qDebug() << "开始使用布局管理器替换控件";
-        
-        // 设置硬件加速控件的属性
-        m_verticalDisplayWidget->setScaledContents(true);
-        m_leftDisplayWidget->setScaledContents(true);
-        m_frontDisplayWidget->setScaledContents(true);
-        
-        // 设置选项卡VideoDisplayWidget的属性
-        m_verticalDisplayWidget2->setScaledContents(true);
-        m_leftDisplayWidget2->setScaledContents(true);
-        m_frontDisplayWidget2->setScaledContents(true);
-        
-        // 设置最小尺寸策略
-        m_verticalDisplayWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        m_leftDisplayWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        m_frontDisplayWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        
-        // 设置选项卡VideoDisplayWidget的尺寸策略
-        m_verticalDisplayWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        m_leftDisplayWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        m_frontDisplayWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        
-        // 使用 replaceWidget 替换控件为叠加容器，这会自动处理布局管理
-        QLayoutItem* verticalItem = verticalLayout->replaceWidget(ui->lbVerticalView, verticalContainer);
-        QLayoutItem* leftItem = leftLayout->replaceWidget(ui->lbLeftView, leftContainer);
-        QLayoutItem* frontItem = frontLayout->replaceWidget(ui->lbFrontView, frontContainer);
-        
-        // 替换选项卡QLabel为叠加容器
-        QLayoutItem* verticalItem2 = verticalLayout2->replaceWidget(ui->lbVerticalView2, verticalContainer2);
-        QLayoutItem* leftItem2 = leftLayout2->replaceWidget(ui->lbLeftView2, leftContainer2);
-        QLayoutItem* frontItem2 = frontLayout2->replaceWidget(ui->lbFrontView2, frontContainer2);
+        qDebug() << "开始使用布局管理器替换控件为ZoomPanWidget";
+
+        // 设置ZoomPanWidget的尺寸策略
+        m_verticalZoomPanWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        m_leftZoomPanWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        m_frontZoomPanWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
+        // 设置选项卡ZoomPanWidget的尺寸策略
+        m_verticalZoomPanWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        m_leftZoomPanWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        m_frontZoomPanWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+        // 使用 replaceWidget 替换控件为ZoomPanWidget，这会自动处理布局管理
+        QLayoutItem* verticalItem = verticalLayout->replaceWidget(ui->lbVerticalView, m_verticalZoomPanWidget);
+        QLayoutItem* leftItem = leftLayout->replaceWidget(ui->lbLeftView, m_leftZoomPanWidget);
+        QLayoutItem* frontItem = frontLayout->replaceWidget(ui->lbFrontView, m_frontZoomPanWidget);
+
+        // 替换选项卡QLabel为ZoomPanWidget
+        QLayoutItem* verticalItem2 = verticalLayout2->replaceWidget(ui->lbVerticalView2, m_verticalZoomPanWidget2);
+        QLayoutItem* leftItem2 = leftLayout2->replaceWidget(ui->lbLeftView2, m_leftZoomPanWidget2);
+        QLayoutItem* frontItem2 = frontLayout2->replaceWidget(ui->lbFrontView2, m_frontZoomPanWidget2);
         
         // 删除被替换的控件和布局项
         if (verticalItem) {
@@ -1213,23 +1210,23 @@ void MutiCamApp::initializeVideoDisplayWidgets()
         m_leftPaintingOverlay2->enableSelection(true);
         m_frontPaintingOverlay2->enableSelection(true);
         
-        // 显示叠加容器
-        verticalContainer->show();
-        leftContainer->show();
-        frontContainer->show();
-        
-        // 显示选项卡叠加容器
-        verticalContainer2->show();
-        leftContainer2->show();
-        frontContainer2->show();
-        
+        // 显示ZoomPanWidget
+        m_verticalZoomPanWidget->show();
+        m_leftZoomPanWidget->show();
+        m_frontZoomPanWidget->show();
+
+        // 显示选项卡ZoomPanWidget
+        m_verticalZoomPanWidget2->show();
+        m_leftZoomPanWidget2->show();
+        m_frontZoomPanWidget2->show();
+
         // 注意：PaintingOverlay的信号连接已在前面的代码中完成，这里不需要重复连接
-        
-        qDebug() << "硬件加速显示控件已通过布局管理器正确替换 QLabel";
-        qDebug() << "硬件加速控件几何信息:";
-        qDebug() << "Vertical Widget:" << m_verticalDisplayWidget->geometry();
-        qDebug() << "Left Widget:" << m_leftDisplayWidget->geometry();
-        qDebug() << "Front Widget:" << m_frontDisplayWidget->geometry();
+
+        qDebug() << "ZoomPanWidget已通过布局管理器正确替换 QLabel";
+        qDebug() << "ZoomPanWidget几何信息:";
+        qDebug() << "Vertical Widget:" << m_verticalZoomPanWidget->geometry();
+        qDebug() << "Left Widget:" << m_leftZoomPanWidget->geometry();
+        qDebug() << "Front Widget:" << m_frontZoomPanWidget->geometry();
     } else {
         qDebug() << "无法获取 QLabel 的布局管理器，回退到手动替换方式";
         
@@ -1237,70 +1234,66 @@ void MutiCamApp::initializeVideoDisplayWidgets()
         QWidget* verticalParent = ui->lbVerticalView->parentWidget();
         QWidget* leftParent = ui->lbLeftView->parentWidget();
         QWidget* frontParent = ui->lbFrontView->parentWidget();
-        
+
         if (verticalParent && leftParent && frontParent) {
             QRect verticalGeometry = ui->lbVerticalView->geometry();
             QRect leftGeometry = ui->lbLeftView->geometry();
             QRect frontGeometry = ui->lbFrontView->geometry();
-            
+
             ui->lbVerticalView->hide();
             ui->lbLeftView->hide();
             ui->lbFrontView->hide();
-            
-            m_verticalDisplayWidget->setParent(verticalParent);
-            m_leftDisplayWidget->setParent(leftParent);
-            m_frontDisplayWidget->setParent(frontParent);
-            
-            m_verticalDisplayWidget->setGeometry(verticalGeometry);
-            m_leftDisplayWidget->setGeometry(leftGeometry);
-            m_frontDisplayWidget->setGeometry(frontGeometry);
-            
-            m_verticalDisplayWidget->setScaledContents(true);
-            m_leftDisplayWidget->setScaledContents(true);
-            m_frontDisplayWidget->setScaledContents(true);
-            
-            m_verticalDisplayWidget->show();
-            m_leftDisplayWidget->show();
-            m_frontDisplayWidget->show();
-            
-            qDebug() << "使用回退方案完成控件替换";
+
+            m_verticalZoomPanWidget->setParent(verticalParent);
+            m_leftZoomPanWidget->setParent(leftParent);
+            m_frontZoomPanWidget->setParent(frontParent);
+
+            m_verticalZoomPanWidget->setGeometry(verticalGeometry);
+            m_leftZoomPanWidget->setGeometry(leftGeometry);
+            m_frontZoomPanWidget->setGeometry(frontGeometry);
+
+            m_verticalZoomPanWidget->show();
+            m_leftZoomPanWidget->show();
+            m_frontZoomPanWidget->show();
+
+            qDebug() << "使用回退方案完成ZoomPanWidget替换";
         }
     }
     
-    qDebug() << "VideoDisplayWidget 硬件加速显示控件初始化完成";
+    qDebug() << "ZoomPanWidget 缩放平移显示控件初始化完成";
 }
 
-void MutiCamApp::updateVideoDisplayWidget(const QString& viewName, const cv::Mat& frame)
+void MutiCamApp::updateZoomPanWidget(const QString& viewName, const cv::Mat& frame)
 {
-    VideoDisplayWidget* widget = getVideoDisplayWidget(viewName);
+    ZoomPanWidget* widget = getZoomPanWidget(viewName);
     if (!widget || frame.empty()) {
         return;
     }
-    
+
     // 将 cv::Mat 转换为 QPixmap
     QPixmap pixmap = matToQPixmap(frame);
     widget->setVideoFrame(pixmap);
-    
+
     // 注意：几何图形数据的更新已移除，现在只在用户完成绘制操作时才更新
     // 这大幅减少了每帧的数据传输开销，提升了性能
 }
 
 // 这些函数已移除，绘图数据管理现在完全由VideoDisplayWidget内部处理
 
-VideoDisplayWidget* MutiCamApp::getVideoDisplayWidget(const QString& viewName)
+ZoomPanWidget* MutiCamApp::getZoomPanWidget(const QString& viewName)
 {
     if (viewName == "vertical") {
-        return m_verticalDisplayWidget;
+        return m_verticalZoomPanWidget;
     } else if (viewName == "left") {
-        return m_leftDisplayWidget;
+        return m_leftZoomPanWidget;
     } else if (viewName == "front") {
-        return m_frontDisplayWidget;
+        return m_frontZoomPanWidget;
     } else if (viewName == "vertical2") {
-        return m_verticalDisplayWidget2;
+        return m_verticalZoomPanWidget2;
     } else if (viewName == "left2") {
-        return m_leftDisplayWidget2;
+        return m_leftZoomPanWidget2;
     } else if (viewName == "front2") {
-        return m_frontDisplayWidget2;
+        return m_frontZoomPanWidget2;
     }
     return nullptr;
 }
@@ -1895,37 +1888,37 @@ void MutiCamApp::onDrawingSync(const QString& viewName)
     }
 }
 
-// {{ AURA-X: Add - 获取当前活动VideoDisplayWidget辅助函数. Approval: 寸止(ID:active_widget_helper). }}
-VideoDisplayWidget* MutiCamApp::getActiveVideoWidget()
+// {{ AURA-X: Add - 获取当前活动ZoomPanWidget辅助函数. Approval: 寸止(ID:active_widget_helper). }}
+ZoomPanWidget* MutiCamApp::getActiveZoomPanWidget()
 {
     int currentTab = ui->tabWidget->currentIndex();
-    
-    // 根据当前选项卡返回对应的VideoDisplayWidget
+
+    // 根据当前选项卡返回对应的ZoomPanWidget
     switch (currentTab) {
         case 0: // 主界面
             // 可以根据需要返回主界面的某个默认widget，这里返回垂直视图
-            return m_verticalDisplayWidget;
+            return m_verticalZoomPanWidget;
         case 1: // 垂直视图选项卡
-            return m_verticalDisplayWidget2;
+            return m_verticalZoomPanWidget2;
         case 2: // 左视图选项卡
-            return m_leftDisplayWidget2;
+            return m_leftZoomPanWidget2;
         case 3: // 前视图选项卡
-            return m_frontDisplayWidget2;
+            return m_frontZoomPanWidget2;
         default:
-            return m_verticalDisplayWidget; // 默认返回垂直视图
+            return m_verticalZoomPanWidget; // 默认返回垂直视图
     }
 }
 
 void MutiCamApp::syncOverlayTransforms(const QString& viewName)
 {
-    VideoDisplayWidget* videoWidget = getVideoDisplayWidget(viewName);
+    ZoomPanWidget* zoomPanWidget = getZoomPanWidget(viewName);
     PaintingOverlay* paintingOverlay = getPaintingOverlay(viewName);
 
-    if (videoWidget && paintingOverlay) {
-        // 从视频显示控件获取当前的偏移和缩放比例
-        QPointF offset = videoWidget->getImageOffset();
-        double scale = videoWidget->getScaleFactor();
-        QSize imageSize = videoWidget->getImageSize();
+    if (zoomPanWidget && paintingOverlay) {
+        // 从缩放平移控件获取当前的偏移和缩放比例
+        QPointF offset = zoomPanWidget->getImageOffset();
+        double scale = zoomPanWidget->getScaleFactor();
+        QSize imageSize = zoomPanWidget->getImageSize();
         
         // 将这些变换信息设置到绘画层
         paintingOverlay->setTransforms(offset, scale, imageSize);
@@ -3610,4 +3603,52 @@ void MutiCamApp::updateTrajectoryDisplay()
 {
     // 这里可以添加轨迹可视化更新逻辑
     // 例如在某个视图中绘制轨迹路径
+}
+
+// 视图控制槽函数实现
+void MutiCamApp::onResetZoomVertical()
+{
+    if (m_verticalZoomPanWidget2) {
+        m_verticalZoomPanWidget2->resetView();
+        qDebug() << "垂直视图缩放已重置";
+    }
+}
+
+void MutiCamApp::onResetZoomLeft()
+{
+    if (m_leftZoomPanWidget2) {
+        m_leftZoomPanWidget2->resetView();
+        qDebug() << "左视图缩放已重置";
+    }
+}
+
+void MutiCamApp::onResetZoomFront()
+{
+    if (m_frontZoomPanWidget2) {
+        m_frontZoomPanWidget2->resetView();
+        qDebug() << "前视图缩放已重置";
+    }
+}
+
+void MutiCamApp::onViewTransformChanged(double zoomFactor, const QPointF& panOffset)
+{
+    // 获取发送信号的ZoomPanWidget
+    ZoomPanWidget* sender = qobject_cast<ZoomPanWidget*>(QObject::sender());
+    if (!sender) {
+        return;
+    }
+
+    // 更新对应的缩放信息标签
+    QString zoomText = QString("缩放: %1%").arg(static_cast<int>(zoomFactor * 100));
+
+    if (sender == m_verticalZoomPanWidget2) {
+        ui->labelZoomInfoVertical->setText(zoomText);
+    } else if (sender == m_leftZoomPanWidget2) {
+        ui->labelZoomInfoLeft->setText(zoomText);
+    } else if (sender == m_frontZoomPanWidget2) {
+        ui->labelZoomInfoFront->setText(zoomText);
+    }
+
+    // 可以在这里添加其他视图变换相关的处理逻辑
+    Q_UNUSED(panOffset)
 }

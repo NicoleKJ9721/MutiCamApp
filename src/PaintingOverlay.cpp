@@ -358,6 +358,14 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
 
 void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 {
+    // 检查是否应该将事件传递给ZoomPanWidget（空格键平移模式）
+    ZoomPanWidget* zoomPanWidget = qobject_cast<ZoomPanWidget*>(parentWidget());
+    if (zoomPanWidget && zoomPanWidget->isSpacePressed()) {
+        // 空格键按下时，将鼠标事件传递给ZoomPanWidget
+        QApplication::sendEvent(zoomPanWidget, event);
+        return;
+    }
+
     // 设置焦点到当前overlay，以便getActivePaintingOverlay能正确识别
     setFocus();
 
@@ -444,10 +452,18 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 
 void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
 {
+    // 检查是否应该将事件传递给ZoomPanWidget（空格键平移模式）
+    ZoomPanWidget* zoomPanWidget = qobject_cast<ZoomPanWidget*>(parentWidget());
+    if (zoomPanWidget && zoomPanWidget->isPanning()) {
+        // 平移模式时，将鼠标事件传递给ZoomPanWidget
+        QApplication::sendEvent(zoomPanWidget, event);
+        return;
+    }
+
     // 事件节流：限制更新频率以提升性能
     static QTime lastUpdateTime = QTime::currentTime();
     QTime currentTime = QTime::currentTime();
-    
+
     if (lastUpdateTime.msecsTo(currentTime) < 16) { // 约60fps
         return;
     }

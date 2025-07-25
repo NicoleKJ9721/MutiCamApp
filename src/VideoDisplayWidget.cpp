@@ -5,6 +5,9 @@
 
 VideoDisplayWidget::VideoDisplayWidget(QWidget *parent)
     : QLabel(parent)
+    , m_hasExternalTransform(false)
+    , m_externalOffset(0.0, 0.0)
+    , m_externalScaleFactor(1.0)
 {
     // 高DPI显示优化设置
     setAttribute(Qt::WA_OpaquePaintEvent, false);
@@ -18,7 +21,21 @@ void VideoDisplayWidget::setVideoFrame(const QPixmap& pixmap)
     update(); // 直接触发重绘
 }
 
-// 移除 updateStaticDrawings 方法 - 不再需要
+void VideoDisplayWidget::setExternalTransform(const QPointF& offset, double scaleFactor)
+{
+    m_hasExternalTransform = true;
+    m_externalOffset = offset;
+    m_externalScaleFactor = scaleFactor;
+    update(); // 触发重绘
+}
+
+void VideoDisplayWidget::resetExternalTransform()
+{
+    m_hasExternalTransform = false;
+    m_externalOffset = QPointF(0.0, 0.0);
+    m_externalScaleFactor = 1.0;
+    update(); // 触发重绘
+}
 
 void VideoDisplayWidget::paintEvent(QPaintEvent *event)
 {
@@ -26,15 +43,24 @@ void VideoDisplayWidget::paintEvent(QPaintEvent *event)
     if (m_videoFrame.isNull()) {
         return;
     }
-    
-    // --- 关键修正：重新计算保持宽高比的目标矩形 ---
-    QPointF offset = getImageOffset();
-    double scale = getScaleFactor();
-    
-    QRectF targetRect(offset.x(), offset.y(), 
-                     m_videoFrame.width() * scale, 
+
+    // 使用外部变换参数（如果有的话）
+    QPointF offset;
+    double scale;
+
+    if (m_hasExternalTransform) {
+        offset = m_externalOffset;
+        scale = m_externalScaleFactor;
+    } else {
+        // 使用内部计算的偏移和缩放
+        offset = getImageOffset();
+        scale = getScaleFactor();
+    }
+
+    QRectF targetRect(offset.x(), offset.y(),
+                     m_videoFrame.width() * scale,
                      m_videoFrame.height() * scale);
-    
+
     // 使用正确的 drawPixmap 重载版本
     painter.drawPixmap(targetRect, m_videoFrame, m_videoFrame.rect());
 }

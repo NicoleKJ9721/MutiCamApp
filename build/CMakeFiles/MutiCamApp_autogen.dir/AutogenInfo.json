@@ -333,6 +333,12 @@
 			null
 		],
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/ZoomPanWidget.h",
+			"MU",
+			"UVLADIE3JM/moc_ZoomPanWidget.cpp",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/camera/camera_controller.h",
 			"MU",
 			"I2NATBFSMB/moc_camera_controller.cpp",
@@ -464,6 +470,11 @@
 		],
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/VideoDisplayWidget.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/ZoomPanWidget.cpp",
 			"MU",
 			null
 		],
