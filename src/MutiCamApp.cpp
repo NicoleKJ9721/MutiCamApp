@@ -1991,25 +1991,25 @@ void MutiCamApp::onAutoCircleDetectionVerticalClicked()
 void MutiCamApp::onAutoLineDetectionLeftClicked()
 {
     qDebug() << "左侧视图直线检测按钮被点击";
-    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_LineDetect);
+    startAutoDetection("left2", PaintingOverlay::DrawingTool::ROI_LineDetect);
 }
 
 void MutiCamApp::onAutoCircleDetectionLeftClicked()
 {
     qDebug() << "左侧视图圆形检测按钮被点击";
-    startAutoDetection("left", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+    startAutoDetection("left2", PaintingOverlay::DrawingTool::ROI_CircleDetect);
 }
 
 void MutiCamApp::onAutoLineDetectionFrontClicked()
 {
     qDebug() << "对向视图直线检测按钮被点击";
-    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_LineDetect);
+    startAutoDetection("front2", PaintingOverlay::DrawingTool::ROI_LineDetect);
 }
 
 void MutiCamApp::onAutoCircleDetectionFrontClicked()
 {
     qDebug() << "对向视图圆形检测按钮被点击";
-    startAutoDetection("front", PaintingOverlay::DrawingTool::ROI_CircleDetect);
+    startAutoDetection("front2", PaintingOverlay::DrawingTool::ROI_CircleDetect);
 }
 
 void MutiCamApp::startAutoDetection(const QString& viewName, PaintingOverlay::DrawingTool detectionType)
