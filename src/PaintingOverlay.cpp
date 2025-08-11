@@ -661,10 +661,24 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         pointToMidlineAction = contextMenu.addAction("点与平行线中线距离");
     }
 
-    // 点与角平分线距离测量
+    // 点与角平分线距离测量（TwoLinesObject的角平分线）
     if (m_selectedPoints.size() == 1 && m_selectedBisectorLines.size() == 1 &&
         m_selectedLines.isEmpty() && m_selectedCircles.isEmpty()) {
         pointToBisectorAction = contextMenu.addAction("点与角平分线距离");
+    }
+    
+    // 点与角平分线距离测量（LineSegmentObject的角平分线）
+    QAction *pointToBisectorLineSegmentAction = nullptr;
+    if (m_selectedPoints.size() == 1 && m_selectedLineSegments.size() == 1 &&
+        m_selectedLines.isEmpty() && m_selectedCircles.isEmpty()) {
+        // 检查选中的LineSegmentObject是否为角平分线
+        int lineSegmentIndex = *m_selectedLineSegments.begin();
+        if (lineSegmentIndex >= 0 && lineSegmentIndex < m_lineSegments.size()) {
+            const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
+            if (lineSegment.label.startsWith("BISECTOR:")) {
+                pointToBisectorLineSegmentAction = contextMenu.addAction("点与角平分线距离");
+            }
+        }
     }
 
     // 两条直线夹角测量
@@ -701,6 +715,8 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         performComplexMeasurement("点与平行线中线距离");
     } else if (selectedAction == pointToBisectorAction) {
         performComplexMeasurement("点与角平分线距离");
+    } else if (selectedAction == pointToBisectorLineSegmentAction) {
+        performComplexMeasurement("点与角平分线距离LineSegment");
     }
 }
 
@@ -2635,6 +2651,41 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     painter.drawEllipse(start, pointRadius, pointRadius);
     painter.drawEllipse(end, pointRadius, pointRadius);
     
+    // 检测是否为角平分线（特殊处理）
+    if (lineSegment.label.startsWith("BISECTOR:")) {
+        // 解析角平分线的标签格式: "BISECTOR:角度°:(x,y)"
+        QString labelContent = lineSegment.label.mid(9); // 移除"BISECTOR:"前缀
+        QStringList parts = labelContent.split(":");
+        if (parts.size() >= 2) {
+            QString angleText = parts[0]; // 角度部分，例如"45.5°"
+            QString coordText = parts[1]; // 坐标部分，例如"(100.2,200.3)"
+            
+            // 计算线段中点作为文本位置
+            QPointF midPoint = (start + end) / 2.0;
+            
+            // 动态计算文本布局参数
+            double textOffset = qMax(8.0, 10.0 * ctx.scale);
+            double textPadding = qMax(4.0, ctx.fontSize * 0.5);
+            int bgBorderWidth = 1;
+            
+            // 使用与TwoLinesObject相同的布局方式
+            // 1. 计算角度文本框的矩形（定位到中点右上方）
+            QPointF angleTextOffset(textOffset, -textOffset);
+            QRectF angleTextRect = calculateTextWithBackgroundRect(midPoint, angleText, ctx.font, textPadding, angleTextOffset);
+            
+            // 绘制角度文本框
+            drawTextInRect(painter, angleTextRect, angleText, ctx.font, lineSegment.color, Qt::black, bgBorderWidth);
+            
+            // 2. 计算坐标文本框的矩形（紧挨着角度文本框下方）
+            QPointF coordTextAnchor = QPointF(angleTextRect.left(), angleTextRect.bottom());
+            QRectF coordTextRect = calculateTextWithBackgroundRect(coordTextAnchor, coordText, ctx.font, textPadding, QPointF(0, 0));
+            
+            // 绘制坐标文本框
+            drawTextInRect(painter, coordTextRect, coordText, ctx.font, lineSegment.color, Qt::black, bgBorderWidth);
+        }
+        return; // 角平分线处理完成，直接返回
+    }
+    
     // 准备分层显示的文本信息
     QString lengthText;
     QString angleText;
@@ -3645,28 +3696,42 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             line1.points[0], line1.points[1],
                             line2.points[0], line2.points[1]);
 
-                        // 创建一个TwoLinesObject来显示交点和夹角
-                        TwoLinesObject twoLinesDisplay;
-                        twoLinesDisplay.points.append(line1.points[0]);
-                        twoLinesDisplay.points.append(line1.points[1]);
-                        twoLinesDisplay.points.append(line2.points[0]);
-                        twoLinesDisplay.points.append(line2.points[1]);
-                        twoLinesDisplay.intersection = intersection;
-                        twoLinesDisplay.angle = angle;
-                        twoLinesDisplay.isCompleted = true;
-                        twoLinesDisplay.color = Qt::blue;
-                        twoLinesDisplay.thickness = 2.0;
-                        twoLinesDisplay.isVisible = true;
-                        twoLinesDisplay.label = QString("夹角: %.1f°").arg(angle);
-
-                        // 添加到两线列表
-                        m_twoLines.append(twoLinesDisplay);
-
-                        // 记录历史
-                        DrawingAction action;
-                        action.type = DrawingAction::AddTwoLines;
-                        action.index = m_twoLines.size() - 1;
-                        commitDrawingAction(action);
+                        // 计算两条直线的方向向量
+                        QPointF dir1 = line1.points[1] - line1.points[0];
+                        QPointF dir2 = line2.points[1] - line2.points[0];
+                        
+                        // 归一化方向向量
+                        double len1 = sqrt(dir1.x() * dir1.x() + dir1.y() * dir1.y());
+                        double len2 = sqrt(dir2.x() * dir2.x() + dir2.y() * dir2.y());
+                        if (len1 > 0) dir1 /= len1;
+                        if (len2 > 0) dir2 /= len2;
+                        
+                        // 计算角平分线方向
+                        QPointF bisectorDir = dir1 + dir2;
+                        double bisectorLen = sqrt(bisectorDir.x() * bisectorDir.x() + bisectorDir.y() * bisectorDir.y());
+                        if (bisectorLen > 0) {
+                            bisectorDir /= bisectorLen;
+                            
+                            // 创建角平分线线段（延伸到图像边界，与TwoLinesObject一致）
+                            LineSegmentObject bisector;
+                            bisector.points.append(intersection - bisectorDir * 5000.0);
+                            bisector.points.append(intersection + bisectorDir * 5000.0);
+                            bisector.isCompleted = true;
+                            bisector.color = Qt::red;  // 使用红色
+                            bisector.thickness = 2.0;
+                            bisector.isDashed = true;
+                            bisector.isVisible = true;
+                            bisector.label = QString("BISECTOR:%1°:(%2,%3)").arg(angle, 0, 'f', 1).arg(intersection.x(), 0, 'f', 1).arg(intersection.y(), 0, 'f', 1);
+                            
+                            // 添加到线段列表
+                            m_lineSegments.append(bisector);
+                            
+                            // 记录历史
+                            DrawingAction action;
+                            action.type = DrawingAction::AddLineSegment;
+                            action.index = m_lineSegments.size() - 1;
+                            commitDrawingAction(action);
+                        }
 
                         // 发送测量完成信号
                         QString result = QString("两线夹角: %.1f°\n交点坐标: (%.1f, %.1f)")
@@ -3677,6 +3742,59 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         QString result = "两线平行，无交点";
                         emit measurementCompleted(m_viewName, result);
                     }
+
+                    // 清除选择并更新显示
+                    clearSelection();
+                    emit drawingDataChanged(m_viewName);
+                    update();
+                }
+            }
+        }
+    } else if (measurementType == "点与角平分线距离LineSegment") {
+        if (m_selectedPoints.size() == 1 && m_selectedLineSegments.size() == 1) {
+            QList<int> pointIndices = m_selectedPoints.values();
+            QList<int> lineSegmentIndices = m_selectedLineSegments.values();
+            int pointIndex = pointIndices[0];
+            int lineSegmentIndex = lineSegmentIndices[0];
+
+            if (pointIndex >= 0 && pointIndex < m_points.size() &&
+                lineSegmentIndex >= 0 && lineSegmentIndex < m_lineSegments.size()) {
+
+                const PointObject& point = m_points[pointIndex];
+                const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
+
+                // 确认是角平分线
+                if (lineSegment.label.startsWith("BISECTOR:") && lineSegment.points.size() >= 2) {
+                    // 计算点到角平分线的距离
+                    double distance = calculatePointToLineDistance(point.position, lineSegment.points[0], lineSegment.points[1]);
+
+                    // 计算垂足
+                    QPointF footPoint = calculatePerpendicularFoot(point.position, lineSegment.points[0], lineSegment.points[1]);
+
+                    // 创建垂线段
+                    LineSegmentObject perpendicular;
+                    perpendicular.points.append(point.position);
+                    perpendicular.points.append(footPoint);
+                    perpendicular.isCompleted = true;
+                    perpendicular.color = Qt::red;
+                    perpendicular.thickness = 2.0;
+                    perpendicular.isDashed = true;
+                    perpendicular.isVisible = true;
+                    perpendicular.length = distance;
+                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+
+                    // 添加到线段列表
+                    m_lineSegments.append(perpendicular);
+
+                    // 记录历史
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegment;
+                    action.index = m_lineSegments.size() - 1;
+                    commitDrawingAction(action);
+
+                    // 发送测量完成信号
+                    QString result = QString("点到角平分线距离: %1").arg(distance, 0, 'f', 2);
+                    emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
                     clearSelection();
