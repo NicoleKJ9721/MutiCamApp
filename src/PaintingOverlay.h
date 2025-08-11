@@ -458,7 +458,6 @@ private:
     QPen createPen(const QColor& color, int width, double scale, bool dashed = false) const;
     QFont createFont(int baseSize, double scale) const;
     double calculateFontSize() const;
-    void drawTextWithBackground(QPainter& painter, const QPointF& pos, const QString& text, const QColor& textColor, const QColor& bgColor) const;
     void drawTextWithBackground(QPainter& painter, const QPointF& anchorPoint, const QString& text, const QFont& font, const QColor& textColor, const QColor& bgColor, double padding, double borderWidth, const QPointF& offset) const;
     QRectF calculateTextWithBackgroundRect(const QPointF& anchorPoint, const QString& text, const QFont& font, double padding, const QPointF& offset) const;
     void drawTextInRect(QPainter& painter, const QRectF& rect, const QString& text, const QFont& font, const QColor& textColor, const QColor& bgColor, double borderWidth) const;

@@ -2024,20 +2024,7 @@ void PaintingOverlay::drawTextWithBackground(QPainter& painter,
     painter.drawText(contentRectWithPadding, Qt::AlignCenter, text);
 }
 
-void PaintingOverlay::drawTextWithBackground(QPainter& painter, const QPointF& pos, const QString& text, const QColor& textColor, const QColor& bgColor) const
-{
-    QFontMetrics fm(painter.font());
-    QRect textRect = fm.boundingRect(text);
-    textRect.moveCenter(pos.toPoint());
-    
-    // 绘制背景
-    painter.fillRect(textRect.adjusted(-2, -1, 2, 1), bgColor);
-    
-    // 绘制文本
-    QPen textPen(textColor);
-    painter.setPen(textPen);
-    painter.drawText(textRect, Qt::AlignCenter, text);
-}
+// 简化版本已删除，统一使用完整版本的drawTextWithBackground函数
 
 QRectF PaintingOverlay::calculateTextWithBackgroundRect(const QPointF& anchorPoint, const QString& text, 
                                                        const QFont& font, double padding, const QPointF& offset) const
@@ -3996,8 +3983,11 @@ void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIObject& roi, con
             displayText += " (检测中...)";
         }
 
+        // 使用统一的文字样式参数
+        double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
+        int bgBorderWidth = 1;
         QPointF labelPos = rect.topLeft() + QPointF(5, -5);
-        drawTextWithBackground(painter, labelPos, displayText, roi.color, Qt::white);
+        drawTextWithBackground(painter, labelPos, displayText, ctx.font, roi.color, Qt::white, textPadding, bgBorderWidth, QPointF(0, 0));
     }
 
     // 如果正在检测，绘制检测类型提示
@@ -4010,8 +4000,11 @@ void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIObject& roi, con
         }
 
         if (!typeText.isEmpty()) {
+            // 使用统一的文字样式参数
+            double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
+            int bgBorderWidth = 1;
             QPointF typePos = rect.center();
-            drawTextWithBackground(painter, typePos, typeText, Qt::yellow, Qt::black);
+            drawTextWithBackground(painter, typePos, typeText, ctx.font, Qt::yellow, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
         }
     }
 }
