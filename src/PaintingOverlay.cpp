@@ -669,6 +669,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     
     // 点与角平分线距离测量（LineSegmentObject的角平分线）
     QAction *pointToBisectorLineSegmentAction = nullptr;
+    QAction *pointToLineSegmentAction = nullptr;
     if (m_selectedPoints.size() == 1 && m_selectedLineSegments.size() == 1 &&
         m_selectedLines.isEmpty() && m_selectedCircles.isEmpty()) {
         // 检查选中的LineSegmentObject是否为角平分线
@@ -677,6 +678,9 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
             const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
             if (lineSegment.label.startsWith("BISECTOR:")) {
                 pointToBisectorLineSegmentAction = contextMenu.addAction("点与角平分线距离");
+            } else {
+                // 普通线段的点与线段距离测量
+                pointToLineSegmentAction = contextMenu.addAction("点与线段距离");
             }
         }
     }
@@ -717,6 +721,8 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         performComplexMeasurement("点与角平分线距离");
     } else if (selectedAction == pointToBisectorLineSegmentAction) {
         performComplexMeasurement("点与角平分线距离LineSegment");
+    } else if (selectedAction == pointToLineSegmentAction) {
+        performComplexMeasurement("点与线段距离");
     }
 }
 
@@ -3794,6 +3800,59 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                     // 发送测量完成信号
                     QString result = QString("点到角平分线距离: %1").arg(distance, 0, 'f', 2);
+                    emit measurementCompleted(m_viewName, result);
+
+                    // 清除选择并更新显示
+                    clearSelection();
+                    emit drawingDataChanged(m_viewName);
+                    update();
+                }
+            }
+        }
+    } else if (measurementType == "点与线段距离") {
+        if (m_selectedPoints.size() == 1 && m_selectedLineSegments.size() == 1) {
+            QList<int> pointIndices = m_selectedPoints.values();
+            QList<int> lineSegmentIndices = m_selectedLineSegments.values();
+            int pointIndex = pointIndices[0];
+            int lineSegmentIndex = lineSegmentIndices[0];
+
+            if (pointIndex >= 0 && pointIndex < m_points.size() &&
+                lineSegmentIndex >= 0 && lineSegmentIndex < m_lineSegments.size()) {
+
+                const PointObject& point = m_points[pointIndex];
+                const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
+
+                // 确保线段有两个点
+                if (lineSegment.points.size() >= 2) {
+                    // 计算点到线段的距离
+                    double distance = calculatePointToLineDistance(point.position, lineSegment.points[0], lineSegment.points[1]);
+
+                    // 计算垂足
+                    QPointF footPoint = calculatePerpendicularFoot(point.position, lineSegment.points[0], lineSegment.points[1]);
+
+                    // 创建垂线段
+                    LineSegmentObject perpendicular;
+                    perpendicular.points.append(point.position);
+                    perpendicular.points.append(footPoint);
+                    perpendicular.isCompleted = true;
+                    perpendicular.color = Qt::red;
+                    perpendicular.thickness = 2.0;
+                    perpendicular.isDashed = true;
+                    perpendicular.isVisible = true;
+                    perpendicular.length = distance;
+                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+
+                    // 添加到线段列表
+                    m_lineSegments.append(perpendicular);
+
+                    // 记录历史
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegment;
+                    action.index = m_lineSegments.size() - 1;
+                    commitDrawingAction(action);
+
+                    // 发送测量完成信号
+                    QString result = QString("点到线段距离: %1").arg(distance, 0, 'f', 2);
                     emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
