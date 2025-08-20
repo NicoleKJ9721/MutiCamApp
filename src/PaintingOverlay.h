@@ -438,6 +438,9 @@ private:
     int hitTestParallel(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestTwoLines(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestROI(const QPointF& pos, double tolerance = 5.0) const;
+
+    // ROI管理方法
+    void removeLastROI();
     
     // 几何计算方法
     bool calculateCircleFromThreePoints(const QVector<QPointF>& points, QPointF& center, double& radius) const;

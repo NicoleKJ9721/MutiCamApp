@@ -4282,16 +4282,36 @@ void PaintingOverlay::setROIsData(const QVector<ROIObject>& rois)
     update();
 }
 
+void PaintingOverlay::removeLastROI()
+{
+    if (!m_rois.isEmpty()) {
+        // 删除最后一个ROI（刚刚添加的用于检测的ROI）
+        m_rois.removeLast();
+
+        // 记录删除操作到历史
+        DrawingAction action;
+        action.type = DrawingAction::DeleteROI;
+        action.source = DrawingAction::AutoDetection;  // 自动检测后清理
+        action.index = m_rois.size();  // 被删除的索引
+        commitDrawingAction(action);
+
+        qDebug() << "已删除检测完成的ROI框，剩余ROI数量：" << m_rois.size();
+        update();
+    }
+}
+
 void PaintingOverlay::performAutoDetection(const ROIObject& roi)
 {
     if (!m_edgeDetector || !m_shapeDetector) {
         qDebug() << "图像处理器未初始化";
+        removeLastROI();  // 删除ROI框
         return;
     }
 
     // 检测频率限制（避免过于频繁的检测）
     if (m_lastDetectionTime.isValid() && m_lastDetectionTime.msecsTo(QTime::currentTime()) < 500) {
         qDebug() << "检测频率过高，跳过本次检测";
+        removeLastROI();  // 删除ROI框
         return;
     }
     m_lastDetectionTime = QTime::currentTime();
@@ -4315,6 +4335,9 @@ void PaintingOverlay::performAutoDetection(const ROIObject& roi)
             QMessageBox::warning(parentWidget, "自动检测错误",
                                "无法获取当前图像，请确保相机已启动并正在采集图像。");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4351,6 +4374,9 @@ void PaintingOverlay::performAutoDetection(const ROIObject& roi)
                                "1. ROI区域完全在图像范围内\n"
                                "2. ROI区域足够大（至少10x10像素）");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4414,6 +4440,9 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
                                "2. 选择包含更明显边缘的区域\n"
                                "3. 改善图像光照条件");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4434,6 +4463,9 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
                                    "1. 降低Canny边缘检测阈值\n"
                                    "2. 选择包含更清晰直线的区域");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4454,6 +4486,9 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
                                "1. 直线检测参数设置\n"
                                "2. 图像处理器状态");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4474,6 +4509,9 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
                                    "3. 增大最大线段间隙\n"
                                    "4. 选择包含更明显直线的区域");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4503,6 +4541,9 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     action.source = DrawingAction::AutoDetection;  // 自动检测
     action.index = m_lines.size() - 1;
     commitDrawingAction(action);
+
+    // 检测成功后删除对应的ROI框（与Python版本行为一致）
+    removeLastROI();
 
     // 发出信号
     QString result = QString("自动直线检测成功：长度 %.1f 像素，角度 %.1f° (共检测到%2条直线)")
@@ -4537,6 +4578,9 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
             QMessageBox::warning(parentWidget, "图像预处理失败",
                                "无法将图像转换为灰度图，请检查图像格式。");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4557,6 +4601,9 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
                                "1. 圆形检测参数设置\n"
                                "2. 图像处理器状态");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4577,6 +4624,9 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
                                    "3. 检查半径范围设置\n"
                                    "4. 选择包含更明显圆形的区域");
         }
+
+        // 检测失败时也删除ROI框
+        removeLastROI();
         return;
     }
 
@@ -4608,6 +4658,9 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     action.source = DrawingAction::AutoDetection;  // 自动检测
     action.index = m_circles.size() - 1;
     commitDrawingAction(action);
+
+    // 检测成功后删除对应的ROI框（与Python版本行为一致）
+    removeLastROI();
 
     // 发出信号
     QString result = QString("自动圆形检测成功：半径 %1 像素，置信度 %.1f (共检测到%2个圆形)")
