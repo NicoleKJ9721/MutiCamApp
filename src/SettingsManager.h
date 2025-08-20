@@ -41,6 +41,12 @@ public:
         // UI尺寸参数
         int uiWidth;
         int uiHeight;
+
+        // 拍照参数预设
+        int captureInterval;
+        bool autoSaveEnabled;
+        QString captureFormat;
+        QString imageQuality;
         
         /**
          * @brief 构造函数，设置默认值
@@ -65,7 +71,13 @@ public:
             
             // UI尺寸参数默认值
             uiWidth(800),
-            uiHeight(600)
+            uiHeight(600),
+
+            // 拍照参数预设默认值
+            captureInterval(3),
+            autoSaveEnabled(true),
+            captureFormat("PNG"),
+            imageQuality("无损最高质量")
         {}
     };
 

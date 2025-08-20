@@ -30,6 +30,7 @@
 #include "SettingsManager.h"
 #include "LogManager.h"
 #include "TrajectoryRecorder.h"
+#include "SerialController.h"
 #include <functional>
 
 #ifndef M_PI
@@ -710,11 +711,29 @@ private:
      // 日志管理器
      LogManager* m_logManager;
 
+     // 串口控制器
+     SerialController* m_serialController;
+
      // UI尺寸双向绑定相关
      bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发
 
      // 硬件加速显示方法已迁移到VideoDisplayWidget
-      
+
+     // 物理按钮控制相关方法
+     void initializeSerialController();
+     void updateButtonStatus(const QString& buttonName, bool isPressed);
+     void handleButtonEvent(SerialController::ButtonEvent event);
+     void executeCaptureAction();
+     void executeCaptureByType(const QString& actionType);
+     void testCaptureButton();
+     void toggleSerialConnection();
+
+     // 参数预设相关方法
+     void initializeCapturePresets();
+     void saveCapturePreset();
+     void loadCapturePreset();
+     void resetCapturePreset();
+     void applyCapturePreset();
 
 
 };

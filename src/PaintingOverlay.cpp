@@ -1002,7 +1002,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
     
 
     // 预计算常量（匹配Python版本）
-    const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+    const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
     const double innerRadius = 12 * heightScale;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     
@@ -1195,7 +1195,7 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
         
         // 动态计算圆心标记尺寸（与画点功能相同）
-        const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+        const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
         const double centerMarkRadius = 12 * heightScale;
 
         // 绘制圆心 - 红色实心圆
@@ -1297,7 +1297,7 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
 
         // 绘制圆心标记（使用红色，与简单圆保持一致）
         // 动态计算圆心标记尺寸（与简单圆功能相同）
-        const double heightScale = std::max(1.0, std::min(ctx.scale, 4.0));
+        const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
         const double centerMarkRadius = 12 * heightScale;
         painter.setPen(Qt::NoPen);
         painter.setBrush(ctx.redBrush);
@@ -1774,7 +1774,7 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             if (!point.isVisible) continue;
 
             // 绘制高亮圆环
-            double radius = 25.0 * std::max(1.0, std::min(ctx.scale, 4.0));
+            double radius = 25.0 * (std::max)(1.0, (std::min)(ctx.scale, 4.0));
             painter.drawEllipse(point.position, radius, radius);
         }
     }
@@ -3943,7 +3943,7 @@ double PaintingOverlay::calculateLineSegmentAngle(const QPointF& line1Start, con
     double cosAngle = dotProduct / (length1 * length2);
 
     // 限制余弦值在[-1, 1]范围内，避免数值误差
-    cosAngle = std::max(-1.0, std::min(1.0, cosAngle));
+    cosAngle = (std::max)(-1.0, (std::min)(1.0, cosAngle));
 
     // 计算夹角（弧度）
     double angleRadians = std::acos(cosAngle);

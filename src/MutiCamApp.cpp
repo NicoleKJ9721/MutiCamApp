@@ -43,6 +43,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_saveWatcher(nullptr)
     , m_settingsManager(nullptr)
     , m_logManager(nullptr)
+    , m_serialController(nullptr)
     , m_isUpdatingUISize(false)
     , m_currentX(0.0)
     , m_currentY(0.0)
@@ -61,6 +62,12 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 初始化轨迹记录器
     initializeTrajectoryRecorder();
+
+    // 初始化串口控制器
+    initializeSerialController();
+
+    // 初始化拍照参数预设
+    initializeCapturePresets();
 
     // 注意：相机系统将在点击"开始测量"时初始化
 
@@ -148,6 +155,13 @@ MutiCamApp::~MutiCamApp()
     if (m_settingsManager) {
         delete m_settingsManager;
         m_settingsManager = nullptr;
+    }
+
+    // 清理串口控制器
+    if (m_serialController) {
+        m_serialController->closePort();
+        delete m_serialController;
+        m_serialController = nullptr;
     }
 
     delete ui;
@@ -906,7 +920,7 @@ QPointF MutiCamApp::windowToImageCoordinates(QLabel* label, const QPoint& window
     // 计算缩放比例，保持宽高比
     double scaleX = static_cast<double>(labelSize.width()) / imageWidth;
     double scaleY = static_cast<double>(labelSize.height()) / imageHeight;
-    double scale = std::min(scaleX, scaleY);
+    double scale = (std::min)(scaleX, scaleY);
     
     // 计算缩放后的图像尺寸
     int scaledWidth = static_cast<int>(imageWidth * scale);
@@ -1504,10 +1518,15 @@ void MutiCamApp::saveImages(const QString& viewType)
             return;
         }
 
+        // 获取用户配置的图像格式和质量
+        QString imageFormat = ui->comboBoxCaptureFormat->currentText().toLower();
+        QString qualitySetting = ui->comboBoxImageQuality->currentText();
+        QString fileExtension = QString(".%1").arg(imageFormat);
+
         // 生成文件名
         QString currentTime = QDateTime::currentDateTime().toString("hh-mm-ss");
-        QString originFileName = QString("%1_origin.jpg").arg(currentTime);
-        QString visualFileName = QString("%1_visual.jpg").arg(currentTime);
+        QString originFileName = QString("%1_origin%2").arg(currentTime).arg(fileExtension);
+        QString visualFileName = QString("%1_visual%2").arg(currentTime).arg(fileExtension);
         QString originPath = QDir(saveDir).filePath(originFileName);
         QString visualPath = QDir(saveDir).filePath(visualFileName);
 
@@ -1570,11 +1589,44 @@ void MutiCamApp::saveImages(const QString& viewType)
         // 现在主要保存方法已经使用Local8Bit编码，应该能成功
         qDebug() << "  - 注意：主要保存方法现在使用Local8Bit编码";
 
-        // 设置最高JPEG质量参数
+        // 根据图像格式和质量设置压缩参数
         std::vector<int> compression_params;
-        compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
-        compression_params.push_back(100);  // 100%质量，最高画质
-        qDebug() << "使用OpenCV保存，JPEG质量：100%（最高画质）";
+
+        // 根据质量设置确定参数
+        int jpegQuality = 100;  // 默认最高质量
+        int pngCompression = 0; // 默认无压缩
+
+        if (qualitySetting == "无损最高质量") {
+            jpegQuality = 100;
+            pngCompression = 0;
+        } else if (qualitySetting == "高质量") {
+            jpegQuality = 95;
+            pngCompression = 1;
+        } else if (qualitySetting == "标准质量") {
+            jpegQuality = 85;
+            pngCompression = 3;
+        }
+
+        if (imageFormat == "jpg" || imageFormat == "jpeg") {
+            compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            compression_params.push_back(jpegQuality);
+            qDebug() << "使用OpenCV保存JPEG，质量：" << jpegQuality << "%";
+            if (jpegQuality == 100) {
+                qDebug() << "注意：JPEG即使100%质量仍是有损压缩，建议使用PNG获得真正无损质量";
+            }
+        } else if (imageFormat == "png") {
+            compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
+            compression_params.push_back(pngCompression);
+            qDebug() << "使用OpenCV保存PNG，压缩级别：" << pngCompression << "（PNG无损格式）";
+        } else if (imageFormat == "bmp") {
+            // BMP格式不需要压缩参数，完全无损
+            qDebug() << "使用OpenCV保存BMP，完全无损无压缩";
+        } else {
+            // 默认使用JPEG参数
+            compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
+            compression_params.push_back(jpegQuality);
+            qDebug() << "未知格式，使用默认JPEG参数，质量：" << jpegQuality << "%";
+        }
 
         bool saveResult = cv::imwrite(originPath.toLocal8Bit().toStdString(), frameToSave, compression_params);
         if (saveResult) {
@@ -1611,8 +1663,14 @@ void MutiCamApp::saveImages(const QString& viewType)
                                  frameToSave.step, QImage::Format_Grayscale8).copy();
                 }
 
-                qDebug() << "使用QImage备用保存，JPEG质量：100%（最高画质）";
-                if (!qimg.isNull() && qimg.save(originPath, "JPEG", 100)) {  // 100%质量，最高画质
+                // 根据格式设置QImage保存参数
+                QString qimageFormat = imageFormat.toUpper();
+                int quality = -1;  // 默认质量
+                if (qimageFormat == "JPG") qimageFormat = "JPEG";
+                if (qimageFormat == "JPEG") quality = jpegQuality;  // 使用相同的JPEG质量
+
+                qDebug() << "使用QImage备用保存，格式：" << qimageFormat << "质量：" << quality;
+                if (!qimg.isNull() && qimg.save(originPath, qimageFormat.toLocal8Bit().constData(), quality)) {
                     qDebug() << "使用QImage备用方法保存成功：" << originPath;
                 } else {
                     qDebug() << "QImage备用方法也保存失败";
@@ -1653,10 +1711,8 @@ void MutiCamApp::saveImages(const QString& viewType)
                 qDebug() << "  - 图像通道：" << visualFrameToSave.channels();
                 qDebug() << "  - 图像为空：" << (visualFrameToSave.empty() ? "是" : "否");
 
-                // 设置最高JPEG质量参数
-                std::vector<int> visual_compression_params;
-                visual_compression_params.push_back(cv::IMWRITE_JPEG_QUALITY);
-                visual_compression_params.push_back(100);  // 100%质量，最高画质
+                // 使用与原始图像相同的压缩参数
+                std::vector<int> visual_compression_params = compression_params;
 
                 bool visualSaveResult = cv::imwrite(visualPath.toLocal8Bit().toStdString(), visualFrameToSave, visual_compression_params);
                 if (visualSaveResult) {
@@ -1688,7 +1744,13 @@ void MutiCamApp::saveImages(const QString& viewType)
                                          visualFrameToSave.step, QImage::Format_Grayscale8).copy();
                         }
 
-                        if (!qimg.isNull() && qimg.save(visualPath, "JPEG", 100)) {  // 100%质量，最高画质
+                        // 使用与原始图像相同的格式和质量参数
+                        QString qimageFormat = imageFormat.toUpper();
+                        int quality = -1;
+                        if (qimageFormat == "JPG") qimageFormat = "JPEG";
+                        if (qimageFormat == "JPEG") quality = jpegQuality;
+
+                        if (!qimg.isNull() && qimg.save(visualPath, qimageFormat.toLocal8Bit().constData(), quality)) {
                             qDebug() << "使用QImage备用方法保存可视化图像成功：" << visualPath;
                         } else {
                             qDebug() << "QImage备用方法保存可视化图像也失败";
@@ -3651,4 +3713,376 @@ void MutiCamApp::onViewTransformChanged(double zoomFactor, const QPointF& panOff
 
     // 可以在这里添加其他视图变换相关的处理逻辑
     Q_UNUSED(panOffset)
+}
+
+// ==================== 物理按钮控制相关方法 ====================
+
+void MutiCamApp::initializeSerialController()
+{
+    qDebug() << "初始化串口控制器...";
+
+    // 创建串口控制器
+    m_serialController = new SerialController(this);
+
+    // 连接信号和槽
+    connect(m_serialController, &SerialController::buttonEventReceived,
+            this, &MutiCamApp::handleButtonEvent);
+
+    connect(m_serialController, &SerialController::statusChanged,
+            this, [this](SerialController::SerialStatus status) {
+                QString statusText;
+                QString styleSheet;
+
+                switch (status) {
+                    case SerialController::SerialStatus::Disconnected:
+                        statusText = "未连接";
+                        styleSheet = "color: red;";
+                        break;
+                    case SerialController::SerialStatus::Connected:
+                        statusText = "已连接";
+                        styleSheet = "color: orange;";
+                        break;
+                    case SerialController::SerialStatus::Listening:
+                        statusText = "监听中";
+                        styleSheet = "color: green;";
+                        break;
+                    case SerialController::SerialStatus::Error:
+                        statusText = "错误";
+                        styleSheet = "color: red;";
+                        break;
+                }
+
+                ui->labelSerialStatus->setText(statusText);
+                ui->labelSerialStatus->setStyleSheet(styleSheet);
+            });
+
+    connect(m_serialController, &SerialController::errorOccurred,
+            this, [this](const QString& error) {
+                qDebug() << "串口错误:" << error;
+                ui->labelSerialStatus->setText("错误: " + error);
+                ui->labelSerialStatus->setStyleSheet("color: red;");
+            });
+
+    // 连接测试按钮
+    connect(ui->btnTestCaptureKey, &QPushButton::clicked, this, [this]() { testCaptureButton(); });
+
+    // 连接串口控制按钮
+    connect(ui->btnConnectSerial, &QPushButton::clicked, this, &MutiCamApp::toggleSerialConnection);
+
+    // 尝试自动连接默认串口
+    QString defaultPort = "COM5";  // 可以从设置中读取
+#ifndef _WIN32
+    defaultPort = "/dev/ttyUSB0";
+#endif
+
+    // 设置默认串口到选择框
+    ui->comboBoxSerialPort->setCurrentText(defaultPort);
+
+    if (m_serialController->openPort(defaultPort)) {
+        m_serialController->startListening();
+        ui->btnConnectSerial->setText("断开");
+        qDebug() << "串口控制器初始化成功，端口:" << defaultPort;
+    } else {
+        qDebug() << "串口控制器初始化失败:" << m_serialController->getLastError();
+        // 失败时保持"连接"按钮状态，用户可以手动重试
+    }
+}
+
+void MutiCamApp::updateButtonStatus(const QString& buttonName, bool isPressed)
+{
+    // 只处理拍照按键状态
+    if (buttonName == "CaptureKey") {
+        if (isPressed) {
+            ui->labelCaptureKeyStatus->setText("按下");
+            ui->labelCaptureKeyStatus->setStyleSheet("color: green; font-weight: bold;");
+        } else {
+            ui->labelCaptureKeyStatus->setText("未按下");
+            ui->labelCaptureKeyStatus->setStyleSheet("color: gray;");
+        }
+    }
+}
+
+void MutiCamApp::handleButtonEvent(SerialController::ButtonEvent event)
+{
+    qDebug() << "处理按钮事件:" << static_cast<int>(event);
+
+    switch (event) {
+        case SerialController::ButtonEvent::Button1Pressed:
+            updateButtonStatus("CaptureKey", true);
+            executeCaptureAction();
+            break;
+
+        case SerialController::ButtonEvent::Button1Released:
+            updateButtonStatus("CaptureKey", false);
+            break;
+
+        default:
+            qDebug() << "未知按钮事件:" << static_cast<int>(event);
+            break;
+    }
+}
+
+void MutiCamApp::executeCaptureAction()
+{
+    // 获取拍照按键的功能配置
+    QString actionType = ui->comboBoxCaptureKeyFunction->currentText();
+
+    qDebug() << "执行拍照按键操作:" << actionType;
+
+    // 检查相机是否正在运行
+    if (!m_isMeasuring) {
+        QMessageBox::warning(this, "拍照失败", "请先启动相机采集后再进行拍照操作！");
+        return;
+    }
+
+    // 根据配置的功能类型执行相应操作
+    if (actionType.startsWith("拍照-")) {
+        executeCaptureByType(actionType);
+    } else if (actionType == "启动相机采集") {
+        if (!m_isMeasuring) {
+            onStartMeasureClicked();
+        }
+    } else if (actionType == "开始检测") {
+        qDebug() << "开始检测功能待实现";
+    } else if (actionType == "载物台回原点") {
+        qDebug() << "载物台回原点功能待实现";
+    } else {
+        // 默认执行当前选项卡拍照
+        executeCaptureByType("拍照-当前选项卡");
+    }
+
+    // 记录日志
+    if (m_logManager) {
+        m_logManager->log(QString("物理拍照按键触发: %1").arg(actionType), LogLevel::INFO);
+    }
+}
+
+void MutiCamApp::executeCaptureByType(const QString& actionType)
+{
+    qDebug() << "执行拍照动作:" << actionType;
+
+    // 检查相机是否正在运行
+    if (!m_isMeasuring) {
+        QMessageBox::warning(this, "拍照失败", "请先启动相机采集后再进行拍照操作！");
+        return;
+    }
+
+    // 解析拍照类型并执行相应操作
+    if (actionType == "拍照-全视图") {
+        saveImage("all");  // 使用saveImage而不是saveImages
+        if (m_logManager) {
+            m_logManager->log("物理按钮触发: 全视图拍照", LogLevel::INFO);
+        }
+    } else if (actionType == "拍照-垂直视图") {
+        saveImage("vertical");
+        if (m_logManager) {
+            m_logManager->log("物理按钮触发: 垂直视图拍照", LogLevel::INFO);
+        }
+    } else if (actionType == "拍照-左视图") {
+        saveImage("left");
+        if (m_logManager) {
+            m_logManager->log("物理按钮触发: 左视图拍照", LogLevel::INFO);
+        }
+    } else if (actionType == "拍照-正视图") {
+        saveImage("front");
+        if (m_logManager) {
+            m_logManager->log("物理按钮触发: 正视图拍照", LogLevel::INFO);
+        }
+    } else if (actionType == "拍照-当前选项卡") {
+        // 根据当前选项卡保存对应视图
+        int currentTab = ui->tabWidget->currentIndex();
+        QString viewType;
+
+        switch (currentTab) {
+            case 0:
+                saveImage("all");
+                viewType = "全视图";
+                break;
+            case 1:
+                saveImage("vertical");
+                viewType = "垂直视图";
+                break;
+            case 2:
+                saveImage("left");
+                viewType = "左视图";
+                break;
+            case 3:
+                saveImage("front");
+                viewType = "正视图";
+                break;
+            default:
+                saveImage("all");
+                viewType = "全视图";
+                break;
+        }
+
+        if (m_logManager) {
+            m_logManager->log(QString("物理按钮触发: 当前选项卡拍照 (%1)").arg(viewType), LogLevel::INFO);
+        }
+    } else {
+        qDebug() << "未知的拍照动作类型:" << actionType;
+    }
+
+    // 显示拍照成功提示（可选）
+    statusBar()->showMessage(QString("拍照完成: %1").arg(actionType), 2000);
+}
+
+void MutiCamApp::testCaptureButton()
+{
+    qDebug() << "测试拍照按键";
+
+    // 模拟拍照按键按下
+    handleButtonEvent(SerialController::ButtonEvent::Button1Pressed);
+
+    // 延迟模拟释放
+    QTimer::singleShot(500, this, [this]() {
+        handleButtonEvent(SerialController::ButtonEvent::Button1Released);
+    });
+}
+
+void MutiCamApp::toggleSerialConnection()
+{
+    if (m_serialController->getStatus() == SerialController::SerialStatus::Disconnected) {
+        // 尝试连接串口
+        QString portName = ui->comboBoxSerialPort->currentText();
+        qDebug() << "尝试连接串口:" << portName;
+
+        if (m_serialController->openPort(portName)) {
+            m_serialController->startListening();
+            ui->btnConnectSerial->setText("断开");
+            qDebug() << "串口连接成功:" << portName;
+        } else {
+            QMessageBox::warning(this, "串口连接失败",
+                QString("无法连接到串口 %1\n错误信息: %2")
+                .arg(portName)
+                .arg(m_serialController->getLastError()));
+        }
+    } else {
+        // 断开串口连接
+        m_serialController->closePort();
+        ui->btnConnectSerial->setText("连接");
+        qDebug() << "串口已断开";
+    }
+}
+
+// ==================== 参数预设相关方法 ====================
+
+void MutiCamApp::initializeCapturePresets()
+{
+    qDebug() << "初始化拍照参数预设...";
+
+    // 连接预设按钮信号
+    connect(ui->btnSavePreset, &QPushButton::clicked, this, &MutiCamApp::saveCapturePreset);
+    connect(ui->btnLoadPreset, &QPushButton::clicked, this, &MutiCamApp::loadCapturePreset);
+    connect(ui->btnResetPreset, &QPushButton::clicked, this, &MutiCamApp::resetCapturePreset);
+
+    // 连接参数变化信号，实现实时保存
+    connect(ui->spinBoxCaptureInterval, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MutiCamApp::applyCapturePreset);
+    connect(ui->checkBoxAutoSave, &QCheckBox::toggled,
+            this, &MutiCamApp::applyCapturePreset);
+    connect(ui->comboBoxCaptureFormat, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MutiCamApp::applyCapturePreset);
+    connect(ui->comboBoxImageQuality, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MutiCamApp::applyCapturePreset);
+
+    // 加载默认预设
+    loadCapturePreset();
+
+    qDebug() << "拍照参数预设初始化完成";
+}
+
+void MutiCamApp::saveCapturePreset()
+{
+    qDebug() << "保存拍照参数预设";
+
+    if (m_settingsManager) {
+        // 获取当前UI设置
+        auto settings = m_settingsManager->getCurrentSettings();
+
+        // 更新拍照预设参数
+        settings.captureInterval = ui->spinBoxCaptureInterval->value();
+        settings.autoSaveEnabled = ui->checkBoxAutoSave->isChecked();
+        settings.captureFormat = ui->comboBoxCaptureFormat->currentText();
+        settings.imageQuality = ui->comboBoxImageQuality->currentText();
+
+        // 保存到设置管理器
+        m_settingsManager->setCurrentSettings(settings);
+        m_settingsManager->saveSettingsFromUI(this);
+
+        // 记录日志
+        if (m_logManager) {
+            m_logManager->log("拍照参数预设已保存", LogLevel::INFO);
+        }
+
+        statusBar()->showMessage("拍照参数预设已保存", 2000);
+    }
+}
+
+void MutiCamApp::loadCapturePreset()
+{
+    qDebug() << "加载拍照参数预设";
+
+    if (m_settingsManager) {
+        const auto& settings = m_settingsManager->getCurrentSettings();
+
+        // 应用预设参数到UI
+        ui->spinBoxCaptureInterval->setValue(settings.captureInterval);
+        ui->checkBoxAutoSave->setChecked(settings.autoSaveEnabled);
+
+        // 设置图像格式
+        int formatIndex = ui->comboBoxCaptureFormat->findText(settings.captureFormat);
+        if (formatIndex >= 0) {
+            ui->comboBoxCaptureFormat->setCurrentIndex(formatIndex);
+        }
+
+        // 设置图像质量
+        int qualityIndex = ui->comboBoxImageQuality->findText(settings.imageQuality);
+        if (qualityIndex >= 0) {
+            ui->comboBoxImageQuality->setCurrentIndex(qualityIndex);
+        }
+
+        // 记录日志
+        if (m_logManager) {
+            m_logManager->log("拍照参数预设已加载", LogLevel::INFO);
+        }
+
+        qDebug() << "拍照参数预设加载完成";
+    }
+}
+
+void MutiCamApp::resetCapturePreset()
+{
+    qDebug() << "重置拍照参数预设";
+
+    // 重置为默认值
+    ui->spinBoxCaptureInterval->setValue(3);
+    ui->checkBoxAutoSave->setChecked(true);
+    ui->comboBoxCaptureFormat->setCurrentIndex(0); // PNG
+    ui->comboBoxImageQuality->setCurrentIndex(0);  // 无损最高质量
+
+    // 保存重置后的设置
+    saveCapturePreset();
+
+    // 记录日志
+    if (m_logManager) {
+        m_logManager->log("拍照参数预设已重置为默认值", LogLevel::INFO);
+    }
+
+    statusBar()->showMessage("拍照参数预设已重置", 2000);
+}
+
+void MutiCamApp::applyCapturePreset()
+{
+    // 实时应用参数变化（可以在这里添加实时生效的逻辑）
+    qDebug() << "应用拍照参数预设:"
+             << "间隔=" << ui->spinBoxCaptureInterval->value() << "秒"
+             << "自动保存=" << ui->checkBoxAutoSave->isChecked()
+             << "格式=" << ui->comboBoxCaptureFormat->currentText()
+             << "质量=" << ui->comboBoxImageQuality->currentText();
+
+    // 延迟保存设置（避免频繁保存）
+    if (m_settingsManager) {
+        m_settingsManager->saveSettingsDelayed(this);
+    }
 }
