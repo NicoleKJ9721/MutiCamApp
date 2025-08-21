@@ -2620,6 +2620,7 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         // 提交绘图动作
         DrawingAction action;
         action.type = DrawingAction::AddLineSegment;
+        action.source = DrawingAction::ManualDrawing;
         action.index = m_lineSegments.size() - 1;
         commitDrawingAction(action);
         
@@ -3290,6 +3291,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     // 记录历史
                     DrawingAction action;
                     action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
@@ -3345,6 +3347,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
@@ -3401,6 +3404,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
@@ -3464,6 +3468,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
@@ -3530,6 +3535,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
@@ -3611,6 +3617,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     // 记录历史
                     DrawingAction action;
                     action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
@@ -3682,6 +3689,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     // 记录历史
                     DrawingAction action;
                     action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
@@ -3755,6 +3763,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             // 记录历史
                             DrawingAction action;
                             action.type = DrawingAction::AddLineSegment;
+                            action.source = DrawingAction::ManualDrawing;
                             action.index = m_lineSegments.size() - 1;
                             commitDrawingAction(action);
                         }
@@ -3815,6 +3824,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     // 记录历史
                     DrawingAction action;
                     action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
@@ -3868,6 +3878,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     // 记录历史
                     DrawingAction action;
                     action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
@@ -3932,6 +3943,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
@@ -3998,6 +4010,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 记录历史
                         DrawingAction action;
                         action.type = DrawingAction::AddLineSegment;
+                        action.source = DrawingAction::ManualDrawing;
                         action.index = m_lineSegments.size() - 1;
                         commitDrawingAction(action);
 
