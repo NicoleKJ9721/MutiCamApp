@@ -625,8 +625,10 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     QAction *pointToMidlineAction = nullptr;
     QAction *pointToBisectorAction = nullptr;
 
-    // 点与线距离测量
-    if (m_selectedPoints.size() == 1 && m_selectedLines.size() == 1 &&
+    // 点与线距离测量（支持直线或平行线中线）
+    if (m_selectedPoints.size() == 1 &&
+        ((m_selectedLines.size() == 1 && m_selectedParallelMiddleLines.isEmpty()) ||
+         (m_selectedParallelMiddleLines.size() == 1 && m_selectedLines.isEmpty())) &&
         m_selectedCircles.isEmpty() && m_selectedFineCircles.isEmpty()) {
         pointToLineAction = contextMenu.addAction("点与线距离");
     }
@@ -644,16 +646,20 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         pointToFineCircleAction = contextMenu.addAction("点与精细圆距离");
     }
 
-    // 线与圆关系分析
-    if (m_selectedLines.size() == 1 && m_selectedCircles.size() == 1 &&
-        m_selectedPoints.isEmpty() && m_selectedFineCircles.isEmpty()) {
+    // 线与圆关系分析（支持直线或平行线中线）
+    if (((m_selectedLines.size() == 1 && m_selectedParallelMiddleLines.isEmpty()) ||
+         (m_selectedParallelMiddleLines.size() == 1 && m_selectedLines.isEmpty())) &&
+        m_selectedCircles.size() == 1 && m_selectedPoints.isEmpty() &&
+        m_selectedFineCircles.isEmpty()) {
         lineToCircleAction = contextMenu.addAction("线与圆关系");
     }
 
-    // 线与精细圆关系分析
+    // 线与精细圆关系分析（支持直线或平行线中线）
     QAction *lineToFineCircleAction = nullptr;
-    if (m_selectedLines.size() == 1 && m_selectedFineCircles.size() == 1 &&
-        m_selectedPoints.isEmpty() && m_selectedCircles.isEmpty()) {
+    if (((m_selectedLines.size() == 1 && m_selectedParallelMiddleLines.isEmpty()) ||
+         (m_selectedParallelMiddleLines.size() == 1 && m_selectedLines.isEmpty())) &&
+        m_selectedFineCircles.size() == 1 && m_selectedPoints.isEmpty() &&
+        m_selectedCircles.isEmpty()) {
         lineToFineCircleAction = contextMenu.addAction("线与精细圆关系");
     }
 
@@ -663,11 +669,11 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         lineAngleAction = contextMenu.addAction("线段夹角");
     }
 
-    // 点与平行线中线距离测量
-    if (m_selectedPoints.size() == 1 && m_selectedParallelMiddleLines.size() == 1 &&
-        m_selectedLines.isEmpty() && m_selectedCircles.isEmpty()) {
-        pointToMidlineAction = contextMenu.addAction("点与平行线中线距离");
-    }
+    // 点与平行线中线距离测量（已统一到"点与线距离"中）
+    // if (m_selectedPoints.size() == 1 && m_selectedParallelMiddleLines.size() == 1 &&
+    //     m_selectedLines.isEmpty() && m_selectedCircles.isEmpty()) {
+    //     pointToMidlineAction = contextMenu.addAction("点与平行线中线距离");
+    // }
 
     // 点与角平分线距离测量（TwoLinesObject的角平分线）
     if (m_selectedPoints.size() == 1 && m_selectedBisectorLines.size() == 1 &&
@@ -709,9 +715,10 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         lineSegmentToFineCircleAction = contextMenu.addAction("线段与精细圆");
     }
 
-    // 两条直线夹角测量
+    // 两条直线夹角测量（支持直线、平行线中线的各种组合）
     QAction *twoLinesAngleAction = nullptr;
-    if (m_selectedLines.size() == 2 && m_selectedPoints.isEmpty() &&
+    int totalLineCount = m_selectedLines.size() + m_selectedParallelMiddleLines.size();
+    if (totalLineCount == 2 && m_selectedPoints.isEmpty() &&
         m_selectedCircles.isEmpty() && m_selectedFineCircles.isEmpty() &&
         m_selectedParallels.isEmpty() && m_selectedTwoLines.isEmpty() &&
         m_selectedLineSegments.isEmpty()) {
@@ -739,8 +746,6 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         performComplexMeasurement("线段夹角");
     } else if (selectedAction == twoLinesAngleAction) {
         performComplexMeasurement("两线夹角");
-    } else if (selectedAction == pointToMidlineAction) {
-        performComplexMeasurement("点与平行线中线距离");
     } else if (selectedAction == pointToBisectorAction) {
         performComplexMeasurement("点与角平分线距离");
     } else if (selectedAction == pointToBisectorLineSegmentAction) {
@@ -3422,56 +3427,68 @@ void PaintingOverlay::onSelectionChanged()
 void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 {
     if (measurementType == "点与线距离") {
-        if (m_selectedPoints.size() == 1 && m_selectedLines.size() == 1) {
+        if (m_selectedPoints.size() == 1 &&
+            (m_selectedLines.size() == 1 || m_selectedParallelMiddleLines.size() == 1)) {
+
             int pointIndex = *m_selectedPoints.begin();
-            int lineIndex = *m_selectedLines.begin();
+            const PointObject& point = m_points[pointIndex];
 
-            if (pointIndex >= 0 && pointIndex < m_points.size() &&
-                lineIndex >= 0 && lineIndex < m_lines.size()) {
+            QPointF lineStart, lineEnd;
+            bool hasValidLine = false;
 
-                const PointObject& point = m_points[pointIndex];
-                const LineObject& line = m_lines[lineIndex];
-
-                if (line.points.size() >= 2) {
-                    // 计算垂足点
-                    QPointF footPoint = calculatePerpendicularFoot(
-                        point.position, line.points[0], line.points[1]);
-
-                    // 计算距离
-                    double distance = calculatePointToLineDistance(
-                        point.position, line.points[0], line.points[1]);
-
-                    // 创建垂线段
-                    LineSegmentObject perpendicular;
-                    perpendicular.points.append(point.position);
-                    perpendicular.points.append(footPoint);
-                    perpendicular.isCompleted = true;
-                    perpendicular.color = Qt::red;
-                    perpendicular.thickness = 2.0;
-                    perpendicular.isDashed = true;
-                    perpendicular.isVisible = true;
-                    perpendicular.length = distance;
-                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
-
-                    // 添加到线段列表
-                    m_lineSegments.append(perpendicular);
-
-                    // 记录历史
-                    DrawingAction action;
-                    action.type = DrawingAction::AddLineSegment;
-                    action.source = DrawingAction::ManualDrawing;
-                    action.index = m_lineSegments.size() - 1;
-                    commitDrawingAction(action);
-
-                    // 发送测量完成信号
-                    QString result = QString("点到直线距离: %1 像素").arg(distance, 0, 'f', 2);
-                    emit measurementCompleted(m_viewName, result);
-
-                    // 清除选择并更新显示
-                    clearSelection();
-                    emit drawingDataChanged(m_viewName);
-                    update();
+            // 获取线的起止点（直线或平行线中线）
+            if (m_selectedLines.size() == 1) {
+                int lineIndex = *m_selectedLines.begin();
+                if (lineIndex >= 0 && lineIndex < m_lines.size()) {
+                    const LineObject& line = m_lines[lineIndex];
+                    if (line.points.size() >= 2) {
+                        lineStart = line.points[0];
+                        lineEnd = line.points[1];
+                        hasValidLine = true;
+                    }
                 }
+            } else if (m_selectedParallelMiddleLines.size() == 1) {
+                int parallelIndex = *m_selectedParallelMiddleLines.begin();
+                hasValidLine = getParallelMiddleLinePoints(parallelIndex, lineStart, lineEnd);
+            }
+
+            if (hasValidLine) {
+                // 计算垂足点
+                QPointF footPoint = calculatePerpendicularFoot(point.position, lineStart, lineEnd);
+
+                // 计算距离
+                double distance = calculatePointToLineDistance(point.position, lineStart, lineEnd);
+
+                // 创建垂线段
+                LineSegmentObject perpendicular;
+                perpendicular.points.append(point.position);
+                perpendicular.points.append(footPoint);
+                perpendicular.isCompleted = true;
+                perpendicular.color = Qt::red;
+                perpendicular.thickness = 2.0;
+                perpendicular.isDashed = true;
+                perpendicular.isVisible = true;
+                perpendicular.length = distance;
+                perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+
+                // 添加到线段列表
+                m_lineSegments.append(perpendicular);
+
+                // 记录历史
+                DrawingAction action;
+                action.type = DrawingAction::AddLineSegment;
+                action.source = DrawingAction::ManualDrawing;
+                action.index = m_lineSegments.size() - 1;
+                commitDrawingAction(action);
+
+                // 发送测量完成信号
+                QString result = QString("点到直线距离: %1 像素").arg(distance, 0, 'f', 2);
+                emit measurementCompleted(m_viewName, result);
+
+                // 清除选择并更新显示
+                clearSelection();
+                emit drawingDataChanged(m_viewName);
+                update();
             }
         }
     } else if (measurementType == "点与圆距离") {
@@ -3589,20 +3606,34 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
             }
         }
     } else if (measurementType == "线与圆关系") {
-        if (m_selectedLines.size() == 1 && m_selectedCircles.size() == 1) {
-            int lineIndex = *m_selectedLines.begin();
+        if ((m_selectedLines.size() == 1 || m_selectedParallelMiddleLines.size() == 1) &&
+            m_selectedCircles.size() == 1) {
+
             int circleIndex = *m_selectedCircles.begin();
+            const CircleObject& circle = m_circles[circleIndex];
 
-            if (lineIndex >= 0 && lineIndex < m_lines.size() &&
-                circleIndex >= 0 && circleIndex < m_circles.size()) {
+            QPointF lineStart, lineEnd;
+            bool hasValidLine = false;
 
-                const LineObject& line = m_lines[lineIndex];
-                const CircleObject& circle = m_circles[circleIndex];
+            // 获取线的起止点（直线或平行线中线）
+            if (m_selectedLines.size() == 1) {
+                int lineIndex = *m_selectedLines.begin();
+                if (lineIndex >= 0 && lineIndex < m_lines.size()) {
+                    const LineObject& line = m_lines[lineIndex];
+                    if (line.points.size() >= 2) {
+                        lineStart = line.points[0];
+                        lineEnd = line.points[1];
+                        hasValidLine = true;
+                    }
+                }
+            } else if (m_selectedParallelMiddleLines.size() == 1) {
+                int parallelIndex = *m_selectedParallelMiddleLines.begin();
+                hasValidLine = getParallelMiddleLinePoints(parallelIndex, lineStart, lineEnd);
+            }
 
-                if (line.points.size() >= 2 && circle.isCompleted) {
-                    // 计算圆心到直线的垂足
-                    QPointF footPoint = calculatePerpendicularFoot(
-                        circle.center, line.points[0], line.points[1]);
+            if (hasValidLine && circle.isCompleted) {
+                // 计算圆心到直线的垂足
+                QPointF footPoint = calculatePerpendicularFoot(circle.center, lineStart, lineEnd);
 
                     // 计算从圆心到直线垂足的方向向量
                     QPointF direction = footPoint - circle.center;
@@ -3625,51 +3656,61 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
-                        // 计算直线到圆周的距离
-                        double distanceToCenter = calculatePointToLineDistance(circle.center, line.points[0], line.points[1]);
-                        double distanceToCircle = abs(distanceToCenter - circle.radius);
-                        perpendicular.length = distanceToCircle;
-                        perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                    // 计算直线到圆周的距离
+                    double distanceToCenter = calculatePointToLineDistance(circle.center, lineStart, lineEnd);
+                    double distanceToCircle = abs(distanceToCenter - circle.radius);
+                    perpendicular.length = distanceToCircle;
+                    perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
 
-                        m_lineSegments.append(perpendicular);
+                    m_lineSegments.append(perpendicular);
 
-                        // 记录历史
-                        DrawingAction action;
-                        action.type = DrawingAction::AddLineSegment;
-                        action.source = DrawingAction::ManualDrawing;
-                        action.index = m_lineSegments.size() - 1;
-                        commitDrawingAction(action);
+                    // 记录历史
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
+                    action.index = m_lineSegments.size() - 1;
+                    commitDrawingAction(action);
 
-                        // 分析关系并发送信号
-                        QString relationResult = analyzeLineCircleRelation(
-                            line.points[0], line.points[1], circle.center, circle.radius);
-                        emit measurementCompleted(m_viewName, relationResult);
-                    }
-
-                    // 清除选择并更新显示
-                    clearSelection();
-                    emit drawingDataChanged(m_viewName);
-                    update();
+                    // 分析关系并发送信号
+                    QString relationResult = analyzeLineCircleRelation(lineStart, lineEnd, circle.center, circle.radius);
+                    emit measurementCompleted(m_viewName, relationResult);
                 }
+
+                // 清除选择并更新显示
+                clearSelection();
+                emit drawingDataChanged(m_viewName);
+                update();
             }
         }
     } else if (measurementType == "线与精细圆关系") {
-        if (m_selectedLines.size() == 1 && m_selectedFineCircles.size() == 1) {
-            QList<int> lineIndices = m_selectedLines.values();
-            QList<int> fineCircleIndices = m_selectedFineCircles.values();
-            int lineIndex = lineIndices[0];
-            int fineCircleIndex = fineCircleIndices[0];
+        if ((m_selectedLines.size() == 1 || m_selectedParallelMiddleLines.size() == 1) &&
+            m_selectedFineCircles.size() == 1) {
 
-            if (lineIndex >= 0 && lineIndex < m_lines.size() &&
-                fineCircleIndex >= 0 && fineCircleIndex < m_fineCircles.size()) {
+            int fineCircleIndex = *m_selectedFineCircles.begin();
+            const FineCircleObject& fineCircle = m_fineCircles[fineCircleIndex];
 
-                const LineObject& line = m_lines[lineIndex];
-                const FineCircleObject& fineCircle = m_fineCircles[fineCircleIndex];
+            QPointF lineStart, lineEnd;
+            bool hasValidLine = false;
 
-                if (line.points.size() >= 2 && fineCircle.isCompleted) {
-                    // 计算圆心到直线的垂足
-                    QPointF footPoint = calculatePerpendicularFoot(
-                        fineCircle.center, line.points[0], line.points[1]);
+            // 获取线的起止点（直线或平行线中线）
+            if (m_selectedLines.size() == 1) {
+                int lineIndex = *m_selectedLines.begin();
+                if (lineIndex >= 0 && lineIndex < m_lines.size()) {
+                    const LineObject& line = m_lines[lineIndex];
+                    if (line.points.size() >= 2) {
+                        lineStart = line.points[0];
+                        lineEnd = line.points[1];
+                        hasValidLine = true;
+                    }
+                }
+            } else if (m_selectedParallelMiddleLines.size() == 1) {
+                int parallelIndex = *m_selectedParallelMiddleLines.begin();
+                hasValidLine = getParallelMiddleLinePoints(parallelIndex, lineStart, lineEnd);
+            }
+
+            if (hasValidLine && fineCircle.isCompleted) {
+                // 计算圆心到直线的垂足
+                QPointF footPoint = calculatePerpendicularFoot(fineCircle.center, lineStart, lineEnd);
 
                     // 计算从圆心到直线垂足的方向向量
                     QPointF direction = footPoint - fineCircle.center;
@@ -3692,32 +3733,30 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
-                        // 计算直线到圆周的距离
-                        double distanceToCenter = calculatePointToLineDistance(fineCircle.center, line.points[0], line.points[1]);
-                        double distanceToCircle = abs(distanceToCenter - fineCircle.radius);
-                        perpendicular.length = distanceToCircle;
-                        perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                    // 计算直线到圆周的距离
+                    double distanceToCenter = calculatePointToLineDistance(fineCircle.center, lineStart, lineEnd);
+                    double distanceToCircle = abs(distanceToCenter - fineCircle.radius);
+                    perpendicular.length = distanceToCircle;
+                    perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
 
-                        m_lineSegments.append(perpendicular);
+                    m_lineSegments.append(perpendicular);
 
-                        // 记录历史
-                        DrawingAction action;
-                        action.type = DrawingAction::AddLineSegment;
-                        action.source = DrawingAction::ManualDrawing;
-                        action.index = m_lineSegments.size() - 1;
-                        commitDrawingAction(action);
+                    // 记录历史
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
+                    action.index = m_lineSegments.size() - 1;
+                    commitDrawingAction(action);
 
-                        // 分析关系并发送信号
-                        QString relationResult = analyzeLineCircleRelation(
-                            line.points[0], line.points[1], fineCircle.center, fineCircle.radius);
-                        emit measurementCompleted(m_viewName, relationResult);
-                    }
-
-                    // 清除选择并更新显示
-                    clearSelection();
-                    emit drawingDataChanged(m_viewName);
-                    update();
+                    // 分析关系并发送信号
+                    QString relationResult = analyzeLineCircleRelation(lineStart, lineEnd, fineCircle.center, fineCircle.radius);
+                    emit measurementCompleted(m_viewName, relationResult);
                 }
+
+                // 清除选择并更新显示
+                clearSelection();
+                emit drawingDataChanged(m_viewName);
+                update();
             }
         }
     } else if (measurementType == "线段夹角") {
@@ -3770,59 +3809,6 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                     // 发送测量完成信号
                     QString result = QString("线段夹角: %1 度").arg(angle, 0, 'f', 2);
-                    emit measurementCompleted(m_viewName, result);
-
-                    // 清除选择并更新显示
-                    clearSelection();
-                    emit drawingDataChanged(m_viewName);
-                    update();
-                }
-            }
-        }
-    } else if (measurementType == "点与平行线中线距离") {
-        if (m_selectedPoints.size() == 1 && m_selectedParallelMiddleLines.size() == 1) {
-            QList<int> pointIndices = m_selectedPoints.values();
-            QList<int> parallelIndices = m_selectedParallelMiddleLines.values();
-            int pointIndex = pointIndices[0];
-            int parallelIndex = parallelIndices[0];
-
-            if (pointIndex >= 0 && pointIndex < m_points.size() &&
-                parallelIndex >= 0 && parallelIndex < m_parallels.size()) {
-
-                const PointObject& point = m_points[pointIndex];
-                const ParallelObject& parallel = m_parallels[parallelIndex];
-
-                if (parallel.isCompleted && parallel.points.size() >= 3) {
-                    // 计算点到平行线中线的距离
-                    double distance = calculatePointToLineDistance(point.position, parallel.midStart, parallel.midEnd);
-
-                    // 计算垂足
-                    QPointF footPoint = calculatePerpendicularFoot(point.position, parallel.midStart, parallel.midEnd);
-
-                    // 创建垂线段
-                    LineSegmentObject perpendicular;
-                    perpendicular.points.append(point.position);
-                    perpendicular.points.append(footPoint);
-                    perpendicular.isCompleted = true;
-                    perpendicular.color = Qt::red;
-                    perpendicular.thickness = 2.0;
-                    perpendicular.isDashed = true;
-                    perpendicular.isVisible = true;
-                    perpendicular.length = distance;
-                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
-
-                    // 添加到线段列表
-                    m_lineSegments.append(perpendicular);
-
-                    // 记录历史
-                    DrawingAction action;
-                    action.type = DrawingAction::AddLineSegment;
-                    action.source = DrawingAction::ManualDrawing;
-                    action.index = m_lineSegments.size() - 1;
-                    commitDrawingAction(action);
-
-                    // 发送测量完成信号
-                    QString result = QString("点到平行线中线距离: %1").arg(distance, 0, 'f', 2);
                     emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
@@ -3905,34 +3891,51 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
             }
         }
     } else if (measurementType == "两线夹角") {
-        if (m_selectedLines.size() == 2) {
-            QList<int> indices = m_selectedLines.values();
-            int index1 = indices[0];
-            int index2 = indices[1];
+        int totalLineCount = m_selectedLines.size() + m_selectedParallelMiddleLines.size();
+        if (totalLineCount == 2) {
+            QPointF line1Start, line1End, line2Start, line2End;
+            bool hasValidLines = false;
 
-            if (index1 >= 0 && index1 < m_lines.size() &&
-                index2 >= 0 && index2 < m_lines.size()) {
+            // 获取两条线的起止点
+            QList<int> lineIndices = m_selectedLines.values();
+            QList<int> parallelIndices = m_selectedParallelMiddleLines.values();
 
-                const LineObject& line1 = m_lines[index1];
-                const LineObject& line2 = m_lines[index2];
-
+            if (m_selectedLines.size() == 2) {
+                // 两条直线
+                const LineObject& line1 = m_lines[lineIndices[0]];
+                const LineObject& line2 = m_lines[lineIndices[1]];
                 if (line1.points.size() >= 2 && line2.points.size() >= 2) {
-                    // 计算两条直线的交点
-                    QPointF intersection;
-                    bool hasIntersection = calculateLineIntersection(
-                        line1.points[0], line1.points[1],
-                        line2.points[0], line2.points[1],
-                        intersection);
+                    line1Start = line1.points[0]; line1End = line1.points[1];
+                    line2Start = line2.points[0]; line2End = line2.points[1];
+                    hasValidLines = true;
+                }
+            } else if (m_selectedLines.size() == 1 && m_selectedParallelMiddleLines.size() == 1) {
+                // 一条直线 + 一条平行线中线
+                const LineObject& line = m_lines[lineIndices[0]];
+                if (line.points.size() >= 2 && getParallelMiddleLinePoints(parallelIndices[0], line2Start, line2End)) {
+                    line1Start = line.points[0]; line1End = line.points[1];
+                    hasValidLines = true;
+                }
+            } else if (m_selectedParallelMiddleLines.size() == 2) {
+                // 两条平行线中线
+                if (getParallelMiddleLinePoints(parallelIndices[0], line1Start, line1End) &&
+                    getParallelMiddleLinePoints(parallelIndices[1], line2Start, line2End)) {
+                    hasValidLines = true;
+                }
+            }
 
-                    if (hasIntersection) {
-                        // 计算夹角
-                        double angle = calculateLineSegmentAngle(
-                            line1.points[0], line1.points[1],
-                            line2.points[0], line2.points[1]);
+            if (hasValidLines) {
+                // 计算两条直线的交点
+                QPointF intersection;
+                bool hasIntersection = calculateLineIntersection(line1Start, line1End, line2Start, line2End, intersection);
 
-                        // 计算两条直线的方向向量
-                        QPointF dir1 = line1.points[1] - line1.points[0];
-                        QPointF dir2 = line2.points[1] - line2.points[0];
+                if (hasIntersection) {
+                    // 计算夹角
+                    double angle = calculateLineSegmentAngle(line1Start, line1End, line2Start, line2End);
+
+                    // 计算两条直线的方向向量
+                    QPointF dir1 = line1End - line1Start;
+                    QPointF dir2 = line2End - line2Start;
                         
                         // 归一化方向向量
                         double len1 = sqrt(dir1.x() * dir1.x() + dir1.y() * dir1.y());
@@ -3968,21 +3971,20 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             commitDrawingAction(action);
                         }
 
-                        // 发送测量完成信号
-                        QString result = QString("两线夹角: %.1f°\n交点坐标: (%.1f, %.1f)")
-                                        .arg(angle).arg(intersection.x()).arg(intersection.y());
-                        emit measurementCompleted(m_viewName, result);
-                    } else {
-                        // 两线平行
-                        QString result = "两线平行，无交点";
-                        emit measurementCompleted(m_viewName, result);
-                    }
-
-                    // 清除选择并更新显示
-                    clearSelection();
-                    emit drawingDataChanged(m_viewName);
-                    update();
+                    // 发送测量完成信号
+                    QString result = QString("两线夹角: %.1f°\n交点坐标: (%.1f, %.1f)")
+                                    .arg(angle).arg(intersection.x()).arg(intersection.y());
+                    emit measurementCompleted(m_viewName, result);
+                } else {
+                    // 两线平行
+                    QString result = "两线平行，无交点";
+                    emit measurementCompleted(m_viewName, result);
                 }
+
+                // 清除选择并更新显示
+                clearSelection();
+                emit drawingDataChanged(m_viewName);
+                update();
             }
         }
     } else if (measurementType == "点与角平分线距离LineSegment") {
@@ -4303,6 +4305,19 @@ QString PaintingOverlay::analyzeLineSegmentCircleRelation(const QPointF& lineSta
 
     return QString("线段与圆%1\n圆心到线段距离: %2 像素\n圆半径: %3 像素")
            .arg(relation).arg(distanceToSegment, 0, 'f', 2).arg(radius, 0, 'f', 2);
+}
+
+bool PaintingOverlay::getParallelMiddleLinePoints(int parallelIndex, QPointF& lineStart, QPointF& lineEnd) const
+{
+    if (parallelIndex >= 0 && parallelIndex < m_parallels.size()) {
+        const ParallelObject& parallel = m_parallels[parallelIndex];
+        if (parallel.isCompleted && parallel.points.size() >= 3) {
+            lineStart = parallel.midStart;
+            lineEnd = parallel.midEnd;
+            return true;
+        }
+    }
+    return false;
 }
 
 double PaintingOverlay::calculateLineSegmentAngle(const QPointF& line1Start, const QPointF& line1End, const QPointF& line2Start, const QPointF& line2End) const

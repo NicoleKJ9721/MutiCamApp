@@ -498,7 +498,10 @@ private:
     double calculateLineSegmentAngle(const QPointF& line1Start, const QPointF& line1End, const QPointF& line2Start, const QPointF& line2End) const;
     QPointF calculatePerpendicularFoot(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
     bool isPointOnLineSegment(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd, double tolerance) const;
-    
+
+    // 平行线中线辅助函数
+    bool getParallelMiddleLinePoints(int parallelIndex, QPointF& lineStart, QPointF& lineEnd) const;
+
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);
     void undoAction(const DrawingAction& action);  // 执行具体的撤销操作
