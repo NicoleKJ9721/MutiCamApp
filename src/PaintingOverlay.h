@@ -475,6 +475,7 @@ private:
     double calculatePointToLineDistance(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
     double calculatePointToCircleDistance(const QPointF& point, const QPointF& circleCenter, double radius, bool toCircumference = true) const;
     QString analyzeLineCircleRelation(const QPointF& lineStart, const QPointF& lineEnd, const QPointF& circleCenter, double radius) const;
+    QString analyzeLineSegmentCircleRelation(const QPointF& lineStart, const QPointF& lineEnd, const QPointF& circleCenter, double radius) const;
     double calculateLineSegmentAngle(const QPointF& line1Start, const QPointF& line1End, const QPointF& line2Start, const QPointF& line2End) const;
     QPointF calculatePerpendicularFoot(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd) const;
     bool isPointOnLineSegment(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd, double tolerance) const;
