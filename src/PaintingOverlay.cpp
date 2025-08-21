@@ -129,7 +129,7 @@ void PaintingOverlay::clearManualDrawings()
     // 收集需要删除的手动绘制图形的索引
     QSet<int> pointsToRemove, linesToRemove, lineSegmentsToRemove;
     QSet<int> circlesToRemove, fineCirclesToRemove, parallelsToRemove;
-    QSet<int> twoLinesToRemove, roisToRemove;
+    QSet<int> twoLinesToRemove, lineSegmentAnglesToRemove, roisToRemove;
 
     // 遍历历史记录，找出所有手动绘制的图形
     for (const DrawingAction& action : m_drawingHistory) {
@@ -170,6 +170,11 @@ void PaintingOverlay::clearManualDrawings()
                         twoLinesToRemove.insert(action.index);
                     }
                     break;
+                case DrawingAction::AddLineSegmentAngle:
+                    if (action.index < m_lineSegmentAngles.size()) {
+                        lineSegmentAnglesToRemove.insert(action.index);
+                    }
+                    break;
                 case DrawingAction::AddROI:
                     if (action.index < m_rois.size()) {
                         roisToRemove.insert(action.index);
@@ -189,6 +194,7 @@ void PaintingOverlay::clearManualDrawings()
     removeItemsByIndices(m_fineCircles, fineCirclesToRemove);
     removeItemsByIndices(m_parallels, parallelsToRemove);
     removeItemsByIndices(m_twoLines, twoLinesToRemove);
+    removeItemsByIndices(m_lineSegmentAngles, lineSegmentAnglesToRemove);
     removeItemsByIndices(m_rois, roisToRemove);
 
     // 清理历史记录中的手动绘制操作
@@ -345,6 +351,7 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         drawFineCircles(painter, ctx);
         drawParallels(painter, ctx);
         drawTwoLines(painter, ctx);
+        drawLineSegmentAngles(painter, ctx);
         drawROIs(painter, ctx);
 
         // 3. 【关键】绘制当前正在预览的图形（在最上层）
@@ -379,8 +386,8 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
             bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() ||
                                !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() ||
                                !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() ||
-                               !m_selectedLineSegments.isEmpty() || !m_selectedParallelMiddleLines.isEmpty() ||
-                               !m_selectedROIs.isEmpty();
+                               !m_selectedLineSegments.isEmpty() || !m_selectedLineSegmentAngles.isEmpty() ||
+                               !m_selectedParallelMiddleLines.isEmpty() || !m_selectedROIs.isEmpty();
 
             if (!hasSelection) {
                 stopDrawing();
@@ -586,8 +593,9 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() ||
                        !m_selectedCircles.isEmpty() || !m_selectedFineCircles.isEmpty() ||
                        !m_selectedParallels.isEmpty() || !m_selectedTwoLines.isEmpty() ||
-                       !m_selectedLineSegments.isEmpty() || !m_selectedParallelMiddleLines.isEmpty() ||
-                       !m_selectedBisectorLines.isEmpty() || !m_selectedROIs.isEmpty();
+                       !m_selectedLineSegments.isEmpty() || !m_selectedLineSegmentAngles.isEmpty() ||
+                       !m_selectedParallelMiddleLines.isEmpty() || !m_selectedBisectorLines.isEmpty() ||
+                       !m_selectedROIs.isEmpty();
     
     if (!hasSelection) {
         QWidget::contextMenuEvent(event);
@@ -1535,6 +1543,17 @@ void PaintingOverlay::drawTwoLines(QPainter& painter, const DrawingContext& ctx)
     }
 }
 
+void PaintingOverlay::drawLineSegmentAngles(QPainter& painter, const DrawingContext& ctx) const
+{
+    // 绘制已完成的线段夹角
+    for (int i = 0; i < m_lineSegmentAngles.size(); ++i) {
+        const auto& angleObj = m_lineSegmentAngles[i];
+        if (angleObj.isVisible) {
+            drawSingleLineSegmentAngle(painter, angleObj, i, ctx);
+        }
+    }
+}
+
 // 两线
 void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx) const
 {
@@ -1721,6 +1740,64 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         
         // 4. 绘制坐标文本框
         drawTextInRect(painter, coordTextRect, coordText, ctx.font, twoLines.color, Qt::black, bgBorderWidth);
+    }
+}
+
+void PaintingOverlay::drawSingleLineSegmentAngle(QPainter& painter, const LineSegmentAngleObject& angleObj, int index, const DrawingContext& ctx) const
+{
+    if (!angleObj.isCompleted || angleObj.points.size() < 4) {
+        return;
+    }
+
+    // 使用预创建的字体和画笔
+    painter.setFont(ctx.font);
+
+    // 计算动态尺寸参数
+    double intersectionRadius = qMax(6.0, 8.0 * ctx.scale);  // 交点圆点半径
+    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textPadding = qMax(4.0, ctx.fontSize * 0.5);
+    int bgBorderWidth = 1;
+
+    // 绘制两条线段（用于显示角度关系）
+    QPointF line1Start = angleObj.points[0];
+    QPointF line1End = angleObj.points[1];
+    QPointF line2Start = angleObj.points[2];
+    QPointF line2End = angleObj.points[3];
+
+    // 设置线段样式（红色，与Python版本一致）
+    QPen linePen(angleObj.color, angleObj.thickness * ctx.scale);
+    painter.setPen(linePen);
+    painter.drawLine(line1Start, line1End);
+    painter.drawLine(line2Start, line2End);
+
+    // 如果有交点，绘制交点（红色实心圆点）
+    if (angleObj.hasIntersection) {
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(Qt::red));
+        painter.drawEllipse(angleObj.intersection, intersectionRadius, intersectionRadius);
+
+        // 绘制角度文本框
+        QString angleText = angleObj.label;  // 已经包含度数符号
+
+        // 计算文本位置（在交点右上方）
+        QPointF textAnchorPoint = angleObj.intersection;
+        QPointF angleTextOffset(textOffset, -textOffset);
+        QRectF angleTextRect = calculateTextWithBackgroundRect(textAnchorPoint, angleText, ctx.font, textPadding, angleTextOffset);
+
+        // 绘制角度文本框
+        drawTextInRect(painter, angleTextRect, angleText, ctx.font, angleObj.color, Qt::black, bgBorderWidth);
+    } else {
+        // 如果没有交点（平行线），在两线段中间显示角度
+        QPointF line1Center = (line1Start + line1End) / 2.0;
+        QPointF line2Center = (line2Start + line2End) / 2.0;
+        QPointF textAnchorPoint = (line1Center + line2Center) / 2.0;
+
+        QString angleText = angleObj.label;
+        QPointF angleTextOffset(0, -textOffset);
+        QRectF angleTextRect = calculateTextWithBackgroundRect(textAnchorPoint, angleText, ctx.font, textPadding, angleTextOffset);
+
+        // 绘制角度文本框
+        drawTextInRect(painter, angleTextRect, angleText, ctx.font, angleObj.color, Qt::black, bgBorderWidth);
     }
 }
 
@@ -1967,6 +2044,27 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             }
         }
     }
+
+    // 高亮选中的线段夹角 - 使用更粗的画笔绘制外描边
+    for (int index : m_selectedLineSegmentAngles) {
+        if (index >= 0 && index < m_lineSegmentAngles.size()) {
+            const LineSegmentAngleObject& angleObj = m_lineSegmentAngles[index];
+            if (!angleObj.isVisible || !angleObj.isCompleted || angleObj.points.size() < 4) continue;
+
+            // 绘制高亮的两条线段
+            painter.setPen(thickHighlightPen);
+            painter.drawLine(angleObj.points[0], angleObj.points[1]);  // 第一条线段
+            painter.drawLine(angleObj.points[2], angleObj.points[3]);  // 第二条线段
+
+            // 如果有交点，高亮交点
+            if (angleObj.hasIntersection) {
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(QBrush(Qt::yellow));  // 黄色高亮交点
+                double highlightRadius = 8.0;
+                painter.drawEllipse(angleObj.intersection, highlightRadius, highlightRadius);
+            }
+        }
+    }
 }
 
 QPointF PaintingOverlay::widgetToImage(const QPointF& widgetPos) const
@@ -2131,6 +2229,11 @@ void PaintingOverlay::undoAction(const DrawingAction& action)
         case DrawingAction::AddTwoLines:
             if (!m_twoLines.isEmpty()) {
                 m_twoLines.removeLast(); // 移除最后添加的两线
+            }
+            break;
+        case DrawingAction::AddLineSegmentAngle:
+            if (!m_lineSegmentAngles.isEmpty()) {
+                m_lineSegmentAngles.removeLast(); // 移除最后添加的线段夹角
             }
             break;
         case DrawingAction::AddROI:
@@ -2412,6 +2515,7 @@ void PaintingOverlay::clearSelection()
     m_selectedFineCircles.clear();
     m_selectedParallels.clear();
     m_selectedTwoLines.clear();
+    m_selectedLineSegmentAngles.clear();
     m_selectedParallelMiddleLines.clear();
     m_selectedBisectorLines.clear(); // 清除角平分线选择
     m_selectedROIs.clear(); // 清除ROI选择
@@ -2439,6 +2543,9 @@ QString PaintingOverlay::getSelectedObjectInfo() const
     }
     if (!m_selectedTwoLines.isEmpty()) {
         info << QString("选中双线: %1个").arg(m_selectedTwoLines.size());
+    }
+    if (!m_selectedLineSegmentAngles.isEmpty()) {
+        info << QString("选中线段夹角: %1个").arg(m_selectedLineSegmentAngles.size());
     }
     if (!m_selectedROIs.isEmpty()) {
         info << QString("选中ROI: %1个").arg(m_selectedROIs.size());
@@ -2509,6 +2616,15 @@ void PaintingOverlay::deleteSelectedObjects()
     for (int index : twoLinesIndices) {
         if (index >= 0 && index < m_twoLines.size()) {
             m_twoLines.removeAt(index);
+        }
+    }
+
+    // 删除选中的线段夹角
+    QList<int> lineSegmentAnglesIndices = m_selectedLineSegmentAngles.values();
+    std::sort(lineSegmentAnglesIndices.rbegin(), lineSegmentAnglesIndices.rend());
+    for (int index : lineSegmentAnglesIndices) {
+        if (index >= 0 && index < m_lineSegmentAngles.size()) {
+            m_lineSegmentAngles.removeAt(index);
         }
     }
 
@@ -3044,6 +3160,22 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         foundSelection = true;
     }
 
+    // 测试线段夹角
+    int lineSegmentAngleIndex = hitTestLineSegmentAngle(pos, 10.0);
+    if (lineSegmentAngleIndex >= 0 && !foundSelection) {
+        if (ctrlPressed) {
+            if (m_selectedLineSegmentAngles.contains(lineSegmentAngleIndex)) {
+                m_selectedLineSegmentAngles.remove(lineSegmentAngleIndex);
+            } else {
+                m_selectedLineSegmentAngles.insert(lineSegmentAngleIndex);
+            }
+        } else {
+            clearSelection();
+            m_selectedLineSegmentAngles.insert(lineSegmentAngleIndex);
+        }
+        foundSelection = true;
+    }
+
     // 测试ROI
     int roiIndex = hitTestROI(pos, 20.0); // 增加ROI的命中容差
     if (roiIndex >= 0 && !foundSelection) {
@@ -3234,6 +3366,42 @@ int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) c
         if (twoLines.points.size() >= 4) {
             double distance2 = calculateDistancePointToLine(testPos, twoLines.points[2], twoLines.points[3]);
             if (distance2 <= tolerance) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+int PaintingOverlay::hitTestLineSegmentAngle(const QPointF& testPos, double tolerance) const
+{
+    for (int i = 0; i < m_lineSegmentAngles.size(); ++i) {
+        const LineSegmentAngleObject& angleObj = m_lineSegmentAngles[i];
+        if (!angleObj.isVisible || !angleObj.isCompleted || angleObj.points.size() < 4) continue;
+
+        // 测试两条线段是否被点击
+        QPointF line1Start = angleObj.points[0];
+        QPointF line1End = angleObj.points[1];
+        QPointF line2Start = angleObj.points[2];
+        QPointF line2End = angleObj.points[3];
+
+        // 测试第一条线段
+        double dist1 = calculateDistancePointToLine(testPos, line1Start, line1End);
+        if (dist1 <= tolerance) {
+            return i;
+        }
+
+        // 测试第二条线段
+        double dist2 = calculateDistancePointToLine(testPos, line2Start, line2End);
+        if (dist2 <= tolerance) {
+            return i;
+        }
+
+        // 如果有交点，也测试交点附近的区域
+        if (angleObj.hasIntersection) {
+            double distToIntersection = sqrt(pow(testPos.x() - angleObj.intersection.x(), 2) +
+                                           pow(testPos.y() - angleObj.intersection.y(), 2));
+            if (distToIntersection <= tolerance * 2) {  // 交点区域容差更大
                 return i;
             }
         }
@@ -3565,9 +3733,40 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 const LineSegmentObject& line2 = m_lineSegments[index2];
 
                 if (line1.points.size() >= 2 && line2.points.size() >= 2) {
+                    // 计算角度
                     double angle = calculateLineSegmentAngle(
                         line1.points[0], line1.points[1],
                         line2.points[0], line2.points[1]);
+
+                    // 计算两线段的交点
+                    QPointF intersection;
+                    bool hasIntersection = calculateLineIntersection(
+                        line1.points[0], line1.points[1],
+                        line2.points[0], line2.points[1], intersection);
+
+                    // 创建线段夹角对象
+                    LineSegmentAngleObject angleObj;
+                    angleObj.points.append(line1.points[0]);  // line1_start
+                    angleObj.points.append(line1.points[1]);  // line1_end
+                    angleObj.points.append(line2.points[0]);  // line2_start
+                    angleObj.points.append(line2.points[1]);  // line2_end
+                    angleObj.isCompleted = true;
+                    angleObj.color = Qt::red;
+                    angleObj.thickness = 2;
+                    angleObj.angle = angle;
+                    angleObj.intersection = intersection;
+                    angleObj.hasIntersection = hasIntersection;
+                    angleObj.label = QString("%1°").arg(angle, 0, 'f', 1);
+                    angleObj.isVisible = true;
+
+                    m_lineSegmentAngles.append(angleObj);
+
+                    // 记录历史
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegmentAngle;
+                    action.source = DrawingAction::ManualDrawing;
+                    action.index = m_lineSegmentAngles.size() - 1;
+                    commitDrawingAction(action);
 
                     // 发送测量完成信号
                     QString result = QString("线段夹角: %1 度").arg(angle, 0, 'f', 2);
@@ -3575,6 +3774,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                     // 清除选择并更新显示
                     clearSelection();
+                    emit drawingDataChanged(m_viewName);
                     update();
                 }
             }

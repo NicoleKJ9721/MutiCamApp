@@ -166,6 +166,18 @@ public:
         bool hasIntersection = false;
     };
 
+    struct LineSegmentAngleObject {
+        QVector<QPointF> points;        // 两条线段的4个点：[line1_start, line1_end, line2_start, line2_end]
+        bool isCompleted = false;
+        QColor color = Qt::red;         // 红色显示，与Python版本一致
+        int thickness = 2;
+        QPointF intersection;           // 交点位置
+        double angle = 0.0;             // 角度值（度）
+        QString label;                  // 角度标签
+        bool isVisible = true;
+        bool hasIntersection = false;   // 是否有有效交点
+    };
+
     // ROI检测对象结构体
     struct ROIObject {
         QVector<QPointF> points;        // ROI矩形的两个对角点
@@ -206,6 +218,7 @@ public:
             AddFineCircle,
             AddParallel,
             AddTwoLines,
+            AddLineSegmentAngle,
             AddROI,
             DeletePoint,
             DeleteLine,
@@ -214,6 +227,7 @@ public:
             DeleteFineCircle,
             DeleteParallel,
             DeleteTwoLines,
+            DeleteLineSegmentAngle,
             DeleteROI
         };
 
@@ -320,6 +334,7 @@ private:
     QVector<FineCircleObject> m_fineCircles;
     QVector<ParallelObject> m_parallels;
     QVector<TwoLinesObject> m_twoLines;
+    QVector<LineSegmentAngleObject> m_lineSegmentAngles;
     QVector<ROIObject> m_rois;
     
     // 当前正在绘制的数据
@@ -355,6 +370,7 @@ private:
     QSet<int> m_selectedFineCircles;
     QSet<int> m_selectedParallels;
     QSet<int> m_selectedTwoLines;
+    QSet<int> m_selectedLineSegmentAngles;
     QSet<int> m_selectedParallelMiddleLines;
     QSet<int> m_selectedBisectorLines; // 选中的角平分线
     QSet<int> m_selectedROIs;
@@ -402,6 +418,7 @@ private:
     void drawFineCircles(QPainter& painter, const DrawingContext& ctx) const;
     void drawParallels(QPainter& painter, const DrawingContext& ctx) const;
     void drawTwoLines(QPainter& painter, const DrawingContext& ctx) const;
+    void drawLineSegmentAngles(QPainter& painter, const DrawingContext& ctx) const;
     void drawROIs(QPainter& painter, const DrawingContext& ctx) const;
     
     // 单个对象绘制方法
@@ -412,6 +429,7 @@ private:
     void drawSingleFineCircle(QPainter& painter, const FineCircleObject& fineCircle, const DrawingContext& ctx) const;
     void drawSingleParallel(QPainter& painter, const ParallelObject& parallel, const DrawingContext& ctx) const;
     void drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx) const;
+    void drawSingleLineSegmentAngle(QPainter& painter, const LineSegmentAngleObject& angleObj, int index, const DrawingContext& ctx) const;
     void drawSingleROI(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const;
     
     // 预览绘制方法
@@ -437,6 +455,7 @@ private:
     int hitTestFineCircle(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestParallel(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestTwoLines(const QPointF& pos, double tolerance = 5.0) const;
+    int hitTestLineSegmentAngle(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestROI(const QPointF& pos, double tolerance = 5.0) const;
 
     // ROI管理方法
