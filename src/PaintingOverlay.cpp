@@ -343,16 +343,8 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         // 1. 先绘制选中状态高亮（作为底层外描边）
         drawSelectionHighlights(painter);
 
-        // 2. 绘制所有已完成的图形（在高亮之上）
-        drawPoints(painter, ctx);
-        drawLines(painter, ctx);
-        drawLineSegments(painter, ctx);
-        drawCircles(painter, ctx);
-        drawFineCircles(painter, ctx);
-        drawParallels(painter, ctx);
-        drawTwoLines(painter, ctx);
-        drawLineSegmentAngles(painter, ctx);
-        drawROIs(painter, ctx);
+        // 2. 按历史顺序绘制所有已完成的图形（在高亮之上）
+        drawObjectsByHistory(painter, ctx);
 
         // 3. 【关键】绘制当前正在预览的图形（在最上层）
         if (m_isDrawingMode) {
@@ -1062,6 +1054,35 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
         drawTextWithBackground(painter, point, coordText, ctx.font, QColor(0, 255, 0), Qt::black,
                              textpadding, 1.0, offset);
     }
+}
+
+void PaintingOverlay::drawSinglePoint(QPainter& painter, const QPointF& point, int index, const DrawingContext& ctx) const
+{
+    // 预计算常量（匹配Python版本）
+    const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
+    const double innerRadius = 12 * heightScale;
+    const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
+
+    // 绘制点（绿色实心圆）- 使用预创建的画刷
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(ctx.greenBrush);
+    painter.drawEllipse(point, innerRadius, innerRadius);
+
+    // 绘制坐标文本（使用统一的布局思维）
+    QString coordText = QString("(%1,%2)")
+        .arg(static_cast<int>(point.x()))
+        .arg(static_cast<int>(point.y()));
+
+    // 计算将文本框定位到点右上角所需的偏移量
+    QFontMetrics fm(ctx.font);
+    QRect textBoundingRect = fm.boundingRect(coordText);
+    double bgHeight = textBoundingRect.height() + 2 * textpadding;
+
+    QPointF offset(innerRadius, -innerRadius - bgHeight);
+
+    // 调用带有offset参数的完美辅助函数
+    drawTextWithBackground(painter, point, coordText, ctx.font, QColor(0, 255, 0), Qt::black,
+                         textpadding, 1.0, offset);
 }
 
 void PaintingOverlay::drawLines(QPainter& painter, const DrawingContext& ctx) const
@@ -2095,6 +2116,72 @@ bool PaintingOverlay::isPointInImageBounds(const QPointF& imagePos) const
 
     return (imagePos.x() >= 0 && imagePos.x() < m_imageSize.width() &&
             imagePos.y() >= 0 && imagePos.y() < m_imageSize.height());
+}
+
+void PaintingOverlay::drawObjectsByHistory(QPainter& painter, const DrawingContext& ctx) const
+{
+    // 按历史记录顺序绘制所有图形，确保后创建的图形在上层
+    for (const DrawingAction& action : m_drawingHistory) {
+        // 只绘制添加操作，跳过删除操作
+        if (action.type >= DrawingAction::AddPoint && action.type <= DrawingAction::AddROI) {
+            drawSingleObjectByAction(painter, action, ctx);
+        }
+    }
+}
+
+void PaintingOverlay::drawSingleObjectByAction(QPainter& painter, const DrawingAction& action, const DrawingContext& ctx) const
+{
+    // 根据动作类型和索引绘制对应的单个图形对象
+    switch (action.type) {
+        case DrawingAction::AddPoint:
+            if (action.index >= 0 && action.index < m_points.size()) {
+                drawSinglePoint(painter, m_points[action.index].position, action.index, ctx);
+            }
+            break;
+        case DrawingAction::AddLine:
+            if (action.index >= 0 && action.index < m_lines.size()) {
+                drawSingleLine(painter, m_lines[action.index], false, ctx);
+            }
+            break;
+        case DrawingAction::AddLineSegment:
+            if (action.index >= 0 && action.index < m_lineSegments.size()) {
+                drawSingleLineSegment(painter, m_lineSegments[action.index], ctx);
+            }
+            break;
+        case DrawingAction::AddCircle:
+            if (action.index >= 0 && action.index < m_circles.size()) {
+                drawSingleCircle(painter, m_circles[action.index], ctx);
+            }
+            break;
+        case DrawingAction::AddFineCircle:
+            if (action.index >= 0 && action.index < m_fineCircles.size()) {
+                drawSingleFineCircle(painter, m_fineCircles[action.index], ctx);
+            }
+            break;
+        case DrawingAction::AddParallel:
+            if (action.index >= 0 && action.index < m_parallels.size()) {
+                drawSingleParallel(painter, m_parallels[action.index], ctx);
+            }
+            break;
+        case DrawingAction::AddTwoLines:
+            if (action.index >= 0 && action.index < m_twoLines.size()) {
+                drawSingleTwoLines(painter, m_twoLines[action.index], ctx);
+            }
+            break;
+        case DrawingAction::AddLineSegmentAngle:
+            if (action.index >= 0 && action.index < m_lineSegmentAngles.size()) {
+                drawSingleLineSegmentAngle(painter, m_lineSegmentAngles[action.index], action.index, ctx);
+            }
+            break;
+        case DrawingAction::AddROI:
+            if (action.index >= 0 && action.index < m_rois.size()) {
+                drawSingleROI(painter, m_rois[action.index], ctx);
+            }
+            break;
+        default:
+            // 跳过删除操作和未知操作
+            break;
+    }
 }
 
 QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bool dashed) const
@@ -5158,15 +5245,8 @@ void PaintingOverlay::renderToImage(QPainter& painter, const QSize& imageSize)
             // 1. 先绘制选中状态高亮（作为底层外描边）
             drawSelectionHighlights(painter);
 
-            // 2. 绘制所有已完成的图形（在高亮之上）
-            drawPoints(painter, ctx);
-            drawLines(painter, ctx);
-            drawLineSegments(painter, ctx);
-            drawCircles(painter, ctx);
-            drawFineCircles(painter, ctx);
-            drawParallels(painter, ctx);
-            drawTwoLines(painter, ctx);
-            drawROIs(painter, ctx);
+            // 2. 按历史顺序绘制所有已完成的图形（在高亮之上）
+            drawObjectsByHistory(painter, ctx);
 
             // 3. 绘制当前正在预览的图形（在最上层）
             if (m_isDrawingMode) {

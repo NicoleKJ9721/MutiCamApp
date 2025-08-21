@@ -435,7 +435,11 @@ private:
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;
     void drawSelectionHighlights(QPainter& painter) const;
-    
+
+    // 按历史顺序绘制方法
+    void drawObjectsByHistory(QPainter& painter, const DrawingContext& ctx) const;
+    void drawSingleObjectByAction(QPainter& painter, const DrawingAction& action, const DrawingContext& ctx) const;
+
     // 鼠标事件处理方法
     void handlePointDrawingClick(const QPointF& pos);
     void handleLineDrawingClick(const QPointF& pos);
