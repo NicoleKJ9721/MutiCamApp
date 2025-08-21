@@ -3898,28 +3898,11 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     QPointF lineStart = lineSegment.points[0];
                     QPointF lineEnd = lineSegment.points[1];
 
-                    // 计算圆心到线段的垂足
+                    // 计算圆心到线段的垂足（无论是否在线段上都使用垂足，与点与线段逻辑一致）
                     QPointF footPoint = calculatePerpendicularFoot(circle.center, lineStart, lineEnd);
 
-                    // 检查垂足是否在线段上
-                    bool footOnSegment = isPointOnLineSegment(footPoint, lineStart, lineEnd, 1.0);
-
-                    QPointF closestPointOnSegment;
-                    if (footOnSegment) {
-                        // 垂足在线段上，使用垂足
-                        closestPointOnSegment = footPoint;
-                    } else {
-                        // 垂足不在线段上，找到线段端点中距离圆心最近的点
-                        double distToStart = sqrt(pow(circle.center.x() - lineStart.x(), 2) +
-                                                pow(circle.center.y() - lineStart.y(), 2));
-                        double distToEnd = sqrt(pow(circle.center.x() - lineEnd.x(), 2) +
-                                              pow(circle.center.y() - lineEnd.y(), 2));
-
-                        closestPointOnSegment = (distToStart < distToEnd) ? lineStart : lineEnd;
-                    }
-
-                    // 计算从圆心到线段最近点的方向向量
-                    QPointF direction = closestPointOnSegment - circle.center;
+                    // 计算从圆心到垂足的方向向量
+                    QPointF direction = footPoint - circle.center;
                     double dirLength = sqrt(direction.x() * direction.x() + direction.y() * direction.y());
 
                     if (dirLength > 0) {
@@ -3931,7 +3914,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                         // 创建垂线段
                         LineSegmentObject perpendicular;
-                        perpendicular.points.append(closestPointOnSegment);
+                        perpendicular.points.append(footPoint);  // 从垂足开始
                         perpendicular.points.append(circlePoint);
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
@@ -3981,28 +3964,11 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     QPointF lineStart = lineSegment.points[0];
                     QPointF lineEnd = lineSegment.points[1];
 
-                    // 计算圆心到线段的垂足
+                    // 计算圆心到线段的垂足（无论是否在线段上都使用垂足，与点与线段逻辑一致）
                     QPointF footPoint = calculatePerpendicularFoot(fineCircle.center, lineStart, lineEnd);
 
-                    // 检查垂足是否在线段上
-                    bool footOnSegment = isPointOnLineSegment(footPoint, lineStart, lineEnd, 1.0);
-
-                    QPointF closestPointOnSegment;
-                    if (footOnSegment) {
-                        // 垂足在线段上，使用垂足
-                        closestPointOnSegment = footPoint;
-                    } else {
-                        // 垂足不在线段上，找到线段端点中距离圆心最近的点
-                        double distToStart = sqrt(pow(fineCircle.center.x() - lineStart.x(), 2) +
-                                                pow(fineCircle.center.y() - lineStart.y(), 2));
-                        double distToEnd = sqrt(pow(fineCircle.center.x() - lineEnd.x(), 2) +
-                                              pow(fineCircle.center.y() - lineEnd.y(), 2));
-
-                        closestPointOnSegment = (distToStart < distToEnd) ? lineStart : lineEnd;
-                    }
-
-                    // 计算从圆心到线段最近点的方向向量
-                    QPointF direction = closestPointOnSegment - fineCircle.center;
+                    // 计算从圆心到垂足的方向向量
+                    QPointF direction = footPoint - fineCircle.center;
                     double dirLength = sqrt(direction.x() * direction.x() + direction.y() * direction.y());
 
                     if (dirLength > 0) {
@@ -4014,7 +3980,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                         // 创建垂线段
                         LineSegmentObject perpendicular;
-                        perpendicular.points.append(closestPointOnSegment);
+                        perpendicular.points.append(footPoint);  // 从垂足开始
                         perpendicular.points.append(circlePoint);
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
@@ -4110,22 +4076,8 @@ QString PaintingOverlay::analyzeLineCircleRelation(const QPointF& lineStart, con
 
 QString PaintingOverlay::analyzeLineSegmentCircleRelation(const QPointF& lineStart, const QPointF& lineEnd, const QPointF& circleCenter, double radius) const
 {
-    // 计算圆心到线段的最短距离
-    QPointF footPoint = calculatePerpendicularFoot(circleCenter, lineStart, lineEnd);
-    bool footOnSegment = isPointOnLineSegment(footPoint, lineStart, lineEnd, 1.0);
-
-    double distanceToSegment;
-    if (footOnSegment) {
-        // 垂足在线段上，使用垂足距离
-        distanceToSegment = calculatePointToLineDistance(circleCenter, lineStart, lineEnd);
-    } else {
-        // 垂足不在线段上，计算到端点的最短距离
-        double distToStart = sqrt(pow(circleCenter.x() - lineStart.x(), 2) +
-                                pow(circleCenter.y() - lineStart.y(), 2));
-        double distToEnd = sqrt(pow(circleCenter.x() - lineEnd.x(), 2) +
-                              pow(circleCenter.y() - lineEnd.y(), 2));
-        distanceToSegment = qMin(distToStart, distToEnd);
-    }
+    // 计算圆心到线段的距离（与点与线段逻辑一致，使用垂足距离）
+    double distanceToSegment = calculatePointToLineDistance(circleCenter, lineStart, lineEnd);
 
     QString relation;
     if (distanceToSegment < radius - 1e-6) {
