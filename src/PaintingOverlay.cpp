@@ -4773,12 +4773,8 @@ void PaintingOverlay::removeLastROI()
         // 删除最后一个ROI（刚刚添加的用于检测的ROI）
         m_rois.removeLast();
 
-        // 记录删除操作到历史
-        DrawingAction action;
-        action.type = DrawingAction::DeleteROI;
-        action.source = DrawingAction::AutoDetection;  // 自动检测后清理
-        action.index = m_rois.size();  // 被删除的索引
-        commitDrawingAction(action);
+        // 不记录删除操作到历史，因为ROI框只是临时的检测工具
+        // 这样撤销检测时只需要撤销一次（删除检测结果）即可
 
         qDebug() << "已删除检测完成的ROI框，剩余ROI数量：" << m_rois.size();
         update();
