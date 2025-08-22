@@ -36,6 +36,8 @@ set(srcs
     src/PaintingOverlay.h
     src/SettingsManager.cpp
     src/SettingsManager.h
+    src/CalibrationDialog.cpp
+    src/CalibrationDialog.h
     src/LogManager.cpp
     src/LogManager.h
     src/TrajectoryRecorder.cpp

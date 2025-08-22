@@ -28,6 +28,7 @@
 #include "image_processing/edge_detector.h"
 #include "image_processing/shape_detector.h"
 #include "SettingsManager.h"
+#include "CalibrationDialog.h"
 #include "LogManager.h"
 #include "TrajectoryRecorder.h"
 #include "SerialController.h"
@@ -161,8 +162,11 @@ private slots:
     /**
      * @brief 像素标定相关槽函数
      */
-    void startPixelCalibration();  // 启动像素标定
-    void startPixelCalibrationForView(const QString& viewName); // 启动指定视图的像素标定
+    void startPixelCalibration();  // 启动像素标定（弹窗选择方式）
+    void startPixelCalibrationForView(const QString& viewName); // 启动指定视图的像素标定（弹窗选择方式）
+    void startSinglePointCalibration(PaintingOverlay* overlay); // 启动单点标定
+    void startMultiPointCalibration(PaintingOverlay* overlay);  // 启动多点标定
+    void startCheckerboardCalibration(PaintingOverlay* overlay); // 启动棋盘格标定
     void loadCalibrationSettings(); // 加载标定设置
     void saveCalibrationSettings(); // 保存标定设置
     void syncCalibrationParameters(const QString& viewName); // 同步标定参数

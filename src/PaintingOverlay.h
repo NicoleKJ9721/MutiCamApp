@@ -278,7 +278,8 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     double getPixelScale() const;
     QString getUnit() const;
     bool isCalibrated() const;
-    void startCalibration();
+    void startCalibration();           // 启动单点标定
+    void startMultiPointCalibration(); // 启动多点标定
     void resetCalibration();
 
     DrawingState getDrawingState() const;
@@ -402,6 +403,18 @@ private:
     QString m_unit;            // 单位
     bool m_isCalibrated;       // 是否已标定
     bool m_isCalibrationMode;  // 是否处于标定模式
+    bool m_isMultiPointCalibrationMode; // 是否处于多点标定模式
+
+    // 多点标定数据结构
+    struct CalibrationPoint {
+        int lineSegmentIndex;   // 对应的线段索引
+        double pixelLength;     // 像素长度
+        double realLength;      // 实际长度
+        bool isValid;           // 是否有效
+
+        CalibrationPoint() : lineSegmentIndex(-1), pixelLength(0.0), realLength(0.0), isValid(false) {}
+    };
+    QVector<CalibrationPoint> m_calibrationPoints; // 标定点集合
 
     // 图像处理相关
     EdgeDetector* m_edgeDetector;
@@ -523,6 +536,9 @@ private:
     // 像素标定辅助函数
     void updateAllMeasurementLabels();
     void performCalibrationWithLineSegment(int lineSegmentIndex);
+    void performMultiPointCalibrationWithLineSegment(int lineSegmentIndex);
+    void showMultiPointCalibrationDialog();
+    double calculateMultiPointPixelScale() const;
 
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);

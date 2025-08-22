@@ -45,6 +45,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_unit("μm")               // 默认单位微米
     , m_isCalibrated(false)      // 默认未标定
     , m_isCalibrationMode(false) // 默认非标定模式
+    , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -378,6 +379,13 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 
     // 处理右键点击：如果在绘制模式且没有选中任何图元，退出绘制模式
     if (event->button() == Qt::RightButton) {
+        // 特殊处理多点标定模式
+        if (m_isMultiPointCalibrationMode) {
+            // 在多点标定模式下右键显示选项
+            showMultiPointCalibrationDialog();
+            return;
+        }
+
         if (m_isDrawingMode) {
             // 检查是否有选中的对象
             bool hasSelection = !m_selectedPoints.isEmpty() || !m_selectedLines.isEmpty() ||
@@ -2891,10 +2899,15 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         if (m_isCalibrationMode) {
             performCalibrationWithLineSegment(m_lineSegments.size() - 1);
             m_isCalibrationMode = false;
+            // 单点标定完成后停止绘制
+            stopDrawing();
+        } else if (m_isMultiPointCalibrationMode) {
+            performMultiPointCalibrationWithLineSegment(m_lineSegments.size() - 1);
+            // 多点标定模式下不自动停止绘制，由用户在对话框中选择
+        } else {
+            // 普通线段绘制完成后停止绘制
+            stopDrawing();
         }
-
-        // 停止绘制
-        stopDrawing();
     }
     
     update();
@@ -5354,9 +5367,22 @@ bool PaintingOverlay::isCalibrated() const
 void PaintingOverlay::startCalibration()
 {
     m_isCalibrationMode = true;
+    m_isMultiPointCalibrationMode = false;
     startDrawing(DrawingTool::LineSegment);
 
-    QString message = QString("视图 %1 进入标定模式，请绘制一条已知长度的线段").arg(m_viewName);
+    QString message = QString("视图 %1 进入单点标定模式，请绘制一条已知长度的线段").arg(m_viewName);
+    emit measurementCompleted(m_viewName, message);
+    qDebug() << message;
+}
+
+void PaintingOverlay::startMultiPointCalibration()
+{
+    m_isCalibrationMode = false;
+    m_isMultiPointCalibrationMode = true;
+    m_calibrationPoints.clear();
+    startDrawing(DrawingTool::LineSegment);
+
+    QString message = QString("视图 %1 进入多点标定模式，请绘制多条已知长度的线段（建议3-5条）").arg(m_viewName);
     emit measurementCompleted(m_viewName, message);
     qDebug() << message;
 }
@@ -5367,6 +5393,8 @@ void PaintingOverlay::resetCalibration()
     m_unit = "μm";
     m_isCalibrated = false;
     m_isCalibrationMode = false;
+    m_isMultiPointCalibrationMode = false;
+    m_calibrationPoints.clear();
 
     qDebug() << QString("视图 %1 标定已重置").arg(m_viewName);
 
@@ -5487,4 +5515,173 @@ void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
         emit measurementCompleted(m_viewName, message);
         qDebug() << message;
     }
+}
+
+void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmentIndex)
+{
+    if (lineSegmentIndex < 0 || lineSegmentIndex >= m_lineSegments.size()) {
+        return;
+    }
+
+    const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
+    double pixelLength = lineSegment.length;
+
+    // 使用QInputDialog获取实际长度
+    bool ok;
+    QString inputText = QString("线段 %1 像素长度: %2 像素\n请输入实际长度:")
+                       .arg(m_calibrationPoints.size() + 1)
+                       .arg(pixelLength, 0, 'f', 2);
+
+    double realLength = QInputDialog::getDouble(this,
+                                               QString("多点标定 - %1").arg(m_viewName),
+                                               inputText,
+                                               100.0,    // 默认值
+                                               0.001,    // 最小值
+                                               999999.0, // 最大值
+                                               3,        // 小数位数
+                                               &ok);
+
+    if (ok && realLength > 0.0) {
+        // 添加标定点
+        CalibrationPoint point;
+        point.lineSegmentIndex = lineSegmentIndex;
+        point.pixelLength = pixelLength;
+        point.realLength = realLength;
+        point.isValid = true;
+        m_calibrationPoints.append(point);
+
+        QString result = QString("已添加标定点 %1: 像素长度 %2 px, 实际长度 %3 μm")
+                        .arg(m_calibrationPoints.size())
+                        .arg(pixelLength, 0, 'f', 2)
+                        .arg(realLength, 0, 'f', 2);
+        emit measurementCompleted(m_viewName, result);
+
+        // 询问是否继续添加标定点或完成标定
+        showMultiPointCalibrationDialog();
+
+        qDebug() << QString("视图 %1 添加标定点: %2").arg(m_viewName).arg(result);
+    } else {
+        // 取消当前标定点，但不退出多点标定模式
+        QString message = QString("视图 %1 标定点输入已取消").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        qDebug() << message;
+    }
+}
+
+void PaintingOverlay::showMultiPointCalibrationDialog()
+{
+    // 构建对话框内容
+    QString dialogText;
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(QString("多点标定 - %1").arg(m_viewName));
+    msgBox.setIcon(QMessageBox::Question);
+
+    QPushButton* finishButton = nullptr;
+    QPushButton* continueButton = nullptr;
+    QPushButton* cancelButton = nullptr;
+
+    if (m_calibrationPoints.size() < 2) {
+        // 标定点不足时的对话框
+        dialogText = QString("当前已有 %1 个标定点，至少需要2个标定点才能完成标定。\n\n").arg(m_calibrationPoints.size());
+
+        if (m_calibrationPoints.size() > 0) {
+            for (int i = 0; i < m_calibrationPoints.size(); ++i) {
+                const CalibrationPoint& point = m_calibrationPoints[i];
+                double ratio = point.realLength / point.pixelLength;
+                dialogText += QString("点 %1: %2 px → %3 μm (比例: %4)\n")
+                             .arg(i + 1)
+                             .arg(point.pixelLength, 0, 'f', 2)
+                             .arg(point.realLength, 0, 'f', 2)
+                             .arg(ratio, 0, 'f', 6);
+            }
+            dialogText += "\n";
+        }
+
+        dialogText += "选择操作:";
+        msgBox.setText(dialogText);
+
+        continueButton = msgBox.addButton("继续添加", QMessageBox::AcceptRole);
+        cancelButton = msgBox.addButton("取消标定", QMessageBox::RejectRole);
+    } else {
+        // 标定点足够时的对话框（原有逻辑）
+        // 标定点足够时的对话框（原有逻辑）
+        dialogText = QString("当前已有 %1 个标定点:\n").arg(m_calibrationPoints.size());
+        for (int i = 0; i < m_calibrationPoints.size(); ++i) {
+            const CalibrationPoint& point = m_calibrationPoints[i];
+            double ratio = point.realLength / point.pixelLength;
+            dialogText += QString("点 %1: %2 px → %3 μm (比例: %4)\n")
+                         .arg(i + 1)
+                         .arg(point.pixelLength, 0, 'f', 2)
+                         .arg(point.realLength, 0, 'f', 2)
+                         .arg(ratio, 0, 'f', 6);
+        }
+
+        double avgScale = calculateMultiPointPixelScale();
+        dialogText += QString("\n计算得到的平均像素比例: %1 μm/pixel\n\n").arg(avgScale, 0, 'f', 6);
+        dialogText += "选择操作:";
+        msgBox.setText(dialogText);
+
+        finishButton = msgBox.addButton("完成标定", QMessageBox::AcceptRole);
+        continueButton = msgBox.addButton("继续添加", QMessageBox::RejectRole);
+        cancelButton = msgBox.addButton("取消标定", QMessageBox::DestructiveRole);
+    }
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == finishButton && finishButton != nullptr) {
+        // 完成多点标定
+        double avgScale = calculateMultiPointPixelScale();
+        setPixelScale(avgScale, "μm");
+        m_isMultiPointCalibrationMode = false;
+
+        QString result = QString("多点标定完成: %1 μm/pixel\n使用了 %2 个标定点")
+                        .arg(avgScale, 0, 'f', 6)
+                        .arg(m_calibrationPoints.size());
+        emit measurementCompleted(m_viewName, result);
+
+        qDebug() << QString("视图 %1 多点标定完成: %2").arg(m_viewName).arg(result);
+
+        // 停止绘制模式
+        stopDrawing();
+    } else if (msgBox.clickedButton() == continueButton && continueButton != nullptr) {
+        // 继续添加标定点，绘制模式已经保持，无需重新启动
+        QString message = QString("请继续绘制线段添加标定点（当前 %1 个）").arg(m_calibrationPoints.size());
+        emit measurementCompleted(m_viewName, message);
+    } else {
+        // 取消标定
+        m_isMultiPointCalibrationMode = false;
+        m_calibrationPoints.clear();
+
+        QString message = QString("视图 %1 多点标定已取消").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        qDebug() << message;
+
+        // 停止绘制模式
+        stopDrawing();
+    }
+}
+
+double PaintingOverlay::calculateMultiPointPixelScale() const
+{
+    if (m_calibrationPoints.isEmpty()) {
+        return 1.0;
+    }
+
+    // 计算所有有效标定点的像素比例平均值
+    double totalScale = 0.0;
+    int validCount = 0;
+
+    for (const CalibrationPoint& point : m_calibrationPoints) {
+        if (point.isValid && point.pixelLength > 0.0) {
+            double scale = point.realLength / point.pixelLength;
+            totalScale += scale;
+            validCount++;
+        }
+    }
+
+    if (validCount > 0) {
+        return totalScale / validCount;
+    }
+
+    return 1.0;
 }

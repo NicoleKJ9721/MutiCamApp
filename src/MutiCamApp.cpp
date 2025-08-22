@@ -2520,31 +2520,24 @@ void MutiCamApp::startPixelCalibration()
         return;
     }
 
-    QString viewName = activeOverlay->getViewName();
+    // 弹出标定方式选择对话框
+    CalibrationDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        CalibrationDialog::CalibrationMethod method = dialog.getSelectedMethod();
 
-    // 检查是否已经标定
-    if (activeOverlay->isCalibrated()) {
-        int ret = QMessageBox::question(this, "像素标定",
-                                       QString("视图 %1 已经完成标定。\n"
-                                              "当前比例: %2 %3/pixel\n\n"
-                                              "是否要重新标定？")
-                                       .arg(viewName)
-                                       .arg(activeOverlay->getPixelScale(), 0, 'f', 6)
-                                       .arg(activeOverlay->getUnit()),
-                                       QMessageBox::Yes | QMessageBox::No,
-                                       QMessageBox::No);
-        if (ret != QMessageBox::Yes) {
-            return;
+        // 根据选择的方式启动对应的标定
+        switch (method) {
+            case CalibrationDialog::SinglePoint:
+                startSinglePointCalibration(activeOverlay);
+                break;
+            case CalibrationDialog::MultiPoint:
+                startMultiPointCalibration(activeOverlay);
+                break;
+            case CalibrationDialog::Checkerboard:
+                startCheckerboardCalibration(activeOverlay);
+                break;
         }
     }
-
-    // 启动标定模式
-    activeOverlay->startCalibration();
-
-    // 更新状态栏提示
-    statusBar()->showMessage(QString("视图 %1 进入像素标定模式，请绘制一条已知长度的线段").arg(viewName), 10000);
-
-    qDebug() << QString("启动视图 %1 的像素标定").arg(viewName);
 }
 
 void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
@@ -2565,17 +2558,43 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
         return;
     }
 
-    QString displayViewName = targetOverlay->getViewName();
+    // 弹出标定方式选择对话框
+    CalibrationDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        CalibrationDialog::CalibrationMethod method = dialog.getSelectedMethod();
+
+        // 根据选择的方式启动对应的标定
+        switch (method) {
+            case CalibrationDialog::SinglePoint:
+                startSinglePointCalibration(targetOverlay);
+                break;
+            case CalibrationDialog::MultiPoint:
+                startMultiPointCalibration(targetOverlay);
+                break;
+            case CalibrationDialog::Checkerboard:
+                startCheckerboardCalibration(targetOverlay);
+                break;
+        }
+    }
+}
+
+void MutiCamApp::startSinglePointCalibration(PaintingOverlay* overlay)
+{
+    if (!overlay) {
+        return;
+    }
+
+    QString viewName = overlay->getViewName();
 
     // 检查是否已经标定
-    if (targetOverlay->isCalibrated()) {
-        int ret = QMessageBox::question(this, "像素标定",
+    if (overlay->isCalibrated()) {
+        int ret = QMessageBox::question(this, "单点标定",
                                        QString("视图 %1 已经完成标定。\n"
                                               "当前比例: %2 %3/pixel\n\n"
                                               "是否要重新标定？")
-                                       .arg(displayViewName)
-                                       .arg(targetOverlay->getPixelScale(), 0, 'f', 6)
-                                       .arg(targetOverlay->getUnit()),
+                                       .arg(viewName)
+                                       .arg(overlay->getPixelScale(), 0, 'f', 6)
+                                       .arg(overlay->getUnit()),
                                        QMessageBox::Yes | QMessageBox::No,
                                        QMessageBox::No);
         if (ret != QMessageBox::Yes) {
@@ -2583,13 +2602,61 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
         }
     }
 
-    // 启动标定模式
-    targetOverlay->startCalibration();
+    // 启动单点标定模式
+    overlay->startCalibration();
 
     // 更新状态栏提示
-    statusBar()->showMessage(QString("视图 %1 进入像素标定模式，请绘制一条已知长度的线段").arg(displayViewName), 10000);
+    statusBar()->showMessage(QString("视图 %1 进入单点标定模式，请绘制一条已知长度的线段").arg(viewName), 10000);
 
-    qDebug() << QString("启动视图 %1 的像素标定").arg(displayViewName);
+    qDebug() << QString("启动视图 %1 的单点标定").arg(viewName);
+}
+
+void MutiCamApp::startMultiPointCalibration(PaintingOverlay* overlay)
+{
+    if (!overlay) {
+        return;
+    }
+
+    QString viewName = overlay->getViewName();
+
+    // 检查是否已经标定
+    if (overlay->isCalibrated()) {
+        int ret = QMessageBox::question(this, "多点标定",
+                                       QString("视图 %1 已经完成标定。\n"
+                                              "当前比例: %2 %3/pixel\n\n"
+                                              "是否要重新标定？")
+                                       .arg(viewName)
+                                       .arg(overlay->getPixelScale(), 0, 'f', 6)
+                                       .arg(overlay->getUnit()),
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+        if (ret != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    // 启动多点标定模式
+    overlay->startMultiPointCalibration();
+
+    // 更新状态栏提示
+    statusBar()->showMessage(QString("视图 %1 进入多点标定模式，请绘制多条已知长度的线段").arg(viewName), 10000);
+
+    qDebug() << QString("启动视图 %1 的多点标定").arg(viewName);
+}
+
+void MutiCamApp::startCheckerboardCalibration(PaintingOverlay* overlay)
+{
+    if (!overlay) {
+        return;
+    }
+
+    QString viewName = overlay->getViewName();
+
+    // TODO: 实现棋盘格标定逻辑
+    QMessageBox::information(this, "棋盘格标定",
+                            QString("棋盘格标定功能正在开发中...\n视图: %1").arg(viewName));
+
+    qDebug() << QString("棋盘格标定功能待实现 - 视图: %1").arg(viewName);
 }
 
 void MutiCamApp::loadCalibrationSettings()
