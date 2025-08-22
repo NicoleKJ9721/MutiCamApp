@@ -3951,6 +3951,12 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     angleObj.isVisible = true;
 
                     m_lineSegmentAngles.append(angleObj);
+                    
+                    // 确保线段夹角对象被正确保存
+                    qDebug() << QString("创建线段夹角对象，索引: %1, 可见: %2, 完成: %3")
+                             .arg(m_lineSegmentAngles.size() - 1)
+                             .arg(angleObj.isVisible)
+                             .arg(angleObj.isCompleted);
 
                     // 记录历史
                     DrawingAction action;
@@ -5537,15 +5543,23 @@ void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
     double pixelLength = lineSegment.length;
 
     // 首先让用户选择单位
-    QStringList units = {"μm", "mm", "cm"};
+    QStringList units = {"微米", "毫米", "厘米"};
+    // QStringList unitCodes = {"μm", "mm", "cm"};
     bool unitOk;
     QString selectedUnit = QInputDialog::getItem(this,
                                                 QString("像素标定 - %1").arg(m_viewName),
                                                 "请选择测量单位:",
                                                 units,
-                                                0, // 默认选择μm
+                                                0,
                                                 false,
                                                 &unitOk);
+    if (unitOk) {
+        // 转换中文单位为代码
+        int index = units.indexOf(selectedUnit);
+        if (index >= 0) {
+            selectedUnit = units[index];
+        }
+    }
     
     if (!unitOk) {
         return; // 用户取消了单位选择
@@ -5572,10 +5586,14 @@ void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
         setPixelScale(scale, selectedUnit);
 
         // 发送标定完成信号
-        QString result = QString("像素标定完成: %1 %2/pixel\n像素长度: %3 px, 实际长度: %4 %5")
-                        .arg(scale, 0, 'f', 6).arg(selectedUnit)
+        QString chineseUnit = selectedUnit;
+        if (chineseUnit == "μm") chineseUnit = "微米";
+        else if (chineseUnit == "mm") chineseUnit = "毫米";
+        else if (chineseUnit == "cm") chineseUnit = "厘米";
+        QString result = QString("像素标定完成: %1 %2/像素\n像素长度: %3 像素, 实际长度: %4 %5")
+                        .arg(scale, 0, 'f', 6).arg(chineseUnit)
                         .arg(pixelLength, 0, 'f', 2)
-                        .arg(realLength, 0, 'f', 2).arg(selectedUnit);
+                        .arg(realLength, 0, 'f', 2).arg(chineseUnit);
         emit measurementCompleted(m_viewName, result);
 
         qDebug() << QString("视图 %1 标定完成: %2").arg(m_viewName).arg(result);
@@ -5600,15 +5618,23 @@ void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmen
     // 如果是第一个标定点，让用户选择单位
     QString selectedUnit = m_multiPointCalibrationUnit; // 使用多点标定的单位
     if (m_calibrationPoints.isEmpty()) {
-        QStringList units = {"μm", "mm", "cm"};
+        QStringList units = {"微米", "毫米", "厘米"};
+        // QStringList unitCodes = {"μm", "mm", "cm"};
         bool unitOk;
         selectedUnit = QInputDialog::getItem(this,
                                             QString("多点标定 - %1").arg(m_viewName),
                                             "请选择测量单位:",
                                             units,
-                                            0, // 默认选择μm
+                                            0, // 默认选择微米
                                             false,
                                             &unitOk);
+        if (unitOk) {
+            // 转换中文单位为代码
+            int index = units.indexOf(selectedUnit);
+            if (index >= 0) {
+                selectedUnit = units[index];
+            }
+        }
         
         if (!unitOk) {
             return; // 用户取消了单位选择
@@ -5643,7 +5669,11 @@ void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmen
         point.isValid = true;
         m_calibrationPoints.append(point);
 
-        QString result = QString("已添加标定点 %1: 像素长度 %2 px, 实际长度 %3 %4")
+        QString chineseUnit = selectedUnit;
+        if (chineseUnit == "μm") chineseUnit = "微米";
+        else if (chineseUnit == "mm") chineseUnit = "毫米";
+        else if (chineseUnit == "cm") chineseUnit = "厘米";
+        QString result = QString("已添加标定点 %1: 像素长度 %2 像素, 实际长度 %3 %4")
                         .arg(m_calibrationPoints.size())
                         .arg(pixelLength, 0, 'f', 2)
                         .arg(realLength, 0, 'f', 2)
@@ -5682,7 +5712,7 @@ void PaintingOverlay::showMultiPointCalibrationDialog()
             for (int i = 0; i < m_calibrationPoints.size(); ++i) {
                 const CalibrationPoint& point = m_calibrationPoints[i];
                 double ratio = point.realLength / point.pixelLength;
-                dialogText += QString("点 %1: %2 px → %3 μm (比例: %4)\n")
+                dialogText += QString("点 %1: %2 像素 → %3 微米 (比例: %4)\n")
                              .arg(i + 1)
                              .arg(point.pixelLength, 0, 'f', 2)
                              .arg(point.realLength, 0, 'f', 2)
@@ -5703,7 +5733,7 @@ void PaintingOverlay::showMultiPointCalibrationDialog()
         for (int i = 0; i < m_calibrationPoints.size(); ++i) {
             const CalibrationPoint& point = m_calibrationPoints[i];
             double ratio = point.realLength / point.pixelLength;
-            dialogText += QString("点 %1: %2 px → %3 μm (比例: %4)\n")
+            dialogText += QString("点 %1: %2 像素 → %3 微米 (比例: %4)\n")
                          .arg(i + 1)
                          .arg(point.pixelLength, 0, 'f', 2)
                          .arg(point.realLength, 0, 'f', 2)
@@ -5711,7 +5741,7 @@ void PaintingOverlay::showMultiPointCalibrationDialog()
         }
 
         double avgScale = calculateMultiPointPixelScale();
-        dialogText += QString("\n计算得到的平均像素比例: %1 μm/pixel\n\n").arg(avgScale, 0, 'f', 6);
+        dialogText += QString("\n计算得到的平均像素比例: %1 微米/像素\n\n").arg(avgScale, 0, 'f', 6);
         dialogText += "选择操作:";
         msgBox.setText(dialogText);
 
@@ -5941,9 +5971,13 @@ QString PaintingOverlay::formatDistance(double pixelDistance) const
 {
     if (m_isCalibrated) {
         double realDistance = pixelDistance * m_pixelScale;
-        return QString("%1 %2").arg(realDistance, 0, 'f', 2).arg(m_unit);
+        QString chineseUnit = m_unit;
+        if (chineseUnit == "μm") chineseUnit = "微米";
+        else if (chineseUnit == "mm") chineseUnit = "毫米";
+        else if (chineseUnit == "cm") chineseUnit = "厘米";
+        return QString("%1 %2").arg(realDistance, 0, 'f', 2).arg(chineseUnit);
     } else {
-        return QString("%1 px").arg(pixelDistance, 0, 'f', 1);
+        return QString("%1 像素").arg(pixelDistance, 0, 'f', 1);
     }
 }
 
@@ -5962,8 +5996,12 @@ QString PaintingOverlay::formatRadius(double pixelRadius) const
 {
     if (m_isCalibrated) {
         double realRadius = pixelRadius * m_pixelScale;
-        return QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
+        QString chineseUnit = m_unit;
+        if (chineseUnit == "μm") chineseUnit = "微米";
+        else if (chineseUnit == "mm") chineseUnit = "毫米";
+        else if (chineseUnit == "cm") chineseUnit = "厘米";
+        return QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(chineseUnit);
     } else {
-        return QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
+        return QString("R=%1 像素").arg(pixelRadius, 0, 'f', 1);
     }
 }
