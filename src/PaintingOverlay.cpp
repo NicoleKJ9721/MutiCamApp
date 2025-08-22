@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QtMath>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QTime>
 #include <QMenu>
 #include <QAction>
@@ -40,6 +41,10 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_lastGridSpacing(0)          // 初始网格间距
     , m_edgeDetector(nullptr)
     , m_shapeDetector(nullptr)
+    , m_pixelScale(1.0)           // 默认像素比例
+    , m_unit("μm")               // 默认单位微米
+    , m_isCalibrated(false)      // 默认未标定
+    , m_isCalibrationMode(false) // 默认非标定模式
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -488,6 +493,14 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
         } else if (m_currentLine.points.size() >= 2) {
             m_currentLine.points[1] = imagePos;
         }
+    }
+
+    // 处理线段预览逻辑
+    if (m_currentDrawingTool == DrawingTool::LineSegment && m_currentPoints.size() == 1) {
+        // 线段绘制：只有在有一个点时才进行预览
+        // 不修改m_currentPoints，而是使用鼠标位置进行预览
+        m_currentMousePos = imagePos;
+        m_hasValidMousePos = true;
     }
 
     // 处理两线预览逻辑
@@ -1861,6 +1874,31 @@ void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext
             }
             break;
 
+        case DrawingTool::LineSegment:
+            if (!m_currentPoints.isEmpty()) {
+                // 绘制线段预览
+                if (m_currentPoints.size() == 1) {
+                    // 绘制起点
+                    painter.setPen(Qt::NoPen);
+                    painter.setBrush(QBrush(Qt::red));
+                    double pointRadius = 3.0 / ctx.scale;
+                    painter.drawEllipse(m_currentPoints[0], pointRadius, pointRadius);
+
+                    // 如果有有效的鼠标位置，绘制预览线
+                    if (m_hasValidMousePos) {
+                        QPen previewPen = createPen(Qt::red, 2, ctx.scale, false);
+                        painter.setPen(previewPen);
+                        painter.drawLine(m_currentPoints[0], m_currentMousePos);
+
+                        // 绘制鼠标位置的端点
+                        painter.setPen(Qt::NoPen);
+                        painter.setBrush(QBrush(Qt::red));
+                        painter.drawEllipse(m_currentMousePos, pointRadius, pointRadius);
+                    }
+                }
+            }
+            break;
+
         case DrawingTool::ROI_LineDetect:
         case DrawingTool::ROI_CircleDetect:
             if (m_hasCurrentROI && !m_currentROI.points.isEmpty()) {
@@ -2820,7 +2858,21 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         newLineSegment.thickness = 1.0;
         newLineSegment.isDashed = false;
         newLineSegment.isCompleted = true;
-        newLineSegment.label = QString("LineSegment_%1").arg(m_lineSegments.size() + 1);
+        newLineSegment.showLength = true;
+
+        // 计算线段长度
+        QPointF start = m_currentPoints[0];
+        QPointF end = m_currentPoints[1];
+        double pixelLength = sqrt(pow(end.x() - start.x(), 2) + pow(end.y() - start.y(), 2));
+        newLineSegment.length = pixelLength;
+
+        // 根据标定状态设置标签
+        if (m_isCalibrated) {
+            double realLength = pixelLength * m_pixelScale;
+            newLineSegment.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
+        } else {
+            newLineSegment.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
+        }
         
         // 添加到线段列表
         m_lineSegments.append(newLineSegment);
@@ -2834,7 +2886,13 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         
         // 清除当前点
         m_currentPoints.clear();
-        
+
+        // 如果处于标定模式，启动标定流程
+        if (m_isCalibrationMode) {
+            performCalibrationWithLineSegment(m_lineSegments.size() - 1);
+            m_isCalibrationMode = false;
+        }
+
         // 停止绘制
         stopDrawing();
     }
@@ -5259,4 +5317,174 @@ void PaintingOverlay::renderToImage(QPainter& painter, const QSize& imageSize)
     m_imageSize = originalImageSize;
     m_imageOffset = originalOffset;
     m_scaleFactor = originalScale;
+}
+
+// 像素标定相关函数实现
+void PaintingOverlay::setPixelScale(double scale, const QString& unit)
+{
+    if (scale > 0.0) {
+        m_pixelScale = scale;
+        m_unit = unit;
+        m_isCalibrated = true;
+
+        qDebug() << QString("视图 %1 像素标定完成: %2 %3/pixel")
+                    .arg(m_viewName).arg(scale, 0, 'f', 6).arg(unit);
+
+        // 更新所有现有测量结果的显示
+        updateAllMeasurementLabels();
+        update();
+    }
+}
+
+double PaintingOverlay::getPixelScale() const
+{
+    return m_pixelScale;
+}
+
+QString PaintingOverlay::getUnit() const
+{
+    return m_unit;
+}
+
+bool PaintingOverlay::isCalibrated() const
+{
+    return m_isCalibrated;
+}
+
+void PaintingOverlay::startCalibration()
+{
+    m_isCalibrationMode = true;
+    startDrawing(DrawingTool::LineSegment);
+
+    QString message = QString("视图 %1 进入标定模式，请绘制一条已知长度的线段").arg(m_viewName);
+    emit measurementCompleted(m_viewName, message);
+    qDebug() << message;
+}
+
+void PaintingOverlay::resetCalibration()
+{
+    m_pixelScale = 1.0;
+    m_unit = "μm";
+    m_isCalibrated = false;
+    m_isCalibrationMode = false;
+
+    qDebug() << QString("视图 %1 标定已重置").arg(m_viewName);
+
+    // 更新所有现有测量结果的显示
+    updateAllMeasurementLabels();
+    update();
+}
+
+void PaintingOverlay::updateAllMeasurementLabels()
+{
+    // 更新线段长度标签
+    for (auto& lineSegment : m_lineSegments) {
+        if (lineSegment.isCompleted && lineSegment.points.size() >= 2) {
+            double pixelLength = lineSegment.length;
+            if (m_isCalibrated) {
+                double realLength = pixelLength * m_pixelScale;
+                lineSegment.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
+            } else {
+                lineSegment.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
+            }
+        }
+    }
+
+    // 更新直线长度标签
+    for (auto& line : m_lines) {
+        if (line.isCompleted && line.showLength) {
+            double pixelLength = line.length;
+            if (m_isCalibrated) {
+                double realLength = pixelLength * m_pixelScale;
+                line.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
+            } else {
+                line.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
+            }
+        }
+    }
+
+    // 更新圆形半径标签
+    for (auto& circle : m_circles) {
+        if (circle.isCompleted) {
+            double pixelRadius = circle.radius;
+            if (m_isCalibrated) {
+                double realRadius = pixelRadius * m_pixelScale;
+                circle.label = QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
+            } else {
+                circle.label = QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
+            }
+        }
+    }
+
+    // 更新精细圆半径标签
+    for (auto& fineCircle : m_fineCircles) {
+        if (fineCircle.isCompleted) {
+            double pixelRadius = fineCircle.radius;
+            if (m_isCalibrated) {
+                double realRadius = pixelRadius * m_pixelScale;
+                fineCircle.label = QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
+            } else {
+                fineCircle.label = QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
+            }
+        }
+    }
+
+    // 更新平行线距离标签
+    for (auto& parallel : m_parallels) {
+        if (parallel.isCompleted) {
+            double pixelDistance = parallel.distance;
+            if (m_isCalibrated) {
+                double realDistance = pixelDistance * m_pixelScale;
+                parallel.label = QString("距离: %1 %2").arg(realDistance, 0, 'f', 2).arg(m_unit);
+            } else {
+                parallel.label = QString("距离: %1 px").arg(pixelDistance, 0, 'f', 1);
+            }
+        }
+    }
+}
+
+void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
+{
+    if (lineSegmentIndex < 0 || lineSegmentIndex >= m_lineSegments.size()) {
+        return;
+    }
+
+    const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
+    double pixelLength = lineSegment.length;
+
+    // 使用QInputDialog获取实际长度
+    bool ok;
+    QString inputText = QString("线段像素长度: %1 像素\n请输入实际长度:").arg(pixelLength, 0, 'f', 2);
+
+    double realLength = QInputDialog::getDouble(this,
+                                               QString("像素标定 - %1").arg(m_viewName),
+                                               inputText,
+                                               100.0,    // 默认值
+                                               0.001,    // 最小值
+                                               999999.0, // 最大值
+                                               3,        // 小数位数
+                                               &ok);
+
+    if (ok && realLength > 0.0) {
+        // 计算像素比例
+        double scale = realLength / pixelLength;
+
+        // 设置标定参数
+        setPixelScale(scale, "μm");
+
+        // 发送标定完成信号
+        QString result = QString("像素标定完成: %1 μm/pixel\n像素长度: %2 px, 实际长度: %3 μm")
+                        .arg(scale, 0, 'f', 6)
+                        .arg(pixelLength, 0, 'f', 2)
+                        .arg(realLength, 0, 'f', 2);
+        emit measurementCompleted(m_viewName, result);
+
+        qDebug() << QString("视图 %1 标定完成: %2").arg(m_viewName).arg(result);
+    } else {
+        // 标定取消，重置标定模式
+        m_isCalibrationMode = false;
+        QString message = QString("视图 %1 标定已取消").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        qDebug() << message;
+    }
 }

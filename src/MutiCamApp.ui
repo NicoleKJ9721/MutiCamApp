@@ -407,6 +407,22 @@
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QPushButton" name="btnPixelCalibration">
+                    <property name="font">
+                     <font>
+                      <pointsize>9</pointsize>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>像素标定</string>
+                    </property>
+                    <property name="toolTip">
+                     <string>启动像素标定模式，将像素单位转换为实际物理单位</string>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>

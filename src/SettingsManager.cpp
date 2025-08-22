@@ -144,7 +144,35 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     // UI尺寸参数
     json["UIWidth"] = settings.uiWidth;
     json["UIHeight"] = settings.uiHeight;
-    
+
+    // 标定参数
+    QJsonObject verticalCalib;
+    verticalCalib["pixelScale"] = settings.verticalCalibration.pixelScale;
+    verticalCalib["unit"] = settings.verticalCalibration.unit;
+    verticalCalib["calibrationTime"] = settings.verticalCalibration.calibrationTime;
+    verticalCalib["accuracy"] = settings.verticalCalibration.accuracy;
+    verticalCalib["method"] = settings.verticalCalibration.method;
+    verticalCalib["isCalibrated"] = settings.verticalCalibration.isCalibrated;
+    json["VerticalCalibration"] = verticalCalib;
+
+    QJsonObject leftCalib;
+    leftCalib["pixelScale"] = settings.leftCalibration.pixelScale;
+    leftCalib["unit"] = settings.leftCalibration.unit;
+    leftCalib["calibrationTime"] = settings.leftCalibration.calibrationTime;
+    leftCalib["accuracy"] = settings.leftCalibration.accuracy;
+    leftCalib["method"] = settings.leftCalibration.method;
+    leftCalib["isCalibrated"] = settings.leftCalibration.isCalibrated;
+    json["LeftCalibration"] = leftCalib;
+
+    QJsonObject frontCalib;
+    frontCalib["pixelScale"] = settings.frontCalibration.pixelScale;
+    frontCalib["unit"] = settings.frontCalibration.unit;
+    frontCalib["calibrationTime"] = settings.frontCalibration.calibrationTime;
+    frontCalib["accuracy"] = settings.frontCalibration.accuracy;
+    frontCalib["method"] = settings.frontCalibration.method;
+    frontCalib["isCalibrated"] = settings.frontCalibration.isCalibrated;
+    json["FrontCalibration"] = frontCalib;
+
     return json;
 }
 
@@ -172,7 +200,38 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     // UI尺寸参数
     settings.uiWidth = json.value("UIWidth").toInt(m_defaultSettings.uiWidth);
     settings.uiHeight = json.value("UIHeight").toInt(m_defaultSettings.uiHeight);
-    
+
+    // 标定参数
+    if (json.contains("VerticalCalibration")) {
+        QJsonObject verticalCalib = json.value("VerticalCalibration").toObject();
+        settings.verticalCalibration.pixelScale = verticalCalib.value("pixelScale").toDouble(1.0);
+        settings.verticalCalibration.unit = verticalCalib.value("unit").toString("μm");
+        settings.verticalCalibration.calibrationTime = verticalCalib.value("calibrationTime").toString("");
+        settings.verticalCalibration.accuracy = verticalCalib.value("accuracy").toDouble(0.0);
+        settings.verticalCalibration.method = verticalCalib.value("method").toString("单点标定");
+        settings.verticalCalibration.isCalibrated = verticalCalib.value("isCalibrated").toBool(false);
+    }
+
+    if (json.contains("LeftCalibration")) {
+        QJsonObject leftCalib = json.value("LeftCalibration").toObject();
+        settings.leftCalibration.pixelScale = leftCalib.value("pixelScale").toDouble(1.0);
+        settings.leftCalibration.unit = leftCalib.value("unit").toString("μm");
+        settings.leftCalibration.calibrationTime = leftCalib.value("calibrationTime").toString("");
+        settings.leftCalibration.accuracy = leftCalib.value("accuracy").toDouble(0.0);
+        settings.leftCalibration.method = leftCalib.value("method").toString("单点标定");
+        settings.leftCalibration.isCalibrated = leftCalib.value("isCalibrated").toBool(false);
+    }
+
+    if (json.contains("FrontCalibration")) {
+        QJsonObject frontCalib = json.value("FrontCalibration").toObject();
+        settings.frontCalibration.pixelScale = frontCalib.value("pixelScale").toDouble(1.0);
+        settings.frontCalibration.unit = frontCalib.value("unit").toString("μm");
+        settings.frontCalibration.calibrationTime = frontCalib.value("calibrationTime").toString("");
+        settings.frontCalibration.accuracy = frontCalib.value("accuracy").toDouble(0.0);
+        settings.frontCalibration.method = frontCalib.value("method").toString("单点标定");
+        settings.frontCalibration.isCalibrated = frontCalib.value("isCalibrated").toBool(false);
+    }
+
     return settings;
 }
 

@@ -159,6 +159,15 @@ private slots:
     void onAsyncSaveFinished();  // 异步保存完成槽函数
 
     /**
+     * @brief 像素标定相关槽函数
+     */
+    void startPixelCalibration();  // 启动像素标定
+    void startPixelCalibrationForView(const QString& viewName); // 启动指定视图的像素标定
+    void loadCalibrationSettings(); // 加载标定设置
+    void saveCalibrationSettings(); // 保存标定设置
+    void syncCalibrationParameters(const QString& viewName); // 同步标定参数
+
+    /**
      * @brief 自动检测按钮点击事件处理
      */
     void onAutoLineDetectionClicked();      // 主界面直线查找

@@ -662,6 +662,16 @@ void MutiCamApp::onMeasurementResult(const QString& viewName, const QString& res
     // 2. 记录到日志文件
     qDebug() << "测量结果来自 [" << viewName << "]:" << result;
     statusBar()->showMessage(QString("新测量结果 [%1]: %2").arg(viewName, result), 5000);
+
+    // 检测是否为标定完成事件
+    if (result.contains("像素标定完成")) {
+        // 同步标定参数到对应的overlay
+        syncCalibrationParameters(viewName);
+
+        // 自动保存标定参数
+        saveCalibrationSettings();
+        qDebug() << QString("检测到视图 %1 标定完成，已自动保存标定参数").arg(viewName);
+    }
 }
 
 void MutiCamApp::onSelectionChanged(const QString& info)
@@ -1129,6 +1139,9 @@ void MutiCamApp::initializeZoomPanWidgets()
     m_verticalPaintingOverlay2->setViewName("Vertical2");
     m_leftPaintingOverlay2->setViewName("Left2");
     m_frontPaintingOverlay2->setViewName("Front2");
+
+    // 加载标定参数
+    loadCalibrationSettings();
 
     // 将PaintingOverlay关联到ZoomPanWidget
     m_verticalZoomPanWidget->setPaintingOverlay(m_verticalPaintingOverlay);
@@ -2498,6 +2511,228 @@ void MutiCamApp::onAsyncSaveFinished()
     statusBar()->showMessage("图像保存完成", 3000);
 }
 
+void MutiCamApp::startPixelCalibration()
+{
+    // 获取当前活动的PaintingOverlay
+    PaintingOverlay* activeOverlay = getActivePaintingOverlay();
+    if (!activeOverlay) {
+        QMessageBox::warning(this, "像素标定", "无法获取当前活动视图，请确保至少有一个视图处于活动状态。");
+        return;
+    }
+
+    QString viewName = activeOverlay->getViewName();
+
+    // 检查是否已经标定
+    if (activeOverlay->isCalibrated()) {
+        int ret = QMessageBox::question(this, "像素标定",
+                                       QString("视图 %1 已经完成标定。\n"
+                                              "当前比例: %2 %3/pixel\n\n"
+                                              "是否要重新标定？")
+                                       .arg(viewName)
+                                       .arg(activeOverlay->getPixelScale(), 0, 'f', 6)
+                                       .arg(activeOverlay->getUnit()),
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+        if (ret != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    // 启动标定模式
+    activeOverlay->startCalibration();
+
+    // 更新状态栏提示
+    statusBar()->showMessage(QString("视图 %1 进入像素标定模式，请绘制一条已知长度的线段").arg(viewName), 10000);
+
+    qDebug() << QString("启动视图 %1 的像素标定").arg(viewName);
+}
+
+void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
+{
+    // 根据视图名称获取对应的PaintingOverlay
+    PaintingOverlay* targetOverlay = nullptr;
+
+    if (viewName == "vertical") {
+        targetOverlay = m_verticalPaintingOverlay2;
+    } else if (viewName == "left") {
+        targetOverlay = m_leftPaintingOverlay2;
+    } else if (viewName == "front") {
+        targetOverlay = m_frontPaintingOverlay2;
+    }
+
+    if (!targetOverlay) {
+        QMessageBox::warning(this, "像素标定", QString("无法获取 %1 视图，请确保视图已正确初始化。").arg(viewName));
+        return;
+    }
+
+    QString displayViewName = targetOverlay->getViewName();
+
+    // 检查是否已经标定
+    if (targetOverlay->isCalibrated()) {
+        int ret = QMessageBox::question(this, "像素标定",
+                                       QString("视图 %1 已经完成标定。\n"
+                                              "当前比例: %2 %3/pixel\n\n"
+                                              "是否要重新标定？")
+                                       .arg(displayViewName)
+                                       .arg(targetOverlay->getPixelScale(), 0, 'f', 6)
+                                       .arg(targetOverlay->getUnit()),
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+        if (ret != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    // 启动标定模式
+    targetOverlay->startCalibration();
+
+    // 更新状态栏提示
+    statusBar()->showMessage(QString("视图 %1 进入像素标定模式，请绘制一条已知长度的线段").arg(displayViewName), 10000);
+
+    qDebug() << QString("启动视图 %1 的像素标定").arg(displayViewName);
+}
+
+void MutiCamApp::loadCalibrationSettings()
+{
+    if (!m_settingsManager) {
+        return;
+    }
+
+    SettingsManager::Settings settings = m_settingsManager->getCurrentSettings();
+
+    // 加载垂直视图标定参数
+    if (settings.verticalCalibration.isCalibrated) {
+        m_verticalPaintingOverlay->setPixelScale(settings.verticalCalibration.pixelScale,
+                                                settings.verticalCalibration.unit);
+        m_verticalPaintingOverlay2->setPixelScale(settings.verticalCalibration.pixelScale,
+                                                 settings.verticalCalibration.unit);
+        qDebug() << QString("加载垂直视图标定: %1 %2/pixel")
+                    .arg(settings.verticalCalibration.pixelScale, 0, 'f', 6)
+                    .arg(settings.verticalCalibration.unit);
+    }
+
+    // 加载左侧视图标定参数
+    if (settings.leftCalibration.isCalibrated) {
+        m_leftPaintingOverlay->setPixelScale(settings.leftCalibration.pixelScale,
+                                           settings.leftCalibration.unit);
+        m_leftPaintingOverlay2->setPixelScale(settings.leftCalibration.pixelScale,
+                                            settings.leftCalibration.unit);
+        qDebug() << QString("加载左侧视图标定: %1 %2/pixel")
+                    .arg(settings.leftCalibration.pixelScale, 0, 'f', 6)
+                    .arg(settings.leftCalibration.unit);
+    }
+
+    // 加载对向视图标定参数
+    if (settings.frontCalibration.isCalibrated) {
+        m_frontPaintingOverlay->setPixelScale(settings.frontCalibration.pixelScale,
+                                            settings.frontCalibration.unit);
+        m_frontPaintingOverlay2->setPixelScale(settings.frontCalibration.pixelScale,
+                                             settings.frontCalibration.unit);
+        qDebug() << QString("加载对向视图标定: %1 %2/pixel")
+                    .arg(settings.frontCalibration.pixelScale, 0, 'f', 6)
+                    .arg(settings.frontCalibration.unit);
+    }
+}
+
+void MutiCamApp::saveCalibrationSettings()
+{
+    if (!m_settingsManager) {
+        return;
+    }
+
+    SettingsManager::Settings settings = m_settingsManager->getCurrentSettings();
+
+    // 保存垂直视图标定参数（检查主界面和选项卡界面）
+    if (m_verticalPaintingOverlay->isCalibrated() || m_verticalPaintingOverlay2->isCalibrated()) {
+        // 优先使用已标定的overlay的参数
+        PaintingOverlay* calibratedOverlay = m_verticalPaintingOverlay->isCalibrated() ?
+                                           m_verticalPaintingOverlay : m_verticalPaintingOverlay2;
+        settings.verticalCalibration.pixelScale = calibratedOverlay->getPixelScale();
+        settings.verticalCalibration.unit = calibratedOverlay->getUnit();
+        settings.verticalCalibration.isCalibrated = true;
+        settings.verticalCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        settings.verticalCalibration.method = "单点标定";
+    }
+
+    // 保存左侧视图标定参数（检查主界面和选项卡界面）
+    if (m_leftPaintingOverlay->isCalibrated() || m_leftPaintingOverlay2->isCalibrated()) {
+        // 优先使用已标定的overlay的参数
+        PaintingOverlay* calibratedOverlay = m_leftPaintingOverlay->isCalibrated() ?
+                                           m_leftPaintingOverlay : m_leftPaintingOverlay2;
+        settings.leftCalibration.pixelScale = calibratedOverlay->getPixelScale();
+        settings.leftCalibration.unit = calibratedOverlay->getUnit();
+        settings.leftCalibration.isCalibrated = true;
+        settings.leftCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        settings.leftCalibration.method = "单点标定";
+    }
+
+    // 保存对向视图标定参数（检查主界面和选项卡界面）
+    if (m_frontPaintingOverlay->isCalibrated() || m_frontPaintingOverlay2->isCalibrated()) {
+        // 优先使用已标定的overlay的参数
+        PaintingOverlay* calibratedOverlay = m_frontPaintingOverlay->isCalibrated() ?
+                                           m_frontPaintingOverlay : m_frontPaintingOverlay2;
+        settings.frontCalibration.pixelScale = calibratedOverlay->getPixelScale();
+        settings.frontCalibration.unit = calibratedOverlay->getUnit();
+        settings.frontCalibration.isCalibrated = true;
+        settings.frontCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        settings.frontCalibration.method = "单点标定";
+    }
+
+    // 更新设置并保存
+    m_settingsManager->setCurrentSettings(settings);
+    m_settingsManager->saveSettingsFromUI(this);
+
+    qDebug() << "标定参数已保存到设置文件";
+}
+
+void MutiCamApp::syncCalibrationParameters(const QString& viewName)
+{
+    // 获取发送信号的PaintingOverlay（标定完成的overlay）
+    PaintingOverlay* sourceOverlay = qobject_cast<PaintingOverlay*>(sender());
+    if (!sourceOverlay || !sourceOverlay->isCalibrated()) {
+        return;
+    }
+
+    double pixelScale = sourceOverlay->getPixelScale();
+    QString unit = sourceOverlay->getUnit();
+
+    // 根据视图名称同步标定参数到对应的overlay
+    if (viewName == "Vertical") {
+        // 主界面垂直视图标定完成，同步到选项卡垂直视图
+        if (m_verticalPaintingOverlay2) {
+            m_verticalPaintingOverlay2->setPixelScale(pixelScale, unit);
+        }
+    } else if (viewName == "Vertical2") {
+        // 选项卡垂直视图标定完成，同步到主界面垂直视图
+        if (m_verticalPaintingOverlay) {
+            m_verticalPaintingOverlay->setPixelScale(pixelScale, unit);
+        }
+    } else if (viewName == "Left") {
+        // 主界面左侧视图标定完成，同步到选项卡左侧视图
+        if (m_leftPaintingOverlay2) {
+            m_leftPaintingOverlay2->setPixelScale(pixelScale, unit);
+        }
+    } else if (viewName == "Left2") {
+        // 选项卡左侧视图标定完成，同步到主界面左侧视图
+        if (m_leftPaintingOverlay) {
+            m_leftPaintingOverlay->setPixelScale(pixelScale, unit);
+        }
+    } else if (viewName == "Front") {
+        // 主界面对向视图标定完成，同步到选项卡对向视图
+        if (m_frontPaintingOverlay2) {
+            m_frontPaintingOverlay2->setPixelScale(pixelScale, unit);
+        }
+    } else if (viewName == "Front2") {
+        // 选项卡对向视图标定完成，同步到主界面对向视图
+        if (m_frontPaintingOverlay) {
+            m_frontPaintingOverlay->setPixelScale(pixelScale, unit);
+        }
+    }
+
+    qDebug() << QString("标定参数已同步：视图 %1, 比例 %2 %3/pixel")
+                .arg(viewName).arg(pixelScale, 0, 'f', 6).arg(unit);
+}
+
 void MutiCamApp::initializeSettingsManager()
 {
     // 创建设置管理器
@@ -3026,6 +3261,20 @@ void MutiCamApp::initializeButtonMappings()
     m_buttonMappings.emplace_back(ui->btnSaveImageFront,
         [this]() { saveImage("front"); },
         "save", "front");
+
+    // 像素标定按钮
+    m_buttonMappings.emplace_back(ui->btnPixelCalibration,
+        [this]() { startPixelCalibration(); },
+        "calibration", "all");
+    m_buttonMappings.emplace_back(ui->btnCalibrationVertical,
+        [this]() { startPixelCalibrationForView("vertical"); },
+        "calibration", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCalibrationLeft,
+        [this]() { startPixelCalibrationForView("left"); },
+        "calibration", "left");
+    m_buttonMappings.emplace_back(ui->btnCalibrationFront,
+        [this]() { startPixelCalibrationForView("front"); },
+        "calibration", "front");
 
     // 网格取消按钮
     m_buttonMappings.emplace_back(ui->btnCancelGrids,

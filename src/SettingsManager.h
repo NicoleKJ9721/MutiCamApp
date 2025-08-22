@@ -47,6 +47,29 @@ public:
         bool autoSaveEnabled;
         QString captureFormat;
         QString imageQuality;
+
+        // 像素标定参数（每个视图独立）
+        struct CalibrationData {
+            double pixelScale;        // 像素比例 (μm/pixel)
+            QString unit;            // 单位 ("μm", "mm", "cm")
+            QString calibrationTime; // 标定时间
+            double accuracy;         // 标定精度
+            QString method;          // 标定方法
+            bool isCalibrated;       // 是否已标定
+
+            CalibrationData() :
+                pixelScale(1.0),
+                unit("μm"),
+                calibrationTime(""),
+                accuracy(0.0),
+                method("单点标定"),
+                isCalibrated(false)
+            {}
+        };
+
+        CalibrationData verticalCalibration;
+        CalibrationData leftCalibration;
+        CalibrationData frontCalibration;
         
         /**
          * @brief 构造函数，设置默认值

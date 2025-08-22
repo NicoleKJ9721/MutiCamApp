@@ -273,6 +273,14 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void setViewName(const QString& viewName);
     QString getViewName() const;
 
+    // 像素标定相关接口
+    void setPixelScale(double scale, const QString& unit = "μm");
+    double getPixelScale() const;
+    QString getUnit() const;
+    bool isCalibrated() const;
+    void startCalibration();
+    void resetCalibration();
+
     DrawingState getDrawingState() const;
     void setDrawingState(const DrawingState& state);
 
@@ -388,6 +396,12 @@ private:
     
     // 视图名称
     QString m_viewName;
+
+    // 像素标定相关
+    double m_pixelScale;        // 像素比例 (μm/pixel)
+    QString m_unit;            // 单位
+    bool m_isCalibrated;       // 是否已标定
+    bool m_isCalibrationMode;  // 是否处于标定模式
 
     // 图像处理相关
     EdgeDetector* m_edgeDetector;
@@ -505,6 +519,10 @@ private:
 
     // 平行线中线辅助函数
     bool getParallelMiddleLinePoints(int parallelIndex, QPointF& lineStart, QPointF& lineEnd) const;
+
+    // 像素标定辅助函数
+    void updateAllMeasurementLabels();
+    void performCalibrationWithLineSegment(int lineSegmentIndex);
 
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);
