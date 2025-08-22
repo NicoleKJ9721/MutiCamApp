@@ -280,6 +280,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     bool isCalibrated() const;
     void startCalibration();           // 启动单点标定
     void startMultiPointCalibration(); // 启动多点标定
+    void startCheckerboardCalibration(int cornersX, int cornersY, double squareSize, const QString& unit); // 启动棋盘格标定
     void resetCalibration();
 
     DrawingState getDrawingState() const;
@@ -539,6 +540,9 @@ private:
     void performMultiPointCalibrationWithLineSegment(int lineSegmentIndex);
     void showMultiPointCalibrationDialog();
     double calculateMultiPointPixelScale() const;
+    bool detectCheckerboardCorners(int cornersX, int cornersY, std::vector<cv::Point2f>& corners, QString& diagnostic);
+    double calculateCheckerboardPixelScale(const std::vector<cv::Point2f>& corners,
+                                          int cornersX, int cornersY, double squareSize);
 
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);

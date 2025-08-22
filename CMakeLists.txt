@@ -38,6 +38,8 @@ set(srcs
     src/SettingsManager.h
     src/CalibrationDialog.cpp
     src/CalibrationDialog.h
+    src/CheckerboardCalibrationDialog.cpp
+    src/CheckerboardCalibrationDialog.h
     src/LogManager.cpp
     src/LogManager.h
     src/TrajectoryRecorder.cpp

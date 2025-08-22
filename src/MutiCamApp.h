@@ -29,6 +29,7 @@
 #include "image_processing/shape_detector.h"
 #include "SettingsManager.h"
 #include "CalibrationDialog.h"
+#include "CheckerboardCalibrationDialog.h"
 #include "LogManager.h"
 #include "TrajectoryRecorder.h"
 #include "SerialController.h"

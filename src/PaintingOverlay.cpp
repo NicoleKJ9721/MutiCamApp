@@ -11,6 +11,9 @@
 #include <QContextMenuEvent>
 #include <algorithm>
 #include <cmath>
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -5387,6 +5390,72 @@ void PaintingOverlay::startMultiPointCalibration()
     qDebug() << message;
 }
 
+void PaintingOverlay::startCheckerboardCalibration(int cornersX, int cornersY, double squareSize, const QString& unit)
+{
+    QString message = QString("视图 %1 开始棋盘格检测，请确保棋盘格图案清晰可见...").arg(m_viewName);
+    emit measurementCompleted(m_viewName, message);
+    qDebug() << message;
+
+    // 检测棋盘格角点
+    std::vector<cv::Point2f> corners;
+    QString diagnostic;
+    bool detected = detectCheckerboardCorners(cornersX, cornersY, corners, diagnostic);
+
+    if (detected) {
+        // 计算像素比例
+        double pixelScale = calculateCheckerboardPixelScale(corners, cornersX, cornersY, squareSize);
+
+        // 转换单位到微米
+        QString targetUnit = "μm";
+        double convertedScale = pixelScale;
+        if (unit == "mm") {
+            convertedScale = pixelScale * 1000.0; // mm to μm
+        } else if (unit == "cm") {
+            convertedScale = pixelScale * 10000.0; // cm to μm
+        } else if (unit == "inch") {
+            convertedScale = pixelScale * 25400.0; // inch to μm
+        }
+
+        // 应用标定参数
+        setPixelScale(convertedScale, targetUnit);
+
+        QString result = QString("棋盘格标定完成: %1 %2/pixel\n"
+                               "检测到 %3 个角点，方格尺寸: %4 %5")
+                        .arg(convertedScale, 0, 'f', 6).arg(targetUnit)
+                        .arg(corners.size())
+                        .arg(squareSize, 0, 'f', 3).arg(unit);
+        emit measurementCompleted(m_viewName, result);
+
+        qDebug() << QString("视图 %1 棋盘格标定完成: %2").arg(m_viewName).arg(result);
+    } else {
+        QString errorMsg = QString("视图 %1 棋盘格检测失败\n\n").arg(m_viewName);
+
+        // 添加详细诊断信息
+        if (!diagnostic.isEmpty()) {
+            errorMsg += diagnostic + "\n\n";
+        }
+
+        errorMsg += QString("常见问题和解决方案：\n"
+                          "1. 角点数量错误\n"
+                          "   → 重新数一下棋盘格内角点数量\n"
+                          "   → 内角点 = (行数-1) × (列数-1)\n\n"
+                          "2. 棋盘格尺寸不合适\n"
+                          "   → 调整相机距离，让棋盘格占据50-80%%视野\n"
+                          "   → 确保棋盘格完全在视野范围内\n\n"
+                          "3. 图像质量问题\n"
+                          "   → 调整焦距确保图像清晰\n"
+                          "   → 增加光照，确保黑白对比清晰\n"
+                          "   → 避免反光和阴影\n\n"
+                          "4. 棋盘格质量问题\n"
+                          "   → 使用激光打印的高质量棋盘格\n"
+                          "   → 将棋盘格贴在平整硬质表面\n\n"
+                          "建议：如果棋盘格不平整，可以使用多点标定替代");
+
+        emit measurementCompleted(m_viewName, errorMsg);
+        qDebug() << QString("视图 %1 棋盘格检测失败").arg(m_viewName);
+    }
+}
+
 void PaintingOverlay::resetCalibration()
 {
     m_pixelScale = 1.0;
@@ -5684,4 +5753,158 @@ double PaintingOverlay::calculateMultiPointPixelScale() const
     }
 
     return 1.0;
+}
+
+bool PaintingOverlay::detectCheckerboardCorners(int cornersX, int cornersY, std::vector<cv::Point2f>& corners, QString& diagnostic)
+{
+    // 获取当前显示的图像
+    QPixmap currentPixmap = grab();
+    if (currentPixmap.isNull()) {
+        qDebug() << "无法获取当前图像";
+        return false;
+    }
+
+    // 将QPixmap转换为cv::Mat
+    QImage qimg = currentPixmap.toImage();
+    if (qimg.format() != QImage::Format_RGB888) {
+        qimg = qimg.convertToFormat(QImage::Format_RGB888);
+    }
+
+    cv::Mat image(qimg.height(), qimg.width(), CV_8UC3, (void*)qimg.constBits(), qimg.bytesPerLine());
+    cv::Mat grayImage;
+    cv::cvtColor(image, grayImage, cv::COLOR_RGB2GRAY);
+
+    // 图像预处理以提高检测成功率
+    cv::Mat processedImage;
+
+    // 尝试多种预处理方法
+    std::vector<cv::Mat> processedImages;
+
+    // 1. 原始灰度图像
+    processedImages.push_back(grayImage.clone());
+
+    // 2. 直方图均衡化
+    cv::Mat equalizedImage;
+    cv::equalizeHist(grayImage, equalizedImage);
+    processedImages.push_back(equalizedImage);
+
+    // 3. 高斯模糊去噪
+    cv::Mat blurredImage;
+    cv::GaussianBlur(grayImage, blurredImage, cv::Size(3, 3), 0);
+    processedImages.push_back(blurredImage);
+
+    // 4. 对比度增强
+    cv::Mat contrastImage;
+    grayImage.convertTo(contrastImage, -1, 1.5, 0); // alpha=1.5 增强对比度
+    processedImages.push_back(contrastImage);
+
+    // 检测棋盘格角点
+    cv::Size patternSize(cornersX, cornersY);
+    bool found = false;
+
+    // 尝试不同的预处理图像
+    for (size_t i = 0; i < processedImages.size() && !found; ++i) {
+        corners.clear();
+
+        found = cv::findChessboardCorners(processedImages[i], patternSize, corners,
+                                         cv::CALIB_CB_ADAPTIVE_THRESH |
+                                         cv::CALIB_CB_NORMALIZE_IMAGE |
+                                         cv::CALIB_CB_FAST_CHECK);
+
+        if (found) {
+            qDebug() << QString("使用预处理方法 %1 检测到棋盘格角点").arg(i);
+
+            // 亚像素精度优化（使用原始灰度图像）
+            cv::cornerSubPix(grayImage, corners, cv::Size(11, 11), cv::Size(-1, -1),
+                            cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 30, 0.1));
+
+            qDebug() << QString("检测到棋盘格角点: %1 个").arg(corners.size());
+            break;
+        }
+    }
+
+    if (!found) {
+        qDebug() << QString("所有预处理方法都未检测到棋盘格角点，期望: %1x%2").arg(cornersX).arg(cornersY);
+
+        // 提供详细的诊断信息
+        diagnostic = QString("棋盘格检测失败诊断:\n"
+                           "- 期望角点数: %1x%2 = %3 个\n"
+                           "- 图像尺寸: %4x%5 像素\n"
+                           "- 尝试了 4 种预处理方法均失败\n\n"
+                           "建议检查:\n"
+                           "1. 棋盘格是否完全在视野内\n"
+                           "2. 角点数量设置是否正确\n"
+                           "3. 图像是否清晰对焦\n"
+                           "4. 光照是否均匀\n"
+                           "5. 棋盘格占据视野的50-80%%")
+                        .arg(cornersX).arg(cornersY).arg(cornersX * cornersY)
+                        .arg(grayImage.cols).arg(grayImage.rows);
+    }
+
+    return found;
+}
+
+double PaintingOverlay::calculateCheckerboardPixelScale(const std::vector<cv::Point2f>& corners,
+                                                       int cornersX, int cornersY, double squareSize)
+{
+    if (corners.size() != cornersX * cornersY) {
+        qDebug() << "角点数量不匹配";
+        return 1.0;
+    }
+
+    // 计算水平和垂直方向的像素距离
+    std::vector<double> horizontalDistances;
+    std::vector<double> verticalDistances;
+
+    // 计算水平方向的距离（相邻列之间）
+    for (int row = 0; row < cornersY; ++row) {
+        for (int col = 0; col < cornersX - 1; ++col) {
+            int idx1 = row * cornersX + col;
+            int idx2 = row * cornersX + col + 1;
+
+            double dx = corners[idx2].x - corners[idx1].x;
+            double dy = corners[idx2].y - corners[idx1].y;
+            double distance = sqrt(dx * dx + dy * dy);
+            horizontalDistances.push_back(distance);
+        }
+    }
+
+    // 计算垂直方向的距离（相邻行之间）
+    for (int row = 0; row < cornersY - 1; ++row) {
+        for (int col = 0; col < cornersX; ++col) {
+            int idx1 = row * cornersX + col;
+            int idx2 = (row + 1) * cornersX + col;
+
+            double dx = corners[idx2].x - corners[idx1].x;
+            double dy = corners[idx2].y - corners[idx1].y;
+            double distance = sqrt(dx * dx + dy * dy);
+            verticalDistances.push_back(distance);
+        }
+    }
+
+    // 计算平均像素距离
+    double avgHorizontalPixels = 0.0;
+    for (double dist : horizontalDistances) {
+        avgHorizontalPixels += dist;
+    }
+    avgHorizontalPixels /= horizontalDistances.size();
+
+    double avgVerticalPixels = 0.0;
+    for (double dist : verticalDistances) {
+        avgVerticalPixels += dist;
+    }
+    avgVerticalPixels /= verticalDistances.size();
+
+    // 使用水平和垂直方向的平均值
+    double avgPixelsPerSquare = (avgHorizontalPixels + avgVerticalPixels) / 2.0;
+
+    // 计算像素比例 (实际单位/像素)
+    double pixelScale = squareSize / avgPixelsPerSquare;
+
+    qDebug() << QString("棋盘格标定计算: 平均像素/方格 = %1, 方格尺寸 = %2, 像素比例 = %3")
+                .arg(avgPixelsPerSquare, 0, 'f', 2)
+                .arg(squareSize, 0, 'f', 3)
+                .arg(pixelScale, 0, 'f', 6);
+
+    return pixelScale;
 }
