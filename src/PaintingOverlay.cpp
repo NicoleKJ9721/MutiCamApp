@@ -959,8 +959,8 @@ void PaintingOverlay::handleParallelDrawingClick(const QPointF& imagePos)
                 m_currentParallel.isCompleted = true;
 
                 // 使用通用提交逻辑
-                QString result = QString("平行线: 距离 %.1f, 角度 %.1f°")
-                                .arg(m_currentParallel.distance).arg(m_currentParallel.angle);
+                QString result = QString("平行线: 距离 %1, 角度 %.1f°")
+                                .arg(formatDistance(m_currentParallel.distance)).arg(m_currentParallel.angle);
 
                 m_parallels.append(m_currentParallel);
 
@@ -1023,8 +1023,8 @@ void PaintingOverlay::handleTwoLinesDrawingClick(const QPointF& imagePos)
                 m_currentTwoLines.isCompleted = true;
 
                 // 使用通用提交逻辑
-                QString result = QString("两线夹角: %.1f°")
-                                .arg(m_currentTwoLines.angle);
+                QString result = QString("两线夹角: %.1f°\n交点坐标: %.1f")
+                                .arg(m_currentTwoLines.angle).arg(formatCoordinate(m_currentTwoLines.intersection));
 
                 m_twoLines.append(m_currentTwoLines);
 
@@ -1062,10 +1062,8 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
         painter.setBrush(ctx.greenBrush);
         painter.drawEllipse(point, innerRadius, innerRadius);
         
-        // 绘制坐标文本（使用统一的布局思维）
-        QString coordText = QString("(%1,%2)")
-            .arg(static_cast<int>(point.x()))
-            .arg(static_cast<int>(point.y()));
+        // 绘制坐标文本（应用标定转换）
+        QString coordText = formatCoordinate(point);
         
         // 计算将文本框定位到点右上角所需的偏移量
         QFontMetrics fm(ctx.font);
@@ -1092,10 +1090,8 @@ void PaintingOverlay::drawSinglePoint(QPainter& painter, const QPointF& point, i
     painter.setBrush(ctx.greenBrush);
     painter.drawEllipse(point, innerRadius, innerRadius);
 
-    // 绘制坐标文本（使用统一的布局思维）
-    QString coordText = QString("(%1,%2)")
-        .arg(static_cast<int>(point.x()))
-        .arg(static_cast<int>(point.y()));
+    // 绘制坐标文本（应用标定转换）
+    QString coordText = formatCoordinate(point);
 
     // 计算将文本框定位到点右上角所需的偏移量
     QFontMetrics fm(ctx.font);
@@ -1284,8 +1280,8 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         // 只在圆形完成后显示文字信息
         if (circle.isCompleted) {
             // 显示圆心坐标和半径 - 使用与点相同的布局方式
-            QString centerText = QString::asprintf("(%.1f,%.1f)", circle.center.x(), circle.center.y());
-            QString radiusText = QString::asprintf("R=%.1f", circle.radius);
+            QString centerText = formatCoordinate(circle.center);
+            QString radiusText = formatRadius(circle.radius);
 
             // 计算将文本框定位到圆心右上角所需的偏移量（与点的布局一致）
             QFontMetrics fm(ctx.font);
@@ -1382,8 +1378,8 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
         painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
         
         // 显示圆心坐标和半径信息
-        QString centerText = QString::asprintf("(%.1f, %.1f)", fineCircle.center.x(), fineCircle.center.y());
-        QString radiusText = QString::asprintf("%.1f", fineCircle.radius);
+        QString centerText = formatCoordinate(fineCircle.center);
+        QString radiusText = formatRadius(fineCircle.radius);
         
         // 1. 计算第一个文本框的矩形
         QRectF centerTextRect = calculateTextWithBackgroundRect(centerImage, centerText, ctx.font, textPadding, QPointF(textOffset, -textOffset));
@@ -1561,7 +1557,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         painter.drawLine(extMidStart, extMidEnd);
         
         // 显示距离和角度信息
-        QString distanceText = QString::asprintf("%.1f", parallel.distance) + "px";
+        QString distanceText = formatDistance(parallel.distance);
         QString angleText = QString::asprintf("%.1f°", parallel.angle);
         // 【标注位置修正】标注的锚点应该是中线的中点
         QPointF textAnchorPoint = (extMidStart + extMidEnd) / 2.0;
@@ -1753,7 +1749,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         
         // 显示角度和坐标信息 - 使用drawTextWithBackground辅助函数
         QString angleText = QString::asprintf("%.1f°", twoLines.angle);
-        QString coordText = QString::asprintf("(%.1f,%.1f)", twoLines.intersection.x(), twoLines.intersection.y());
+        QString coordText = formatCoordinate(twoLines.intersection);
         
         // 动态计算文本布局参数，直接使用期望的屏幕像素值
         double textOffset = qMax(8.0, 10.0 * ctx.scale);
@@ -2834,7 +2830,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     }
 
     // 更新标签包含长度和角度信息
-    lineSegment.label = QString("长度: %1, 角度: %2°").arg(lineSegment.length, 0, 'f', 1).arg(angleDegrees, 0, 'f', 1);
+    lineSegment.label = QString("长度: %1, 角度: %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 1);
 
     m_lineSegments.append(lineSegment);
 
@@ -2849,7 +2845,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     clearSelection();
 
     // 发出信号
-    QString result = QString("线段: 长度 %1, 角度 %2°").arg(lineSegment.length, 0, 'f', 1).arg(angleDegrees, 0, 'f', 1);
+    QString result = QString("线段: 长度 %1, 角度 %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 1);
     emit measurementCompleted(m_viewName, result);
     emit drawingDataChanged(m_viewName);
 
@@ -2878,12 +2874,7 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         newLineSegment.length = pixelLength;
 
         // 根据标定状态设置标签
-        if (m_isCalibrated) {
-            double realLength = pixelLength * m_pixelScale;
-            newLineSegment.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
-        } else {
-            newLineSegment.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
-        }
+        newLineSegment.label = QString("长度: %1").arg(formatDistance(pixelLength));
         
         // 添加到线段列表
         m_lineSegments.append(newLineSegment);
@@ -3030,7 +3021,7 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
             double angle = atan2(end.y() - start.y(), end.x() - start.x()) * 180.0 / M_PI;
             if (angle < 0) angle += 360.0;
 
-            lengthText = QString("长度: %1").arg(length, 0, 'f', 1);
+            lengthText = QString("长度: %1").arg(formatDistance(length));
             angleText = QString("角度: %1°").arg(angle, 0, 'f', 1);
         }
     } else if (lengthText.isEmpty()) {
@@ -3630,7 +3621,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 perpendicular.isDashed = true;
                 perpendicular.isVisible = true;
                 perpendicular.length = distance;
-                perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+                perpendicular.label = QString("距离: %1").arg(formatDistance(distance));
 
                 // 添加到线段列表
                 m_lineSegments.append(perpendicular);
@@ -3643,7 +3634,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 commitDrawingAction(action);
 
                 // 发送测量完成信号
-                QString result = QString("点到直线距离: %1 像素").arg(distance, 0, 'f', 2);
+                QString result = QString("点到直线距离: %1").arg(formatDistance(distance));
                 emit measurementCompleted(m_viewName, result);
 
                 // 清除选择并更新显示
@@ -3686,7 +3677,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         toCircumference.isDashed = true;
                         toCircumference.isVisible = true;
                         toCircumference.length = distanceToCircumference;
-                        toCircumference.label = QString("距离: %1").arg(distanceToCircumference, 0, 'f', 2);
+                        toCircumference.label = QString("距离: %1").arg(formatDistance(distanceToCircumference));
 
                         m_lineSegments.append(toCircumference);
 
@@ -3698,7 +3689,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         commitDrawingAction(action);
 
                         // 发送测量完成信号
-                        QString result = QString("点到圆距离: %1").arg(distanceToCircumference, 0, 'f', 2);
+                        QString result = QString("点到圆距离: %1").arg(formatDistance(distanceToCircumference));
                         emit measurementCompleted(m_viewName, result);
 
                         // 清除选择并更新显示
@@ -3743,7 +3734,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         toCircumference.isDashed = true;
                         toCircumference.isVisible = true;
                         toCircumference.length = distanceToCircumference;
-                        toCircumference.label = QString("距离: %1").arg(distanceToCircumference, 0, 'f', 2);
+                        toCircumference.label = QString("距离: %1").arg(formatDistance(distanceToCircumference));
 
                         m_lineSegments.append(toCircumference);
 
@@ -3755,7 +3746,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         commitDrawingAction(action);
 
                         // 发送测量完成信号
-                        QString result = QString("点到精细圆距离: %1").arg(distanceToCircumference, 0, 'f', 2);
+                        QString result = QString("点到精细圆距离: %1").arg(formatDistance(distanceToCircumference));
                         emit measurementCompleted(m_viewName, result);
 
                         // 清除选择并更新显示
@@ -3821,7 +3812,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     double distanceToCenter = calculatePointToLineDistance(circle.center, lineStart, lineEnd);
                     double distanceToCircle = abs(distanceToCenter - circle.radius);
                     perpendicular.length = distanceToCircle;
-                    perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                    perpendicular.label = QString("距离: %1").arg(formatDistance(distanceToCircle));
 
                     m_lineSegments.append(perpendicular);
 
@@ -3898,7 +3889,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     double distanceToCenter = calculatePointToLineDistance(fineCircle.center, lineStart, lineEnd);
                     double distanceToCircle = abs(distanceToCenter - fineCircle.radius);
                     perpendicular.length = distanceToCircle;
-                    perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                    perpendicular.label = QString("距离: %1").arg(formatDistance(distanceToCircle));
 
                     m_lineSegments.append(perpendicular);
 
@@ -4028,7 +4019,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
-                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+                    perpendicular.label = QString("距离: %1").arg(formatDistance(distance));
 
                     // 添加到线段列表
                     m_lineSegments.append(perpendicular);
@@ -4041,7 +4032,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     commitDrawingAction(action);
 
                     // 发送测量完成信号
-                    QString result = QString("点到角平分线距离: %1").arg(distance, 0, 'f', 2);
+                    QString result = QString("点到角平分线距离: %1").arg(formatDistance(distance));
                     emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
@@ -4119,7 +4110,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             bisector.thickness = 2.0;
                             bisector.isDashed = true;
                             bisector.isVisible = true;
-                            bisector.label = QString("BISECTOR:%1°:(%2,%3)").arg(angle, 0, 'f', 1).arg(intersection.x(), 0, 'f', 1).arg(intersection.y(), 0, 'f', 1);
+                            bisector.label = QString("BISECTOR:%1°:%2").arg(angle, 0, 'f', 1).arg(formatCoordinate(intersection));
                             
                             // 添加到线段列表
                             m_lineSegments.append(bisector);
@@ -4133,8 +4124,8 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         }
 
                     // 发送测量完成信号
-                    QString result = QString("两线夹角: %.1f°\n交点坐标: (%.1f, %.1f)")
-                                    .arg(angle).arg(intersection.x()).arg(intersection.y());
+                    QString result = QString("两线夹角: %.1f°\n交点坐标: %1")
+                                    .arg(angle).arg(formatCoordinate(intersection));
                     emit measurementCompleted(m_viewName, result);
                 } else {
                     // 两线平行
@@ -4179,7 +4170,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
-                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+                    perpendicular.label = QString("距离: %1").arg(formatDistance(distance));
 
                     // 添加到线段列表
                     m_lineSegments.append(perpendicular);
@@ -4192,7 +4183,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     commitDrawingAction(action);
 
                     // 发送测量完成信号
-                    QString result = QString("点到角平分线距离: %1").arg(distance, 0, 'f', 2);
+                    QString result = QString("点到角平分线距离: %1").arg(formatDistance(distance));
                     emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
@@ -4233,7 +4224,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
-                    perpendicular.label = QString("距离: %1").arg(distance, 0, 'f', 2);
+                    perpendicular.label = QString("距离: %1").arg(formatDistance(distance));
 
                     // 添加到线段列表
                     m_lineSegments.append(perpendicular);
@@ -4246,7 +4237,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     commitDrawingAction(action);
 
                     // 发送测量完成信号
-                    QString result = QString("点到线段距离: %1").arg(distance, 0, 'f', 2);
+                    QString result = QString("点到线段距离: %1").arg(formatDistance(distance));
                     emit measurementCompleted(m_viewName, result);
 
                     // 清除选择并更新显示
@@ -4299,7 +4290,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 计算线段到圆周的距离
                         double distanceToCircle = abs(dirLength - circle.radius);
                         perpendicular.length = distanceToCircle;
-                        perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                        perpendicular.label = QString("距离: %1").arg(formatDistance(distanceToCircle));
 
                         m_lineSegments.append(perpendicular);
 
@@ -4366,7 +4357,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         // 计算线段到圆周的距离
                         double distanceToCircle = abs(dirLength - fineCircle.radius);
                         perpendicular.length = distanceToCircle;
-                        perpendicular.label = QString("距离: %1").arg(distanceToCircle, 0, 'f', 2);
+                        perpendicular.label = QString("距离: %1").arg(formatDistance(distanceToCircle));
 
                         m_lineSegments.append(perpendicular);
 
@@ -4446,8 +4437,8 @@ QString PaintingOverlay::analyzeLineCircleRelation(const QPointF& lineStart, con
         relation = "相切";
     }
 
-    return QString("直线与圆%1\n圆心到直线距离: %2 像素\n圆半径: %3 像素")
-           .arg(relation).arg(distanceToCenter, 0, 'f', 2).arg(radius, 0, 'f', 2);
+    return QString("直线与圆%1\n圆心到直线距离: %2\n圆半径: %3")
+           .arg(relation).arg(formatDistance(distanceToCenter)).arg(formatDistance(radius));
 }
 
 QString PaintingOverlay::analyzeLineSegmentCircleRelation(const QPointF& lineStart, const QPointF& lineEnd, const QPointF& circleCenter, double radius) const
@@ -4464,8 +4455,8 @@ QString PaintingOverlay::analyzeLineSegmentCircleRelation(const QPointF& lineSta
         relation = "相切";
     }
 
-    return QString("线段与圆%1\n圆心到线段距离: %2 像素\n圆半径: %3 像素")
-           .arg(relation).arg(distanceToSegment, 0, 'f', 2).arg(radius, 0, 'f', 2);
+    return QString("线段与圆%1\n圆心到线段距离: %2\n圆半径: %3")
+           .arg(relation).arg(formatDistance(distanceToSegment)).arg(formatDistance(radius));
 }
 
 bool PaintingOverlay::getParallelMiddleLinePoints(int parallelIndex, QPointF& lineStart, QPointF& lineEnd) const
@@ -5082,8 +5073,11 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     detectedLineObj.isCompleted = true;
     detectedLineObj.color = Qt::magenta; // 紫色表示自动检测结果
     detectedLineObj.thickness = 3;
-    detectedLineObj.label = QString("自动检测直线 (长度: %.1f px, 角度: %.1f°, 置信度: %.1f)")
-                           .arg(bestLine.length).arg(bestLine.angle).arg(bestLine.confidence);
+    QString lengthStr = formatDistance(bestLine.length);
+    QString startCoordStr = formatCoordinate(QPointF(bestLine.start.x(), bestLine.start.y()));
+    QString endCoordStr = formatCoordinate(QPointF(bestLine.end.x(), bestLine.end.y()));
+    detectedLineObj.label = QString("自动检测直线 (长度: %1, 角度: %.1f°, 起点: %2, 终点: %3, 置信度: %.1f)")
+                           .arg(lengthStr).arg(bestLine.angle).arg(startCoordStr).arg(endCoordStr).arg(bestLine.confidence);
     detectedLineObj.showLength = true;
     detectedLineObj.length = bestLine.length;
 
@@ -5199,10 +5193,10 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     detectedCircleObj.thickness = 3;
     detectedCircleObj.center = QPointF(bestCircle.center.x(), bestCircle.center.y());
     detectedCircleObj.radius = bestCircle.radius;
-    detectedCircleObj.label = QString("自动检测圆形 (半径: %1 px, 中心: (%2,%3), 置信度: %.1f)")
-                             .arg(bestCircle.radius)
-                             .arg(bestCircle.center.x()).arg(bestCircle.center.y())
-                             .arg(bestCircle.confidence);
+    QString radiusStr = formatRadius(bestCircle.radius);
+    QString centerCoordStr = formatCoordinate(QPointF(bestCircle.center.x(), bestCircle.center.y()));
+    detectedCircleObj.label = QString("自动检测圆形 (%1, 中心: %2, 置信度: %.1f)")
+                             .arg(radiusStr).arg(centerCoordStr).arg(bestCircle.confidence);
 
     // 添加到圆形列表
     m_circles.append(detectedCircleObj);
@@ -5380,9 +5374,9 @@ void PaintingOverlay::startCalibration()
 
 void PaintingOverlay::startMultiPointCalibration()
 {
-    m_isCalibrationMode = false;
     m_isMultiPointCalibrationMode = true;
     m_calibrationPoints.clear();
+    m_multiPointCalibrationUnit.clear(); // 清空之前的单位设置
     startDrawing(DrawingTool::LineSegment);
 
     QString message = QString("视图 %1 进入多点标定模式，请绘制多条已知长度的线段（建议3-5条）").arg(m_viewName);
@@ -5474,15 +5468,28 @@ void PaintingOverlay::resetCalibration()
 
 void PaintingOverlay::updateAllMeasurementLabels()
 {
-    // 更新线段长度标签
+    // 更新线段标签 - 保持原有标签类型
     for (auto& lineSegment : m_lineSegments) {
         if (lineSegment.isCompleted && lineSegment.points.size() >= 2) {
             double pixelLength = lineSegment.length;
-            if (m_isCalibrated) {
-                double realLength = pixelLength * m_pixelScale;
-                lineSegment.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
+            // 特殊处理角平分线标签，更新其坐标部分
+            if (lineSegment.label.contains("BISECTOR:")) {
+                // 解析角平分线标签格式：BISECTOR:角度°:坐标
+                QStringList parts = lineSegment.label.split(":");
+                if (parts.size() >= 3) {
+                    QString anglePart = parts[1]; // 角度部分
+                    // 角平分线是从交点向两个方向延伸5000像素创建的
+                    // 所以交点就是线段的中点
+                    QPointF intersection = (lineSegment.points[0] + lineSegment.points[1]) / 2.0;
+                    lineSegment.label = QString("BISECTOR:%1:%2").arg(anglePart).arg(formatCoordinate(intersection));
+                }
+                continue;
+            }
+            // 根据原标签判断是距离还是长度
+            if (lineSegment.label.contains("距离:")) {
+                lineSegment.label = QString("距离: %1").arg(formatDistance(pixelLength));
             } else {
-                lineSegment.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
+                lineSegment.label = QString("长度: %1").arg(formatDistance(pixelLength));
             }
         }
     }
@@ -5491,12 +5498,7 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& line : m_lines) {
         if (line.isCompleted && line.showLength) {
             double pixelLength = line.length;
-            if (m_isCalibrated) {
-                double realLength = pixelLength * m_pixelScale;
-                line.label = QString("%1 %2").arg(realLength, 0, 'f', 2).arg(m_unit);
-            } else {
-                line.label = QString("%1 px").arg(pixelLength, 0, 'f', 1);
-            }
+            line.label = QString("长度: %1").arg(formatDistance(pixelLength));
         }
     }
 
@@ -5504,12 +5506,7 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& circle : m_circles) {
         if (circle.isCompleted) {
             double pixelRadius = circle.radius;
-            if (m_isCalibrated) {
-                double realRadius = pixelRadius * m_pixelScale;
-                circle.label = QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
-            } else {
-                circle.label = QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
-            }
+            circle.label = QString("R=%1").arg(formatRadius(pixelRadius));
         }
     }
 
@@ -5517,12 +5514,7 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& fineCircle : m_fineCircles) {
         if (fineCircle.isCompleted) {
             double pixelRadius = fineCircle.radius;
-            if (m_isCalibrated) {
-                double realRadius = pixelRadius * m_pixelScale;
-                fineCircle.label = QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
-            } else {
-                fineCircle.label = QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
-            }
+            fineCircle.label = QString("R=%1").arg(formatRadius(pixelRadius));
         }
     }
 
@@ -5530,12 +5522,7 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& parallel : m_parallels) {
         if (parallel.isCompleted) {
             double pixelDistance = parallel.distance;
-            if (m_isCalibrated) {
-                double realDistance = pixelDistance * m_pixelScale;
-                parallel.label = QString("距离: %1 %2").arg(realDistance, 0, 'f', 2).arg(m_unit);
-            } else {
-                parallel.label = QString("距离: %1 px").arg(pixelDistance, 0, 'f', 1);
-            }
+            parallel.label = QString("距离: %1").arg(formatDistance(pixelDistance));
         }
     }
 }
@@ -5549,9 +5536,24 @@ void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
     const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
     double pixelLength = lineSegment.length;
 
+    // 首先让用户选择单位
+    QStringList units = {"μm", "mm", "cm"};
+    bool unitOk;
+    QString selectedUnit = QInputDialog::getItem(this,
+                                                QString("像素标定 - %1").arg(m_viewName),
+                                                "请选择测量单位:",
+                                                units,
+                                                0, // 默认选择μm
+                                                false,
+                                                &unitOk);
+    
+    if (!unitOk) {
+        return; // 用户取消了单位选择
+    }
+
     // 使用QInputDialog获取实际长度
     bool ok;
-    QString inputText = QString("线段像素长度: %1 像素\n请输入实际长度:").arg(pixelLength, 0, 'f', 2);
+    QString inputText = QString("线段像素长度: %1 像素\n请输入实际长度(%2):").arg(pixelLength, 0, 'f', 2).arg(selectedUnit);
 
     double realLength = QInputDialog::getDouble(this,
                                                QString("像素标定 - %1").arg(m_viewName),
@@ -5566,14 +5568,14 @@ void PaintingOverlay::performCalibrationWithLineSegment(int lineSegmentIndex)
         // 计算像素比例
         double scale = realLength / pixelLength;
 
-        // 设置标定参数
-        setPixelScale(scale, "μm");
+        // 直接使用用户选择的单位
+        setPixelScale(scale, selectedUnit);
 
         // 发送标定完成信号
-        QString result = QString("像素标定完成: %1 μm/pixel\n像素长度: %2 px, 实际长度: %3 μm")
-                        .arg(scale, 0, 'f', 6)
+        QString result = QString("像素标定完成: %1 %2/pixel\n像素长度: %3 px, 实际长度: %4 %5")
+                        .arg(scale, 0, 'f', 6).arg(selectedUnit)
                         .arg(pixelLength, 0, 'f', 2)
-                        .arg(realLength, 0, 'f', 2);
+                        .arg(realLength, 0, 'f', 2).arg(selectedUnit);
         emit measurementCompleted(m_viewName, result);
 
         qDebug() << QString("视图 %1 标定完成: %2").arg(m_viewName).arg(result);
@@ -5595,11 +5597,33 @@ void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmen
     const LineSegmentObject& lineSegment = m_lineSegments[lineSegmentIndex];
     double pixelLength = lineSegment.length;
 
+    // 如果是第一个标定点，让用户选择单位
+    QString selectedUnit = m_multiPointCalibrationUnit; // 使用多点标定的单位
+    if (m_calibrationPoints.isEmpty()) {
+        QStringList units = {"μm", "mm", "cm"};
+        bool unitOk;
+        selectedUnit = QInputDialog::getItem(this,
+                                            QString("多点标定 - %1").arg(m_viewName),
+                                            "请选择测量单位:",
+                                            units,
+                                            0, // 默认选择μm
+                                            false,
+                                            &unitOk);
+        
+        if (!unitOk) {
+            return; // 用户取消了单位选择
+        }
+        
+        // 保存选择的单位
+        m_multiPointCalibrationUnit = selectedUnit;
+    }
+
     // 使用QInputDialog获取实际长度
     bool ok;
-    QString inputText = QString("线段 %1 像素长度: %2 像素\n请输入实际长度:")
+    QString inputText = QString("线段 %1 像素长度: %2 像素\n请输入实际长度(%3):")
                        .arg(m_calibrationPoints.size() + 1)
-                       .arg(pixelLength, 0, 'f', 2);
+                       .arg(pixelLength, 0, 'f', 2)
+                       .arg(selectedUnit);
 
     double realLength = QInputDialog::getDouble(this,
                                                QString("多点标定 - %1").arg(m_viewName),
@@ -5619,10 +5643,11 @@ void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmen
         point.isValid = true;
         m_calibrationPoints.append(point);
 
-        QString result = QString("已添加标定点 %1: 像素长度 %2 px, 实际长度 %3 μm")
+        QString result = QString("已添加标定点 %1: 像素长度 %2 px, 实际长度 %3 %4")
                         .arg(m_calibrationPoints.size())
                         .arg(pixelLength, 0, 'f', 2)
-                        .arg(realLength, 0, 'f', 2);
+                        .arg(realLength, 0, 'f', 2)
+                        .arg(selectedUnit);
         emit measurementCompleted(m_viewName, result);
 
         // 询问是否继续添加标定点或完成标定
@@ -5700,11 +5725,13 @@ void PaintingOverlay::showMultiPointCalibrationDialog()
     if (msgBox.clickedButton() == finishButton && finishButton != nullptr) {
         // 完成多点标定
         double avgScale = calculateMultiPointPixelScale();
-        setPixelScale(avgScale, "μm");
+        // 使用多点标定选择的单位
+        setPixelScale(avgScale, m_multiPointCalibrationUnit);
         m_isMultiPointCalibrationMode = false;
 
-        QString result = QString("多点标定完成: %1 μm/pixel\n使用了 %2 个标定点")
+        QString result = QString("多点标定完成: %1 %2/pixel\n使用了 %3 个标定点")
                         .arg(avgScale, 0, 'f', 6)
+                        .arg(m_multiPointCalibrationUnit)
                         .arg(m_calibrationPoints.size());
         emit measurementCompleted(m_viewName, result);
 
@@ -5907,4 +5934,36 @@ double PaintingOverlay::calculateCheckerboardPixelScale(const std::vector<cv::Po
                 .arg(pixelScale, 0, 'f', 6);
 
     return pixelScale;
+}
+
+// 标定转换辅助函数实现
+QString PaintingOverlay::formatDistance(double pixelDistance) const
+{
+    if (m_isCalibrated) {
+        double realDistance = pixelDistance * m_pixelScale;
+        return QString("%1 %2").arg(realDistance, 0, 'f', 2).arg(m_unit);
+    } else {
+        return QString("%1 px").arg(pixelDistance, 0, 'f', 1);
+    }
+}
+
+QString PaintingOverlay::formatCoordinate(const QPointF& pixelCoord) const
+{
+    if (m_isCalibrated) {
+        double realX = pixelCoord.x() * m_pixelScale;
+        double realY = pixelCoord.y() * m_pixelScale;
+        return QString("(%1,%2)").arg(realX, 0, 'f', 2).arg(realY, 0, 'f', 2);
+    } else {
+        return QString("(%1,%2)").arg(pixelCoord.x(), 0, 'f', 1).arg(pixelCoord.y(), 0, 'f', 1);
+    }
+}
+
+QString PaintingOverlay::formatRadius(double pixelRadius) const
+{
+    if (m_isCalibrated) {
+        double realRadius = pixelRadius * m_pixelScale;
+        return QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(m_unit);
+    } else {
+        return QString("R=%1 px").arg(pixelRadius, 0, 'f', 1);
+    }
 }

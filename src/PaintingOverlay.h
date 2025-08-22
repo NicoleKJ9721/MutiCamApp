@@ -416,6 +416,7 @@ private:
         CalibrationPoint() : lineSegmentIndex(-1), pixelLength(0.0), realLength(0.0), isValid(false) {}
     };
     QVector<CalibrationPoint> m_calibrationPoints; // 标定点集合
+    QString m_multiPointCalibrationUnit; // 多点标定的单位
 
     // 图像处理相关
     EdgeDetector* m_edgeDetector;
@@ -543,6 +544,11 @@ private:
     bool detectCheckerboardCorners(int cornersX, int cornersY, std::vector<cv::Point2f>& corners, QString& diagnostic);
     double calculateCheckerboardPixelScale(const std::vector<cv::Point2f>& corners,
                                           int cornersX, int cornersY, double squareSize);
+
+    // 标定转换辅助函数
+    QString formatDistance(double pixelDistance) const;
+    QString formatCoordinate(const QPointF& pixelCoord) const;
+    QString formatRadius(double pixelRadius) const;
 
     // 绘图动作管理
     void commitDrawingAction(const DrawingAction& action);
