@@ -73,6 +73,8 @@ set(srcs
     src/template_matching/TemplateMatchingManager.cpp
     src/template_matching/RotatableROIOverlay.h
     src/template_matching/RotatableROIOverlay.cpp
+    src/template_matching/TemplateNameDialog.h
+    src/template_matching/TemplateNameDialog.cpp
 )
 
 # Specify MSVC UTF-8 encoding   

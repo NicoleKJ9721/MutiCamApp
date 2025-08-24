@@ -65,6 +65,10 @@ public:
     // PaintingOverlay集成
     void setPaintingOverlay(PaintingOverlay* overlay);
     PaintingOverlay* getPaintingOverlay() const { return m_paintingOverlay; }
+    
+    // RotatableROIOverlay集成
+    void setROIOverlay(class RotatableROIOverlay* overlay);
+    class RotatableROIOverlay* getROIOverlay() const { return m_roiOverlay; }
 
     // 状态查询
     bool isSpacePressed() const { return m_spacePressed; }
@@ -105,6 +109,7 @@ private:
     // 核心组件
     VideoDisplayWidget* m_videoWidget;      ///< 被包装的视频显示控件
     PaintingOverlay* m_paintingOverlay;     ///< 关联的绘图覆盖层
+    class RotatableROIOverlay* m_roiOverlay; ///< 关联的ROI覆盖层
 
     // 缩放相关
     double m_zoomFactor;                    ///< 当前缩放因子
@@ -139,6 +144,7 @@ private:
     void connectSignals();
     void updateVideoWidgetTransform();
     void updatePaintingOverlayTransform();
+    void updateROIOverlayTransform();
     void constrainPanOffset();
     void calculateMaxPanOffset();
     QPointF getEffectiveImageOffset() const;
