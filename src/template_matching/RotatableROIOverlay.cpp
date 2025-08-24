@@ -20,11 +20,13 @@ RotatableROIOverlay::RotatableROIOverlay(QWidget *parent)
     , m_rotationHandleColor(Qt::blue)
     , m_borderWidth(2)
     , m_controlPointSize(8)
+    , m_rotationHandleSize(10)
     , m_showConfirmButtons(false)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents, false);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true); // 启用鼠标跟踪以便更新光标
     
     m_roiCenter = m_roi.center();
 }
@@ -86,14 +88,14 @@ void RotatableROIOverlay::setTemplateCreationMode(bool enabled)
         setMouseTracking(true);
         setFocus();
         raise(); // 确保在最上层
-        grabMouse(); // 捕获鼠标事件
+        // 不使用grabMouse()，让鼠标事件正常传播
         updateConfirmButtonPositions(); // 更新按钮位置
     } else {
         // 退出模板创建模式，重置状态
         setMouseTracking(false);
-        releaseMouse();
         reset();
         clearFocus();
+        setCursor(Qt::ArrowCursor); // 重置光标
     }
 }
 
@@ -200,6 +202,7 @@ void RotatableROIOverlay::mouseMoveEvent(QMouseEvent* event)
         return;
     }
     
+    
     if (m_dragging && (event->buttons() & Qt::LeftButton)) {
         QPointF currentImagePos = windowToImage(event->pos());
         QPointF lastImagePos = windowToImage(m_lastMousePos);
@@ -225,7 +228,28 @@ void RotatableROIOverlay::mouseMoveEvent(QMouseEvent* event)
             if (hitPoint == RotationHandle) {
                 setCursor(Qt::PointingHandCursor);
             } else {
-                setCursor(Qt::SizeAllCursor);
+                // 根据控制点位置设置不同的调整大小光标
+                switch (hitPoint) {
+                    case TopLeft:
+                    case BottomRight:
+                        setCursor(Qt::SizeFDiagCursor);
+                        break;
+                    case TopRight:
+                    case BottomLeft:
+                        setCursor(Qt::SizeBDiagCursor);
+                        break;
+                    case TopCenter:
+                    case BottomCenter:
+                        setCursor(Qt::SizeVerCursor);
+                        break;
+                    case MiddleLeft:
+                    case MiddleRight:
+                        setCursor(Qt::SizeHorCursor);
+                        break;
+                    default:
+                        setCursor(Qt::SizeAllCursor);
+                        break;
+                }
             }
         } else if (hitTestROI(event->pos())) {
             setCursor(Qt::OpenHandCursor);
@@ -358,8 +382,9 @@ std::vector<QPointF> RotatableROIOverlay::calculateControlPoints() const
 
 QPointF RotatableROIOverlay::calculateRotationHandle() const
 {
-    QPointF topCenter = QPointF(m_roi.center().x(), m_roi.top());
-    QPointF handle = topCenter + QPointF(0, -ROTATION_HANDLE_DISTANCE);
+    // 将旋转控制点放在ROI右上角的外侧，避免遮挡其他控制点
+    QPointF topRight = m_roi.topRight();
+    QPointF handle = topRight + QPointF(ROTATION_HANDLE_DISTANCE * 0.7f, -ROTATION_HANDLE_DISTANCE * 0.7f);
     
     // 应用旋转变换
     if (qAbs(m_rotationAngle) > 0.1f) {
@@ -377,16 +402,16 @@ RotatableROIOverlay::ControlPoint RotatableROIOverlay::hitTestControlPoint(const
 {
     QPointF imagePos = windowToImage(pos);
     
-    // 测试旋转控制点
+    // 测试旋转控制点 - 使用旋转控制点的绘制半径
     QPointF rotationHandle = calculateRotationHandle();
-    if (QLineF(imagePos, rotationHandle).length() <= HIT_TEST_TOLERANCE) {
+    if (QLineF(imagePos, rotationHandle).length() <= 2 * m_rotationHandleSize) {
         return RotationHandle;
     }
     
-    // 测试8个控制点
+    // 测试8个控制点 - 使用普通控制点的绘制半径
     auto controlPoints = calculateControlPoints();
     for (int i = 0; i < 8; ++i) {
-        if (QLineF(imagePos, controlPoints[i]).length() <= HIT_TEST_TOLERANCE) {
+        if (QLineF(imagePos, controlPoints[i]).length() <= 2 * m_controlPointSize) {
             return static_cast<ControlPoint>(i);
         }
     }
@@ -403,42 +428,73 @@ bool RotatableROIOverlay::hitTestROI(const QPoint& pos) const
 
 void RotatableROIOverlay::updateROIFromControlPoint(ControlPoint point, const QPointF& newPos)
 {
-    QRectF newROI = m_roi;
+    // 将新位置转换到ROI的局部坐标系
+    QPointF center = m_roiCenter;
+    QPointF localPos = newPos - center;
     
-    // 根据控制点类型调整ROI
+    // 反向旋转，得到在ROI局部坐标系中的位置
+    float radians = qDegreesToRadians(-m_rotationAngle);
+    float cosA = qCos(radians);
+    float sinA = qSin(radians);
+    QPointF rotatedPos(localPos.x() * cosA - localPos.y() * sinA,
+                       localPos.x() * sinA + localPos.y() * cosA);
+    
+    // 获取当前ROI在局部坐标系中的边界
+    float left = -m_roi.width() / 2;
+    float right = m_roi.width() / 2;
+    float top = -m_roi.height() / 2;
+    float bottom = m_roi.height() / 2;
+    
+    // 根据控制点类型精确调整对应边或角
     switch (point) {
         case TopLeft:
-            newROI.setTopLeft(newPos);
+            // 只调整左边和上边，右下角保持不动
+            left = qMin(rotatedPos.x(), right - MIN_ROI_SIZE);
+            top = qMin(rotatedPos.y(), bottom - MIN_ROI_SIZE);
             break;
         case TopCenter:
-            newROI.setTop(newPos.y());
+            // 只调整上边
+            top = qMin(rotatedPos.y(), bottom - MIN_ROI_SIZE);
             break;
         case TopRight:
-            newROI.setTopRight(newPos);
+            // 只调整右边和上边，左下角保持不动
+            right = qMax(rotatedPos.x(), left + MIN_ROI_SIZE);
+            top = qMin(rotatedPos.y(), bottom - MIN_ROI_SIZE);
             break;
         case MiddleRight:
-            newROI.setRight(newPos.x());
+            // 只调整右边
+            right = qMax(rotatedPos.x(), left + MIN_ROI_SIZE);
             break;
         case BottomRight:
-            newROI.setBottomRight(newPos);
+            // 只调整右边和下边，左上角保持不动
+            right = qMax(rotatedPos.x(), left + MIN_ROI_SIZE);
+            bottom = qMax(rotatedPos.y(), top + MIN_ROI_SIZE);
             break;
         case BottomCenter:
-            newROI.setBottom(newPos.y());
+            // 只调整下边
+            bottom = qMax(rotatedPos.y(), top + MIN_ROI_SIZE);
             break;
         case BottomLeft:
-            newROI.setBottomLeft(newPos);
+            // 只调整左边和下边，右上角保持不动
+            left = qMin(rotatedPos.x(), right - MIN_ROI_SIZE);
+            bottom = qMax(rotatedPos.y(), top + MIN_ROI_SIZE);
             break;
         case MiddleLeft:
-            newROI.setLeft(newPos.x());
+            // 只调整左边
+            left = qMin(rotatedPos.x(), right - MIN_ROI_SIZE);
             break;
         default:
             return;
     }
     
+    // 构建新的ROI
+    QRectF newLocalROI(left, top, right - left, bottom - top);
+    
     // 确保ROI有效
-    if (newROI.width() >= MIN_ROI_SIZE && newROI.height() >= MIN_ROI_SIZE) {
-        m_roi = newROI.normalized();
-        m_roiCenter = m_roi.center();
+    if (newLocalROI.width() >= MIN_ROI_SIZE && newLocalROI.height() >= MIN_ROI_SIZE) {
+        // 转换回全局坐标系
+        m_roi = QRectF(center.x() + newLocalROI.x(), center.y() + newLocalROI.y(),
+                       newLocalROI.width(), newLocalROI.height());
         constrainROI();
         emit roiChanged(m_roi, m_rotationAngle);
     }
@@ -449,8 +505,13 @@ void RotatableROIOverlay::updateRotationFromHandle(const QPointF& handlePos)
     QPointF center = m_roiCenter;
     QPointF vector = handlePos - center;
     
-    // 计算角度（相对于垂直向上方向）
-    float angle = qRadiansToDegrees(qAtan2(vector.x(), -vector.y()));
+    // 计算角度（相对于右上角45度方向）
+    // 由于旋转控制点在右上角外侧，需要调整基准角度
+    float angle = qRadiansToDegrees(qAtan2(vector.y(), vector.x())) + 45.0f;
+    
+    // 规范化角度到 [-180, 180] 范围
+    while (angle > 180.0f) angle -= 360.0f;
+    while (angle < -180.0f) angle += 360.0f;
     
     setRotation(angle);
 }
@@ -557,18 +618,18 @@ void RotatableROIOverlay::drawRotationHandle(QPainter& painter) const
     handlePen.setCosmetic(true);
     painter.setPen(handlePen);
     painter.setBrush(QBrush(m_rotationHandleColor));
-    painter.drawEllipse(windowHandle, m_controlPointSize, m_controlPointSize);
+    painter.drawEllipse(windowHandle, m_rotationHandleSize/2, m_rotationHandleSize/2);
 }
 
 void RotatableROIOverlay::drawROIInfo(QPainter& painter) const
 {
     // 绘制ROI信息文本
-    QString info = QString("ROI: %1x%2, Angle: %3°")
+    QString info = QString("ROI大小: %1x%2, 旋转角度: %3°")
                    .arg(qRound(m_roi.width()))
                    .arg(qRound(m_roi.height()))
                    .arg(m_rotationAngle, 0, 'f', 1);
     
-    QPoint textPos = imageToWindow(m_roi.topLeft()) + QPoint(5, -5);
+    QPoint textPos = imageToWindow(m_roi.topLeft()) + QPoint(5, -22);
     
     QPen textPen(Qt::white);
     painter.setPen(textPen);
@@ -578,10 +639,10 @@ void RotatableROIOverlay::drawROIInfo(QPainter& painter) const
     QFontMetrics fm(painter.font());
     QRect textRect = fm.boundingRect(info);
     textRect.moveTopLeft(textPos);
-    textRect.adjust(-2, -2, 2, 2);
+    textRect.adjust(-2, -2, 4, 2);
     
     painter.fillRect(textRect, QColor(0, 0, 0, 128));
-    painter.drawText(textPos, info);
+    painter.drawText(textRect.adjusted(2, 2, -2, -2), Qt::AlignLeft | Qt::AlignTop, info);
 }
 
 QPointF RotatableROIOverlay::windowToImage(const QPoint& windowPos) const

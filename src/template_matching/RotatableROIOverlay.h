@@ -64,6 +64,7 @@ public:
     
     void setBorderWidth(int width) { m_borderWidth = width; update(); }
     void setControlPointSize(int size) { m_controlPointSize = size; update(); }
+    void setRotationHandleSize(int size) { m_rotationHandleSize = size; update(); }
     
     // 确认/取消按钮
     void showConfirmButtons(bool show) { m_showConfirmButtons = show; update(); }
@@ -146,6 +147,7 @@ private:
     QColor m_rotationHandleColor;           ///< 旋转控制点颜色
     int m_borderWidth;                      ///< 边框宽度
     int m_controlPointSize;                 ///< 控制点大小
+    int m_rotationHandleSize;               ///< 旋转控制点大小
     
     // 坐标转换函数
     std::function<QPointF(const QPoint&)> m_windowToImage;
@@ -157,9 +159,9 @@ private:
     QRectF m_cancelButtonRect;              ///< 取消按钮区域
     
     // 常量
-    static constexpr float ROTATION_HANDLE_DISTANCE = 30.0f;  ///< 旋转控制点距离
+    static constexpr float ROTATION_HANDLE_DISTANCE = 50.0f;  ///< 旋转控制点距离
     static constexpr int BUTTON_SIZE = 24;                    ///< 按钮大小
     static constexpr int BUTTON_MARGIN = 8;                   ///< 按钮间距
-    static constexpr float HIT_TEST_TOLERANCE = 8.0f;        ///< 碰撞检测容差
+    static constexpr float HIT_TEST_TOLERANCE = 15.0f;       ///< 碰撞检测容差
     static constexpr float MIN_ROI_SIZE = 10.0f;             ///< 最小ROI尺寸
 };
