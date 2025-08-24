@@ -20,6 +20,7 @@ RotatableROIOverlay::RotatableROIOverlay(QWidget *parent)
     , m_rotationHandleColor(Qt::blue)
     , m_borderWidth(2)
     , m_controlPointSize(8)
+    , m_showConfirmButtons(false)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents, false);
     setAttribute(Qt::WA_TranslucentBackground, true);
@@ -33,6 +34,9 @@ void RotatableROIOverlay::setROI(const QRectF& roi)
     if (m_roi != roi) {
         m_roi = roi;
         m_roiCenter = roi.center();
+        if (m_showConfirmButtons) {
+            updateConfirmButtonPositions(); // 更新按钮位置
+        }
         update();
         emit roiChanged(m_roi, m_rotationAngle);
     }
@@ -72,16 +76,22 @@ void RotatableROIOverlay::setTemplateCreationMode(bool enabled)
 {
     setVisible(enabled);
     setEnabled(enabled);
+    m_showConfirmButtons = enabled; // 显示确认/取消按钮
     
     // 设置鼠标事件透传属性
     setAttribute(Qt::WA_TransparentForMouseEvents, !enabled);
     
     if (enabled) {
-        // 进入模板创建模式，获取焦点
+        // 进入模板创建模式，启用鼠标跟踪和获取焦点
+        setMouseTracking(true);
         setFocus();
         raise(); // 确保在最上层
+        grabMouse(); // 捕获鼠标事件
+        updateConfirmButtonPositions(); // 更新按钮位置
     } else {
         // 退出模板创建模式，重置状态
+        setMouseTracking(false);
+        releaseMouse();
         reset();
         clearFocus();
     }
@@ -128,6 +138,11 @@ void RotatableROIOverlay::paintEvent(QPaintEvent* event)
         drawRotationHandle(painter);
     }
     
+    // 绘制确认/取消按钮
+    if (m_showConfirmButtons) {
+        drawConfirmButtons(painter);
+    }
+    
     // 绘制ROI信息
     drawROIInfo(painter);
 }
@@ -140,6 +155,21 @@ void RotatableROIOverlay::mousePressEvent(QMouseEvent* event)
     }
     
     if (event->button() == Qt::LeftButton) {
+        // 检查是否点击了确认/取消按钮
+        if (m_showConfirmButtons) {
+            if (m_confirmButtonRect.contains(event->pos())) {
+                // 点击确认按钮，释放鼠标捕获后触发模板创建
+                releaseMouse();
+                setMouseTracking(false);
+                emit roiEditingFinished();
+                return;
+            } else if (m_cancelButtonRect.contains(event->pos())) {
+                // 点击取消按钮，退出模板创建模式
+                setTemplateCreationMode(false);
+                return;
+            }
+        }
+        
         m_lastMousePos = event->pos();
         m_activeControlPoint = hitTestControlPoint(event->pos());
         
@@ -218,7 +248,10 @@ void RotatableROIOverlay::mouseReleaseEvent(QMouseEvent* event)
         m_dragging = false;
         m_activeControlPoint = None;
         setCursor(Qt::ArrowCursor);
-        emit roiEditingFinished();
+        // 移除自动触发的roiEditingFinished信号，改为通过确认按钮触发
+        if (m_showConfirmButtons) {
+            updateConfirmButtonPositions(); // 更新按钮位置
+        }
         update();
     }
     
@@ -565,4 +598,48 @@ QPoint RotatableROIOverlay::imageToWindow(const QPointF& imagePos) const
         return m_imageToWindow(imagePos);
     }
     return imagePos.toPoint();
+}
+
+void RotatableROIOverlay::updateConfirmButtonPositions()
+{
+    // 将按钮放置在ROI右下角
+    QPoint roiBottomRight = imageToWindow(m_roi.bottomRight());
+    
+    // 确认按钮（绿色勾）
+    m_confirmButtonRect = QRectF(roiBottomRight.x() + BUTTON_MARGIN, 
+                                roiBottomRight.y() + BUTTON_MARGIN,
+                                BUTTON_SIZE, BUTTON_SIZE);
+    
+    // 取消按钮（红色叉）
+    m_cancelButtonRect = QRectF(roiBottomRight.x() + BUTTON_MARGIN + BUTTON_SIZE + BUTTON_MARGIN,
+                               roiBottomRight.y() + BUTTON_MARGIN,
+                               BUTTON_SIZE, BUTTON_SIZE);
+}
+
+void RotatableROIOverlay::drawConfirmButtons(QPainter& painter) const
+{
+    // 绘制确认按钮（绿色圆形背景 + 白色勾）
+    painter.setBrush(QBrush(QColor(34, 139, 34))); // 森林绿
+    painter.setPen(QPen(Qt::white, 2));
+    painter.drawEllipse(m_confirmButtonRect);
+    
+    // 绘制勾号
+    QPointF center = m_confirmButtonRect.center();
+    QPointF p1 = center + QPointF(-6, -1);
+    QPointF p2 = center + QPointF(-2, 3);
+    QPointF p3 = center + QPointF(6, -5);
+    
+    painter.drawLine(p1, p2);
+    painter.drawLine(p2, p3);
+    
+    // 绘制取消按钮（红色圆形背景 + 白色叉）
+    painter.setBrush(QBrush(QColor(220, 20, 60))); // 深红色
+    painter.setPen(QPen(Qt::white, 2));
+    painter.drawEllipse(m_cancelButtonRect);
+    
+    // 绘制叉号
+    QPointF center2 = m_cancelButtonRect.center();
+    QPointF offset(5, 5);
+    painter.drawLine(center2 - offset, center2 + offset);
+    painter.drawLine(center2 + QPointF(-5, 5), center2 + QPointF(5, -5));
 }

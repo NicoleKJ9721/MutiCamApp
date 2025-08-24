@@ -65,6 +65,9 @@ public:
     void setBorderWidth(int width) { m_borderWidth = width; update(); }
     void setControlPointSize(int size) { m_controlPointSize = size; update(); }
     
+    // 确认/取消按钮
+    void showConfirmButtons(bool show) { m_showConfirmButtons = show; update(); }
+    
     // 坐标转换接口（需要ZoomPanWidget提供）
     void setCoordinateTransform(std::function<QPointF(const QPoint&)> windowToImage,
                                std::function<QPoint(const QPointF&)> imageToWindow);
@@ -112,6 +115,10 @@ private:
     void drawControlPoints(QPainter& painter) const;
     void drawRotationHandle(QPainter& painter) const;
     void drawROIInfo(QPainter& painter) const;
+    void drawConfirmButtons(QPainter& painter) const;
+    
+    // 按钮位置更新
+    void updateConfirmButtonPositions();
     
     // 坐标转换
     QPointF windowToImage(const QPoint& windowPos) const;
@@ -144,8 +151,15 @@ private:
     std::function<QPointF(const QPoint&)> m_windowToImage;
     std::function<QPoint(const QPointF&)> m_imageToWindow;
     
+    // 确认/取消按钮
+    bool m_showConfirmButtons;              ///< 是否显示确认/取消按钮
+    QRectF m_confirmButtonRect;             ///< 确认按钮区域
+    QRectF m_cancelButtonRect;              ///< 取消按钮区域
+    
     // 常量
     static constexpr float ROTATION_HANDLE_DISTANCE = 30.0f;  ///< 旋转控制点距离
+    static constexpr int BUTTON_SIZE = 24;                    ///< 按钮大小
+    static constexpr int BUTTON_MARGIN = 8;                   ///< 按钮间距
     static constexpr float HIT_TEST_TOLERANCE = 8.0f;        ///< 碰撞检测容差
     static constexpr float MIN_ROI_SIZE = 10.0f;             ///< 最小ROI尺寸
 };

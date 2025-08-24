@@ -259,6 +259,12 @@ private slots:
      */
     void onCameraSerialChanged();
 
+    /**
+     * @brief 模板匹配相关槽函数
+     */
+    void onCreateTemplateVerticalClicked();    // 垂直视图创建模板
+    void onStartMatchingVerticalClicked();     // 垂直视图开始匹配
+
     // 视图控制槽函数
     /**
      * @brief 重置垂直视图缩放和平移
@@ -442,6 +448,9 @@ private:
     ZoomPanWidget* m_verticalZoomPanWidget2;
     ZoomPanWidget* m_leftZoomPanWidget2;
     ZoomPanWidget* m_frontZoomPanWidget2;
+    
+    // RotatableROIOverlay用于模板匹配
+    RotatableROIOverlay* m_verticalROIOverlay;
     
     // PaintingOverlay 成员变量
     PaintingOverlay* m_verticalPaintingOverlay;
@@ -737,17 +746,22 @@ private:
      void initializeSerialController();
      void updateButtonStatus(const QString& buttonName, bool isPressed);
      void handleButtonEvent(SerialController::ButtonEvent event);
-     void executeCaptureAction();
-     void executeCaptureByType(const QString& actionType);
-     void testCaptureButton();
-     void toggleSerialConnection();
+    void executeCaptureAction();
+    void executeCaptureByType(const QString& actionType);
+    void testCaptureButton();
+    void toggleSerialConnection();
 
-     // 参数预设相关方法
-     void initializeCapturePresets();
-     void saveCapturePreset();
-     void loadCapturePreset();
-     void resetCapturePreset();
-     void applyCapturePreset();
+    // 参数预设相关方法
+    void initializeCapturePresets();
+    void saveCapturePreset();
+    void loadCapturePreset();
+    void resetCapturePreset();
+    void applyCapturePreset();
 
+    // 模板匹配相关私有方法
+    void onROIDrawingCompleted(const QString& viewName);
+    void onROIEditingFinished();
+    void saveTemplate(const cv::Mat& templateImage, const QString& templateName, const QString& viewName);
+    void performTemplateMatching(const QString& templateFileName, const QString& viewName);
 
 };
