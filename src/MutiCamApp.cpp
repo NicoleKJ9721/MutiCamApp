@@ -4207,12 +4207,6 @@ void MutiCamApp::executeCaptureAction()
     // 根据配置的功能类型执行相应操作
     if (actionType.startsWith("拍照-")) {
         executeCaptureByType(actionType);
-    } else if (actionType == "启动相机采集") {
-        if (!m_isMeasuring) {
-            onStartMeasureClicked();
-        }
-    } else if (actionType == "开始检测") {
-        qDebug() << "开始检测功能待实现";
     } else if (actionType == "载物台回原点") {
         qDebug() << "载物台回原点功能待实现";
     } else {

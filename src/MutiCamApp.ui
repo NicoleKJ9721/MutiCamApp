@@ -109,7 +109,6 @@
                </property>
               </widget>
              </item>
-
             </layout>
            </widget>
           </item>
@@ -171,7 +170,6 @@
                </property>
               </widget>
              </item>
-
             </layout>
            </widget>
           </item>
@@ -237,7 +235,6 @@
                </property>
               </widget>
              </item>
-
             </layout>
            </widget>
           </item>
@@ -415,11 +412,11 @@
                       <bold>true</bold>
                      </font>
                     </property>
-                    <property name="text">
-                     <string>像素标定</string>
-                    </property>
                     <property name="toolTip">
                      <string>启动像素标定模式，将像素单位转换为实际物理单位</string>
+                    </property>
+                    <property name="text">
+                     <string>像素标定</string>
                     </property>
                    </widget>
                   </item>
@@ -669,7 +666,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
           <property name="flat">
            <bool>false</bool>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_verticalMain" stretch="0,1,3">
+          <layout class="QVBoxLayout" name="verticalLayout_verticalMain" stretch="0,1,3,0">
            <item>
             <widget class="QGroupBox" name="groupBoxVerticalGrid">
              <property name="font">
@@ -781,11 +778,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                   <bold>true</bold>
                  </font>
                 </property>
-                <property name="text">
-                 <string>重置缩放</string>
-                </property>
                 <property name="toolTip">
                  <string>重置视图缩放和平移到默认状态</string>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
                 </property>
                </widget>
               </item>
@@ -794,6 +791,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <property name="font">
                  <font>
                   <pointsize>8</pointsize>
+                  <bold>true</bold>
                  </font>
                 </property>
                 <property name="text">
@@ -1056,9 +1054,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate2">
+            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateVertical2">
+              <widget class="QPushButton" name="btnCreateTemplateVertical">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1066,20 +1064,17 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </size>
                </property>
                <property name="text">
-                <string>加载模版</string>
+                <string>创建模版</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingVertical2">
+              <widget class="QPushButton" name="btnStartMatchingVertical">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
-               </property>
-               <property name="styleSheet">
-                <string>background-color: green; color: white;</string>
                </property>
                <property name="text">
                 <string>开始匹配</string>
@@ -1087,7 +1082,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_verticalTemplate2">
+              <spacer name="horizontalSpacer_verticalTemplate">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -1122,7 +1117,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
           <property name="title">
            <string/>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_leftMain" stretch="0,1,3">
+          <layout class="QVBoxLayout" name="verticalLayout_leftMain" stretch="0,1,3,0">
            <item>
             <widget class="QGroupBox" name="groupBoxLeftGrid">
              <property name="font">
@@ -1231,11 +1226,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                   <bold>true</bold>
                  </font>
                 </property>
-                <property name="text">
-                 <string>重置缩放</string>
-                </property>
                 <property name="toolTip">
                  <string>重置视图缩放和平移到默认状态</string>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
                 </property>
                </widget>
               </item>
@@ -1244,6 +1239,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <property name="font">
                  <font>
                   <pointsize>8</pointsize>
+                  <bold>true</bold>
                  </font>
                 </property>
                 <property name="text">
@@ -1500,9 +1496,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate2">
+            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateLeft2">
+              <widget class="QPushButton" name="btnCreateTemplateLeft">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1510,20 +1506,17 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </size>
                </property>
                <property name="text">
-                <string>加载模版</string>
+                <string>创建模版</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingLeft2">
+              <widget class="QPushButton" name="btnStartMatchingLeft">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
-               </property>
-               <property name="styleSheet">
-                <string>background-color: green; color: white;</string>
                </property>
                <property name="text">
                 <string>开始匹配</string>
@@ -1531,7 +1524,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_leftTemplate2">
+              <spacer name="horizontalSpacer_leftTemplate">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -1566,7 +1559,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
           <property name="title">
            <string/>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_frontMain" stretch="0,1,3">
+          <layout class="QVBoxLayout" name="verticalLayout_frontMain" stretch="0,1,3,0">
            <item>
             <widget class="QGroupBox" name="groupBoxFrontGrid">
              <property name="font">
@@ -1675,11 +1668,11 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                   <bold>true</bold>
                  </font>
                 </property>
-                <property name="text">
-                 <string>重置缩放</string>
-                </property>
                 <property name="toolTip">
                  <string>重置视图缩放和平移到默认状态</string>
+                </property>
+                <property name="text">
+                 <string>重置缩放</string>
                 </property>
                </widget>
               </item>
@@ -1688,6 +1681,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 <property name="font">
                  <font>
                   <pointsize>8</pointsize>
+                  <bold>true</bold>
                  </font>
                 </property>
                 <property name="text">
@@ -1944,9 +1938,9 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate2">
+            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
              <item>
-              <widget class="QPushButton" name="btnLoadTemplateFront2">
+              <widget class="QPushButton" name="btnCreateTemplateFront">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1954,20 +1948,17 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                 </size>
                </property>
                <property name="text">
-                <string>加载模版</string>
+                <string>创建模版</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingFront2">
+              <widget class="QPushButton" name="btnStartMatchingFront">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
                  <height>25</height>
                 </size>
-               </property>
-               <property name="styleSheet">
-                <string>background-color: green; color: white;</string>
                </property>
                <property name="text">
                 <string>开始匹配</string>
@@ -1975,7 +1966,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
               </widget>
              </item>
              <item>
-              <spacer name="horizontalSpacer_frontTemplate2">
+              <spacer name="horizontalSpacer_frontTemplate">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
@@ -3640,11 +3631,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
                     <height>40</height>
                    </size>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
-                  </property>
                   <property name="text">
                    <string>X-Y</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -3704,11 +3695,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
                     <height>40</height>
                    </size>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
-                  </property>
                   <property name="text">
                    <string>Z轴</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -3833,24 +3824,24 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <layout class="QHBoxLayout" name="horizontalLayout_trajectoryButtons">
              <item>
               <widget class="QPushButton" name="btnTrajectoryStart">
-               <property name="text">
-                <string>开始记录</string>
-               </property>
                <property name="styleSheet">
                 <string>background-color: green; color: white;</string>
+               </property>
+               <property name="text">
+                <string>开始记录</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btnTrajectoryStop">
-               <property name="text">
-                <string>停止记录</string>
+               <property name="enabled">
+                <bool>false</bool>
                </property>
                <property name="styleSheet">
                 <string>background-color: orange; color: white;</string>
                </property>
-               <property name="enabled">
-                <bool>false</bool>
+               <property name="text">
+                <string>停止记录</string>
                </property>
               </widget>
              </item>
@@ -4085,16 +4076,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
              </item>
              <item>
               <property name="text">
-               <string>启动相机采集</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>开始检测</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string>载物台回原点</string>
               </property>
              </item>
@@ -4125,7 +4106,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
            <item>
             <spacer name="horizontalSpacer_keyTest">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
