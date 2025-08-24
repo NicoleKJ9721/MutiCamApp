@@ -5,12 +5,6 @@
 /参考项目/MutiCamApp_python原版/__pycache__
 /参考项目/MutiCamApp_python原版/Development/__pycache__
 /参考项目/MutiCamApp_python原版/Tools/__pycache__
-*.cmake
-/build/CMakeFiles
-/build
-build/CMakeFiles/3.30.5/CMakeDetermineCompilerABI_CXX.bin
-build/CMakeCache.txt
 .vscode/launch.json
 /参考项目/AxisControlSystem
 /参考项目/serial_test
-.vscode/launch.json
