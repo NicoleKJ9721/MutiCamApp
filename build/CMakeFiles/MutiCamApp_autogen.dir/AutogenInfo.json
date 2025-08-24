@@ -297,6 +297,18 @@
 	"HEADERS" : 
 	[
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/CalibrationDialog.h",
+			"MU",
+			"UVLADIE3JM/moc_CalibrationDialog.cpp",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/CheckerboardCalibrationDialog.h",
+			"MU",
+			"UVLADIE3JM/moc_CheckerboardCalibrationDialog.cpp",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/LogManager.h",
 			"MU",
 			"UVLADIE3JM/moc_LogManager.cpp",
@@ -312,6 +324,12 @@
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/PaintingOverlay.h",
 			"MU",
 			"UVLADIE3JM/moc_PaintingOverlay.cpp",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/SerialController.h",
+			"MU",
+			"UVLADIE3JM/moc_SerialController.cpp",
 			null
 		],
 		[
@@ -444,6 +462,16 @@
 	"SOURCES" : 
 	[
 		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/CalibrationDialog.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/CheckerboardCalibrationDialog.cpp",
+			"MU",
+			null
+		],
+		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/LogManager.cpp",
 			"MU",
 			null
@@ -455,6 +483,11 @@
 		],
 		[
 			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/PaintingOverlay.cpp",
+			"MU",
+			null
+		],
+		[
+			"D:/AppData/Documents/GitHub/MutiCamApp_Cpp/src/SerialController.cpp",
 			"MU",
 			null
 		],
