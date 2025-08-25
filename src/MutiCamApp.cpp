@@ -575,9 +575,9 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 {
     static int frameCount = 0;
     frameCount++;
-    if (frameCount % 30 == 0) { // 每30帧打印一次，避免日志过多
-        qDebug() << "接收到相机帧：" << cameraId << "帧大小：" << frame.cols << "x" << frame.rows;
-    }
+    // if (frameCount % 30 == 0) { // 每30帧打印一次，避免日志过多
+    //     qDebug() << "接收到相机帧：" << cameraId << "帧大小：" << frame.cols << "x" << frame.rows;
+    // }
 
     if (frame.empty()) return;
 

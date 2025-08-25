@@ -166,9 +166,9 @@ void CameraThread::onCameraFrameReady(const cv::Mat& frame) {
 
     static int threadFrameCount = 0;
     threadFrameCount++;
-    if (threadFrameCount % 30 == 0) { // 每30帧打印一次
-        qDebug() << "CameraThread接收到帧，总帧数：" << m_totalFrameCount;
-    }
+    // if (threadFrameCount % 30 == 0) { // 每30帧打印一次
+    //     qDebug() << "CameraThread接收到帧，总帧数：" << m_totalFrameCount;
+    // }
 
     // 发出帧就绪信号
     emit frameReady(frame);
