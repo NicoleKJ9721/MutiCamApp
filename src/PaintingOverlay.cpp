@@ -456,7 +456,6 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         case DrawingTool::LineSegment:
             handleLineSegmentDrawingClick(imagePos);
             break;
-        case DrawingTool::ROI:
         case DrawingTool::ROI_LineDetect:
         case DrawingTool::ROI_CircleDetect:
             handleROIDrawingClick(imagePos);
@@ -4786,9 +4785,6 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         // 清除当前ROI数据
         clearCurrentROIData();
 
-        // 停止绘制模式
-        stopDrawing();
-        
         // 发出信号
         emit drawingCompleted(m_viewName);
         emit drawingDataChanged(m_viewName);

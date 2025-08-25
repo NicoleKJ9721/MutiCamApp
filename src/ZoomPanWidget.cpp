@@ -1,7 +1,6 @@
 #include "ZoomPanWidget.h"
 #include "VideoDisplayWidget.h"
 #include "PaintingOverlay.h"
-#include "template_matching/RotatableROIOverlay.h"
 #include <QVBoxLayout>
 #include <QWheelEvent>
 #include <QKeyEvent>
@@ -15,7 +14,6 @@ ZoomPanWidget::ZoomPanWidget(QWidget *parent)
     : QWidget(parent)
     , m_videoWidget(nullptr)
     , m_paintingOverlay(nullptr)
-    , m_roiOverlay(nullptr)
     , m_zoomFactor(1.0)
     , m_minZoomFactor(0.1)
     , m_maxZoomFactor(5.0)
@@ -203,29 +201,6 @@ void ZoomPanWidget::setPaintingOverlay(PaintingOverlay* overlay)
 
         // 更新变换参数
         updatePaintingOverlayTransform();
-    }
-}
-
-void ZoomPanWidget::setROIOverlay(RotatableROIOverlay* overlay)
-{
-    m_roiOverlay = overlay;
-
-    if (m_roiOverlay) {
-        // 设置ROIOverlay覆盖整个ZoomPanWidget
-        m_roiOverlay->setGeometry(rect());
-        m_roiOverlay->setParent(this);
-        
-        // 设置坐标转换函数
-        m_roiOverlay->setCoordinateTransform(
-            [this](const QPoint& windowPos) { return windowToImageCoordinates(windowPos); },
-            [this](const QPointF& imagePos) { return imageToWindowCoordinates(imagePos); }
-        );
-        
-        // 初始状态为隐藏
-        m_roiOverlay->setTemplateCreationMode(false);
-        
-        // 更新变换参数
-        updateROIOverlayTransform();
     }
 }
 
@@ -464,11 +439,6 @@ void ZoomPanWidget::resizeEvent(QResizeEvent* event)
     if (m_paintingOverlay) {
         m_paintingOverlay->setGeometry(rect());
     }
-    
-    // 更新ROIOverlay的几何信息
-    if (m_roiOverlay) {
-        m_roiOverlay->setGeometry(rect());
-    }
 
     // 重新计算最大平移偏移
     calculateMaxPanOffset();
@@ -479,7 +449,6 @@ void ZoomPanWidget::resizeEvent(QResizeEvent* event)
     // 更新变换
     updateVideoWidgetTransform();
     updatePaintingOverlayTransform();
-    updateROIOverlayTransform();
 }
 
 void ZoomPanWidget::onPanAnimationTimer()
@@ -514,15 +483,6 @@ void ZoomPanWidget::updatePaintingOverlayTransform()
         QSize imageSize = getImageSize();
 
         m_paintingOverlay->setTransforms(offset, scale, imageSize);
-    }
-}
-
-void ZoomPanWidget::updateROIOverlayTransform()
-{
-    if (m_roiOverlay) {
-        // ROI覆盖层的坐标转换已通过lambda函数实现
-        // 这里可以添加其他需要更新的变换参数
-        m_roiOverlay->update();
     }
 }
 
@@ -632,7 +592,6 @@ void ZoomPanWidget::performZoom(double newZoomFactor, const QPoint& zoomCenter)
     // 更新变换
     updateVideoWidgetTransform();
     updatePaintingOverlayTransform();
-    updateROIOverlayTransform();
 
     // 发射信号
     emit viewTransformChanged(m_zoomFactor, getPanOffset());
@@ -647,7 +606,6 @@ void ZoomPanWidget::performPan(double deltaX, double deltaY)
 
     updateVideoWidgetTransform();
     updatePaintingOverlayTransform();
-    updateROIOverlayTransform();
 
     emit viewTransformChanged(m_zoomFactor, getPanOffset());
 }

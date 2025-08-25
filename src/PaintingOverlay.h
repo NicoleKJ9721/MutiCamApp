@@ -41,7 +41,6 @@ public:
         FineCircle,
         Parallel,
         TwoLines,
-        ROI,               // ROI选择
         ROI_LineDetect,    // ROI直线检测
         ROI_CircleDetect   // ROI圆形检测
     };
@@ -310,9 +309,6 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params);
     void setLineDetectionParams(const ShapeDetector::LineDetectionParams& params);
     void setCircleDetectionParams(const ShapeDetector::CircleDetectionParams& params);
-
-    // ROI访问接口
-    const QVector<ROIObject>& getROIs() const { return m_rois; }
 
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号

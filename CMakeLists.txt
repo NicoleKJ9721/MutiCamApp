@@ -63,18 +63,6 @@ set(srcs
     src/image_processing/edge_detector.cpp
     src/image_processing/shape_detector.h
     src/image_processing/shape_detector.cpp
-    
-    # 模板匹配模块
-    src/template_matching/KcgMatch.h
-    src/template_matching/KcgMatch_fixed.cpp
-    src/template_matching/MatchingController.h
-    src/template_matching/MatchingController.cpp
-    src/template_matching/TemplateMatchingManager.h
-    src/template_matching/TemplateMatchingManager.cpp
-    src/template_matching/RotatableROIOverlay.h
-    src/template_matching/RotatableROIOverlay.cpp
-    src/template_matching/TemplateNameDialog.h
-    src/template_matching/TemplateNameDialog.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
@@ -93,7 +81,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${HIKVISION_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
 # 处理海康SDK编码警告 - 屏蔽C4828警告（无效字符编码）
