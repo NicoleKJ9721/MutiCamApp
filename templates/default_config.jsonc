@@ -1,0 +1,67 @@
+{
+    // 基础路径设置
+    "Paths": {
+        // 模板图片路径
+        "TemplateImage": "template/template.jpg",
+        // 待搜索图片路径 (支持 .png 或 .jpg)
+        "SearchImage": "template/search.jpg",
+        // 结果图片保存路径
+        "ResultImage": "template/result.png",
+        // 模型文件存放的根目录
+        "ModelRootPath": "template"
+    },
+
+    // 模型定义
+    "Model": {
+        // 模型名称,最终会保存为 template_model.yaml
+        "ClassName": "template_model"
+    },
+
+    "Matching": {
+        // 匹配分数阈值 (0.0 ~ 1.0). 值越高,要求匹配越严格,速度可能会略微变慢。建议值: 0.8 ~ 0.95
+        "ScoreThreshold": 0.7,
+        // 重叠阈值 (0.0 ~ 1.0). 用于过滤掉重叠的目标,值越小,过滤越严格。不影响速度。建议值: 0.4
+        "Overlap": 0.1,
+        // 最小梯度阈值 (10 ~ 100). 图像边缘的最小强度,太小会引入噪声,太大可能丢失特征。不影响速度。建议值: 30
+        "MinMagThreshold": 30,
+        // 贪婪度 (0.0 ~ 1.0). 值越小,匹配越快,但可能丢失正确匹配。建议值: 0.7 ~ 0.9
+        "Greediness": 0.9,
+        // 金字塔层数 (0 ~ 7). 最重要的速度控制参数! 值越大,速度越快,但可能丢失小目标。建议值: 3 ~ 5
+        "PyramidLevel": 2,
+        // 内部参数T (1 ~ 8). 通常保持默认值即可
+        "T": 2,
+        // 最多匹配数量 (0 代表不限制). 如果只想找最匹配的1个,设置为1,可以大幅提速
+        "TopK": 0,
+        // 匹配策略 (0: 精确, 1: 普通, 2: 粗略). 0最准最慢,2最快最不准
+        "Strategy": 0,
+        // 细化搜索模式 (fixed: 固定角度窗口, dynamic: 动态角度窗口)
+        "RefinementSearchMode": "fixed",
+        // 固定角度窗口 (度). 仅在 RefinementSearchMode 为 fixed 时有效
+        "FixedAngleWindow": 25.0,
+        "ScaleSearchWindow": 0.1
+    },
+    "TemplateMaking": {
+        // --- 模板生成时的角度范围 ---
+        // 起始角度
+        "AngleStart": -180.0,
+        // 结束角度
+        "AngleEnd": 180.0,
+        // 角度步长
+        "AngleStep": 10.0,
+
+        // --- 模板生成时的缩放范围 ---
+        // 起始缩放比例
+        "ScaleStart": 0.7,
+        // 结束缩放比例
+        "ScaleEnd": 1.3,
+        // 缩放步长
+        "ScaleStep": 0.05,
+
+        // 模板包含的特征点数量. 减少此值可以加快匹配速度,但可能降低模板的独特性。建议值: 50 ~ 200
+        "NumFeatures": 0,
+        // 弱梯度阈值 (10 ~ 100)
+        "WeakThreshold": 30,
+        // 强梯度阈值 (10 ~ 100)
+        "StrongThreshold": 60
+    }
+}

@@ -22,6 +22,7 @@ set(HIKVISION_INCLUDE_DIRS ${HIKVISION_DIR}/include)
 set(HIKVISION_LIB_DIR ${HIKVISION_DIR}/lib)
 
 find_package(Qt6 COMPONENTS Widgets Concurrent REQUIRED) # Qt COMPONENTS
+find_package(OpenMP)
 
 # 手动指定源文件，确保所有文件都被包含
 set(srcs
@@ -63,6 +64,12 @@ set(srcs
     src/image_processing/edge_detector.cpp
     src/image_processing/shape_detector.h
     src/image_processing/shape_detector.cpp
+
+    # 模板匹配模块
+    src/matching/MatchingController.h
+    src/matching/MatchingController.cpp
+    src/matching/KcgMatch.h
+    src/matching/KcgMatch_fixed.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
@@ -81,6 +88,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${HIKVISION_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/matching
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
 # 处理海康SDK编码警告 - 屏蔽C4828警告（无效字符编码）
@@ -103,6 +112,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 # 链接Qt6库
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Concurrent)
+
+# 链接OpenMP库(如果找到)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+    message(STATUS "OpenMP found and enabled for matching acceleration")
+endif()
 
 
 # 复制OpenCV DLL到输出目录
