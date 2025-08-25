@@ -72,6 +72,12 @@ set(srcs
     src/matching/KcgMatch_fixed.cpp
     src/matching/ui/TemplateNameDialog.h
     src/matching/ui/TemplateNameDialog.cpp
+    src/matching/ui/ROIOverlayItem.h
+    src/matching/ui/ROIOverlayItem.cpp
+    src/matching/ui/ROIControlButtons.h
+    src/matching/ui/ROIControlButtons.cpp
+    src/matching/ui/ROIManager.h
+    src/matching/ui/ROIManager.cpp
 )
 
 # Specify MSVC UTF-8 encoding   

@@ -39,6 +39,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_verticalZoomPanWidget2(nullptr)
     , m_leftZoomPanWidget2(nullptr)
     , m_frontZoomPanWidget2(nullptr)
+    , m_verticalROIManager2(nullptr)
+    , m_leftROIManager2(nullptr)
+    , m_frontROIManager2(nullptr)
     , m_lastActivePaintingOverlay(nullptr)
     , m_saveProgressDialog(nullptr)
     , m_saveWatcher(nullptr)
@@ -1313,8 +1316,42 @@ void MutiCamApp::initializeZoomPanWidgets()
             qDebug() << "使用回退方案完成ZoomPanWidget替换";
         }
     }
-    
+
+    // 初始化ROI管理器（针对选项卡视图）
+    initializeROIManagers();
+
     qDebug() << "ZoomPanWidget 缩放平移显示控件初始化完成";
+}
+
+void MutiCamApp::initializeROIManagers()
+{
+    qDebug() << "开始初始化ROI管理器（选项卡视图）";
+
+    // 创建ROI管理器实例（基于选项卡PaintingOverlay）
+    m_verticalROIManager2 = new ROIManager(m_verticalPaintingOverlay2, this);
+    m_leftROIManager2 = new ROIManager(m_leftPaintingOverlay2, this);
+    m_frontROIManager2 = new ROIManager(m_frontPaintingOverlay2, this);
+
+    // 连接ROI管理器信号
+    connect(m_verticalROIManager2, &ROIManager::roiCreated,
+            this, [this](const QRectF& rect, qreal angle) {
+                qDebug() << "垂直视图2 ROI创建完成:" << rect << "角度:" << angle;
+                onROICreated("vertical2", rect, angle);
+            });
+
+    connect(m_leftROIManager2, &ROIManager::roiCreated,
+            this, [this](const QRectF& rect, qreal angle) {
+                qDebug() << "左侧视图2 ROI创建完成:" << rect << "角度:" << angle;
+                onROICreated("left2", rect, angle);
+            });
+
+    connect(m_frontROIManager2, &ROIManager::roiCreated,
+            this, [this](const QRectF& rect, qreal angle) {
+                qDebug() << "对向视图2 ROI创建完成:" << rect << "角度:" << angle;
+                onROICreated("front2", rect, angle);
+            });
+
+    qDebug() << "ROI管理器初始化完成";
 }
 
 void MutiCamApp::updateZoomPanWidget(const QString& viewName, const cv::Mat& frame)
@@ -1370,6 +1407,20 @@ PaintingOverlay* MutiCamApp::getPaintingOverlay(const QString& viewName)
 
     // 只在找不到匹配视图时输出警告
     qDebug() << "Warning: 未找到匹配的视图名称：" << viewName;
+    return nullptr;
+}
+
+ROIManager* MutiCamApp::getROIManager(const QString& viewName)
+{
+    if (viewName == "vertical2") {
+        return m_verticalROIManager2;
+    } else if (viewName == "left2") {
+        return m_leftROIManager2;
+    } else if (viewName == "front2") {
+        return m_frontROIManager2;
+    }
+
+    qDebug() << "Warning: 未找到匹配的ROI管理器：" << viewName;
     return nullptr;
 }
 
@@ -1482,11 +1533,11 @@ void MutiCamApp::onCreateTemplateVerticalClicked()
 {
     qDebug() << "垂直视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "垂直视图模板名称: " + templateName);
+    // 启动ROI创建（选项卡视图）
+    if (m_verticalROIManager2) {
+        m_verticalROIManager2->startROICreation();
+    } else {
+        QMessageBox::warning(this, "错误", "垂直视图ROI管理器未初始化");
     }
 }
 
@@ -1494,11 +1545,11 @@ void MutiCamApp::onCreateTemplateLeftClicked()
 {
     qDebug() << "左侧视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "左侧视图模板名称: " + templateName);
+    // 启动ROI创建（选项卡视图）
+    if (m_leftROIManager2) {
+        m_leftROIManager2->startROICreation();
+    } else {
+        QMessageBox::warning(this, "错误", "左侧视图ROI管理器未初始化");
     }
 }
 
@@ -1506,11 +1557,11 @@ void MutiCamApp::onCreateTemplateFrontClicked()
 {
     qDebug() << "对向视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "对向视图模板名称: " + templateName);
+    // 启动ROI创建（选项卡视图）
+    if (m_frontROIManager2) {
+        m_frontROIManager2->startROICreation();
+    } else {
+        QMessageBox::warning(this, "错误", "对向视图ROI管理器未初始化");
     }
 }
 
@@ -1530,6 +1581,37 @@ void MutiCamApp::onStartMatchingFrontClicked()
 {
     qDebug() << "对向视图开始匹配按钮被点击";
     QMessageBox::information(this, "测试", "对向视图开始匹配功能待实现");
+}
+
+void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal angle)
+{
+    qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
+
+    // 显示模板名称输入对话框
+    TemplateNameDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString templateName = dialog.getTemplateName();
+
+        // 完成ROI创建
+        ROIManager* roiManager = getROIManager(viewName);
+        if (roiManager) {
+            roiManager->finishROICreation();
+        }
+
+        // 显示成功消息（临时测试）
+        QMessageBox::information(this, "模板创建",
+            QString("视图: %1\n模板名称: %2\nROI区域: %3\n旋转角度: %4°")
+            .arg(viewName)
+            .arg(templateName)
+            .arg(QString("(%1,%2) %3x%4").arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height()))
+            .arg(angle, 0, 'f', 1));
+    } else {
+        // 用户取消，清除ROI
+        ROIManager* roiManager = getROIManager(viewName);
+        if (roiManager) {
+            roiManager->cancelROICreation();
+        }
+    }
 }
 
 void MutiCamApp::saveImages(const QString& viewType)
