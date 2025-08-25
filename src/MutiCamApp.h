@@ -161,6 +161,16 @@ private slots:
     void onAsyncSaveFinished();  // 异步保存完成槽函数
 
     /**
+     * @brief 模板匹配按钮点击事件处理
+     */
+    void onCreateTemplateVerticalClicked();
+    void onCreateTemplateLeftClicked();
+    void onCreateTemplateFrontClicked();
+    void onStartMatchingVerticalClicked();
+    void onStartMatchingLeftClicked();
+    void onStartMatchingFrontClicked();
+
+    /**
      * @brief 像素标定相关槽函数
      */
     void startPixelCalibration();  // 启动像素标定（弹窗选择方式）

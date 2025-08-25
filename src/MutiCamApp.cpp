@@ -18,6 +18,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <map>
+#include "matching/ui/TemplateNameDialog.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -1474,6 +1475,61 @@ void MutiCamApp::onSaveImageFrontClicked()
     // 异步保存对向视图
     QStringList viewTypes = {"front"};
     saveImagesAsync(viewTypes);
+}
+
+// {{ AURA-X: Add - 模板匹配按钮槽函数实现. Approval: 寸止(ID:template_matching_buttons). }}
+void MutiCamApp::onCreateTemplateVerticalClicked()
+{
+    qDebug() << "垂直视图创建模板按钮被点击";
+
+    // 显示模板名称输入对话框进行测试
+    TemplateNameDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString templateName = dialog.getTemplateName();
+        QMessageBox::information(this, "测试", "垂直视图模板名称: " + templateName);
+    }
+}
+
+void MutiCamApp::onCreateTemplateLeftClicked()
+{
+    qDebug() << "左侧视图创建模板按钮被点击";
+
+    // 显示模板名称输入对话框进行测试
+    TemplateNameDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString templateName = dialog.getTemplateName();
+        QMessageBox::information(this, "测试", "左侧视图模板名称: " + templateName);
+    }
+}
+
+void MutiCamApp::onCreateTemplateFrontClicked()
+{
+    qDebug() << "对向视图创建模板按钮被点击";
+
+    // 显示模板名称输入对话框进行测试
+    TemplateNameDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString templateName = dialog.getTemplateName();
+        QMessageBox::information(this, "测试", "对向视图模板名称: " + templateName);
+    }
+}
+
+void MutiCamApp::onStartMatchingVerticalClicked()
+{
+    qDebug() << "垂直视图开始匹配按钮被点击";
+    QMessageBox::information(this, "测试", "垂直视图开始匹配功能待实现");
+}
+
+void MutiCamApp::onStartMatchingLeftClicked()
+{
+    qDebug() << "左侧视图开始匹配按钮被点击";
+    QMessageBox::information(this, "测试", "左侧视图开始匹配功能待实现");
+}
+
+void MutiCamApp::onStartMatchingFrontClicked()
+{
+    qDebug() << "对向视图开始匹配按钮被点击";
+    QMessageBox::information(this, "测试", "对向视图开始匹配功能待实现");
 }
 
 void MutiCamApp::saveImages(const QString& viewType)
@@ -3381,6 +3437,26 @@ void MutiCamApp::initializeButtonMappings()
     m_buttonMappings.emplace_back(ui->btnSaveImageFront,
         [this]() { saveImage("front"); },
         "save", "front");
+
+    // 模板匹配按钮
+    m_buttonMappings.emplace_back(ui->btnCreateTemplateVertical,
+        [this]() { onCreateTemplateVerticalClicked(); },
+        "template", "vertical");
+    m_buttonMappings.emplace_back(ui->btnCreateTemplateLeft,
+        [this]() { onCreateTemplateLeftClicked(); },
+        "template", "left");
+    m_buttonMappings.emplace_back(ui->btnCreateTemplateFront,
+        [this]() { onCreateTemplateFrontClicked(); },
+        "template", "front");
+    m_buttonMappings.emplace_back(ui->btnStartMatchingVertical,
+        [this]() { onStartMatchingVerticalClicked(); },
+        "matching", "vertical");
+    m_buttonMappings.emplace_back(ui->btnStartMatchingLeft,
+        [this]() { onStartMatchingLeftClicked(); },
+        "matching", "left");
+    m_buttonMappings.emplace_back(ui->btnStartMatchingFront,
+        [this]() { onStartMatchingFrontClicked(); },
+        "matching", "front");
 
     // 像素标定按钮
     m_buttonMappings.emplace_back(ui->btnPixelCalibration,

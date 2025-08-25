@@ -70,6 +70,8 @@ set(srcs
     src/matching/MatchingController.cpp
     src/matching/KcgMatch.h
     src/matching/KcgMatch_fixed.cpp
+    src/matching/ui/TemplateNameDialog.h
+    src/matching/ui/TemplateNameDialog.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
