@@ -33,7 +33,6 @@
 #include "LogManager.h"
 #include "TrajectoryRecorder.h"
 #include "SerialController.h"
-#include "matching/ui/ROIManager.h"
 #include <functional>
 
 #ifndef M_PI
@@ -170,11 +169,6 @@ private slots:
     void onStartMatchingVerticalClicked();
     void onStartMatchingLeftClicked();
     void onStartMatchingFrontClicked();
-
-    /**
-     * @brief ROI创建完成事件处理
-     */
-    void onROICreated(const QString& viewName, const QRectF& rect, qreal angle);
 
     /**
      * @brief 像素标定相关槽函数
@@ -469,11 +463,6 @@ private:
     PaintingOverlay* m_leftPaintingOverlay2;
     PaintingOverlay* m_frontPaintingOverlay2;
 
-    // ROI管理器 - 选项卡视图
-    ROIManager* m_verticalROIManager2;
-    ROIManager* m_leftROIManager2;
-    ROIManager* m_frontROIManager2;
-
     // 记录最后活动的PaintingOverlay，用于撤销功能
     PaintingOverlay* m_lastActivePaintingOverlay;
     
@@ -625,11 +614,6 @@ private:
      void initializeZoomPanWidgets();
 
      /**
-      * @brief 初始化ROI管理器
-      */
-     void initializeROIManagers();
-
-     /**
       * @brief 初始化设置管理器
       */
      void initializeSettingsManager();
@@ -710,13 +694,6 @@ private:
       * @return ZoomPanWidget指针
       */
      ZoomPanWidget* getZoomPanWidget(const QString& viewName);
-
-     /**
-      * @brief 获取指定视图的ROIManager（选项卡视图）
-      * @param viewName 视图名称
-      * @return ROIManager指针
-      */
-     ROIManager* getROIManager(const QString& viewName);
 
      /**
       * @brief 获取当前活动的ZoomPanWidget（基于当前选项卡）
