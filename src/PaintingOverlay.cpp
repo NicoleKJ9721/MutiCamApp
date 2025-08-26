@@ -371,14 +371,12 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
 
 void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 {
-    qDebug() << "mousePressEvent被调用，按钮:" << event->button() << "位置:" << event->pos();
-    qDebug() << "当前状态 - m_roiCreationMode:" << m_roiCreationMode << "m_isDrawingMode:" << m_isDrawingMode
-             << "m_currentDrawingTool:" << (int)m_currentDrawingTool;
+
 
     // 检查是否应该将事件传递给ZoomPanWidget（空格键平移模式）
     ZoomPanWidget* zoomPanWidget = qobject_cast<ZoomPanWidget*>(parentWidget());
     if (zoomPanWidget && zoomPanWidget->isSpacePressed()) {
-        qDebug() << "事件被传递给ZoomPanWidget（空格键平移模式）";
+
         // 空格键按下时，将鼠标事件传递给ZoomPanWidget
         QApplication::sendEvent(zoomPanWidget, event);
         return;
@@ -401,7 +399,6 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 
         // ROI创建模式的特殊处理：右键不退出模式
         if (m_roiCreationMode) {
-            qDebug() << "ROI创建模式下右键点击，忽略";
             return;
         }
 
@@ -438,31 +435,23 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
     }
 
     if (m_selectionEnabled && !m_roiCreationMode) {
-        qDebug() << "进入选择模式处理，m_selectionEnabled:" << m_selectionEnabled;
         // 处理选择逻辑
         bool ctrlPressed = (event->modifiers() & Qt::ControlModifier) != 0;
         handleSelectionClick(imagePos, ctrlPressed);
         return;
     } else if (m_selectionEnabled && m_roiCreationMode) {
-        qDebug() << "选择模式启用但在ROI创建模式，跳过选择处理";
+        // 跳过选择处理
     }
     
     // ROI创建模式需要特殊处理
     if (!m_isDrawingMode && !m_roiCreationMode) {
-        qDebug() << "mousePressEvent: 不在绘图模式且不在ROI创建模式，m_isDrawingMode:" << m_isDrawingMode
-                 << "m_roiCreationMode:" << m_roiCreationMode
-                 << "m_currentDrawingTool:" << (int)m_currentDrawingTool;
         return;
     }
 
     // ROI创建模式的特殊处理
-    qDebug() << "检查ROI创建模式条件: m_roiCreationMode =" << m_roiCreationMode;
     if (m_roiCreationMode) {
-        qDebug() << "mousePressEvent: ROI创建模式，直接处理点击，工具:" << (int)m_currentDrawingTool;
         handleROICreationClick(imagePos);
         return;
-    } else {
-        qDebug() << "不在ROI创建模式，继续正常流程";
     }
 
     // 移除频繁的鼠标点击日志
@@ -493,7 +482,6 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
             handleROIDrawingClick(imagePos);
             break;
         case DrawingTool::ROI_CREATION:
-            qDebug() << "mousePressEvent: ROI_CREATION分支被执行，位置:" << imagePos;
             handleROICreationClick(imagePos);
             break;
         default:
@@ -614,16 +602,12 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
     if (m_roiCreationMode && m_hasCurrentROI) {
         if (m_isDragging && m_activeHandle != PaintingOverlay::ROIObject::NoHandle) {
             QPointF delta = imagePos - m_lastMousePos;
-            qDebug() << "ROI拖拽中，句柄:" << m_activeHandle << "位置:" << imagePos << "偏移:" << delta;
             handleROIDrag(m_activeHandle, delta);
             m_lastMousePos = imagePos;
             update();
         } else {
             // 更新鼠标悬停状态和光标
             PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
-            if (hoverHandle != PaintingOverlay::ROIObject::NoHandle) {
-                qDebug() << "鼠标悬停在ROI句柄上:" << hoverHandle;
-            }
             updateROICursor(hoverHandle);
         }
     }
@@ -4820,11 +4804,8 @@ void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIDetectionObject&
 void PaintingOverlay::drawSingleROICreation(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const
 {
     if (!roi.rect.isValid() || roi.rect.isEmpty()) {
-        qDebug() << "drawSingleROICreation: ROI矩形无效或为空:" << roi.rect;
         return;
     }
-
-    qDebug() << "drawSingleROICreation: 绘制ROI" << roi.rect << "角度:" << roi.angle << "活动:" << roi.isActive;
 
     painter.save();
 
@@ -6346,24 +6327,16 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
 
 void PaintingOverlay::handleROICreationClick(const QPointF& pos)
 {
-    qDebug() << "handleROICreationClick被调用，位置:" << pos;
-    qDebug() << "m_hasCurrentROI:" << m_hasCurrentROI << "m_roiCreationMode:" << m_roiCreationMode;
-
     if (!m_hasCurrentROI || !m_roiCreationMode) {
-        qDebug() << "ROI创建点击被忽略：没有当前ROI或不在创建模式";
         return;
     }
-
-    qDebug() << "当前ROI矩形:" << m_currentROI.rect;
 
     // 首先检查是否点击了确认/取消按钮
     bool isConfirm;
     if (isPointInROIButton(pos, isConfirm)) {
         if (isConfirm) {
-            qDebug() << "点击了确认按钮，完成ROI创建";
             emit roiCreated(m_viewName, m_currentROI.rect, m_currentROI.angle);
         } else {
-            qDebug() << "点击了取消按钮，取消ROI创建";
             emit roiCancelled(m_viewName);
         }
         return;
@@ -6371,30 +6344,23 @@ void PaintingOverlay::handleROICreationClick(const QPointF& pos)
 
     // 检查是否点击了控制点
     ROIObject::HandleType clickedHandle = getROIHandleAt(pos);
-    qDebug() << "检测到的控制点类型:" << clickedHandle;
 
     if (clickedHandle != ROIObject::NoHandle) {
         // 点击了控制点，开始拖拽
         m_activeHandle = clickedHandle;
         m_isDragging = true;
         m_lastMousePos = pos;
-        qDebug() << "开始拖拽ROI控制点:" << clickedHandle << "拖拽状态:" << m_isDragging;
     } else if (m_currentROI.rect.contains(pos)) {
         // 点击了ROI内部，开始移动
         m_activeHandle = ROIObject::MoveHandle;
         m_isDragging = true;
         m_lastMousePos = pos;
-        qDebug() << "开始移动ROI，拖拽状态:" << m_isDragging;
-    } else {
-        // 点击了ROI外部，不做任何操作
-        qDebug() << "点击ROI外部，不做任何操作";
     }
 }
 
 PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPointF& pos) const
 {
     if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
-        qDebug() << "getROIHandleAt: 没有当前ROI或ROI无效";
         return PaintingOverlay::ROIObject::NoHandle;
     }
 
@@ -6402,7 +6368,19 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     double handleRadius = 12.0; // 稍大一些便于点击
 
     QRectF rect = m_currentROI.rect;
-    qDebug() << "getROIHandleAt: 检查位置" << pos << "ROI矩形" << rect << "检测半径" << handleRadius;
+
+    // 如果ROI有旋转，需要将鼠标位置反向旋转到ROI的本地坐标系中进行检测
+    QPointF localPos = pos;
+    if (qAbs(m_currentROI.angle) > 0.01) {
+        QPointF center = rect.center();
+        // 创建反向旋转变换
+        QTransform transform;
+        transform.translate(center.x(), center.y());
+        transform.rotate(-m_currentROI.angle); // 反向旋转
+        transform.translate(-center.x(), -center.y());
+        localPos = transform.map(pos);
+        qDebug() << "旋转检测 - 原始位置:" << pos << "本地位置:" << localPos << "角度:" << m_currentROI.angle;
+    }
 
     // 检查8个调整控制点
     QVector<QPointF> handlePositions = {
@@ -6418,24 +6396,29 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
 
     for (int i = 0; i < handlePositions.size(); ++i) {
         QPointF handlePos = handlePositions[i];
-        double distance = QLineF(pos, handlePos).length();
+        double distance = QLineF(localPos, handlePos).length();
         if (distance <= handleRadius) {
+            qDebug() << "检测到控制点" << i << "距离:" << distance;
             return static_cast<PaintingOverlay::ROIObject::HandleType>(i);
         }
     }
 
     // 检查旋转手柄（位置计算要与drawROIHandles保持一致）
-    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0);
-    double rotationDistance = QLineF(pos, rotationHandlePos).length();
-    qDebug() << "检查旋转手柄，位置:" << rotationHandlePos << "鼠标位置:" << pos << "距离:" << rotationDistance << "半径:" << handleRadius;
-    if (rotationDistance <= handleRadius) {
-        qDebug() << "检测到旋转手柄点击";
+    // 使用与绘制时相同的位置计算：rect.top() - 30.0 / ctx.scale
+    // 这里使用m_scaleFactor来保持一致
+    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0 / m_scaleFactor);
+    double rotationDistance = QLineF(localPos, rotationHandlePos).length();
+    // 使用更大的检测半径，因为旋转手柄比普通控制点大
+    double rotationHandleRadius = handleRadius * 1.5;
+    qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
+    if (rotationDistance <= rotationHandleRadius) {
+        qDebug() << "检测到旋转手柄点击！";
         return PaintingOverlay::ROIObject::RotationHandle;
     }
 
     // 检查是否在ROI内部（用于移动）
-    if (rect.contains(pos)) {
-        qDebug() << "检测到ROI内部点击，返回MoveHandle";
+    if (rect.contains(localPos)) {
+        qDebug() << "检测到ROI内部点击";
         return PaintingOverlay::ROIObject::MoveHandle;
     }
 
@@ -6500,14 +6483,29 @@ void PaintingOverlay::handleROIRotation(const QPointF& delta)
         return;
     }
 
-    // 简化的旋转处理：根据鼠标移动的水平分量调整角度
-    qreal angleChange = delta.x() * 0.5; // 调整灵敏度
+    // 基于角度的旋转处理：计算鼠标移动相对于ROI中心的角度变化
+    QPointF center = m_currentROI.rect.center();
+    QPointF oldPos = m_lastMousePos;
+    QPointF newPos = m_lastMousePos + delta;
+
+    // 计算两个位置相对于中心的角度
+    qreal oldAngle = qAtan2(oldPos.y() - center.y(), oldPos.x() - center.x()) * 180.0 / M_PI;
+    qreal newAngle = qAtan2(newPos.y() - center.y(), newPos.x() - center.x()) * 180.0 / M_PI;
+
+    // 计算角度变化
+    qreal angleChange = newAngle - oldAngle;
+
+    // 处理角度跨越±180度的情况
+    if (angleChange > 180) angleChange -= 360;
+    if (angleChange < -180) angleChange += 360;
+
     m_currentROI.angle += angleChange;
 
     // 限制角度范围到 -180 到 180
     while (m_currentROI.angle > 180) m_currentROI.angle -= 360;
     while (m_currentROI.angle < -180) m_currentROI.angle += 360;
 
+    qDebug() << "旋转处理 - 角度变化:" << angleChange << "新角度:" << m_currentROI.angle;
     emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 }
 
