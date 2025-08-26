@@ -13,6 +13,7 @@
 #include <QFont>
 #include <QPen>
 #include <QBrush>
+#include <QPainterPath>
 #include <QMenu>
 #include <QAction>
 #include <QTime>

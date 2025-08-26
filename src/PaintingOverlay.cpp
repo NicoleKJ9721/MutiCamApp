@@ -4828,6 +4828,40 @@ void PaintingOverlay::drawSingleROICreation(QPainter& painter, const ROIObject& 
 
     painter.save();
 
+    // 绘制灰色遮罩（使用路径裁剪方法）
+    // 获取图像的实际显示区域
+    QRectF imageRect;
+    if (m_imageSize.isValid() && !m_imageSize.isEmpty()) {
+        // 使用图像坐标系统的完整范围
+        imageRect = QRectF(0, 0, m_imageSize.width(), m_imageSize.height());
+    } else {
+        // 回退到widget矩形
+        imageRect = rect();
+    }
+
+    // 创建遮罩路径：整个图像区域减去ROI区域
+    QPainterPath maskPath;
+    maskPath.addRect(imageRect);
+
+    QPainterPath roiPath;
+    if (qAbs(roi.angle) > 0.01) {
+        // 如果有旋转，创建旋转的ROI路径
+        QTransform transform;
+        transform.translate(roi.rect.center().x(), roi.rect.center().y());
+        transform.rotate(roi.angle);
+        transform.translate(-roi.rect.center().x(), -roi.rect.center().y());
+        roiPath.addRect(roi.rect);
+        roiPath = transform.map(roiPath);
+    } else {
+        roiPath.addRect(roi.rect);
+    }
+
+    // 从遮罩中减去ROI区域
+    maskPath = maskPath.subtracted(roiPath);
+
+    // 绘制遮罩
+    painter.fillPath(maskPath, QColor(0, 0, 0, 100)); // 半透明黑色遮罩
+
     // 如果有旋转角度，应用旋转变换
     if (qAbs(roi.angle) > 0.01) {
         QPointF center = roi.rect.center();
