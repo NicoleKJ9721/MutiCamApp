@@ -6195,8 +6195,7 @@ void PaintingOverlay::finishROICreation()
 
     update();
 
-    // 发送信号
-    emit roiCreated(m_viewName, m_currentROI.rect, m_currentROI.angle);
+    // 只发送roiFinished信号，不再发送roiCreated信号（避免循环）
     emit roiFinished(m_viewName);
 }
 
