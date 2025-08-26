@@ -28,6 +28,10 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_hasCurrentParallel(false)
     , m_hasCurrentTwoLines(false)
     , m_hasCurrentROI(false)
+    , m_hasCurrentROIDetection(false)
+    , m_roiCreationMode(false)
+    , m_activeHandle(ROIObject::NoHandle)
+    , m_isDragging(false)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_scaleFactor(1.0)
@@ -116,7 +120,8 @@ void PaintingOverlay::stopDrawing()
     m_hasCurrentCircle = false;
     m_hasCurrentParallel = false;
     m_hasCurrentTwoLines = false;
-    m_hasCurrentROI = false;
+    // 注意：不清除m_hasCurrentROI，因为它用于ROI创建模式
+    m_hasCurrentROIDetection = false; // 只清除ROI检测相关的状态
     m_currentPoints.clear();
 
     // 停止绘制模式时重新启用选择模式并清除选择状态
@@ -366,9 +371,14 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
 
 void PaintingOverlay::mousePressEvent(QMouseEvent *event)
 {
+    qDebug() << "mousePressEvent被调用，按钮:" << event->button() << "位置:" << event->pos();
+    qDebug() << "当前状态 - m_roiCreationMode:" << m_roiCreationMode << "m_isDrawingMode:" << m_isDrawingMode
+             << "m_currentDrawingTool:" << (int)m_currentDrawingTool;
+
     // 检查是否应该将事件传递给ZoomPanWidget（空格键平移模式）
     ZoomPanWidget* zoomPanWidget = qobject_cast<ZoomPanWidget*>(parentWidget());
     if (zoomPanWidget && zoomPanWidget->isSpacePressed()) {
+        qDebug() << "事件被传递给ZoomPanWidget（空格键平移模式）";
         // 空格键按下时，将鼠标事件传递给ZoomPanWidget
         QApplication::sendEvent(zoomPanWidget, event);
         return;
@@ -386,6 +396,12 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         if (m_isMultiPointCalibrationMode) {
             // 在多点标定模式下右键显示选项
             showMultiPointCalibrationDialog();
+            return;
+        }
+
+        // ROI创建模式的特殊处理：右键不退出模式
+        if (m_roiCreationMode) {
+            qDebug() << "ROI创建模式下右键点击，忽略";
             return;
         }
 
@@ -421,16 +437,32 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         return;
     }
 
-    if (m_selectionEnabled) {
+    if (m_selectionEnabled && !m_roiCreationMode) {
+        qDebug() << "进入选择模式处理，m_selectionEnabled:" << m_selectionEnabled;
         // 处理选择逻辑
         bool ctrlPressed = (event->modifiers() & Qt::ControlModifier) != 0;
         handleSelectionClick(imagePos, ctrlPressed);
         return;
+    } else if (m_selectionEnabled && m_roiCreationMode) {
+        qDebug() << "选择模式启用但在ROI创建模式，跳过选择处理";
     }
     
-    if (!m_isDrawingMode) {
-        // 静默返回，避免频繁的鼠标事件日志
+    // ROI创建模式需要特殊处理
+    if (!m_isDrawingMode && !m_roiCreationMode) {
+        qDebug() << "mousePressEvent: 不在绘图模式且不在ROI创建模式，m_isDrawingMode:" << m_isDrawingMode
+                 << "m_roiCreationMode:" << m_roiCreationMode
+                 << "m_currentDrawingTool:" << (int)m_currentDrawingTool;
         return;
+    }
+
+    // ROI创建模式的特殊处理
+    qDebug() << "检查ROI创建模式条件: m_roiCreationMode =" << m_roiCreationMode;
+    if (m_roiCreationMode) {
+        qDebug() << "mousePressEvent: ROI创建模式，直接处理点击，工具:" << (int)m_currentDrawingTool;
+        handleROICreationClick(imagePos);
+        return;
+    } else {
+        qDebug() << "不在ROI创建模式，继续正常流程";
     }
 
     // 移除频繁的鼠标点击日志
@@ -459,6 +491,10 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         case DrawingTool::ROI_LineDetect:
         case DrawingTool::ROI_CircleDetect:
             handleROIDrawingClick(imagePos);
+            break;
+        case DrawingTool::ROI_CREATION:
+            qDebug() << "mousePressEvent: ROI_CREATION分支被执行，位置:" << imagePos;
+            handleROICreationClick(imagePos);
             break;
         default:
             break;
@@ -564,21 +600,72 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
     }
 
     // 处理ROI预览逻辑
-    if (m_hasCurrentROI && !m_currentROI.isCompleted) {
-        if (m_currentROI.points.size() == 1) {
+    if (m_hasCurrentROIDetection && !m_currentROIDetection.isCompleted) {
+        if (m_currentROIDetection.points.size() == 1) {
             // ROI绘制：添加第二个点进行实时预览
-            m_currentROI.points.append(imagePos);
-        } else if (m_currentROI.points.size() >= 2) {
+            m_currentROIDetection.points.append(imagePos);
+        } else if (m_currentROIDetection.points.size() >= 2) {
             // ROI绘制：更新第二个点进行实时预览
-            m_currentROI.points[1] = imagePos;
+            m_currentROIDetection.points[1] = imagePos;
+        }
+    }
+
+    // 处理ROI创建的拖拽逻辑
+    if (m_roiCreationMode && m_hasCurrentROI) {
+        if (m_isDragging && m_activeHandle != PaintingOverlay::ROIObject::NoHandle) {
+            QPointF delta = imagePos - m_lastMousePos;
+            qDebug() << "ROI拖拽中，句柄:" << m_activeHandle << "位置:" << imagePos << "偏移:" << delta;
+            handleROIDrag(m_activeHandle, delta);
+            m_lastMousePos = imagePos;
+            update();
+        } else {
+            // 更新鼠标悬停状态和光标
+            PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
+            if (hoverHandle != PaintingOverlay::ROIObject::NoHandle) {
+                qDebug() << "鼠标悬停在ROI句柄上:" << hoverHandle;
+            }
+            updateROICursor(hoverHandle);
         }
     }
 
     // 只在绘图模式或有当前绘制对象时更新
     if (m_isDrawingMode || m_hasCurrentLine || m_hasCurrentCircle ||
-        m_hasCurrentFineCircle || m_hasCurrentParallel || m_hasCurrentTwoLines || m_hasCurrentROI) {
+        m_hasCurrentFineCircle || m_hasCurrentParallel || m_hasCurrentTwoLines ||
+        m_hasCurrentROIDetection || m_roiCreationMode) {
         update(); // 更新预览
     }
+}
+
+void PaintingOverlay::mouseReleaseEvent(QMouseEvent *event)
+{
+    // 检查是否应该将事件传递给ZoomPanWidget（空格键平移模式）
+    ZoomPanWidget* zoomPanWidget = qobject_cast<ZoomPanWidget*>(parentWidget());
+    if (zoomPanWidget && zoomPanWidget->isPanning()) {
+        // 平移模式时，将鼠标事件传递给ZoomPanWidget
+        QApplication::sendEvent(zoomPanWidget, event);
+        return;
+    }
+
+    // 只处理左键释放
+    if (event->button() != Qt::LeftButton) {
+        QWidget::mouseReleaseEvent(event);
+        return;
+    }
+
+    // 处理ROI创建的拖拽结束
+    if (m_roiCreationMode && m_hasCurrentROI && m_isDragging) {
+        m_isDragging = false;
+        m_activeHandle = PaintingOverlay::ROIObject::NoHandle;
+
+        // 发送ROI变化信号
+        emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
+
+        qDebug() << "ROI拖拽结束，当前ROI:" << m_currentROI.rect << "角度:" << m_currentROI.angle;
+        update();
+        return;
+    }
+
+    QWidget::mouseReleaseEvent(event);
 }
 
 void PaintingOverlay::mouseDoubleClickEvent(QMouseEvent *event)
@@ -1908,8 +1995,14 @@ void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext
 
         case DrawingTool::ROI_LineDetect:
         case DrawingTool::ROI_CircleDetect:
-            if (m_hasCurrentROI && !m_currentROI.points.isEmpty()) {
-                drawSingleROI(painter, m_currentROI, ctx);
+            if (m_hasCurrentROIDetection && !m_currentROIDetection.points.isEmpty()) {
+                drawSingleROI(painter, m_currentROIDetection, ctx);
+            }
+            break;
+
+        case DrawingTool::ROI_CREATION:
+            if (m_hasCurrentROI) {
+                drawSingleROICreation(painter, m_currentROI, ctx);
             }
             break;
 
@@ -4689,7 +4782,7 @@ void PaintingOverlay::drawROIs(QPainter& painter, const DrawingContext& ctx) con
     }
 }
 
-void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const
+void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIDetectionObject& roi, const DrawingContext& ctx) const
 {
     if (roi.points.size() < 2) {
         return;
@@ -4717,60 +4810,91 @@ void PaintingOverlay::drawSingleROI(QPainter& painter, const ROIObject& roi, con
         }
 
         // 使用统一的文字样式参数
-        double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
+        double textPadding = qMax(4.0, ctx.fontSize * 0.5);
         int bgBorderWidth = 1;
         QPointF labelPos = rect.topLeft() + QPointF(5, -5);
         drawTextWithBackground(painter, labelPos, displayText, ctx.font, roi.color, Qt::white, textPadding, bgBorderWidth, QPointF(0, 0));
     }
+}
 
-    // 如果正在检测，绘制检测类型提示
-    if (roi.isDetecting) {
-        QString typeText;
-        if (roi.detectionType == DrawingTool::ROI_LineDetect) {
-            typeText = "直线检测";
-        } else if (roi.detectionType == DrawingTool::ROI_CircleDetect) {
-            typeText = "圆形检测";
-        }
-
-        if (!typeText.isEmpty()) {
-            // 使用统一的文字样式参数
-            double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
-            int bgBorderWidth = 1;
-            QPointF typePos = rect.center();
-            drawTextWithBackground(painter, typePos, typeText, ctx.font, Qt::yellow, Qt::black, textPadding, bgBorderWidth, QPointF(0, 0));
-        }
+void PaintingOverlay::drawSingleROICreation(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const
+{
+    if (!roi.rect.isValid() || roi.rect.isEmpty()) {
+        qDebug() << "drawSingleROICreation: ROI矩形无效或为空:" << roi.rect;
+        return;
     }
+
+    qDebug() << "drawSingleROICreation: 绘制ROI" << roi.rect << "角度:" << roi.angle << "活动:" << roi.isActive;
+
+    painter.save();
+
+    // 如果有旋转角度，应用旋转变换
+    if (qAbs(roi.angle) > 0.01) {
+        QPointF center = roi.rect.center();
+        painter.translate(center);
+        painter.rotate(roi.angle);
+        painter.translate(-center);
+    }
+
+    // 创建ROI画笔
+    QPen roiPen = createPen(roi.borderColor, roi.thickness, ctx.scale, roi.isDashed);
+    painter.setPen(roiPen);
+    painter.setBrush(Qt::NoBrush);
+
+    // 绘制ROI矩形
+    painter.drawRect(roi.rect);
+
+    // 如果是活动状态且显示控制点，绘制控制点
+    if (roi.isActive && roi.showHandles) {
+        drawROIHandles(painter, roi, ctx);
+    }
+
+    painter.restore();
+
+    // 绘制模板名称标签（不受旋转影响）
+    if (!roi.templateName.isEmpty()) {
+        QString displayText = roi.templateName;
+
+        // 使用统一的文字样式参数
+        double textPadding = qMax(4.0, ctx.fontSize * 0.5);
+        int bgBorderWidth = 1;
+        QPointF labelPos = roi.rect.topLeft() + QPointF(5, -15);
+        drawTextWithBackground(painter, labelPos, displayText, ctx.font, roi.borderColor, Qt::white, textPadding, bgBorderWidth, QPointF(0, 0));
+    }
+
+    // 绘制确认/取消按钮
+    drawROIButtons(painter, ctx);
 }
 
 void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
 {
     qDebug() << "handleROIDrawingClick called at position:" << pos;
-    qDebug() << "m_hasCurrentROI:" << m_hasCurrentROI << "points size:" << (m_hasCurrentROI ? m_currentROI.points.size() : 0);
-    if (!m_hasCurrentROI) {
+    qDebug() << "m_hasCurrentROIDetection:" << m_hasCurrentROIDetection << "points size:" << (m_hasCurrentROIDetection ? m_currentROIDetection.points.size() : 0);
+    if (!m_hasCurrentROIDetection) {
         // 开始绘制ROI
-        m_currentROI = ROIObject();
-        m_currentROI.points.append(pos);
-        m_currentROI.detectionType = m_currentDrawingTool;
-        m_currentROI.label = QString("ROI_%1").arg(m_rois.size() + 1);
-        m_currentROI.color = Qt::red;        // 使用红色更明显
-        m_currentROI.thickness = 3;          // 更粗的线条
-        m_hasCurrentROI = true;
+        m_currentROIDetection = ROIDetectionObject();
+        m_currentROIDetection.points.append(pos);
+        m_currentROIDetection.detectionType = m_currentDrawingTool;
+        m_currentROIDetection.label = QString("ROI_%1").arg(m_rois.size() + 1);
+        m_currentROIDetection.color = Qt::red;        // 使用红色更明显
+        m_currentROIDetection.thickness = 3;          // 更粗的线条
+        m_hasCurrentROIDetection = true;
 
         qDebug() << "开始绘制ROI，起点：" << pos;
-    } else if (m_currentROI.points.size() >= 1 && !m_currentROI.isCompleted) {
+    } else if (m_currentROIDetection.points.size() >= 1 && !m_currentROIDetection.isCompleted) {
         // 完成ROI绘制
-        qDebug() << "准备完成ROI绘制，当前points数量：" << m_currentROI.points.size();
-        if (m_currentROI.points.size() == 1) {
-            m_currentROI.points.append(pos);
+        qDebug() << "准备完成ROI绘制，当前points数量：" << m_currentROIDetection.points.size();
+        if (m_currentROIDetection.points.size() == 1) {
+            m_currentROIDetection.points.append(pos);
         } else {
-            m_currentROI.points[1] = pos;  // 更新第二个点
+            m_currentROIDetection.points[1] = pos;  // 更新第二个点
         }
-        m_currentROI.isCompleted = true;
+        m_currentROIDetection.isCompleted = true;
 
         qDebug() << "完成ROI绘制，终点：" << pos;
 
         // 添加到ROI列表
-        m_rois.append(m_currentROI);
+        m_rois.append(m_currentROIDetection);
 
         // 记录历史
         DrawingAction action;
@@ -4780,7 +4904,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         commitDrawingAction(action);
 
         // 立即执行自动检测
-        performAutoDetection(m_currentROI);
+        performAutoDetection(m_currentROIDetection);
 
         // 清除当前ROI数据
         clearCurrentROIData();
@@ -4789,9 +4913,9 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         emit drawingCompleted(m_viewName);
         emit drawingDataChanged(m_viewName);
     } else {
-        qDebug() << "ROI点击未处理 - hasCurrentROI:" << m_hasCurrentROI
-                 << "points size:" << (m_hasCurrentROI ? m_currentROI.points.size() : 0)
-                 << "isCompleted:" << (m_hasCurrentROI ? m_currentROI.isCompleted : false);
+        qDebug() << "ROI点击未处理 - hasCurrentROIDetection:" << m_hasCurrentROIDetection
+                 << "points size:" << (m_hasCurrentROIDetection ? m_currentROIDetection.points.size() : 0)
+                 << "isCompleted:" << (m_hasCurrentROIDetection ? m_currentROIDetection.isCompleted : false);
     }
 
     update();
@@ -4800,7 +4924,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
 int PaintingOverlay::hitTestROI(const QPointF& testPos, double tolerance) const
 {
     for (int i = 0; i < m_rois.size(); ++i) {
-        const ROIObject& roi = m_rois[i];
+        const ROIDetectionObject& roi = m_rois[i];
         if (!roi.isVisible || !roi.isCompleted) continue;
 
         QRectF rect = roi.getRect();
@@ -4820,19 +4944,19 @@ int PaintingOverlay::hitTestROI(const QPointF& testPos, double tolerance) const
     return -1;
 }
 
-void PaintingOverlay::setCurrentROIData(const ROIObject& currentROI)
+void PaintingOverlay::setCurrentROIData(const ROIDetectionObject& currentROI)
 {
-    m_currentROI = currentROI;
-    m_hasCurrentROI = true;
+    m_currentROIDetection = currentROI;
+    m_hasCurrentROIDetection = true;
 }
 
 void PaintingOverlay::clearCurrentROIData()
 {
-    m_currentROI = ROIObject();
-    m_hasCurrentROI = false;
+    m_currentROIDetection = ROIDetectionObject();
+    m_hasCurrentROIDetection = false;
 }
 
-void PaintingOverlay::setROIsData(const QVector<ROIObject>& rois)
+void PaintingOverlay::setROIsData(const QVector<ROIDetectionObject>& rois)
 {
     m_rois = rois;
     update();
@@ -4852,7 +4976,7 @@ void PaintingOverlay::removeLastROI()
     }
 }
 
-void PaintingOverlay::performAutoDetection(const ROIObject& roi)
+void PaintingOverlay::performAutoDetection(const ROIDetectionObject& roi)
 {
     if (!m_edgeDetector || !m_shapeDetector) {
         qDebug() << "图像处理器未初始化";
@@ -6004,4 +6128,461 @@ QString PaintingOverlay::formatRadius(double pixelRadius) const
     } else {
         return QString("R=%1 像素").arg(pixelRadius, 0, 'f', 1);
     }
+}
+
+// ROI功能实现
+void PaintingOverlay::startROICreation()
+{
+    qDebug() << "PaintingOverlay::startROICreation() - 视图:" << m_viewName;
+
+    // 设置ROI创建模式
+    m_roiCreationMode = true;
+    m_currentDrawingTool = DrawingTool::ROI_CREATION;
+    m_isDrawingMode = true;
+
+    // 计算图像区域
+    QRect imageRect = QRect(m_imageOffset.toPoint(), m_imageSize);
+    if (imageRect.isEmpty()) {
+        // 如果没有图像信息，使用控件大小
+        imageRect = rect();
+    }
+
+    // 在图像中心创建默认大小的正方形ROI
+    QPoint center = imageRect.center();
+    int defaultSize = qMin(imageRect.width(), imageRect.height()) / 4;
+    defaultSize = qMax(defaultSize, 100); // 最小100像素
+
+    // 创建ROI对象
+    m_currentROI = ROIObject();
+    m_currentROI.rect = QRectF(center.x() - defaultSize/2,
+                              center.y() - defaultSize/2,
+                              defaultSize, defaultSize);
+    m_currentROI.angle = 0.0;
+    m_currentROI.isActive = true;
+    m_currentROI.showHandles = true;
+    m_currentROI.templateName = "";
+    m_hasCurrentROI = true;
+
+    // 重置交互状态
+    m_activeHandle = ROIObject::NoHandle;
+    m_isDragging = false;
+
+    // 设置默认光标
+    setCursor(Qt::ArrowCursor);
+
+    update();
+    qDebug() << "ROI创建完成，位置:" << m_currentROI.rect;
+}
+
+void PaintingOverlay::finishROICreation()
+{
+    if (!m_hasCurrentROI || !m_roiCreationMode) {
+        return;
+    }
+
+    qDebug() << "PaintingOverlay::finishROICreation() - 视图:" << m_viewName;
+
+    // 将当前ROI添加到ROI创建列表
+    m_roiCreations.append(m_currentROI);
+
+    // 清理状态
+    m_hasCurrentROI = false;
+    m_roiCreationMode = false;
+    m_currentDrawingTool = DrawingTool::None;
+    m_isDrawingMode = false;
+    m_activeHandle = ROIObject::NoHandle;
+    m_isDragging = false;
+
+    update();
+
+    // 发送信号
+    emit roiCreated(m_viewName, m_currentROI.rect, m_currentROI.angle);
+    emit roiFinished(m_viewName);
+}
+
+void PaintingOverlay::cancelROICreation()
+{
+    if (!m_roiCreationMode) {
+        return;
+    }
+
+    qDebug() << "PaintingOverlay::cancelROICreation() - 视图:" << m_viewName;
+
+    // 清理状态
+    m_hasCurrentROI = false;
+    m_roiCreationMode = false;
+    m_currentDrawingTool = DrawingTool::None;
+    m_isDrawingMode = false;
+    m_activeHandle = ROIObject::NoHandle;
+    m_isDragging = false;
+
+    update();
+
+    // 发送信号
+    emit roiCancelled(m_viewName);
+}
+
+bool PaintingOverlay::hasActiveROI() const
+{
+    return m_hasCurrentROI && m_roiCreationMode;
+}
+
+QRectF PaintingOverlay::getCurrentROI() const
+{
+    if (m_hasCurrentROI) {
+        return m_currentROI.rect;
+    }
+    return QRectF();
+}
+
+qreal PaintingOverlay::getCurrentROIAngle() const
+{
+    if (m_hasCurrentROI) {
+        return m_currentROI.angle;
+    }
+    return 0.0;
+}
+
+QString PaintingOverlay::getCurrentROITemplateName() const
+{
+    if (m_hasCurrentROI) {
+        return m_currentROI.templateName;
+    }
+    return QString();
+}
+
+void PaintingOverlay::setCurrentROITemplateName(const QString& name)
+{
+    if (m_hasCurrentROI) {
+        m_currentROI.templateName = name;
+        update();
+    }
+}
+
+void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const
+{
+    if (!roi.showHandles || !roi.rect.isValid()) {
+        return;
+    }
+
+    // 控制点大小（屏幕像素）
+    double handleSize = 8.0 / ctx.scale;
+    double halfSize = handleSize / 2.0;
+
+    // 创建控制点画笔和画刷
+    QPen handlePen = createPen(Qt::blue, 1, ctx.scale, false);
+    QBrush handleBrush(Qt::white);
+    QBrush hoverBrush(Qt::yellow);
+
+    painter.setPen(handlePen);
+
+    // 获取矩形的四个角点
+    QRectF rect = roi.rect;
+    QPointF topLeft = rect.topLeft();
+    QPointF topRight = rect.topRight();
+    QPointF bottomLeft = rect.bottomLeft();
+    QPointF bottomRight = rect.bottomRight();
+
+    // 获取四个边的中点
+    QPointF topCenter = QPointF(rect.center().x(), rect.top());
+    QPointF bottomCenter = QPointF(rect.center().x(), rect.bottom());
+    QPointF leftCenter = QPointF(rect.left(), rect.center().y());
+    QPointF rightCenter = QPointF(rect.right(), rect.center().y());
+
+    // 绘制8个调整控制点
+    QVector<QPointF> handlePositions = {
+        topLeft, topRight, bottomLeft, bottomRight,
+        topCenter, bottomCenter, leftCenter, rightCenter
+    };
+
+    for (const QPointF& pos : handlePositions) {
+        painter.setBrush(handleBrush);
+        painter.drawEllipse(pos, halfSize, halfSize);
+    }
+
+    // 绘制旋转手柄（在ROI上方）
+    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0 / ctx.scale);
+    painter.setBrush(QBrush(Qt::green));
+    painter.setPen(createPen(Qt::green, 2, ctx.scale, false));
+    painter.drawEllipse(rotationHandlePos, halfSize * 1.5, halfSize * 1.5);
+
+    // 绘制连接线
+    painter.setPen(createPen(Qt::green, 1, ctx.scale, false));
+    painter.drawLine(rect.center(), rotationHandlePos);
+}
+
+void PaintingOverlay::handleROICreationClick(const QPointF& pos)
+{
+    qDebug() << "handleROICreationClick被调用，位置:" << pos;
+    qDebug() << "m_hasCurrentROI:" << m_hasCurrentROI << "m_roiCreationMode:" << m_roiCreationMode;
+
+    if (!m_hasCurrentROI || !m_roiCreationMode) {
+        qDebug() << "ROI创建点击被忽略：没有当前ROI或不在创建模式";
+        return;
+    }
+
+    qDebug() << "当前ROI矩形:" << m_currentROI.rect;
+
+    // 首先检查是否点击了确认/取消按钮
+    bool isConfirm;
+    if (isPointInROIButton(pos, isConfirm)) {
+        if (isConfirm) {
+            qDebug() << "点击了确认按钮，完成ROI创建";
+            emit roiCreated(m_viewName, m_currentROI.rect, m_currentROI.angle);
+        } else {
+            qDebug() << "点击了取消按钮，取消ROI创建";
+            emit roiCancelled(m_viewName);
+        }
+        return;
+    }
+
+    // 检查是否点击了控制点
+    ROIObject::HandleType clickedHandle = getROIHandleAt(pos);
+    qDebug() << "检测到的控制点类型:" << clickedHandle;
+
+    if (clickedHandle != ROIObject::NoHandle) {
+        // 点击了控制点，开始拖拽
+        m_activeHandle = clickedHandle;
+        m_isDragging = true;
+        m_lastMousePos = pos;
+        qDebug() << "开始拖拽ROI控制点:" << clickedHandle << "拖拽状态:" << m_isDragging;
+    } else if (m_currentROI.rect.contains(pos)) {
+        // 点击了ROI内部，开始移动
+        m_activeHandle = ROIObject::MoveHandle;
+        m_isDragging = true;
+        m_lastMousePos = pos;
+        qDebug() << "开始移动ROI，拖拽状态:" << m_isDragging;
+    } else {
+        // 点击了ROI外部，不做任何操作
+        qDebug() << "点击ROI外部，不做任何操作";
+    }
+}
+
+PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPointF& pos) const
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        qDebug() << "getROIHandleAt: 没有当前ROI或ROI无效";
+        return PaintingOverlay::ROIObject::NoHandle;
+    }
+
+    // 控制点检测半径（图像坐标）
+    double handleRadius = 12.0; // 稍大一些便于点击
+
+    QRectF rect = m_currentROI.rect;
+    qDebug() << "getROIHandleAt: 检查位置" << pos << "ROI矩形" << rect << "检测半径" << handleRadius;
+
+    // 检查8个调整控制点
+    QVector<QPointF> handlePositions = {
+        rect.topLeft(),     // TopLeft
+        rect.topRight(),    // TopRight
+        rect.bottomLeft(),  // BottomLeft
+        rect.bottomRight(), // BottomRight
+        QPointF(rect.center().x(), rect.top()),    // TopCenter
+        QPointF(rect.center().x(), rect.bottom()), // BottomCenter
+        QPointF(rect.left(), rect.center().y()),   // LeftCenter
+        QPointF(rect.right(), rect.center().y())   // RightCenter
+    };
+
+    for (int i = 0; i < handlePositions.size(); ++i) {
+        QPointF handlePos = handlePositions[i];
+        double distance = QLineF(pos, handlePos).length();
+        if (distance <= handleRadius) {
+            return static_cast<PaintingOverlay::ROIObject::HandleType>(i);
+        }
+    }
+
+    // 检查旋转手柄（位置计算要与drawROIHandles保持一致）
+    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0);
+    double rotationDistance = QLineF(pos, rotationHandlePos).length();
+    qDebug() << "检查旋转手柄，位置:" << rotationHandlePos << "鼠标位置:" << pos << "距离:" << rotationDistance << "半径:" << handleRadius;
+    if (rotationDistance <= handleRadius) {
+        qDebug() << "检测到旋转手柄点击";
+        return PaintingOverlay::ROIObject::RotationHandle;
+    }
+
+    // 检查是否在ROI内部（用于移动）
+    if (rect.contains(pos)) {
+        qDebug() << "检测到ROI内部点击，返回MoveHandle";
+        return PaintingOverlay::ROIObject::MoveHandle;
+    }
+
+    return PaintingOverlay::ROIObject::NoHandle;
+}
+
+void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF& delta)
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        return;
+    }
+
+    QRectF newRect = m_currentROI.rect;
+
+    switch (handle) {
+    case PaintingOverlay::ROIObject::TopLeft:
+        newRect.setTopLeft(newRect.topLeft() + delta);
+        break;
+    case PaintingOverlay::ROIObject::TopRight:
+        newRect.setTopRight(newRect.topRight() + delta);
+        break;
+    case PaintingOverlay::ROIObject::BottomLeft:
+        newRect.setBottomLeft(newRect.bottomLeft() + delta);
+        break;
+    case PaintingOverlay::ROIObject::BottomRight:
+        newRect.setBottomRight(newRect.bottomRight() + delta);
+        break;
+    case PaintingOverlay::ROIObject::TopCenter:
+        newRect.setTop(newRect.top() + delta.y());
+        break;
+    case PaintingOverlay::ROIObject::BottomCenter:
+        newRect.setBottom(newRect.bottom() + delta.y());
+        break;
+    case PaintingOverlay::ROIObject::LeftCenter:
+        newRect.setLeft(newRect.left() + delta.x());
+        break;
+    case PaintingOverlay::ROIObject::RightCenter:
+        newRect.setRight(newRect.right() + delta.x());
+        break;
+    case PaintingOverlay::ROIObject::MoveHandle:
+        // 移动整个ROI
+        newRect.translate(delta);
+        break;
+    case PaintingOverlay::ROIObject::RotationHandle:
+        // 处理旋转
+        handleROIRotation(delta);
+        return; // 旋转不需要更新矩形
+    default:
+        return;
+    }
+
+    // 确保最小尺寸
+    if (newRect.width() > 20 && newRect.height() > 20) {
+        m_currentROI.rect = newRect;
+        emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
+    }
+}
+
+void PaintingOverlay::handleROIRotation(const QPointF& delta)
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        return;
+    }
+
+    // 简化的旋转处理：根据鼠标移动的水平分量调整角度
+    qreal angleChange = delta.x() * 0.5; // 调整灵敏度
+    m_currentROI.angle += angleChange;
+
+    // 限制角度范围到 -180 到 180
+    while (m_currentROI.angle > 180) m_currentROI.angle -= 360;
+    while (m_currentROI.angle < -180) m_currentROI.angle += 360;
+
+    emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
+}
+
+void PaintingOverlay::updateROICursor(ROIObject::HandleType handle)
+{
+    switch (handle) {
+    case PaintingOverlay::ROIObject::TopLeft:
+    case PaintingOverlay::ROIObject::BottomRight:
+        setCursor(Qt::SizeFDiagCursor);
+        break;
+    case PaintingOverlay::ROIObject::TopRight:
+    case PaintingOverlay::ROIObject::BottomLeft:
+        setCursor(Qt::SizeBDiagCursor);
+        break;
+    case PaintingOverlay::ROIObject::TopCenter:
+    case PaintingOverlay::ROIObject::BottomCenter:
+        setCursor(Qt::SizeVerCursor);
+        break;
+    case PaintingOverlay::ROIObject::LeftCenter:
+    case PaintingOverlay::ROIObject::RightCenter:
+        setCursor(Qt::SizeHorCursor);
+        break;
+    case PaintingOverlay::ROIObject::RotationHandle:
+        setCursor(Qt::PointingHandCursor);
+        break;
+    case PaintingOverlay::ROIObject::MoveHandle:
+        setCursor(Qt::SizeAllCursor);
+        break;
+    default:
+        setCursor(Qt::ArrowCursor);
+        break;
+    }
+}
+
+void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ctx) const
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        return;
+    }
+
+    // 按钮尺寸和位置
+    double buttonSize = 40.0;
+    double buttonSpacing = 10.0;
+
+    // 按钮位置：ROI右下角外侧
+    QPointF roiBottomRight = m_currentROI.rect.bottomRight();
+    QPointF confirmButtonPos = roiBottomRight + QPointF(20, -buttonSize - buttonSpacing);
+    QPointF cancelButtonPos = roiBottomRight + QPointF(20, -buttonSpacing);
+
+    // 绘制确认按钮（绿色√）
+    QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
+    painter.save();
+    painter.setPen(QPen(Qt::darkGreen, 2));
+    painter.setBrush(QBrush(QColor(144, 238, 144, 200))); // 浅绿色半透明
+    painter.drawRoundedRect(confirmRect, 5, 5);
+
+    // 绘制√符号
+    painter.setPen(QPen(Qt::darkGreen, 3));
+    QPointF checkStart = confirmRect.center() + QPointF(-8, 0);
+    QPointF checkMid = confirmRect.center() + QPointF(-2, 6);
+    QPointF checkEnd = confirmRect.center() + QPointF(8, -6);
+    painter.drawLine(checkStart, checkMid);
+    painter.drawLine(checkMid, checkEnd);
+    painter.restore();
+
+    // 绘制取消按钮（红色×）
+    QRectF cancelRect(cancelButtonPos, QSizeF(buttonSize, buttonSize));
+    painter.save();
+    painter.setPen(QPen(Qt::darkRed, 2));
+    painter.setBrush(QBrush(QColor(255, 182, 193, 200))); // 浅红色半透明
+    painter.drawRoundedRect(cancelRect, 5, 5);
+
+    // 绘制×符号
+    painter.setPen(QPen(Qt::darkRed, 3));
+    QPointF crossTopLeft = cancelRect.center() + QPointF(-8, -8);
+    QPointF crossBottomRight = cancelRect.center() + QPointF(8, 8);
+    QPointF crossTopRight = cancelRect.center() + QPointF(8, -8);
+    QPointF crossBottomLeft = cancelRect.center() + QPointF(-8, 8);
+    painter.drawLine(crossTopLeft, crossBottomRight);
+    painter.drawLine(crossTopRight, crossBottomLeft);
+    painter.restore();
+}
+
+bool PaintingOverlay::isPointInROIButton(const QPointF& pos, bool& isConfirm) const
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        return false;
+    }
+
+    // 按钮尺寸和位置（与drawROIButtons保持一致）
+    double buttonSize = 40.0;
+    double buttonSpacing = 10.0;
+
+    // 按钮位置：ROI右下角外侧
+    QPointF roiBottomRight = m_currentROI.rect.bottomRight();
+    QPointF confirmButtonPos = roiBottomRight + QPointF(20, -buttonSize - buttonSpacing);
+    QPointF cancelButtonPos = roiBottomRight + QPointF(20, -buttonSpacing);
+
+    QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
+    QRectF cancelRect(cancelButtonPos, QSizeF(buttonSize, buttonSize));
+
+    if (confirmRect.contains(pos)) {
+        isConfirm = true;
+        return true;
+    } else if (cancelRect.contains(pos)) {
+        isConfirm = false;
+        return true;
+    }
+
+    return false;
 }

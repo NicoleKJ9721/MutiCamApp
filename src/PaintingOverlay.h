@@ -42,7 +42,8 @@ public:
         Parallel,
         TwoLines,
         ROI_LineDetect,    // ROI直线检测
-        ROI_CircleDetect   // ROI圆形检测
+        ROI_CircleDetect,  // ROI圆形检测
+        ROI_CREATION       // ROI创建模式
     };
 
     // 绘图对象结构体
@@ -99,6 +100,28 @@ public:
         double radius = 0.0;         // 拟合得到的半径
         QString label;
         bool isVisible = true;
+    };
+
+    // ROI对象结构体
+    struct ROIObject {
+        QRectF rect;                 // ROI矩形区域
+        qreal angle = 0.0;           // 旋转角度（度）
+        QColor borderColor = Qt::red; // 边框颜色
+        int thickness = 2;           // 边框粗细
+        bool isDashed = true;        // 虚线边框
+        bool isActive = false;       // 是否处于编辑状态
+        bool showHandles = true;     // 是否显示控制点
+        QString templateName;        // 模板名称
+        bool isVisible = true;
+
+        // 控制点枚举
+        enum HandleType {
+            NoHandle = -1,
+            TopLeft, TopRight, BottomLeft, BottomRight,        // 角点
+            TopCenter, BottomCenter, LeftCenter, RightCenter,  // 边中点
+            RotationHandle,                                    // 旋转手柄
+            MoveHandle                                         // 移动手柄(中心)
+        };
     };
 
     // 绘图上下文结构体（用于性能优化）
@@ -179,7 +202,7 @@ public:
     };
 
     // ROI检测对象结构体
-    struct ROIObject {
+    struct ROIDetectionObject {
         QVector<QPointF> points;        // ROI矩形的两个对角点
         bool isCompleted = false;       // 是否完成绘制
         QColor color = Qt::yellow;      // ROI矩形颜色
@@ -295,6 +318,16 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void clearSelection();
     QString getSelectedObjectInfo() const;
 
+    // ROI功能
+    void startROICreation();              // 开始ROI创建
+    void finishROICreation();             // 完成ROI创建
+    void cancelROICreation();             // 取消ROI创建
+    bool hasActiveROI() const;            // 是否有活动的ROI
+    QRectF getCurrentROI() const;         // 获取当前ROI矩形
+    qreal getCurrentROIAngle() const;     // 获取当前ROI角度
+    QString getCurrentROITemplateName() const; // 获取当前ROI模板名称
+    void setCurrentROITemplateName(const QString& name); // 设置当前ROI模板名称
+
     // 网格功能
     void setGridSpacing(int spacing);
     void setGridColor(const QColor& color);
@@ -318,16 +351,23 @@ signals:
     void overlayActivated(PaintingOverlay* overlay); // overlay被激活信号
     void viewDoubleClicked(const QString& viewName); // 视图双击信号
 
+    // ROI相关信号
+    void roiCreated(const QString& viewName, const QRectF& rect, qreal angle); // ROI创建完成
+    void roiChanged(const QString& viewName, const QRectF& rect, qreal angle); // ROI变化
+    void roiFinished(const QString& viewName); // ROI编辑完成
+    void roiCancelled(const QString& viewName); // ROI创建取消
+
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
 
 private:
     // 自动检测相关方法
-    void performAutoDetection(const ROIObject& roi);
+    void performAutoDetection(const ROIDetectionObject& roi);
     cv::Mat getCurrentFrameFromParent() const;
     void performLineDetection(const cv::Mat& frame, const cv::Rect& roi);
     void performCircleDetection(const cv::Mat& frame, const cv::Rect& roi);
@@ -345,7 +385,8 @@ private:
     QVector<ParallelObject> m_parallels;
     QVector<TwoLinesObject> m_twoLines;
     QVector<LineSegmentAngleObject> m_lineSegmentAngles;
-    QVector<ROIObject> m_rois;
+    QVector<ROIDetectionObject> m_rois;          // ROI检测列表
+    QVector<ROIObject> m_roiCreations;           // ROI创建列表
     
     // 当前正在绘制的数据
     LineObject m_currentLine;
@@ -360,9 +401,17 @@ private:
     bool m_hasCurrentParallel;
     TwoLinesObject m_currentTwoLines;
     bool m_hasCurrentTwoLines;
-    ROIObject m_currentROI;
+    ROIObject m_currentROI;              // 用于ROI创建功能
     bool m_hasCurrentROI;
+    ROIDetectionObject m_currentROIDetection;  // 用于ROI检测功能
+    bool m_hasCurrentROIDetection;
     QVector<QPointF> m_currentPoints; // 当前绘制过程中的临时点
+
+    // ROI创建模式相关
+    bool m_roiCreationMode;           // 是否处于ROI创建模式
+    ROIObject::HandleType m_activeHandle; // 当前活动的控制点
+    QPointF m_lastMousePos;           // 上次鼠标位置
+    bool m_isDragging;                // 是否正在拖拽
 
     // 鼠标预览位置
     QPointF m_currentMousePos;
@@ -459,7 +508,15 @@ private:
     void drawSingleParallel(QPainter& painter, const ParallelObject& parallel, const DrawingContext& ctx) const;
     void drawSingleTwoLines(QPainter& painter, const TwoLinesObject& twoLines, const DrawingContext& ctx) const;
     void drawSingleLineSegmentAngle(QPainter& painter, const LineSegmentAngleObject& angleObj, int index, const DrawingContext& ctx) const;
-    void drawSingleROI(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const;
+    void drawSingleROI(QPainter& painter, const ROIDetectionObject& roi, const DrawingContext& ctx) const;
+    void drawSingleROICreation(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const;
+    void drawROIHandles(QPainter& painter, const ROIObject& roi, const DrawingContext& ctx) const;
+    ROIObject::HandleType getROIHandleAt(const QPointF& pos) const;
+    void handleROIDrag(ROIObject::HandleType handle, const QPointF& delta);
+    void handleROIRotation(const QPointF& delta);
+    void updateROICursor(ROIObject::HandleType handle);
+    void drawROIButtons(QPainter& painter, const DrawingContext& ctx) const;
+    bool isPointInROIButton(const QPointF& pos, bool& isConfirm) const;
     
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;
@@ -478,6 +535,7 @@ private:
     void handleParallelDrawingClick(const QPointF& pos);
     void handleTwoLinesDrawingClick(const QPointF& pos);
     void handleROIDrawingClick(const QPointF& pos);
+    void handleROICreationClick(const QPointF& pos);
     void handleSelectionClick(const QPointF& pos, bool ctrlPressed);
 
     // 命中测试方法
@@ -567,7 +625,7 @@ private:
     void setFineCirclesData(const QVector<FineCircleObject>& fineCircles);
     void setParallelLinesData(const QVector<ParallelObject>& parallels);
     void setTwoLinesData(const QVector<TwoLinesObject>& twoLines);
-    void setROIsData(const QVector<ROIObject>& rois);
+    void setROIsData(const QVector<ROIDetectionObject>& rois);
 
     // 当前绘制数据管理
     void setCurrentLineData(const LineObject& currentLine);
@@ -582,7 +640,7 @@ private:
     void clearCurrentParallelData();
     void setCurrentTwoLinesData(const TwoLinesObject& currentTwoLines);
     void clearCurrentTwoLinesData();
-    void setCurrentROIData(const ROIObject& currentROI);
+    void setCurrentROIData(const ROIDetectionObject& currentROI);
     void clearCurrentROIData();
 
 };

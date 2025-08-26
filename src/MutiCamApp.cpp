@@ -391,6 +391,13 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        // ROI信号连接
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::roiCreated,
+                this, &MutiCamApp::onROICreated);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::roiFinished,
+                this, &MutiCamApp::onROIFinished);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::roiCancelled,
+                this, &MutiCamApp::onROICancelled);
     }
     if (m_leftPaintingOverlay2) {
         connect(m_leftPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -403,6 +410,13 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        // ROI信号连接
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::roiCreated,
+                this, &MutiCamApp::onROICreated);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::roiFinished,
+                this, &MutiCamApp::onROIFinished);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::roiCancelled,
+                this, &MutiCamApp::onROICancelled);
     }
     if (m_frontPaintingOverlay2) {
         connect(m_frontPaintingOverlay2, &PaintingOverlay::measurementCompleted,
@@ -415,6 +429,13 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::overlayActivated,
                 this, &MutiCamApp::onOverlayActivated);
+        // ROI信号连接
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::roiCreated,
+                this, &MutiCamApp::onROICreated);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::roiFinished,
+                this, &MutiCamApp::onROIFinished);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::roiCancelled,
+                this, &MutiCamApp::onROICancelled);
     }
 
     // 连接视图控制按钮信号
@@ -1482,11 +1503,14 @@ void MutiCamApp::onCreateTemplateVerticalClicked()
 {
     qDebug() << "垂直视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "垂直视图模板名称: " + templateName);
+    // 启动垂直视图的ROI创建（选项卡界面）
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->startROICreation();
+
+        // 切换到垂直视图选项卡
+        ui->tabWidget->setCurrentIndex(1); // 垂直视图选项卡
+    } else {
+        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
     }
 }
 
@@ -1494,11 +1518,14 @@ void MutiCamApp::onCreateTemplateLeftClicked()
 {
     qDebug() << "左侧视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "左侧视图模板名称: " + templateName);
+    // 启动左侧视图的ROI创建（选项卡界面）
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->startROICreation();
+
+        // 切换到左侧视图选项卡
+        ui->tabWidget->setCurrentIndex(2); // 左侧视图选项卡
+    } else {
+        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
     }
 }
 
@@ -1506,11 +1533,14 @@ void MutiCamApp::onCreateTemplateFrontClicked()
 {
     qDebug() << "对向视图创建模板按钮被点击";
 
-    // 显示模板名称输入对话框进行测试
-    TemplateNameDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QMessageBox::information(this, "测试", "对向视图模板名称: " + templateName);
+    // 启动对向视图的ROI创建（选项卡界面）
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->startROICreation();
+
+        // 切换到对向视图选项卡
+        ui->tabWidget->setCurrentIndex(3); // 对向视图选项卡
+    } else {
+        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
     }
 }
 
@@ -1530,6 +1560,74 @@ void MutiCamApp::onStartMatchingFrontClicked()
 {
     qDebug() << "对向视图开始匹配按钮被点击";
     QMessageBox::information(this, "测试", "对向视图开始匹配功能待实现");
+}
+
+void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal angle)
+{
+    qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
+
+    // 显示模板名称输入对话框
+    TemplateNameDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString templateName = dialog.getTemplateName();
+
+        // 设置ROI的模板名称
+        PaintingOverlay* overlay = nullptr;
+        if (viewName.contains("Vertical")) {
+            overlay = m_verticalPaintingOverlay2;
+        } else if (viewName.contains("Left")) {
+            overlay = m_leftPaintingOverlay2;
+        } else if (viewName.contains("Front")) {
+            overlay = m_frontPaintingOverlay2;
+        }
+
+        if (overlay) {
+            overlay->setCurrentROITemplateName(templateName);
+            overlay->finishROICreation();
+        }
+
+        qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
+    } else {
+        // 用户取消，清除ROI
+        PaintingOverlay* overlay = nullptr;
+        if (viewName.contains("Vertical")) {
+            overlay = m_verticalPaintingOverlay2;
+        } else if (viewName.contains("Left")) {
+            overlay = m_leftPaintingOverlay2;
+        } else if (viewName.contains("Front")) {
+            overlay = m_frontPaintingOverlay2;
+        }
+
+        if (overlay) {
+            overlay->cancelROICreation();
+        }
+    }
+}
+
+void MutiCamApp::onROIFinished(const QString& viewName)
+{
+    qDebug() << "ROI编辑完成 - 视图:" << viewName;
+}
+
+void MutiCamApp::onROICancelled(const QString& viewName)
+{
+    qDebug() << "ROI创建取消 - 视图:" << viewName;
+
+    // 获取对应的PaintingOverlay
+    PaintingOverlay* overlay = nullptr;
+    if (viewName == "Vertical2") {
+        overlay = m_verticalPaintingOverlay2;
+    } else if (viewName == "Left2") {
+        overlay = m_leftPaintingOverlay2;
+    } else if (viewName == "Front2") {
+        overlay = m_frontPaintingOverlay2;
+    }
+
+    if (overlay) {
+        // 取消ROI创建
+        overlay->cancelROICreation();
+        qDebug() << "已取消" << viewName << "视图的ROI创建";
+    }
 }
 
 void MutiCamApp::saveImages(const QString& viewType)

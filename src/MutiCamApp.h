@@ -171,6 +171,13 @@ private slots:
     void onStartMatchingFrontClicked();
 
     /**
+     * @brief ROI相关槽函数
+     */
+    void onROICreated(const QString& viewName, const QRectF& rect, qreal angle);
+    void onROIFinished(const QString& viewName);
+    void onROICancelled(const QString& viewName);
+
+    /**
      * @brief 像素标定相关槽函数
      */
     void startPixelCalibration();  // 启动像素标定（弹窗选择方式）
