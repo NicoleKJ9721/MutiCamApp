@@ -521,6 +521,7 @@ private:
     void handleROIRotation(const QPointF& delta);
     void updateROICursor(ROIObject::HandleType handle);
     void drawROIButtons(QPainter& painter, const DrawingContext& ctx) const;
+    void drawROIInfo(QPainter& painter, const DrawingContext& ctx) const;
     bool isPointInROIButton(const QPointF& pos, bool& isConfirm) const;
     
     // 预览绘制方法

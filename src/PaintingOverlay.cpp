@@ -4885,6 +4885,9 @@ void PaintingOverlay::drawSingleROICreation(QPainter& painter, const ROIObject& 
 
     // 绘制确认/取消按钮
     drawROIButtons(painter, ctx);
+
+    // 绘制ROI信息（尺寸和角度）
+    drawROIInfo(painter, ctx);
 }
 
 void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
@@ -6651,6 +6654,58 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     QPointF crossBottomLeft = cancelRect.center() + QPointF(-crossSymbolSize, crossSymbolSize);
     painter.drawLine(crossTopLeft, crossBottomRight);
     painter.drawLine(crossTopRight, crossBottomLeft);
+    painter.restore();
+}
+
+void PaintingOverlay::drawROIInfo(QPainter& painter, const DrawingContext& ctx) const
+{
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        return;
+    }
+
+    // 计算ROI信息
+    QRectF rect = m_currentROI.rect;
+    int width = qRound(rect.width());
+    int height = qRound(rect.height());
+    double angle = m_currentROI.angle;
+
+    // 格式化信息文本（一行显示）
+    QString infoText = QString("尺寸: %1×%2  角度: %3°").arg(width).arg(height).arg(angle, 0, 'f', 1);
+
+    // 字体设置
+    QFont infoFont = ctx.font;
+    infoFont.setPointSize(qMax(8, qRound(ctx.fontSize * 0.8))); // 稍小的字体
+
+    // 计算文本尺寸
+    QFontMetrics fm(infoFont);
+    QRect textRect = fm.boundingRect(infoText);
+
+    // 计算信息框尺寸
+    int padding = 8;
+    QSizeF infoBoxSize(textRect.width() + padding * 2, textRect.height() + padding * 2);
+
+    // 信息框位置：ROI左下角下方，避免挡住旋转按钮
+    QPointF infoPos = rect.bottomLeft() + QPointF(0, 10);
+
+    // 确保信息框不超出视图边界
+    // 这里可以根据需要添加边界检查
+
+    QRectF infoRect(infoPos, infoBoxSize);
+
+    // 绘制半透明背景
+    painter.save();
+    painter.setPen(QPen(Qt::darkGray, 1));
+    painter.setBrush(QBrush(QColor(0, 0, 0, 150))); // 半透明黑色背景
+    painter.drawRoundedRect(infoRect, 5, 5);
+
+    // 绘制文本
+    painter.setPen(QPen(Qt::white));
+    painter.setFont(infoFont);
+
+    // 绘制信息文本（一行）
+    QPointF textPos = infoRect.topLeft() + QPointF(padding, padding + textRect.height());
+    painter.drawText(textPos, infoText);
+
     painter.restore();
 }
 
