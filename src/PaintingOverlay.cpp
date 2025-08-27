@@ -31,8 +31,10 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_hasCurrentROIDetection(false)
     , m_roiCreationMode(false)
     , m_activeHandle(ROIObject::NoHandle)
+    , m_hoverHandle(ROIObject::NoHandle)
     , m_isDragging(false)
     , m_rotationIconRenderer(nullptr)
+    , m_cachedROIAngle(-999.0) // 初始化为不可能的值，强制第一次更新
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_scaleFactor(1.0)
@@ -608,13 +610,21 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
     if (m_roiCreationMode && m_hasCurrentROI) {
         if (m_isDragging && m_activeHandle != PaintingOverlay::ROIObject::NoHandle) {
             QPointF delta = imagePos - m_lastMousePos;
+            QRectF oldROIRect = m_currentROI.rect;
             handleROIDrag(m_activeHandle, delta);
             m_lastMousePos = imagePos;
-            update();
+
+            // 只重绘ROI相关区域，而不是整个widget
+            QRectF updateRect = oldROIRect.united(m_currentROI.rect);
+            updateRect = updateRect.adjusted(-50, -50, 50, 50); // 扩展一些边距
+            update(updateRect.toRect());
         } else {
-            // 更新鼠标悬停状态和光标
+            // 更新鼠标悬停状态和光标（只在状态改变时更新）
             PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
-            updateROICursor(hoverHandle);
+            if (hoverHandle != m_hoverHandle) {
+                m_hoverHandle = hoverHandle;
+                updateROICursor(hoverHandle);
+            }
         }
     }
 
@@ -6330,9 +6340,14 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
     painter.setPen(createPen(Qt::green, 1, ctx.scale, false));
     painter.drawLine(rect.center(), rotationHandlePos);
 
-    // 绘制SVG旋转图标
+    // 绘制SVG旋转图标（延迟加载，只创建一次）
     if (!m_rotationIconRenderer) {
         m_rotationIconRenderer = new QSvgRenderer(QString("../icon/rotation.svg"));
+        // 如果加载失败，创建一个空的渲染器避免重复尝试
+        if (!m_rotationIconRenderer->isValid()) {
+            delete m_rotationIconRenderer;
+            m_rotationIconRenderer = new QSvgRenderer(); // 空渲染器作为标记
+        }
     }
 
     if (m_rotationIconRenderer && m_rotationIconRenderer->isValid()) {
@@ -6665,12 +6680,24 @@ void PaintingOverlay::drawROIInfo(QPainter& painter, const DrawingContext& ctx) 
 
     // 计算ROI信息
     QRectF rect = m_currentROI.rect;
-    int width = qRound(rect.width());
-    int height = qRound(rect.height());
     double angle = m_currentROI.angle;
 
-    // 格式化信息文本（一行显示）
-    QString infoText = QString("尺寸: %1×%2  角度: %3°").arg(width).arg(height).arg(angle, 0, 'f', 1);
+    // 使用缓存避免重复的字符串格式化（性能优化）
+    QString infoText;
+    if (rect != m_cachedROIRect || qAbs(angle - m_cachedROIAngle) > 0.01) {
+        // 只有当ROI发生变化时才重新计算文本
+        int width = qRound(rect.width());
+        int height = qRound(rect.height());
+        infoText = QString("尺寸: %1×%2  角度: %3°").arg(width).arg(height).arg(angle, 0, 'f', 1);
+
+        // 更新缓存
+        m_cachedROIInfoText = infoText;
+        m_cachedROIRect = rect;
+        m_cachedROIAngle = angle;
+    } else {
+        // 使用缓存的文本
+        infoText = m_cachedROIInfoText;
+    }
 
     // 字体设置
     QFont infoFont = ctx.font;

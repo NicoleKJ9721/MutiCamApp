@@ -392,6 +392,11 @@ private:
 
     // SVG图标渲染器
     mutable QSvgRenderer* m_rotationIconRenderer;
+
+    // ROI信息显示缓存（性能优化）
+    mutable QString m_cachedROIInfoText;
+    mutable QRectF m_cachedROIRect;
+    mutable double m_cachedROIAngle;
     
     // 当前正在绘制的数据
     LineObject m_currentLine;
@@ -415,6 +420,7 @@ private:
     // ROI创建模式相关
     bool m_roiCreationMode;           // 是否处于ROI创建模式
     ROIObject::HandleType m_activeHandle; // 当前活动的控制点
+    ROIObject::HandleType m_hoverHandle;  // 当前悬停的控制点（用于性能优化）
     QPointF m_lastMousePos;           // 上次鼠标位置
     bool m_isDragging;                // 是否正在拖拽
 
