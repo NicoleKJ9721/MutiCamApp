@@ -6605,9 +6605,11 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
         return;
     }
 
-    // 按钮尺寸和位置
-    double buttonSize = 40.0;
-    double buttonSpacing = 10.0;
+    // 按钮尺寸和位置（与旋转手柄直径一致）
+    double handleSize = 8.0 / ctx.scale;
+    double rotationHandleDiameter = handleSize * 1.8; // 与旋转手柄背景直径一致
+    double buttonSize = rotationHandleDiameter;
+    double buttonSpacing = 10.0 / ctx.scale;
 
     // 按钮位置：ROI右下角外侧
     QPointF roiBottomRight = m_currentROI.rect.bottomRight();
@@ -6621,11 +6623,13 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     painter.setBrush(QBrush(QColor(144, 238, 144, 200))); // 浅绿色半透明
     painter.drawRoundedRect(confirmRect, 5, 5);
 
-    // 绘制√符号
-    painter.setPen(QPen(Qt::darkGreen, 3));
-    QPointF checkStart = confirmRect.center() + QPointF(-8, 0);
-    QPointF checkMid = confirmRect.center() + QPointF(-2, 6);
-    QPointF checkEnd = confirmRect.center() + QPointF(8, -6);
+    // 绘制√符号（根据按钮大小自适应）
+    double symbolSize = buttonSize * 0.3; // 符号大小为按钮的30%
+    double lineWidth = qMax(2.0, buttonSize * 0.08); // 线宽自适应，最小2像素
+    painter.setPen(QPen(Qt::darkGreen, lineWidth));
+    QPointF checkStart = confirmRect.center() + QPointF(-symbolSize, 0);
+    QPointF checkMid = confirmRect.center() + QPointF(-symbolSize * 0.25, symbolSize * 0.75);
+    QPointF checkEnd = confirmRect.center() + QPointF(symbolSize, -symbolSize * 0.75);
     painter.drawLine(checkStart, checkMid);
     painter.drawLine(checkMid, checkEnd);
     painter.restore();
@@ -6637,12 +6641,14 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     painter.setBrush(QBrush(QColor(255, 182, 193, 200))); // 浅红色半透明
     painter.drawRoundedRect(cancelRect, 5, 5);
 
-    // 绘制×符号
-    painter.setPen(QPen(Qt::darkRed, 3));
-    QPointF crossTopLeft = cancelRect.center() + QPointF(-8, -8);
-    QPointF crossBottomRight = cancelRect.center() + QPointF(8, 8);
-    QPointF crossTopRight = cancelRect.center() + QPointF(8, -8);
-    QPointF crossBottomLeft = cancelRect.center() + QPointF(-8, 8);
+    // 绘制×符号（根据按钮大小自适应）
+    double crossSymbolSize = buttonSize * 0.3; // 符号大小为按钮的30%
+    double crossLineWidth = qMax(2.0, buttonSize * 0.08); // 线宽自适应，最小2像素
+    painter.setPen(QPen(Qt::darkRed, crossLineWidth));
+    QPointF crossTopLeft = cancelRect.center() + QPointF(-crossSymbolSize, -crossSymbolSize);
+    QPointF crossBottomRight = cancelRect.center() + QPointF(crossSymbolSize, crossSymbolSize);
+    QPointF crossTopRight = cancelRect.center() + QPointF(crossSymbolSize, -crossSymbolSize);
+    QPointF crossBottomLeft = cancelRect.center() + QPointF(-crossSymbolSize, crossSymbolSize);
     painter.drawLine(crossTopLeft, crossBottomRight);
     painter.drawLine(crossTopRight, crossBottomLeft);
     painter.restore();
@@ -6655,8 +6661,10 @@ bool PaintingOverlay::isPointInROIButton(const QPointF& pos, bool& isConfirm) co
     }
 
     // 按钮尺寸和位置（与drawROIButtons保持一致）
-    double buttonSize = 40.0;
-    double buttonSpacing = 10.0;
+    double handleSize = 8.0 / m_scaleFactor;
+    double rotationHandleDiameter = handleSize * 1.8; // 与旋转手柄背景直径一致
+    double buttonSize = rotationHandleDiameter;
+    double buttonSpacing = 10.0 / m_scaleFactor;
 
     // 按钮位置：ROI右下角外侧
     QPointF roiBottomRight = m_currentROI.rect.bottomRight();
