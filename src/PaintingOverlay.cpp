@@ -6460,47 +6460,77 @@ void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF&
         return;
     }
 
-    QRectF newRect = m_currentROI.rect;
+    // 如果是移动整个ROI，直接平移
+    if (handle == PaintingOverlay::ROIObject::MoveHandle) {
+        m_currentROI.rect.translate(delta);
+        emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
+        return;
+    }
+
+    // 如果是旋转，调用旋转处理
+    if (handle == PaintingOverlay::ROIObject::RotationHandle) {
+        handleROIRotation(delta);
+        return;
+    }
+
+    // 对于调整大小的操作，需要考虑旋转状态
+    QRectF currentRect = m_currentROI.rect;
+    QPointF center = currentRect.center();
+
+    // 如果ROI有旋转，需要将delta转换到ROI的本地坐标系
+    QPointF localDelta = delta;
+    if (qAbs(m_currentROI.angle) > 0.01) {
+        // 创建反向旋转变换，将delta转换到ROI的本地坐标系
+        QTransform transform;
+        transform.rotate(-m_currentROI.angle);
+        localDelta = transform.map(delta);
+    }
+
+    // 计算新的尺寸变化
+    QRectF newRect = currentRect;
 
     switch (handle) {
     case PaintingOverlay::ROIObject::TopLeft:
-        newRect.setTopLeft(newRect.topLeft() + delta);
+        newRect.setLeft(newRect.left() + localDelta.x());
+        newRect.setTop(newRect.top() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::TopRight:
-        newRect.setTopRight(newRect.topRight() + delta);
+        newRect.setRight(newRect.right() + localDelta.x());
+        newRect.setTop(newRect.top() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::BottomLeft:
-        newRect.setBottomLeft(newRect.bottomLeft() + delta);
+        newRect.setLeft(newRect.left() + localDelta.x());
+        newRect.setBottom(newRect.bottom() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::BottomRight:
-        newRect.setBottomRight(newRect.bottomRight() + delta);
+        newRect.setRight(newRect.right() + localDelta.x());
+        newRect.setBottom(newRect.bottom() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::TopCenter:
-        newRect.setTop(newRect.top() + delta.y());
+        newRect.setTop(newRect.top() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::BottomCenter:
-        newRect.setBottom(newRect.bottom() + delta.y());
+        newRect.setBottom(newRect.bottom() + localDelta.y());
         break;
     case PaintingOverlay::ROIObject::LeftCenter:
-        newRect.setLeft(newRect.left() + delta.x());
+        newRect.setLeft(newRect.left() + localDelta.x());
         break;
     case PaintingOverlay::ROIObject::RightCenter:
-        newRect.setRight(newRect.right() + delta.x());
+        newRect.setRight(newRect.right() + localDelta.x());
         break;
-    case PaintingOverlay::ROIObject::MoveHandle:
-        // 移动整个ROI
-        newRect.translate(delta);
-        break;
-    case PaintingOverlay::ROIObject::RotationHandle:
-        // 处理旋转
-        handleROIRotation(delta);
-        return; // 旋转不需要更新矩形
     default:
         return;
     }
 
     // 确保最小尺寸
     if (newRect.width() > 20 && newRect.height() > 20) {
+        // 对于旋转的ROI，保持中心点不变
+        if (qAbs(m_currentROI.angle) > 0.01) {
+            QPointF newCenter = newRect.center();
+            QPointF offset = center - newCenter;
+            newRect.translate(offset);
+        }
+
         m_currentROI.rect = newRect;
         emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
     }
