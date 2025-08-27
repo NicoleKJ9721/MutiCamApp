@@ -32,6 +32,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_roiCreationMode(false)
     , m_activeHandle(ROIObject::NoHandle)
     , m_isDragging(false)
+    , m_rotationIconRenderer(nullptr)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_scaleFactor(1.0)
@@ -78,6 +79,11 @@ PaintingOverlay::~PaintingOverlay()
     if (m_shapeDetector) {
         delete m_shapeDetector;
         m_shapeDetector = nullptr;
+    }
+
+    if (m_rotationIconRenderer) {
+        delete m_rotationIconRenderer;
+        m_rotationIconRenderer = nullptr;
     }
 
     // 清理缓存的图像数据
@@ -6316,13 +6322,36 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
 
     // 绘制旋转手柄（在ROI上方）
     QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0 / ctx.scale);
-    painter.setBrush(QBrush(Qt::green));
-    painter.setPen(createPen(Qt::green, 2, ctx.scale, false));
-    painter.drawEllipse(rotationHandlePos, halfSize * 1.5, halfSize * 1.5);
 
     // 绘制连接线
     painter.setPen(createPen(Qt::green, 1, ctx.scale, false));
     painter.drawLine(rect.center(), rotationHandlePos);
+
+    // 绘制SVG旋转图标
+    if (!m_rotationIconRenderer) {
+        m_rotationIconRenderer = new QSvgRenderer(QString("../icon/rotation.svg"));
+    }
+
+    if (m_rotationIconRenderer && m_rotationIconRenderer->isValid()) {
+        // 绘制绿色圆形背景
+        double bgSize = halfSize * 1.8;
+        painter.setBrush(QBrush(Qt::green));
+        painter.setPen(createPen(Qt::darkGreen, 2, ctx.scale, false));
+        painter.drawEllipse(rotationHandlePos, bgSize, bgSize);
+
+        // 计算SVG图标尺寸（比背景小一点）
+        double iconSize = halfSize * 2.2;
+        QRectF iconRect(rotationHandlePos.x() - iconSize/2, rotationHandlePos.y() - iconSize/2,
+                        iconSize, iconSize);
+
+        // 渲染SVG图标
+        m_rotationIconRenderer->render(&painter, iconRect);
+    } else {
+        // 回退到简单的绿色圆形
+        painter.setBrush(QBrush(Qt::green));
+        painter.setPen(createPen(Qt::green, 2, ctx.scale, false));
+        painter.drawEllipse(rotationHandlePos, halfSize * 1.5, halfSize * 1.5);
+    }
 }
 
 void PaintingOverlay::handleROICreationClick(const QPointF& pos)

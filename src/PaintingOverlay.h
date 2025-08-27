@@ -14,6 +14,7 @@
 #include <QPen>
 #include <QBrush>
 #include <QPainterPath>
+#include <QSvgRenderer>
 #include <QMenu>
 #include <QAction>
 #include <QTime>
@@ -388,6 +389,9 @@ private:
     QVector<LineSegmentAngleObject> m_lineSegmentAngles;
     QVector<ROIDetectionObject> m_rois;          // ROI检测列表
     QVector<ROIObject> m_roiCreations;           // ROI创建列表
+
+    // SVG图标渲染器
+    mutable QSvgRenderer* m_rotationIconRenderer;
     
     // 当前正在绘制的数据
     LineObject m_currentLine;
