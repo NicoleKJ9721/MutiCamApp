@@ -409,6 +409,22 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
 
+    // 模板加载和管理相关方法
+    /**
+     * @brief 从指定目录加载所有模板
+     * @param templateDir 模板目录路径，为空则使用默认目录
+     * @return 加载的模板列表
+     */
+    QVector<TemplateInfo> loadTemplatesFromDirectory(const QString& templateDir = QString()) const;
+
+    /**
+     * @brief 加载单个模板文件
+     * @param imagePath 模板图像文件路径
+     * @param metadataPath 元数据文件路径
+     * @return 模板信息，加载失败返回空的TemplateInfo
+     */
+    TemplateInfo loadSingleTemplate(const QString& imagePath, const QString& metadataPath) const;
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号

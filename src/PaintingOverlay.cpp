@@ -7039,3 +7039,113 @@ bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QS
     qInfo() << "模板创建完成:" << templateName;
     return true;
 }
+
+QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString& templateDir) const
+{
+    QVector<TemplateInfo> templates;
+
+    // 确定模板目录
+    QString searchDir = templateDir;
+    if (searchDir.isEmpty()) {
+        searchDir = QCoreApplication::applicationDirPath() + "/templates";
+    }
+
+    QDir dir(searchDir);
+    if (!dir.exists()) {
+        qWarning() << "模板目录不存在:" << searchDir;
+        return templates;
+    }
+
+    // 查找所有PNG文件
+    QStringList imageFilters;
+    imageFilters << "*.png" << "*.jpg" << "*.jpeg" << "*.bmp";
+    QStringList imageFiles = dir.entryList(imageFilters, QDir::Files);
+
+    qInfo() << "在目录" << searchDir << "中找到" << imageFiles.size() << "个图像文件";
+
+    for (const QString& imageFile : imageFiles) {
+        QString imagePath = dir.filePath(imageFile);
+
+        // 构造对应的JSON文件路径
+        QString baseName = QFileInfo(imageFile).completeBaseName();
+        QString metadataPath = dir.filePath(baseName + ".json");
+
+        // 检查JSON文件是否存在
+        if (QFile::exists(metadataPath)) {
+            TemplateInfo templateInfo = loadSingleTemplate(imagePath, metadataPath);
+            if (!templateInfo.name.isEmpty()) {
+                templates.append(templateInfo);
+                qDebug() << "成功加载模板:" << templateInfo.name;
+            }
+        } else {
+            qWarning() << "找不到对应的元数据文件:" << metadataPath;
+        }
+    }
+
+    qInfo() << "总共加载了" << templates.size() << "个有效模板";
+    return templates;
+}
+
+TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const QString& metadataPath) const
+{
+    TemplateInfo templateInfo;
+
+    try {
+        // 加载图像
+        cv::Mat image = cv::imread(imagePath.toStdString());
+        if (image.empty()) {
+            qWarning() << "无法加载模板图像:" << imagePath;
+            return templateInfo;
+        }
+
+        // 读取元数据文件
+        QFile metaFile(metadataPath);
+        if (!metaFile.open(QIODevice::ReadOnly)) {
+            qWarning() << "无法打开元数据文件:" << metadataPath;
+            return templateInfo;
+        }
+
+        QByteArray metaData = metaFile.readAll();
+        metaFile.close();
+
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(metaData, &parseError);
+        if (parseError.error != QJsonParseError::NoError) {
+            qWarning() << "解析元数据文件失败:" << parseError.errorString();
+            return templateInfo;
+        }
+
+        QJsonObject metadata = doc.object();
+
+        // 填充模板信息
+        templateInfo.name = metadata["templateName"].toString();
+        templateInfo.imagePath = imagePath;
+        templateInfo.metadataPath = metadataPath;
+        templateInfo.templateImage = image.clone();
+        templateInfo.createdTime = QDateTime::fromString(metadata["createdTime"].toString(), Qt::ISODate);
+        templateInfo.isSelected = false; // 默认未选中
+
+        // 解析原始ROI信息
+        if (metadata.contains("originalROI")) {
+            QJsonObject roiObj = metadata["originalROI"].toObject();
+            templateInfo.originalROI = QRectF(
+                roiObj["x"].toDouble(),
+                roiObj["y"].toDouble(),
+                roiObj["width"].toDouble(),
+                roiObj["height"].toDouble()
+            );
+            templateInfo.originalAngle = roiObj["angle"].toDouble();
+        }
+
+        qDebug() << "成功解析模板:" << templateInfo.name
+                 << "尺寸:" << image.cols << "x" << image.rows
+                 << "创建时间:" << templateInfo.createdTime.toString();
+
+    } catch (const cv::Exception& e) {
+        qCritical() << "加载模板时发生OpenCV异常：" << e.what();
+    } catch (const std::exception& e) {
+        qCritical() << "加载模板时发生异常：" << e.what();
+    }
+
+    return templateInfo;
+}
