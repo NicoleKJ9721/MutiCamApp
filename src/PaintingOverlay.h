@@ -18,11 +18,15 @@
 #include <QMenu>
 #include <QAction>
 #include <QTime>
+#include <QDialog>
+#include <QListWidget>
+#include <QCheckBox>
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
 
 // 前向声明
 class ZoomPanWidget;
+class MatchingController;
 #include "image_processing/shape_detector.h"
 
 // 前向声明
