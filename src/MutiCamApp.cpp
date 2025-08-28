@@ -1,5 +1,6 @@
 #include "MutiCamApp.h"
 #include "ui_MutiCamApp.h"
+#include "TemplateSelectionDialog.h"
 #include "ZoomPanWidget.h"
 #include <QMessageBox>
 #include <QDebug>
@@ -332,6 +333,10 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->tabWidget, &QTabWidget::currentChanged,
             this, &MutiCamApp::onTabChanged);
 
+    // 连接选项卡切换信号以控制模板匹配
+    connect(ui->tabWidget, &QTabWidget::currentChanged,
+            this, &MutiCamApp::onTabChangedForMatching);
+
     // 连接参数输入框的实时保存信号
     connectSettingsSignals();
 
@@ -606,12 +611,27 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     if (cameraId == "vertical") {
         m_currentFrameVertical = frame.clone();
         m_lastVerticalFrame = frame.clone();  // 同时更新最新帧供模板创建使用
+
+        // 处理垂直视图的模板匹配
+        if (m_verticalPaintingOverlay2) {
+            m_verticalPaintingOverlay2->processFrameForMatching(frame);
+        }
     } else if (cameraId == "left") {
         m_currentFrameLeft = frame.clone();
         m_lastLeftFrame = frame.clone();      // 同时更新最新帧供模板创建使用
+
+        // 处理左侧视图的模板匹配
+        if (m_leftPaintingOverlay2) {
+            m_leftPaintingOverlay2->processFrameForMatching(frame);
+        }
     } else if (cameraId == "front") {
         m_currentFrameFront = frame.clone();
         m_lastFrontFrame = frame.clone();     // 同时更新最新帧供模板创建使用
+
+        // 处理对向视图的模板匹配
+        if (m_frontPaintingOverlay2) {
+            m_frontPaintingOverlay2->processFrameForMatching(frame);
+        }
     }
 
     ZoomPanWidget* mainWidget = getZoomPanWidget(cameraId);
@@ -1125,6 +1145,22 @@ void MutiCamApp::onTabChanged(int index)
     qDebug() << "Tab changed to index:" << index;
 }
 
+void MutiCamApp::onTabChangedForMatching(int index)
+{
+    // 停止所有视图的模板匹配
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->stopTemplateMatching();
+    }
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->stopTemplateMatching();
+    }
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->stopTemplateMatching();
+    }
+
+    qDebug() << "已停止所有视图的模板匹配，当前选项卡索引:" << index;
+}
+
 void MutiCamApp::onViewDoubleClicked(const QString& viewName)
 {
     // 根据视图名称跳转到对应的选项卡
@@ -1550,19 +1586,127 @@ void MutiCamApp::onCreateTemplateFrontClicked()
 void MutiCamApp::onStartMatchingVerticalClicked()
 {
     qDebug() << "垂直视图开始匹配按钮被点击";
-    QMessageBox::information(this, "测试", "垂直视图开始匹配功能待实现");
+
+    if (!m_verticalPaintingOverlay2) {
+        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
+        return;
+    }
+
+    // 加载可用模板
+    QVector<TemplateInfo> availableTemplates = m_verticalPaintingOverlay2->loadTemplatesFromDirectory();
+
+    if (availableTemplates.isEmpty()) {
+        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
+        return;
+    }
+
+    // 显示模板选择对话框
+    TemplateSelectionDialog dialog(this);
+    dialog.setAvailableTemplates(availableTemplates);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
+
+        if (selectedTemplates.isEmpty()) {
+            QMessageBox::information(this, "提示", "未选择任何模板");
+            return;
+        }
+
+        // 启动模板匹配
+        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+            QMessageBox::information(this, "成功",
+                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+
+            // 切换到垂直视图选项卡
+            ui->tabWidget->setCurrentIndex(1);
+        } else {
+            QMessageBox::warning(this, "错误", "启动模板匹配失败");
+        }
+    }
 }
 
 void MutiCamApp::onStartMatchingLeftClicked()
 {
     qDebug() << "左侧视图开始匹配按钮被点击";
-    QMessageBox::information(this, "测试", "左侧视图开始匹配功能待实现");
+
+    if (!m_leftPaintingOverlay2) {
+        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
+        return;
+    }
+
+    // 加载可用模板
+    QVector<TemplateInfo> availableTemplates = m_leftPaintingOverlay2->loadTemplatesFromDirectory();
+
+    if (availableTemplates.isEmpty()) {
+        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
+        return;
+    }
+
+    // 显示模板选择对话框
+    TemplateSelectionDialog dialog(this);
+    dialog.setAvailableTemplates(availableTemplates);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
+
+        if (selectedTemplates.isEmpty()) {
+            QMessageBox::information(this, "提示", "未选择任何模板");
+            return;
+        }
+
+        // 启动模板匹配
+        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+            QMessageBox::information(this, "成功",
+                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+
+            // 切换到左侧视图选项卡
+            ui->tabWidget->setCurrentIndex(2);
+        } else {
+            QMessageBox::warning(this, "错误", "启动模板匹配失败");
+        }
+    }
 }
 
 void MutiCamApp::onStartMatchingFrontClicked()
 {
     qDebug() << "对向视图开始匹配按钮被点击";
-    QMessageBox::information(this, "测试", "对向视图开始匹配功能待实现");
+
+    if (!m_frontPaintingOverlay2) {
+        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
+        return;
+    }
+
+    // 加载可用模板
+    QVector<TemplateInfo> availableTemplates = m_frontPaintingOverlay2->loadTemplatesFromDirectory();
+
+    if (availableTemplates.isEmpty()) {
+        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
+        return;
+    }
+
+    // 显示模板选择对话框
+    TemplateSelectionDialog dialog(this);
+    dialog.setAvailableTemplates(availableTemplates);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
+
+        if (selectedTemplates.isEmpty()) {
+            QMessageBox::information(this, "提示", "未选择任何模板");
+            return;
+        }
+
+        // 启动模板匹配
+        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+            QMessageBox::information(this, "成功",
+                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+
+            // 切换到对向视图选项卡
+            ui->tabWidget->setCurrentIndex(3);
+        } else {
+            QMessageBox::warning(this, "错误", "启动模板匹配失败");
+        }
+    }
 }
 
 void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal angle)

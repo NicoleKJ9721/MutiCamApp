@@ -482,6 +482,12 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     void updateMatchResults(const QVector<TemplateMatchResult>& matches);
 
+    /**
+     * @brief 处理新的相机帧并执行模板匹配
+     * @param frame 新的相机帧
+     */
+    void processFrameForMatching(const cv::Mat& frame);
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
@@ -640,6 +646,8 @@ private:
     QVector<TemplateInfo> m_loadedTemplates;         // 已加载的模板列表
     QVector<TemplateMatchResult> m_currentMatches;   // 当前匹配结果
     bool m_isMatchingEnabled;                        // 是否启用匹配
+    int m_matchingFrameSkip;                         // 匹配帧跳过计数
+    static const int MATCHING_FRAME_INTERVAL = 3;   // 每3帧执行一次匹配
 
     // 私有绘图方法
     void drawGrid(QPainter& painter, const DrawingContext& ctx) const;

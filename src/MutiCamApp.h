@@ -250,6 +250,12 @@ private slots:
     void onTabChanged(int index);
 
     /**
+     * @brief 选项卡切换时控制模板匹配
+     * @param index 选项卡索引
+     */
+    void onTabChangedForMatching(int index);
+
+    /**
      * @brief 视图双击事件处理
      * @param viewName 视图名称
      */

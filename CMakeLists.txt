@@ -35,6 +35,8 @@ set(srcs
     src/ZoomPanWidget.h
     src/PaintingOverlay.cpp
     src/PaintingOverlay.h
+    src/TemplateSelectionDialog.cpp
+    src/TemplateSelectionDialog.h
     src/SettingsManager.cpp
     src/SettingsManager.h
     src/CalibrationDialog.cpp

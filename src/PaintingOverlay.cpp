@@ -66,6 +66,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
     , m_matchingController(nullptr)  // 匹配控制器初始为空
     , m_isMatchingEnabled(false)     // 默认禁用匹配
+    , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -7201,6 +7202,9 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
         // 启用匹配
         m_isMatchingEnabled = true;
 
+        // 重置帧跳过计数器，确保立即开始匹配
+        m_matchingFrameSkip = MATCHING_FRAME_INTERVAL - 1;
+
         qInfo() << "模板匹配已启动，加载了" << selectedTemplates.size() << "个模板";
         return true;
 
@@ -7230,17 +7234,75 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
     }
 
     try {
+        // 预处理源图像
+        cv::Mat processedSourceImage;
+        if (sourceImage.channels() == 3) {
+            cv::cvtColor(sourceImage, processedSourceImage, cv::COLOR_BGR2GRAY);
+        } else {
+            processedSourceImage = sourceImage.clone();
+        }
+
+        // 确保图像是8位无符号整型
+        if (processedSourceImage.depth() != CV_8U) {
+            processedSourceImage.convertTo(processedSourceImage, CV_8U);
+        }
+
+        // 性能优化：对于大尺寸图像进行缩放处理
+        cv::Mat scaledSourceImage;
+        double scaleFactorForMatching = 1.0;
+        const int MAX_DIMENSION = 1500; // 最大尺寸限制
+
+        if (processedSourceImage.cols > MAX_DIMENSION || processedSourceImage.rows > MAX_DIMENSION) {
+            double scaleX = static_cast<double>(MAX_DIMENSION) / processedSourceImage.cols;
+            double scaleY = static_cast<double>(MAX_DIMENSION) / processedSourceImage.rows;
+            scaleFactorForMatching = std::min(scaleX, scaleY);
+
+            cv::resize(processedSourceImage, scaledSourceImage, cv::Size(),
+                      scaleFactorForMatching, scaleFactorForMatching, cv::INTER_LINEAR);
+
+            qDebug() << "大尺寸图像缩放：" << processedSourceImage.cols << "x" << processedSourceImage.rows
+                     << " -> " << scaledSourceImage.cols << "x" << scaledSourceImage.rows
+                     << " 缩放因子：" << scaleFactorForMatching;
+        } else {
+            scaledSourceImage = processedSourceImage;
+        }
+
         for (const TemplateInfo& templateInfo : m_loadedTemplates) {
             if (!templateInfo.isSelected || templateInfo.templateImage.empty()) {
                 continue;
             }
 
-            // 使用MatchingController进行匹配
-            // 注意：这里需要根据MatchingController的实际API进行调整
-            // 暂时使用简化的OpenCV模板匹配作为示例
+            // 预处理模板图像
+            cv::Mat processedTemplate;
+            if (templateInfo.templateImage.channels() == 3) {
+                cv::cvtColor(templateInfo.templateImage, processedTemplate, cv::COLOR_BGR2GRAY);
+            } else {
+                processedTemplate = templateInfo.templateImage.clone();
+            }
+
+            // 确保模板图像也是8位无符号整型
+            if (processedTemplate.depth() != CV_8U) {
+                processedTemplate.convertTo(processedTemplate, CV_8U);
+            }
+
+            // 如果源图像被缩放了，也需要缩放模板
+            cv::Mat scaledTemplate;
+            if (scaleFactorForMatching < 1.0) {
+                cv::resize(processedTemplate, scaledTemplate, cv::Size(),
+                          scaleFactorForMatching, scaleFactorForMatching, cv::INTER_LINEAR);
+            } else {
+                scaledTemplate = processedTemplate;
+            }
+
+            // 检查图像尺寸
+            if (scaledTemplate.cols > scaledSourceImage.cols ||
+                scaledTemplate.rows > scaledSourceImage.rows) {
+                qDebug() << "模板尺寸大于源图像，跳过匹配：" << templateInfo.name;
+                continue;
+            }
 
             cv::Mat matchResult;
-            cv::matchTemplate(sourceImage, templateInfo.templateImage, matchResult, cv::TM_CCOEFF_NORMED);
+            cv::matchTemplate(scaledSourceImage, scaledTemplate, matchResult, cv::TM_CCOEFF_NORMED);
 
             // 查找最佳匹配位置
             double minVal, maxVal;
@@ -7258,19 +7320,24 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                 match.scale = 1.0;
                 match.timestamp = QDateTime::currentDateTime();
 
-                // 计算匹配位置（中心点）
+                // 计算匹配位置（中心点），需要转换回原始图像坐标
+                double originalX = maxLoc.x / scaleFactorForMatching;
+                double originalY = maxLoc.y / scaleFactorForMatching;
+                double originalWidth = processedTemplate.cols;
+                double originalHeight = processedTemplate.rows;
+
                 QPointF center(
-                    maxLoc.x + templateInfo.templateImage.cols / 2.0,
-                    maxLoc.y + templateInfo.templateImage.rows / 2.0
+                    originalX + originalWidth / 2.0,
+                    originalY + originalHeight / 2.0
                 );
                 match.position = center;
 
-                // 计算边界框
+                // 计算边界框（使用原始模板尺寸）
                 QRectF boundingRect(
-                    maxLoc.x,
-                    maxLoc.y,
-                    templateInfo.templateImage.cols,
-                    templateInfo.templateImage.rows
+                    originalX,
+                    originalY,
+                    originalWidth,
+                    originalHeight
                 );
                 match.boundingRect = boundingRect;
 
@@ -7381,4 +7448,29 @@ void PaintingOverlay::updateMatchResults(const QVector<TemplateMatchResult>& mat
     update();
 
     qDebug() << "更新匹配结果，共" << matches.size() << "个匹配";
+}
+
+void PaintingOverlay::processFrameForMatching(const cv::Mat& frame)
+{
+    if (!m_isMatchingEnabled || frame.empty()) {
+        return;
+    }
+
+    // 帧跳过优化：不是每一帧都进行匹配
+    m_matchingFrameSkip++;
+    if (m_matchingFrameSkip < MATCHING_FRAME_INTERVAL) {
+        return;
+    }
+    m_matchingFrameSkip = 0; // 重置计数器
+
+    try {
+        // 执行模板匹配
+        QVector<TemplateMatchResult> matches = performMatching(frame);
+
+        // 更新匹配结果并触发重绘
+        updateMatchResults(matches);
+
+    } catch (const std::exception& e) {
+        qCritical() << "处理帧进行模板匹配时发生异常：" << e.what();
+    }
 }
