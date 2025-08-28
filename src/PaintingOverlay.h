@@ -22,12 +22,21 @@
 #include <QListWidget>
 #include <QCheckBox>
 #include <QDateTime>
+
+// 解决Windows SDK和OpenCV的符号冲突
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
 
+// 前向声明MatchingController以避免包含冲突
+class MatchingController;
+
 // 前向声明
 class ZoomPanWidget;
-class MatchingController;
 #include "image_processing/shape_detector.h"
 
 // 前向声明
@@ -47,7 +56,7 @@ struct TemplateInfo {
     TemplateInfo() : originalAngle(0.0), isSelected(false) {}
 };
 
-struct MatchResult {
+struct TemplateMatchResult {
     QString templateName;            // 匹配的模板名称
     QPointF position;                // 匹配位置（中心点）
     QRectF boundingRect;             // 匹配边界框
@@ -56,7 +65,7 @@ struct MatchResult {
     double scale;                    // 匹配缩放比例
     QDateTime timestamp;             // 匹配时间戳
 
-    MatchResult() : confidence(0.0), angle(0.0), scale(1.0) {}
+    TemplateMatchResult() : confidence(0.0), angle(0.0), scale(1.0) {}
 };
 
 class PaintingOverlay : public QWidget
@@ -577,6 +586,12 @@ private:
     mutable bool m_gridCacheValid;      // 网格缓存是否有效
     mutable QSize m_lastGridImageSize;  // 上次绘制网格时的图像尺寸
     mutable int m_lastGridSpacing;      // 上次绘制网格时的间距
+
+    // 模板匹配相关成员
+    MatchingController* m_matchingController;        // 匹配控制器
+    QVector<TemplateInfo> m_loadedTemplates;         // 已加载的模板列表
+    QVector<TemplateMatchResult> m_currentMatches;   // 当前匹配结果
+    bool m_isMatchingEnabled;                        // 是否启用匹配
 
     // 私有绘图方法
     void drawGrid(QPainter& painter, const DrawingContext& ctx) const;

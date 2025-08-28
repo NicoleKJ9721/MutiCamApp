@@ -21,6 +21,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
+#include "matching/MatchingController.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -63,6 +64,8 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_isCalibrated(false)      // 默认未标定
     , m_isCalibrationMode(false) // 默认非标定模式
     , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
+    , m_matchingController(nullptr)  // 匹配控制器初始为空
+    , m_isMatchingEnabled(false)     // 默认禁用匹配
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -93,6 +96,12 @@ PaintingOverlay::~PaintingOverlay()
     if (m_rotationIconRenderer) {
         delete m_rotationIconRenderer;
         m_rotationIconRenderer = nullptr;
+    }
+
+    // 清理匹配控制器
+    if (m_matchingController) {
+        delete m_matchingController;
+        m_matchingController = nullptr;
     }
 
     // 清理缓存的图像数据
