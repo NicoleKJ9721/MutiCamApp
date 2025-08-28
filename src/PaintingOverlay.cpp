@@ -7158,3 +7158,132 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
 
     return templateInfo;
 }
+
+bool PaintingOverlay::initializeMatchingController()
+{
+    if (m_matchingController) {
+        qDebug() << "匹配控制器已经初始化";
+        return true;
+    }
+
+    try {
+        m_matchingController = new MatchingController();
+        qInfo() << "匹配控制器初始化成功";
+        return true;
+    } catch (const std::exception& e) {
+        qCritical() << "初始化匹配控制器失败：" << e.what();
+        return false;
+    }
+}
+
+bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
+{
+    if (!initializeMatchingController()) {
+        qWarning() << "无法启动模板匹配：匹配控制器初始化失败";
+        return false;
+    }
+
+    if (selectedTemplates.isEmpty()) {
+        qWarning() << "无法启动模板匹配：没有选中的模板";
+        return false;
+    }
+
+    try {
+        // 清除之前的匹配结果
+        m_currentMatches.clear();
+
+        // 保存选中的模板
+        m_loadedTemplates = selectedTemplates;
+
+        // 启用匹配
+        m_isMatchingEnabled = true;
+
+        qInfo() << "模板匹配已启动，加载了" << selectedTemplates.size() << "个模板";
+        return true;
+
+    } catch (const std::exception& e) {
+        qCritical() << "启动模板匹配失败：" << e.what();
+        return false;
+    }
+}
+
+void PaintingOverlay::stopTemplateMatching()
+{
+    m_isMatchingEnabled = false;
+    m_currentMatches.clear();
+    qInfo() << "模板匹配已停止";
+}
+
+QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sourceImage)
+{
+    QVector<TemplateMatchResult> results;
+
+    if (!m_isMatchingEnabled || !m_matchingController || sourceImage.empty()) {
+        return results;
+    }
+
+    if (m_loadedTemplates.isEmpty()) {
+        return results;
+    }
+
+    try {
+        for (const TemplateInfo& templateInfo : m_loadedTemplates) {
+            if (!templateInfo.isSelected || templateInfo.templateImage.empty()) {
+                continue;
+            }
+
+            // 使用MatchingController进行匹配
+            // 注意：这里需要根据MatchingController的实际API进行调整
+            // 暂时使用简化的OpenCV模板匹配作为示例
+
+            cv::Mat matchResult;
+            cv::matchTemplate(sourceImage, templateInfo.templateImage, matchResult, cv::TM_CCOEFF_NORMED);
+
+            // 查找最佳匹配位置
+            double minVal, maxVal;
+            cv::Point minLoc, maxLoc;
+            cv::minMaxLoc(matchResult, &minVal, &maxVal, &minLoc, &maxLoc);
+
+            // 设置匹配阈值
+            double threshold = 0.7; // 可以后续做成可配置的参数
+
+            if (maxVal >= threshold) {
+                TemplateMatchResult match;
+                match.templateName = templateInfo.name;
+                match.confidence = maxVal;
+                match.angle = 0.0; // 简化版本暂不支持角度检测
+                match.scale = 1.0;
+                match.timestamp = QDateTime::currentDateTime();
+
+                // 计算匹配位置（中心点）
+                QPointF center(
+                    maxLoc.x + templateInfo.templateImage.cols / 2.0,
+                    maxLoc.y + templateInfo.templateImage.rows / 2.0
+                );
+                match.position = center;
+
+                // 计算边界框
+                QRectF boundingRect(
+                    maxLoc.x,
+                    maxLoc.y,
+                    templateInfo.templateImage.cols,
+                    templateInfo.templateImage.rows
+                );
+                match.boundingRect = boundingRect;
+
+                results.append(match);
+
+                qDebug() << "找到匹配：" << templateInfo.name
+                         << "置信度：" << maxVal
+                         << "位置：" << center;
+            }
+        }
+
+    } catch (const cv::Exception& e) {
+        qCritical() << "执行模板匹配时发生OpenCV异常：" << e.what();
+    } catch (const std::exception& e) {
+        qCritical() << "执行模板匹配时发生异常：" << e.what();
+    }
+
+    return results;
+}

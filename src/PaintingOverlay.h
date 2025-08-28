@@ -434,6 +434,32 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     TemplateInfo loadSingleTemplate(const QString& imagePath, const QString& metadataPath) const;
 
+    // 模板匹配功能相关方法
+    /**
+     * @brief 初始化匹配控制器
+     * @return 是否初始化成功
+     */
+    bool initializeMatchingController();
+
+    /**
+     * @brief 启动模板匹配
+     * @param selectedTemplates 选中的模板列表
+     * @return 是否启动成功
+     */
+    bool startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates);
+
+    /**
+     * @brief 停止模板匹配
+     */
+    void stopTemplateMatching();
+
+    /**
+     * @brief 在指定图像中执行模板匹配
+     * @param sourceImage 源图像
+     * @return 匹配结果列表
+     */
+    QVector<TemplateMatchResult> performMatching(const cv::Mat& sourceImage);
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
