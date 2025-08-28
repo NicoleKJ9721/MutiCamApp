@@ -21,6 +21,7 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QCheckBox>
+#include <QDateTime>
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
 
@@ -31,6 +32,32 @@ class MatchingController;
 
 // 前向声明
 class MutiCamApp;
+
+// 模板匹配相关数据结构
+struct TemplateInfo {
+    QString name;                    // 模板名称
+    QString imagePath;               // 图像文件路径
+    QString metadataPath;            // 元数据文件路径
+    cv::Mat templateImage;           // 模板图像
+    QRectF originalROI;              // 原始ROI区域
+    double originalAngle;            // 原始角度
+    QDateTime createdTime;           // 创建时间
+    bool isSelected;                 // 是否被选中用于匹配
+
+    TemplateInfo() : originalAngle(0.0), isSelected(false) {}
+};
+
+struct MatchResult {
+    QString templateName;            // 匹配的模板名称
+    QPointF position;                // 匹配位置（中心点）
+    QRectF boundingRect;             // 匹配边界框
+    double confidence;               // 置信度 (0.0-1.0)
+    double angle;                    // 匹配角度
+    double scale;                    // 匹配缩放比例
+    QDateTime timestamp;             // 匹配时间戳
+
+    MatchResult() : confidence(0.0), angle(0.0), scale(1.0) {}
+};
 
 class PaintingOverlay : public QWidget
 {
