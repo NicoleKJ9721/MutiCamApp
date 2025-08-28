@@ -9,6 +9,13 @@
 #include <QMenu>
 #include <QAction>
 #include <QContextMenuEvent>
+#include <QDir>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateTime>
+#include <QCoreApplication>
+#include <QRegularExpression>
 #include <algorithm>
 #include <cmath>
 #include <opencv2/opencv.hpp>
@@ -6895,4 +6902,140 @@ cv::Mat PaintingOverlay::validateAndPreprocessROI(const cv::Mat& roiImage) const
     }
 
     return cv::Mat();
+}
+
+bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QString& templateName, const QString& templateDir) const
+{
+    if (templateImage.empty()) {
+        qWarning() << "无法保存空的模板图像";
+        return false;
+    }
+
+    if (templateName.isEmpty()) {
+        qWarning() << "模板名称不能为空";
+        return false;
+    }
+
+    try {
+        // 确定保存目录
+        QString saveDir = templateDir;
+        if (saveDir.isEmpty()) {
+            saveDir = QCoreApplication::applicationDirPath() + "/templates";
+        }
+
+        // 创建目录（如果不存在）
+        QDir dir;
+        if (!dir.exists(saveDir)) {
+            if (!dir.mkpath(saveDir)) {
+                qCritical() << "无法创建模板目录:" << saveDir;
+                return false;
+            }
+        }
+
+        // 生成文件名（确保唯一性）
+        QString baseName = templateName;
+        // 移除文件名中的非法字符
+        baseName = baseName.replace(QRegularExpression("[<>:\"/\\|?*]"), "_");
+
+        QString imageFileName = QString("%1.png").arg(baseName);
+        QString metaFileName = QString("%1.json").arg(baseName);
+
+        QString imagePath = QDir(saveDir).filePath(imageFileName);
+        QString metaPath = QDir(saveDir).filePath(metaFileName);
+
+        // 如果文件已存在，添加时间戳
+        if (QFile::exists(imagePath)) {
+            QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+            imageFileName = QString("%1_%2.png").arg(baseName, timestamp);
+            metaFileName = QString("%1_%2.json").arg(baseName, timestamp);
+            imagePath = QDir(saveDir).filePath(imageFileName);
+            metaPath = QDir(saveDir).filePath(metaFileName);
+        }
+
+        // 保存图像文件
+        if (!cv::imwrite(imagePath.toStdString(), templateImage)) {
+            qCritical() << "无法保存模板图像到:" << imagePath;
+            return false;
+        }
+
+        // 创建元数据
+        QJsonObject metadata;
+        metadata["templateName"] = templateName;
+        metadata["imageFile"] = imageFileName;
+        metadata["createdTime"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+        metadata["imageSize"] = QJsonObject{
+            {"width", templateImage.cols},
+            {"height", templateImage.rows},
+            {"channels", templateImage.channels()}
+        };
+
+        // 保存ROI信息（如果有）
+        if (m_hasCurrentROI) {
+            QJsonObject roiInfo;
+            roiInfo["x"] = m_currentROI.rect.x();
+            roiInfo["y"] = m_currentROI.rect.y();
+            roiInfo["width"] = m_currentROI.rect.width();
+            roiInfo["height"] = m_currentROI.rect.height();
+            roiInfo["angle"] = m_currentROI.angle;
+            metadata["originalROI"] = roiInfo;
+        }
+
+        // 保存元数据文件
+        QJsonDocument doc(metadata);
+        QFile metaFile(metaPath);
+        if (!metaFile.open(QIODevice::WriteOnly)) {
+            qCritical() << "无法创建元数据文件:" << metaPath;
+            // 删除已保存的图像文件
+            QFile::remove(imagePath);
+            return false;
+        }
+
+        metaFile.write(doc.toJson());
+        metaFile.close();
+
+        qInfo() << "模板保存成功:" << templateName;
+        qInfo() << "图像文件:" << imagePath;
+        qInfo() << "元数据文件:" << metaPath;
+
+        return true;
+
+    } catch (const cv::Exception& e) {
+        qCritical() << "保存模板时发生OpenCV异常：" << e.what();
+    } catch (const std::exception& e) {
+        qCritical() << "保存模板时发生异常：" << e.what();
+    }
+
+    return false;
+}
+
+bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir) const
+{
+    qInfo() << "开始从ROI创建模板:" << templateName;
+
+    // 步骤1：从ROI提取图像
+    cv::Mat roiImage = extractROIImage(sourceImage);
+    if (roiImage.empty()) {
+        qWarning() << "无法从ROI提取图像";
+        return false;
+    }
+
+    qInfo() << "ROI图像提取成功，尺寸:" << roiImage.cols << "x" << roiImage.rows;
+
+    // 步骤2：验证和预处理图像
+    cv::Mat processedImage = validateAndPreprocessROI(roiImage);
+    if (processedImage.empty()) {
+        qWarning() << "ROI图像验证或预处理失败";
+        return false;
+    }
+
+    qInfo() << "ROI图像验证和预处理完成";
+
+    // 步骤3：保存模板数据
+    if (!saveTemplateData(processedImage, templateName, templateDir)) {
+        qWarning() << "模板数据保存失败";
+        return false;
+    }
+
+    qInfo() << "模板创建完成:" << templateName;
+    return true;
 }

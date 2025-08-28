@@ -543,6 +543,24 @@ private:
      * @return 预处理后的图像，如果验证失败返回空Mat
      */
     cv::Mat validateAndPreprocessROI(const cv::Mat& roiImage) const;
+
+    /**
+     * @brief 保存模板数据
+     * @param templateImage 模板图像
+     * @param templateName 模板名称
+     * @param templateDir 模板保存目录
+     * @return 是否保存成功
+     */
+    bool saveTemplateData(const cv::Mat& templateImage, const QString& templateName, const QString& templateDir = QString()) const;
+
+    /**
+     * @brief 从当前ROI创建模板（整合函数）
+     * @param sourceImage 源图像
+     * @param templateName 模板名称
+     * @param templateDir 模板保存目录
+     * @return 是否创建成功
+     */
+    bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
     
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;
