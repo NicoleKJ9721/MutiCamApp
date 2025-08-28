@@ -388,7 +388,10 @@ void PaintingOverlay::paintEvent(QPaintEvent *event)
         if (m_isDrawingMode) {
             drawCurrentPreview(painter, ctx);
         }
-        
+
+        // 4. 绘制模板匹配结果（在所有图形之上）
+        drawMatchResults(painter, ctx);
+
         painter.restore();
     }
 }
@@ -7286,4 +7289,96 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
     }
 
     return results;
+}
+
+void PaintingOverlay::drawMatchResults(QPainter& painter, const DrawingContext& ctx) const
+{
+    if (!m_isMatchingEnabled || m_currentMatches.isEmpty()) {
+        return;
+    }
+
+    painter.save();
+
+    // 设置抗锯齿
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    // 绘制所有匹配结果
+    for (const TemplateMatchResult& match : m_currentMatches) {
+        drawSingleMatchResult(painter, match, ctx);
+    }
+
+    painter.restore();
+}
+
+void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMatchResult& match, const DrawingContext& ctx) const
+{
+    painter.save();
+
+    // 在paintEvent中painter已经设置了正确的变换，可以直接使用图像坐标
+    QRectF matchRect = match.boundingRect;
+    QPointF matchCenter = match.position;
+
+    // 根据置信度设置颜色（绿色到红色渐变）
+    QColor matchColor;
+    if (match.confidence >= 0.9) {
+        matchColor = QColor(0, 255, 0);      // 高置信度：绿色
+    } else if (match.confidence >= 0.8) {
+        matchColor = QColor(128, 255, 0);    // 中高置信度：黄绿色
+    } else if (match.confidence >= 0.7) {
+        matchColor = QColor(255, 255, 0);    // 中等置信度：黄色
+    } else {
+        matchColor = QColor(255, 128, 0);    // 低置信度：橙色
+    }
+
+    // 设置画笔
+    QPen pen(matchColor, 2.0);
+    painter.setPen(pen);
+
+    // 绘制匹配边界框
+    painter.drawRect(matchRect);
+
+    // 绘制中心点
+    painter.setBrush(QBrush(matchColor));
+    double centerSize = 4.0;
+    painter.drawEllipse(matchCenter, centerSize, centerSize);
+
+    // 绘制模板名称和置信度信息
+    QString infoText = QString("%1\n置信度: %2%")
+                       .arg(match.templateName)
+                       .arg(QString::number(match.confidence * 100, 'f', 1));
+
+    // 计算文本位置（在边界框上方）
+    QPointF textPos = matchRect.topLeft() + QPointF(0, -5);
+
+    // 设置文本样式
+    QFont font = painter.font();
+    font.setPointSize(10);
+    font.setBold(true);
+    painter.setFont(font);
+
+    // 绘制文本背景
+    QFontMetrics fm(font);
+    QRect textBounds = fm.boundingRect(infoText);
+    QRectF textBackground(textPos.x() - 2, textPos.y() - textBounds.height() - 2,
+                         textBounds.width() + 4, textBounds.height() + 4);
+
+    painter.setBrush(QBrush(QColor(0, 0, 0, 180))); // 半透明黑色背景
+    painter.setPen(Qt::NoPen);
+    painter.drawRect(textBackground);
+
+    // 绘制文本
+    painter.setPen(QPen(Qt::white));
+    painter.drawText(textPos.x(), textPos.y() - 2, infoText);
+
+    painter.restore();
+}
+
+void PaintingOverlay::updateMatchResults(const QVector<TemplateMatchResult>& matches)
+{
+    m_currentMatches = matches;
+
+    // 触发重绘以显示新的匹配结果
+    update();
+
+    qDebug() << "更新匹配结果，共" << matches.size() << "个匹配";
 }

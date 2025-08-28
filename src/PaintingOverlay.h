@@ -460,6 +460,28 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     QVector<TemplateMatchResult> performMatching(const cv::Mat& sourceImage);
 
+    // 匹配结果可视化相关方法
+    /**
+     * @brief 绘制模板匹配结果
+     * @param painter QPainter对象
+     * @param ctx 绘制上下文
+     */
+    void drawMatchResults(QPainter& painter, const DrawingContext& ctx) const;
+
+    /**
+     * @brief 绘制单个匹配结果
+     * @param painter QPainter对象
+     * @param match 匹配结果
+     * @param ctx 绘制上下文
+     */
+    void drawSingleMatchResult(QPainter& painter, const TemplateMatchResult& match, const DrawingContext& ctx) const;
+
+    /**
+     * @brief 更新当前匹配结果并触发重绘
+     * @param matches 新的匹配结果列表
+     */
+    void updateMatchResults(const QVector<TemplateMatchResult>& matches);
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
