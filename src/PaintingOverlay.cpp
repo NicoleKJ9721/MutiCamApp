@@ -6504,8 +6504,8 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
         return PaintingOverlay::ROIObject::NoHandle;
     }
 
-    // 控制点检测半径（图像坐标）
-    double handleRadius = 12.0; // 稍大一些便于点击
+    // 控制点检测半径（图像坐标）-使用缓存的DrawingContext中的scale，保持固定的物理大小
+    double handleRadius = 6.0 / m_cachedDrawingContext.scale;
 
     QRectF rect = m_currentROI.rect;
 
@@ -6550,7 +6550,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     double rotationDistance = QLineF(localPos, rotationHandlePos).length();
     // 使用更大的检测半径，因为旋转手柄比普通控制点大
     double rotationHandleRadius = handleRadius * 1.5;
-    qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
+    // qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
     if (rotationDistance <= rotationHandleRadius) {
         qDebug() << "检测到旋转手柄点击！";
         return PaintingOverlay::ROIObject::RotationHandle;
