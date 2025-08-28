@@ -529,6 +529,20 @@ private:
     void drawROIButtons(QPainter& painter, const DrawingContext& ctx) const;
     void drawROIInfo(QPainter& painter, const DrawingContext& ctx) const;
     bool isPointInROIButton(const QPointF& pos, bool& isConfirm) const;
+
+    /**
+     * @brief 从当前图像中提取ROI区域
+     * @param sourceImage 源图像
+     * @return 提取的ROI图像，如果失败返回空Mat
+     */
+    cv::Mat extractROIImage(const cv::Mat& sourceImage) const;
+
+    /**
+     * @brief 验证和预处理ROI图像
+     * @param roiImage 提取的ROI图像
+     * @return 预处理后的图像，如果验证失败返回空Mat
+     */
+    cv::Mat validateAndPreprocessROI(const cv::Mat& roiImage) const;
     
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;

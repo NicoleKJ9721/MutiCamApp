@@ -5127,6 +5127,79 @@ cv::Mat PaintingOverlay::getCurrentFrameFromParent() const
     return cv::Mat();
 }
 
+cv::Mat PaintingOverlay::extractROIImage(const cv::Mat& sourceImage) const
+{
+    // 检查是否有有效的ROI
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid() || sourceImage.empty()) {
+        qWarning() << "无法提取ROI图像：ROI无效或源图像为空";
+        return cv::Mat();
+    }
+
+    QRectF roiRect = m_currentROI.rect;
+    double roiAngle = m_currentROI.angle;
+
+    // 确保ROI在图像范围内
+    if (roiRect.x() < 0 || roiRect.y() < 0 ||
+        roiRect.right() > sourceImage.cols || roiRect.bottom() > sourceImage.rows) {
+        qWarning() << "ROI区域超出图像范围";
+        return cv::Mat();
+    }
+
+    try {
+        // 如果没有旋转，直接提取矩形区域
+        if (qAbs(roiAngle) < 0.01) {
+            cv::Rect cvRect(
+                static_cast<int>(roiRect.x()),
+                static_cast<int>(roiRect.y()),
+                static_cast<int>(roiRect.width()),
+                static_cast<int>(roiRect.height())
+            );
+            return sourceImage(cvRect).clone();
+        }
+
+        // 如果有旋转，需要进行旋转变换
+        cv::Point2f center(roiRect.center().x(), roiRect.center().y());
+        cv::Size2f size(roiRect.width(), roiRect.height());
+
+        // 创建旋转矩阵
+        cv::Mat rotationMatrix = cv::getRotationMatrix2D(center, roiAngle, 1.0);
+
+        // 计算旋转后的边界框
+        cv::Rect2f boundingRect = cv::RotatedRect(center, size, roiAngle).boundingRect2f();
+
+        // 调整旋转矩阵以包含完整的旋转区域
+        rotationMatrix.at<double>(0, 2) += boundingRect.width / 2.0 - center.x;
+        rotationMatrix.at<double>(1, 2) += boundingRect.height / 2.0 - center.y;
+
+        // 执行旋转变换
+        cv::Mat rotatedImage;
+        cv::warpAffine(sourceImage, rotatedImage, rotationMatrix, boundingRect.size());
+
+        // 从旋转后的图像中提取中心区域
+        cv::Point2f newCenter(boundingRect.width / 2.0, boundingRect.height / 2.0);
+        cv::Rect extractRect(
+            static_cast<int>(newCenter.x - size.width / 2.0),
+            static_cast<int>(newCenter.y - size.height / 2.0),
+            static_cast<int>(size.width),
+            static_cast<int>(size.height)
+        );
+
+        // 确保提取区域在旋转图像范围内
+        extractRect &= cv::Rect(0, 0, rotatedImage.cols, rotatedImage.rows);
+
+        if (extractRect.width > 0 && extractRect.height > 0) {
+            return rotatedImage(extractRect).clone();
+        }
+
+    } catch (const cv::Exception& e) {
+        qCritical() << "OpenCV异常：" << e.what();
+    } catch (const std::exception& e) {
+        qCritical() << "提取ROI图像时发生异常：" << e.what();
+    }
+
+    return cv::Mat();
+}
+
 void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect& roi)
 {
     qDebug() << "开始直线检测...";
@@ -6765,4 +6838,61 @@ bool PaintingOverlay::isPointInROIButton(const QPointF& pos, bool& isConfirm) co
     }
 
     return false;
+}
+
+cv::Mat PaintingOverlay::validateAndPreprocessROI(const cv::Mat& roiImage) const
+{
+    // 基本验证
+    if (roiImage.empty()) {
+        qWarning() << "ROI图像为空";
+        return cv::Mat();
+    }
+
+    // 检查图像尺寸
+    if (roiImage.cols < 10 || roiImage.rows < 10) {
+        qWarning() << "ROI图像太小，尺寸:" << roiImage.cols << "x" << roiImage.rows;
+        return cv::Mat();
+    }
+
+    if (roiImage.cols > 2000 || roiImage.rows > 2000) {
+        qWarning() << "ROI图像太大，尺寸:" << roiImage.cols << "x" << roiImage.rows;
+        return cv::Mat();
+    }
+
+    try {
+        cv::Mat processedImage = roiImage.clone();
+
+        // 确保图像是3通道BGR格式（模板匹配通常需要）
+        if (processedImage.channels() == 1) {
+            cv::cvtColor(processedImage, processedImage, cv::COLOR_GRAY2BGR);
+        } else if (processedImage.channels() == 4) {
+            cv::cvtColor(processedImage, processedImage, cv::COLOR_BGRA2BGR);
+        }
+
+        // 检查图像质量（计算图像的方差，低方差表示图像过于平坦）
+        cv::Mat grayImage;
+        cv::cvtColor(processedImage, grayImage, cv::COLOR_BGR2GRAY);
+
+        cv::Scalar meanValue, stdValue;
+        cv::meanStdDev(grayImage, meanValue, stdValue);
+        double variance = stdValue[0] * stdValue[0];
+
+        // 如果方差太低，图像可能过于平坦，不适合作为模板
+        if (variance < 100.0) {
+            qWarning() << "ROI图像方差过低，可能不适合作为模板，方差:" << variance;
+            // 不返回空，只是警告，让用户决定
+        }
+
+        qInfo() << "ROI图像验证通过，尺寸:" << processedImage.cols << "x" << processedImage.rows
+                << "通道:" << processedImage.channels() << "方差:" << variance;
+
+        return processedImage;
+
+    } catch (const cv::Exception& e) {
+        qCritical() << "预处理ROI图像时发生OpenCV异常：" << e.what();
+    } catch (const std::exception& e) {
+        qCritical() << "预处理ROI图像时发生异常：" << e.what();
+    }
+
+    return cv::Mat();
 }
