@@ -345,6 +345,39 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void setLineDetectionParams(const ShapeDetector::LineDetectionParams& params);
     void setCircleDetectionParams(const ShapeDetector::CircleDetectionParams& params);
 
+    // 模板创建相关公共方法
+    /**
+     * @brief 从当前图像中提取ROI区域
+     * @param sourceImage 源图像
+     * @return 提取的ROI图像，如果失败返回空Mat
+     */
+    cv::Mat extractROIImage(const cv::Mat& sourceImage) const;
+
+    /**
+     * @brief 验证和预处理ROI图像
+     * @param roiImage 提取的ROI图像
+     * @return 预处理后的图像，如果验证失败返回空Mat
+     */
+    cv::Mat validateAndPreprocessROI(const cv::Mat& roiImage) const;
+
+    /**
+     * @brief 保存模板数据
+     * @param templateImage 模板图像
+     * @param templateName 模板名称
+     * @param templateDir 模板保存目录
+     * @return 是否保存成功
+     */
+    bool saveTemplateData(const cv::Mat& templateImage, const QString& templateName, const QString& templateDir = QString()) const;
+
+    /**
+     * @brief 从当前ROI创建模板（整合函数）
+     * @param sourceImage 源图像
+     * @param templateName 模板名称
+     * @param templateDir 模板保存目录
+     * @return 是否创建成功
+     */
+    bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
@@ -530,37 +563,9 @@ private:
     void drawROIInfo(QPainter& painter, const DrawingContext& ctx) const;
     bool isPointInROIButton(const QPointF& pos, bool& isConfirm) const;
 
-    /**
-     * @brief 从当前图像中提取ROI区域
-     * @param sourceImage 源图像
-     * @return 提取的ROI图像，如果失败返回空Mat
-     */
-    cv::Mat extractROIImage(const cv::Mat& sourceImage) const;
 
-    /**
-     * @brief 验证和预处理ROI图像
-     * @param roiImage 提取的ROI图像
-     * @return 预处理后的图像，如果验证失败返回空Mat
-     */
-    cv::Mat validateAndPreprocessROI(const cv::Mat& roiImage) const;
 
-    /**
-     * @brief 保存模板数据
-     * @param templateImage 模板图像
-     * @param templateName 模板名称
-     * @param templateDir 模板保存目录
-     * @return 是否保存成功
-     */
-    bool saveTemplateData(const cv::Mat& templateImage, const QString& templateName, const QString& templateDir = QString()) const;
 
-    /**
-     * @brief 从当前ROI创建模板（整合函数）
-     * @param sourceImage 源图像
-     * @param templateName 模板名称
-     * @param templateDir 模板保存目录
-     * @return 是否创建成功
-     */
-    bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
     
     // 预览绘制方法
     void drawCurrentPreview(QPainter& painter, const DrawingContext& ctx) const;

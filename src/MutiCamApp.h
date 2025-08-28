@@ -431,6 +431,11 @@ private:
     cv::Mat m_currentFrameVertical;          ///< 垂直视图当前帧
     cv::Mat m_currentFrameLeft;              ///< 左视图当前帧
     cv::Mat m_currentFrameFront;             ///< 前视图当前帧
+
+    // 最新帧存储（用于模板创建）
+    cv::Mat m_lastVerticalFrame;             ///< 垂直视图最新帧
+    cv::Mat m_lastLeftFrame;                 ///< 左视图最新帧
+    cv::Mat m_lastFrontFrame;                ///< 前视图最新帧
     
     // 性能优化：缓存机制
     struct CachedFrame {

@@ -605,10 +605,13 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     // 存储当前帧供自动检测使用
     if (cameraId == "vertical") {
         m_currentFrameVertical = frame.clone();
+        m_lastVerticalFrame = frame.clone();  // 同时更新最新帧供模板创建使用
     } else if (cameraId == "left") {
         m_currentFrameLeft = frame.clone();
+        m_lastLeftFrame = frame.clone();      // 同时更新最新帧供模板创建使用
     } else if (cameraId == "front") {
         m_currentFrameFront = frame.clone();
+        m_lastFrontFrame = frame.clone();     // 同时更新最新帧供模板创建使用
     }
 
     ZoomPanWidget* mainWidget = getZoomPanWidget(cameraId);
@@ -1571,22 +1574,43 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
     if (dialog.exec() == QDialog::Accepted) {
         QString templateName = dialog.getTemplateName();
 
-        // 设置ROI的模板名称
+        // 获取对应的overlay和当前图像
         PaintingOverlay* overlay = nullptr;
+        cv::Mat currentImage;
+
         if (viewName.contains("Vertical")) {
             overlay = m_verticalPaintingOverlay2;
+            currentImage = m_lastVerticalFrame;
         } else if (viewName.contains("Left")) {
             overlay = m_leftPaintingOverlay2;
+            currentImage = m_lastLeftFrame;
         } else if (viewName.contains("Front")) {
             overlay = m_frontPaintingOverlay2;
+            currentImage = m_lastFrontFrame;
         }
 
-        if (overlay) {
+        if (overlay && !currentImage.empty()) {
+            // 设置ROI的模板名称
             overlay->setCurrentROITemplateName(templateName);
-            overlay->finishROICreation();
-        }
 
-        qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
+            // 调用新的模板创建功能
+            bool success = overlay->createTemplateFromROI(currentImage, templateName);
+
+            if (success) {
+                overlay->finishROICreation();
+                QMessageBox::information(this, "成功",
+                    QString("模板 '%1' 创建成功！\n已保存到 templates 目录").arg(templateName));
+                qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
+            } else {
+                QMessageBox::warning(this, "错误",
+                    QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
+                qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
+                // 不完成ROI创建，让用户可以重新尝试
+            }
+        } else {
+            QMessageBox::warning(this, "错误", "无法获取当前图像，请确保相机正在运行");
+            qWarning() << "无法创建模板：overlay或图像为空";
+        }
     } else {
         // 用户取消，清除ROI
         PaintingOverlay* overlay = nullptr;
