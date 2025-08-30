@@ -31,8 +31,12 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     : QWidget(parent)
     , m_isDrawingMode(false)
     , m_currentDrawingTool(DrawingTool::None)
+    , m_rotationIconRenderer(nullptr)
+    , m_cachedROIAngle(-999.0) // 初始化为不可能的值，强制第一次更新
     , m_hasCurrentLine(false)
+    , m_hasCurrentLineSegment(false)
     , m_hasCurrentCircle(false)
+    , m_hasCurrentFineCircle(false)
     , m_hasCurrentParallel(false)
     , m_hasCurrentTwoLines(false)
     , m_hasCurrentROI(false)
@@ -41,15 +45,18 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_activeHandle(ROIObject::NoHandle)
     , m_hoverHandle(ROIObject::NoHandle)
     , m_isDragging(false)
-    , m_rotationIconRenderer(nullptr)
-    , m_cachedROIAngle(-999.0) // 初始化为不可能的值，强制第一次更新
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
+    , m_drawingContextValid(false)
     , m_scaleFactor(1.0)
     , m_imageSize(QSize())
-    , m_drawingContextValid(false)
-    , m_hasCurrentLineSegment(false)
-    , m_hasCurrentFineCircle(false)
+    , m_pixelScale(1.0)           // 默认像素比例
+    , m_unit("μm")               // 默认单位微米
+    , m_isCalibrated(false)      // 默认未标定
+    , m_isCalibrationMode(false) // 默认非标定模式
+    , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
+    , m_edgeDetector(nullptr)
+    , m_shapeDetector(nullptr)
     , m_gridSpacing(0)              // 默认不显示网格
     , m_gridColor(Qt::red)          // 红色网格
     , m_gridStyle(Qt::DashLine)     // 虚线样式
@@ -57,13 +64,6 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
-    , m_edgeDetector(nullptr)
-    , m_shapeDetector(nullptr)
-    , m_pixelScale(1.0)           // 默认像素比例
-    , m_unit("μm")               // 默认单位微米
-    , m_isCalibrated(false)      // 默认未标定
-    , m_isCalibrationMode(false) // 默认非标定模式
-    , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
     , m_matchingController(nullptr)  // 匹配控制器初始为空
     , m_isMatchingEnabled(false)     // 默认禁用匹配
     , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
@@ -1315,7 +1315,6 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     double pointOuterRadius = qMax(4.0, 8.0 * ctx.scale);
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
-    int connectionLineWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
@@ -1724,7 +1723,6 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     double fontSize = ctx.fontSize;
     double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
-    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;

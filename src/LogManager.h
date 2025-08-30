@@ -10,7 +10,6 @@
 #include <QTextStream>
 #include <QMutex>
 #include <QTimer>
-#include <memory>
 
 /**
  * @brief 日志级别枚举

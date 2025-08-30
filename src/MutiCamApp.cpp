@@ -17,8 +17,6 @@
 #include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
-#include <cmath>
-#include <map>
 #include "matching/ui/TemplateNameDialog.h"
 
 #ifndef M_PI
@@ -29,6 +27,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui_MutiCamApp)
     , m_cameraManager(nullptr)
+    , m_currentX(0.0)
+    , m_currentY(0.0)
+    , m_currentZ(0.0)
     , m_statusUpdateTimer(nullptr)
     , m_isMeasuring(false)
     // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
@@ -47,9 +48,6 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_logManager(nullptr)
     , m_serialController(nullptr)
     , m_isUpdatingUISize(false)
-    , m_currentX(0.0)
-    , m_currentY(0.0)
-    , m_currentZ(0.0)
 {
     ui->setupUi(this);
 
@@ -596,8 +594,8 @@ void MutiCamApp::onStopMeasureClicked()
 
 void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& frame)
 {
-    static int frameCount = 0;
-    frameCount++;
+    // static int frameCount = 0;
+    // frameCount++;
     // if (frameCount % 30 == 0) { // 每30帧打印一次，避免日志过多
     //     qDebug() << "接收到相机帧：" << cameraId << "帧大小：" << frame.cols << "x" << frame.rows;
     // }
@@ -677,7 +675,9 @@ void MutiCamApp::onCameraStateChanged(const QString& cameraId, MutiCam::Camera::
             stateText = "采集中";
             alertLevel = "info";
             break;
-    }
+        case MutiCam::Camera::CameraState::Error:
+          break;
+        }
 
     // 更新状态栏显示
     statusBar()->showMessage(QString("相机 %1: %2").arg(cameraId, stateText), 2000);
