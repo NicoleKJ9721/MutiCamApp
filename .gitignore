@@ -1,10 +1,10 @@
 /build
 /.vscode
 /third_party
+/.cache
 /参考项目/MutiCamApp第一版，只能打开相机
 /参考项目/MutiCamApp_python原版/__pycache__
 /参考项目/MutiCamApp_python原版/Development/__pycache__
 /参考项目/MutiCamApp_python原版/Tools/__pycache__
-.vscode/launch.json
 /参考项目/AxisControlSystem
 /参考项目/serial_test

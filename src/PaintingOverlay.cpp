@@ -639,11 +639,18 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
             updateRect = updateRect.adjusted(-50, -50, 50, 50); // 扩展一些边距
             update(updateRect.toRect());
         } else {
-            // 更新鼠标悬停状态和光标（只在状态改变时更新）
-            PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
-            if (hoverHandle != m_hoverHandle) {
-                m_hoverHandle = hoverHandle;
-                updateROICursor(hoverHandle);
+            // 首先检查是否悬浮在ROI按钮上
+            bool isConfirm;
+            if (isPointInROIButton(imagePos, isConfirm)) {
+                // 鼠标悬浮在√×按钮上，设置手型光标
+                setCursor(Qt::PointingHandCursor);
+            } else {
+                // 更新鼠标悬停状态和光标（只在状态改变时更新）
+                PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
+                if (hoverHandle != m_hoverHandle) {
+                    m_hoverHandle = hoverHandle;
+                    updateROICursor(hoverHandle);
+                }
             }
         }
     }
