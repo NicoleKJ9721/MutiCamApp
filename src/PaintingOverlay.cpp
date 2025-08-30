@@ -45,6 +45,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_activeHandle(ROIObject::NoHandle)
     , m_hoverHandle(ROIObject::NoHandle)
     , m_isDragging(false)
+    , m_isHoveringButton(false)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_drawingContextValid(false)
@@ -641,11 +642,21 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
         } else {
             // 首先检查是否悬浮在ROI按钮上
             bool isConfirm;
-            if (isPointInROIButton(imagePos, isConfirm)) {
-                // 鼠标悬浮在√×按钮上，设置手型光标
-                setCursor(Qt::PointingHandCursor);
-            } else {
-                // 更新鼠标悬停状态和光标（只在状态改变时更新）
+            bool currentlyHoveringButton = isPointInROIButton(imagePos, isConfirm);
+            
+            if (currentlyHoveringButton != m_isHoveringButton) {
+                m_isHoveringButton = currentlyHoveringButton;
+                if (m_isHoveringButton) {
+                    // 鼠标悬浮在√×按钮上，设置手型光标
+                    setCursor(Qt::PointingHandCursor);
+                } else {
+                    // 鼠标移出按钮区域，检查ROI控制点状态
+                    PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
+                    m_hoverHandle = hoverHandle;
+                    updateROICursor(hoverHandle);
+                }
+            } else if (!m_isHoveringButton) {
+                // 不在按钮上时，正常处理ROI控制点悬停
                 PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
                 if (hoverHandle != m_hoverHandle) {
                     m_hoverHandle = hoverHandle;
