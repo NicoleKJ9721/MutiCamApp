@@ -6521,7 +6521,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     }
 
     // 控制点检测半径（图像坐标）-使用缓存的DrawingContext中的scale，保持固定的物理大小
-    double handleRadius = 6.0 / m_cachedDrawingContext.scale;
+    double handleRadius = 5.0 / m_cachedDrawingContext.scale;
 
     QRectF rect = m_currentROI.rect;
 
@@ -6852,10 +6852,10 @@ bool PaintingOverlay::isPointInROIButton(const QPointF& pos, bool& isConfirm) co
     }
 
     // 按钮尺寸和位置（与drawROIButtons保持一致）
-    double handleSize = 8.0 / m_scaleFactor;
+    double handleSize = 8.0 / m_cachedDrawingContext.scale;
     double rotationHandleDiameter = handleSize * 1.8; // 与旋转手柄背景直径一致
     double buttonSize = rotationHandleDiameter;
-    double buttonSpacing = 10.0 / m_scaleFactor;
+    double buttonSpacing = 10.0 / m_cachedDrawingContext.scale;
 
     // 按钮位置：ROI右下角外侧，增加距离避免与控制点冲突
     QPointF roiBottomRight = m_currentROI.rect.bottomRight();
