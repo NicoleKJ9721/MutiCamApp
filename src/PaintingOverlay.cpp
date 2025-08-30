@@ -6727,10 +6727,10 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     double buttonSize = rotationHandleDiameter;
     double buttonSpacing = 10.0 / ctx.scale;
 
-    // 按钮位置：ROI右下角外侧
+    // 按钮位置：ROI右下角外侧，增加距离避免与控制点冲突
     QPointF roiBottomRight = m_currentROI.rect.bottomRight();
-    QPointF confirmButtonPos = roiBottomRight + QPointF(20, -buttonSize - buttonSpacing);
-    QPointF cancelButtonPos = roiBottomRight + QPointF(20, -buttonSpacing);
+    QPointF confirmButtonPos = roiBottomRight + QPointF(35, -buttonSize - buttonSpacing);
+    QPointF cancelButtonPos = roiBottomRight + QPointF(35, -buttonSpacing);
 
     // 绘制确认按钮（绿色√）
     QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
@@ -6846,10 +6846,10 @@ bool PaintingOverlay::isPointInROIButton(const QPointF& pos, bool& isConfirm) co
     double buttonSize = rotationHandleDiameter;
     double buttonSpacing = 10.0 / m_scaleFactor;
 
-    // 按钮位置：ROI右下角外侧
+    // 按钮位置：ROI右下角外侧，增加距离避免与控制点冲突
     QPointF roiBottomRight = m_currentROI.rect.bottomRight();
-    QPointF confirmButtonPos = roiBottomRight + QPointF(20, -buttonSize - buttonSpacing);
-    QPointF cancelButtonPos = roiBottomRight + QPointF(20, -buttonSpacing);
+    QPointF confirmButtonPos = roiBottomRight + QPointF(35, -buttonSize - buttonSpacing);
+    QPointF cancelButtonPos = roiBottomRight + QPointF(35, -buttonSpacing);
 
     QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
     QRectF cancelRect(cancelButtonPos, QSizeF(buttonSize, buttonSize));
