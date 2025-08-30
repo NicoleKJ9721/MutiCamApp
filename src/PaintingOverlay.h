@@ -566,7 +566,9 @@ private:
     ROIObject::HandleType m_hoverHandle;  // 当前悬停的控制点（用于性能优化）
     QPointF m_lastMousePos;           // 上次鼠标位置
     bool m_isDragging;                // 是否正在拖拽
-    bool m_isHoveringButton;          // 是否悬浮在ROI按钮上（用于光标状态管理）
+    bool m_isHoveringConfirmButton;   // 是否悬浮在确认按钮上
+    bool m_isHoveringCancelButton;    // 是否悬浮在取消按钮上
+    bool m_isHoveringRotationHandle;  // 是否悬浮在旋转按钮上
 
     // 鼠标预览位置
     QPointF m_currentMousePos;

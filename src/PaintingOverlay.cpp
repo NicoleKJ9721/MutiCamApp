@@ -45,7 +45,9 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_activeHandle(ROIObject::NoHandle)
     , m_hoverHandle(ROIObject::NoHandle)
     , m_isDragging(false)
-    , m_isHoveringButton(false)
+    , m_isHoveringConfirmButton(false)
+    , m_isHoveringCancelButton(false)
+    , m_isHoveringRotationHandle(false)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_drawingContextValid(false)
@@ -640,24 +642,33 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
             updateRect = updateRect.adjusted(-50, -50, 50, 50); // 扩展一些边距
             update(updateRect.toRect());
         } else {
-            // 首先检查是否悬浮在ROI按钮上
+            // 检查ROI按钮悬浮状态
             bool isConfirm;
             bool currentlyHoveringButton = isPointInROIButton(imagePos, isConfirm);
+            bool currentlyHoveringConfirm = currentlyHoveringButton && isConfirm;
+            bool currentlyHoveringCancel = currentlyHoveringButton && !isConfirm;
             
-            if (currentlyHoveringButton != m_isHoveringButton) {
-                m_isHoveringButton = currentlyHoveringButton;
-                if (m_isHoveringButton) {
-                    // 鼠标悬浮在√×按钮上，设置手型光标
+            // 检查旋转按钮悬浮状态
+            PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
+            bool currentlyHoveringRotation = (hoverHandle == PaintingOverlay::ROIObject::RotationHandle);
+            
+            // 更新悬浮状态
+            if (currentlyHoveringConfirm != m_isHoveringConfirmButton ||
+                currentlyHoveringCancel != m_isHoveringCancelButton ||
+                currentlyHoveringRotation != m_isHoveringRotationHandle) {
+                
+                m_isHoveringConfirmButton = currentlyHoveringConfirm;
+                m_isHoveringCancelButton = currentlyHoveringCancel;
+                m_isHoveringRotationHandle = currentlyHoveringRotation;
+                
+                if (currentlyHoveringButton || m_isHoveringRotationHandle) {
                     setCursor(Qt::PointingHandCursor);
                 } else {
-                    // 鼠标移出按钮区域，检查ROI控制点状态
-                    PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
                     m_hoverHandle = hoverHandle;
                     updateROICursor(hoverHandle);
                 }
-            } else if (!m_isHoveringButton) {
-                // 不在按钮上时，正常处理ROI控制点悬停
-                PaintingOverlay::ROIObject::HandleType hoverHandle = getROIHandleAt(imagePos);
+                update(); // 重绘以更新按钮颜色
+            } else if (!currentlyHoveringButton && !m_isHoveringRotationHandle) {
                 if (hoverHandle != m_hoverHandle) {
                     m_hoverHandle = hoverHandle;
                     updateROICursor(hoverHandle);
@@ -6460,9 +6471,10 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
     }
 
     if (m_rotationIconRenderer && m_rotationIconRenderer->isValid()) {
-        // 绘制绿色圆形背景
+        // 绘制绿色圆形背景，根据悬浮状态选择颜色（悬浮时变亮）
         double bgSize = halfSize * 1.8;
-        painter.setBrush(QBrush(Qt::green));
+        QColor rotationBgColor = m_isHoveringRotationHandle ? QColor(144, 238, 144) : Qt::green;
+        painter.setBrush(QBrush(rotationBgColor));
         painter.setPen(createPen(Qt::darkGreen, 2, ctx.scale, false));
         painter.drawEllipse(rotationHandlePos, bgSize, bgSize);
 
@@ -6562,10 +6574,10 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     // 检查旋转手柄（位置计算要与drawROIHandles保持一致）
     // 使用与绘制时相同的位置计算：rect.top() - 30.0 / ctx.scale
     // 这里使用m_scaleFactor来保持一致
-    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0 / m_scaleFactor);
+    QPointF rotationHandlePos = QPointF(rect.center().x(), rect.top() - 30.0 / m_cachedDrawingContext.scale);
     double rotationDistance = QLineF(localPos, rotationHandlePos).length();
     // 使用更大的检测半径，因为旋转手柄比普通控制点大
-    double rotationHandleRadius = handleRadius * 1.5;
+    double rotationHandleRadius = handleRadius * 2;
     // qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
     if (rotationDistance <= rotationHandleRadius) {
         qDebug() << "检测到旋转手柄点击！";
@@ -6747,7 +6759,10 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
     painter.save();
     painter.setPen(QPen(Qt::darkGreen, 2));
-    painter.setBrush(QBrush(QColor(144, 238, 144, 200))); // 浅绿色半透明
+    
+    // 根据悬浮状态选择确认按钮颜色（悬浮时变亮）
+    QColor confirmBgColor = m_isHoveringConfirmButton ? QColor(180, 255, 180, 240) : QColor(144, 238, 144, 200);
+    painter.setBrush(QBrush(confirmBgColor));
     painter.drawRoundedRect(confirmRect, 5, 5);
 
     // 绘制√符号（根据按钮大小自适应）
@@ -6765,7 +6780,10 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     QRectF cancelRect(cancelButtonPos, QSizeF(buttonSize, buttonSize));
     painter.save();
     painter.setPen(QPen(Qt::darkRed, 2));
-    painter.setBrush(QBrush(QColor(255, 182, 193, 200))); // 浅红色半透明
+    
+    // 根据悬浮状态选择取消按钮颜色（悬浮时变亮）
+    QColor cancelBgColor = m_isHoveringCancelButton ? QColor(255, 220, 220, 240) : QColor(255, 182, 193, 200);
+    painter.setBrush(QBrush(cancelBgColor));
     painter.drawRoundedRect(cancelRect, 5, 5);
 
     // 绘制×符号（根据按钮大小自适应）
