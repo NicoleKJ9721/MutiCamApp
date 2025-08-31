@@ -6609,7 +6609,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
         transform.rotate(-m_currentROI.angle); // 反向旋转
         transform.translate(-center.x(), -center.y());
         localPos = transform.map(pos);
-        qDebug() << "旋转检测 - 原始位置:" << pos << "本地位置:" << localPos << "角度:" << m_currentROI.angle;
+        // qDebug() << "旋转检测 - 原始位置:" << pos << "本地位置:" << localPos << "角度:" << m_currentROI.angle;
     }
 
     // 检查8个调整控制点
@@ -6655,97 +6655,135 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     return PaintingOverlay::ROIObject::NoHandle;
 }
 
+/**
+ * @brief 根据控制点类型，获取其在矩形局部坐标系下的锚点（对面的点或边中点）
+ */
+QPointF PaintingOverlay::getAnchorPointInLocalCoords(ROIObject::HandleType handle, const QRectF& rect) const
+{
+    switch (handle) {
+        case ROIObject::TopLeft:     return rect.bottomRight();
+        case ROIObject::TopRight:    return rect.bottomLeft();
+        case ROIObject::BottomLeft:  return rect.topRight();
+        case ROIObject::BottomRight: return rect.topLeft();
+        case ROIObject::TopCenter:   return QPointF(rect.center().x(), rect.bottom());
+        case ROIObject::BottomCenter:return QPointF(rect.center().x(), rect.top());
+        case ROIObject::LeftCenter:  return QPointF(rect.right(), rect.center().y());
+        case ROIObject::RightCenter: return QPointF(rect.left(), rect.center().y());
+        default:                     return rect.center(); // 默认返回中心点
+    }
+}
+
+/**
+ * @brief 将一个点围绕另一个中心点旋转指定的角度
+ */
+QPointF PaintingOverlay::rotatePoint(const QPointF& point, const QPointF& center, qreal angleDegrees) const
+{
+    qreal angleRadians = qDegreesToRadians(angleDegrees);
+    qreal cosAngle = std::cos(angleRadians);
+    qreal sinAngle = std::sin(angleRadians);
+    QPointF translatedPoint = point - center;
+    qreal newX = translatedPoint.x() * cosAngle - translatedPoint.y() * sinAngle;
+    qreal newY = translatedPoint.x() * sinAngle + translatedPoint.y() * cosAngle;
+    return QPointF(newX, newY) + center;
+}
+
 void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF& delta)
 {
     if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
         return;
     }
 
-    // 如果是移动整个ROI，直接平移并约束到边界
-    if (handle == PaintingOverlay::ROIObject::MoveHandle) {
-        QRectF newRect = m_currentROI.rect;
-        newRect.translate(delta);
-        
-        // 应用边界约束
-        newRect = constrainROIToBounds(newRect);
-        
-        m_currentROI.rect = newRect;
+    // --- Case 1: 移动整个ROI ---
+    if (handle == ROIObject::MoveHandle) {
+        QRectF newRect = m_currentROI.rect.translated(delta);
+        // 简单的边界约束：确保中心点在图像内
+        if (isPointInImageBounds(newRect.center())) {
+            m_currentROI.rect = newRect;
+        }
         emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
         return;
     }
 
-    // 如果是旋转，调用旋转处理
-    if (handle == PaintingOverlay::ROIObject::RotationHandle) {
-        handleROIRotation(delta);
+    // --- Case 2: 旋转ROI ---
+    if (handle == ROIObject::RotationHandle) {
+        handleROIRotation(delta); // 旋转逻辑保持不变
         return;
     }
 
-    // 对于调整大小的操作，需要考虑旋转状态
+    // --- Case 3: 调整ROI尺寸 (最核心的逻辑) ---
     QRectF currentRect = m_currentROI.rect;
-    QPointF center = currentRect.center();
+    QPointF currentCenter = currentRect.center();
+    qreal currentAngle = m_currentROI.angle;
 
-    // 如果ROI有旋转，需要将delta转换到ROI的本地坐标系
-    QPointF localDelta = delta;
-    if (qAbs(m_currentROI.angle) > 0.01) {
-        // 创建反向旋转变换，将delta转换到ROI的本地坐标系
-        QTransform transform;
-        transform.rotate(-m_currentROI.angle);
-        localDelta = transform.map(delta);
+    // 获取鼠标在全局坐标系下的新位置
+    QPointF newGlobalHandlePos = m_lastMousePos + delta;
+
+    // 将鼠标的新位置，从全局坐标系转换到ROI的局部（未旋转）坐标系
+    QPointF localMousePos = rotatePoint(newGlobalHandlePos, currentCenter, -currentAngle);
+
+    // 创建一个新的局部矩形用于计算
+    QRectF newLocalRect = currentRect;
+
+    // 根据拖拽的控制点，在局部坐标系中修改矩形
+    switch (handle) {
+        case ROIObject::TopLeft:
+            newLocalRect.setTopLeft(localMousePos);
+            break;
+        case ROIObject::TopRight:
+            newLocalRect.setTopRight(localMousePos);
+            break;
+        case ROIObject::BottomLeft:
+            newLocalRect.setBottomLeft(localMousePos);
+            break;
+        case ROIObject::BottomRight:
+            newLocalRect.setBottomRight(localMousePos);
+            break;
+        case ROIObject::TopCenter:
+            newLocalRect.setTop(localMousePos.y());
+            break;
+        case ROIObject::BottomCenter:
+            newLocalRect.setBottom(localMousePos.y());
+            break;
+        case ROIObject::LeftCenter:
+            newLocalRect.setLeft(localMousePos.x());
+            break;
+        case ROIObject::RightCenter:
+            newLocalRect.setRight(localMousePos.x());
+            break;
+        default:
+            return; // 不应该发生
     }
 
-    // 计算新的尺寸变化
-    QRectF newRect = currentRect;
+    // 标准化矩形，以防拖拽时宽度或高度变为负数（例如，左边拖到右边）
+    newLocalRect = newLocalRect.normalized();
 
-    switch (handle) {
-    case PaintingOverlay::ROIObject::TopLeft:
-        newRect.setLeft(newRect.left() + localDelta.x());
-        newRect.setTop(newRect.top() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::TopRight:
-        newRect.setRight(newRect.right() + localDelta.x());
-        newRect.setTop(newRect.top() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::BottomLeft:
-        newRect.setLeft(newRect.left() + localDelta.x());
-        newRect.setBottom(newRect.bottom() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::BottomRight:
-        newRect.setRight(newRect.right() + localDelta.x());
-        newRect.setBottom(newRect.bottom() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::TopCenter:
-        newRect.setTop(newRect.top() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::BottomCenter:
-        newRect.setBottom(newRect.bottom() + localDelta.y());
-        break;
-    case PaintingOverlay::ROIObject::LeftCenter:
-        newRect.setLeft(newRect.left() + localDelta.x());
-        break;
-    case PaintingOverlay::ROIObject::RightCenter:
-        newRect.setRight(newRect.right() + localDelta.x());
-        break;
-    default:
+    // 确保矩形不小于最小尺寸
+    if (newLocalRect.width() < 20 || newLocalRect.height() < 20) {
         return;
     }
 
-    // 确保最小尺寸
-    if (newRect.width() > 20 && newRect.height() > 20) {
-        // 对于旋转的ROI，保持中心点不变
-        if (qAbs(m_currentROI.angle) > 0.01) {
-            QPointF newCenter = newRect.center();
-            QPointF offset = center - newCenter;
-            newRect.translate(offset);
-        }
+    // 计算新的局部中心点
+    QPointF newLocalCenter = newLocalRect.center();
+    
+    // 计算局部中心点的位移
+    QPointF localCenterDisplacement = newLocalCenter - currentRect.center();
 
-        // 应用边界约束（但不约束旋转的ROI，因为复杂度较高）
-        if (qAbs(m_currentROI.angle) < 0.01) {
-            newRect = constrainROIToBounds(newRect);
-        }
+    // 将这个局部坐标系下的位移，旋转回全局坐标系
+    QPointF globalCenterDisplacement = rotatePoint(localCenterDisplacement, QPointF(0,0), currentAngle);
 
-        m_currentROI.rect = newRect;
-        emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
-    }
+    // 计算出最终的全局中心点
+    QPointF newGlobalCenter = currentCenter + globalCenterDisplacement;
+
+    // 使用新的全局中心和新的（局部）尺寸来定义最终的ROI矩形
+    m_currentROI.rect = QRectF(
+        newGlobalCenter.x() - newLocalRect.width() / 2.0,
+        newGlobalCenter.y() - newLocalRect.height() / 2.0,
+        newLocalRect.width(),
+        newLocalRect.height()
+    );
+
+    // 发送信号
+    emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 }
 
 void PaintingOverlay::handleROIRotation(const QPointF& delta)

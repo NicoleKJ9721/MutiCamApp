@@ -683,6 +683,10 @@ private:
     void drawROIButtons(QPainter& painter, const DrawingContext& ctx) const;
     void drawROIInfo(QPainter& painter, const DrawingContext& ctx) const;
     bool isPointInROIButton(const QPointF& pos, bool& isConfirm) const;
+    
+    // ROI旋转拖拽辅助函数
+    QPointF getAnchorPointInLocalCoords(ROIObject::HandleType handle, const QRectF& rect) const;
+    QPointF rotatePoint(const QPointF& point, const QPointF& center, qreal angleDegrees) const;
 
 
 
