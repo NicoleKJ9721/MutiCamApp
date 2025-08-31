@@ -2303,6 +2303,60 @@ bool PaintingOverlay::isPointInImageBounds(const QPointF& imagePos) const
             imagePos.y() >= 0 && imagePos.y() < m_imageSize.height());
 }
 
+QRectF PaintingOverlay::constrainROIToBounds(const QRectF& roi) const
+{
+    // 如果没有图像尺寸信息，返回原始ROI
+    if (m_imageSize.isEmpty()) {
+        return roi;
+    }
+
+    // 获取图像边界
+    const double imageWidth = m_imageSize.width();
+    const double imageHeight = m_imageSize.height();
+    
+    QRectF constrainedROI = roi;
+    
+    // 确保ROI不超出图像左上角
+    if (constrainedROI.x() < 0) {
+        constrainedROI.moveLeft(0);
+    }
+    if (constrainedROI.y() < 0) {
+        constrainedROI.moveTop(0);
+    }
+    
+    // 确保ROI不超出图像右下角
+    if (constrainedROI.right() > imageWidth) {
+        constrainedROI.moveRight(imageWidth);
+    }
+    if (constrainedROI.bottom() > imageHeight) {
+        constrainedROI.moveBottom(imageHeight);
+    }
+    
+    // 如果ROI太大，缩小到图像尺寸
+    if (constrainedROI.width() > imageWidth) {
+        constrainedROI.setWidth(imageWidth);
+    }
+    if (constrainedROI.height() > imageHeight) {
+        constrainedROI.setHeight(imageHeight);
+    }
+    
+    return constrainedROI;
+}
+
+bool PaintingOverlay::isROIWithinBounds(const QRectF& roi) const
+{
+    // 如果没有图像尺寸信息，认为无效
+    if (m_imageSize.isEmpty()) {
+        return false;
+    }
+    
+    // 检查ROI是否完全在图像范围内
+    return (roi.x() >= 0 && roi.y() >= 0 &&
+            roi.right() <= m_imageSize.width() &&
+            roi.bottom() <= m_imageSize.height() &&
+            roi.width() > 0 && roi.height() > 0);
+}
+
 void PaintingOverlay::drawObjectsByHistory(QPainter& painter, const DrawingContext& ctx) const
 {
     // 按历史记录顺序绘制所有图形，确保后创建的图形在上层
@@ -6305,12 +6359,20 @@ void PaintingOverlay::startROICreation()
     QPoint center = imageRect.center();
     int defaultSize = qMin(imageRect.width(), imageRect.height()) / 4;
     defaultSize = qMax(defaultSize, 100); // 最小100像素
+    
+    // 确保默认尺寸不超出图像边界
+    if (!m_imageSize.isEmpty()) {
+        defaultSize = qMin(defaultSize, qMin(m_imageSize.width(), m_imageSize.height()) - 20);
+    }
 
     // 创建ROI对象
     m_currentROI = ROIObject();
-    m_currentROI.rect = QRectF(center.x() - defaultSize/2,
-                              center.y() - defaultSize/2,
-                              defaultSize, defaultSize);
+    QRectF proposedRect(center.x() - defaultSize/2,
+                       center.y() - defaultSize/2,
+                       defaultSize, defaultSize);
+    
+    // 应用边界约束确保初始位置合理
+    m_currentROI.rect = constrainROIToBounds(proposedRect);
     m_currentROI.angle = 0.0;
     m_currentROI.isActive = true;
     m_currentROI.showHandles = true;
@@ -6599,9 +6661,15 @@ void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF&
         return;
     }
 
-    // 如果是移动整个ROI，直接平移
+    // 如果是移动整个ROI，直接平移并约束到边界
     if (handle == PaintingOverlay::ROIObject::MoveHandle) {
-        m_currentROI.rect.translate(delta);
+        QRectF newRect = m_currentROI.rect;
+        newRect.translate(delta);
+        
+        // 应用边界约束
+        newRect = constrainROIToBounds(newRect);
+        
+        m_currentROI.rect = newRect;
         emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
         return;
     }
@@ -6668,6 +6736,11 @@ void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF&
             QPointF newCenter = newRect.center();
             QPointF offset = center - newCenter;
             newRect.translate(offset);
+        }
+
+        // 应用边界约束（但不约束旋转的ROI，因为复杂度较高）
+        if (qAbs(m_currentROI.angle) < 0.01) {
+            newRect = constrainROIToBounds(newRect);
         }
 
         m_currentROI.rect = newRect;

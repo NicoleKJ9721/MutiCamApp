@@ -736,6 +736,8 @@ private:
 
     // 边界检查方法
     bool isPointInImageBounds(const QPointF& imagePos) const;
+    QRectF constrainROIToBounds(const QRectF& roi) const;
+    bool isROIWithinBounds(const QRectF& roi) const;
     
     // 绘图辅助方法
     QPen createPen(const QColor& color, int width, double scale, bool dashed = false) const;
