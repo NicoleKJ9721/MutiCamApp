@@ -6714,6 +6714,8 @@ void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF&
     QRectF currentRect = m_currentROI.rect;
     QPointF currentCenter = currentRect.center();
     qreal currentAngle = m_currentROI.angle;
+    const qreal minWidth = 20.0;
+    const qreal minHeight = 20.0;
 
     // 获取鼠标在全局坐标系下的新位置
     QPointF newGlobalHandlePos = m_lastMousePos + delta;
@@ -6754,14 +6756,27 @@ void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF&
             return; // 不应该发生
     }
 
-    // 标准化矩形，以防拖拽时宽度或高度变为负数（例如，左边拖到右边）
-    newLocalRect = newLocalRect.normalized();
-
-    // 确保矩形不小于最小尺寸
-    if (newLocalRect.width() < 20 || newLocalRect.height() < 20) {
-        return;
+    // 约束尺寸，防止过小。这是解决“推着走”问题的关键！
+    if (newLocalRect.width() < minWidth) {
+        // 判断是哪一边被拖动
+        if (handle == ROIObject::LeftCenter || handle == ROIObject::TopLeft || handle == ROIObject::BottomLeft) {
+            newLocalRect.setLeft(newLocalRect.right() - minWidth); // 左边被拖，右边固定
+        } else {
+            newLocalRect.setRight(newLocalRect.left() + minWidth); // 右边被拖，左边固定
+        }
+    }
+    if (newLocalRect.height() < minHeight) {
+        // 判断是哪一边被拖动
+        if (handle == ROIObject::TopCenter || handle == ROIObject::TopLeft || handle == ROIObject::TopRight) {
+            newLocalRect.setTop(newLocalRect.bottom() - minHeight); // 上边被拖，下边固定
+        } else {
+            newLocalRect.setBottom(newLocalRect.top() + minHeight); // 下边被拖，上边固定
+        }
     }
 
+    // 标准化矩形，以防拖拽时宽度或高度变为负数（例如，左边拖到右边）
+    newLocalRect = newLocalRect.normalized();
+    
     // 计算新的局部中心点
     QPointF newLocalCenter = newLocalRect.center();
     
