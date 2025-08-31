@@ -687,6 +687,7 @@ private:
     // ROI旋转拖拽辅助函数
     QPointF getAnchorPointInLocalCoords(ROIObject::HandleType handle, const QRectF& rect) const;
     QPointF rotatePoint(const QPointF& point, const QPointF& center, qreal angleDegrees) const;
+    QVector<QPointF> getRotatedRectCorners(const QRectF& rect, qreal angleDegrees) const;
 
 
 

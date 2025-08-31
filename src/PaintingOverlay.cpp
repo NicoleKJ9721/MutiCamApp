@@ -6687,117 +6687,122 @@ QPointF PaintingOverlay::rotatePoint(const QPointF& point, const QPointF& center
     return QPointF(newX, newY) + center;
 }
 
+/**
+ * @brief 计算并返回一个矩形在旋转指定角度后的四个角点的全局坐标
+ */
+QVector<QPointF> PaintingOverlay::getRotatedRectCorners(const QRectF& rect, qreal angleDegrees) const
+{
+    QVector<QPointF> corners;
+    const QPointF center = rect.center();
+    corners << rotatePoint(rect.topLeft(),     center, angleDegrees);
+    corners << rotatePoint(rect.topRight(),    center, angleDegrees);
+    corners << rotatePoint(rect.bottomRight(), center, angleDegrees);
+    corners << rotatePoint(rect.bottomLeft(),  center, angleDegrees);
+    return corners;
+}
+
 void PaintingOverlay::handleROIDrag(ROIObject::HandleType handle, const QPointF& delta)
 {
     if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
         return;
     }
 
+    // 定义图像边界
+    const QRectF imageBounds(0, 0, m_imageSize.width(), m_imageSize.height());
+    if (imageBounds.isEmpty()) return; // 没有边界信息则无法约束
+
+    // 声明一个变量来存储最终计算出的ROI矩形
+    QRectF proposedRect = m_currentROI.rect;
+    qreal currentAngle = m_currentROI.angle;
+
     // --- Case 1: 移动整个ROI ---
     if (handle == ROIObject::MoveHandle) {
-        QRectF newRect = m_currentROI.rect.translated(delta);
-        // 简单的边界约束：确保中心点在图像内
-        if (isPointInImageBounds(newRect.center())) {
-            m_currentROI.rect = newRect;
-        }
-        emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
-        return;
+        proposedRect.translate(delta);
     }
-
     // --- Case 2: 旋转ROI ---
-    if (handle == ROIObject::RotationHandle) {
-        handleROIRotation(delta); // 旋转逻辑保持不变
+    else if (handle == ROIObject::RotationHandle) {
+        handleROIRotation(delta); // 旋转逻辑是独立的，直接返回
         return;
     }
+    // --- Case 3: 调整ROI尺寸 ---
+    else {
+        QRectF currentRect = m_currentROI.rect;
+        QPointF currentCenter = currentRect.center();
+        const qreal minWidth = 20.0;
+        const qreal minHeight = 20.0;
 
-    // --- Case 3: 调整ROI尺寸 (最核心的逻辑) ---
-    QRectF currentRect = m_currentROI.rect;
-    QPointF currentCenter = currentRect.center();
-    qreal currentAngle = m_currentROI.angle;
-    const qreal minWidth = 20.0;
-    const qreal minHeight = 20.0;
+        QPointF newGlobalHandlePos = m_lastMousePos + delta;
+        QPointF localMousePos = rotatePoint(newGlobalHandlePos, currentCenter, -currentAngle);
+        QRectF newLocalRect = currentRect;
 
-    // 获取鼠标在全局坐标系下的新位置
-    QPointF newGlobalHandlePos = m_lastMousePos + delta;
+        switch (handle) {
+            case ROIObject::TopLeft:     newLocalRect.setTopLeft(localMousePos); break;
+            case ROIObject::TopRight:    newLocalRect.setTopRight(localMousePos); break;
+            case ROIObject::BottomLeft:  newLocalRect.setBottomLeft(localMousePos); break;
+            case ROIObject::BottomRight: newLocalRect.setBottomRight(localMousePos); break;
+            case ROIObject::TopCenter:   newLocalRect.setTop(localMousePos.y()); break;
+            case ROIObject::BottomCenter:newLocalRect.setBottom(localMousePos.y()); break;
+            case ROIObject::LeftCenter:  newLocalRect.setLeft(localMousePos.x()); break;
+            case ROIObject::RightCenter: newLocalRect.setRight(localMousePos.x()); break;
+            default: return;
+        }
 
-    // 将鼠标的新位置，从全局坐标系转换到ROI的局部（未旋转）坐标系
-    QPointF localMousePos = rotatePoint(newGlobalHandlePos, currentCenter, -currentAngle);
+        if (newLocalRect.width() < minWidth) {
+            if (handle == ROIObject::LeftCenter || handle == ROIObject::TopLeft || handle == ROIObject::BottomLeft)
+                newLocalRect.setLeft(newLocalRect.right() - minWidth);
+            else
+                newLocalRect.setRight(newLocalRect.left() + minWidth);
+        }
+        if (newLocalRect.height() < minHeight) {
+            if (handle == ROIObject::TopCenter || handle == ROIObject::TopLeft || handle == ROIObject::TopRight)
+                newLocalRect.setTop(newLocalRect.bottom() - minHeight);
+            else
+                newLocalRect.setBottom(newLocalRect.top() + minHeight);
+        }
 
-    // 创建一个新的局部矩形用于计算
-    QRectF newLocalRect = currentRect;
+        newLocalRect = newLocalRect.normalized();
+        
+        QPointF newLocalCenter = newLocalRect.center();
+        QPointF localCenterDisplacement = newLocalCenter - currentRect.center();
+        QPointF globalCenterDisplacement = rotatePoint(localCenterDisplacement, QPointF(0,0), currentAngle);
+        QPointF newGlobalCenter = currentCenter + globalCenterDisplacement;
 
-    // 根据拖拽的控制点，在局部坐标系中修改矩形
-    switch (handle) {
-        case ROIObject::TopLeft:
-            newLocalRect.setTopLeft(localMousePos);
-            break;
-        case ROIObject::TopRight:
-            newLocalRect.setTopRight(localMousePos);
-            break;
-        case ROIObject::BottomLeft:
-            newLocalRect.setBottomLeft(localMousePos);
-            break;
-        case ROIObject::BottomRight:
-            newLocalRect.setBottomRight(localMousePos);
-            break;
-        case ROIObject::TopCenter:
-            newLocalRect.setTop(localMousePos.y());
-            break;
-        case ROIObject::BottomCenter:
-            newLocalRect.setBottom(localMousePos.y());
-            break;
-        case ROIObject::LeftCenter:
-            newLocalRect.setLeft(localMousePos.x());
-            break;
-        case ROIObject::RightCenter:
-            newLocalRect.setRight(localMousePos.x());
-            break;
-        default:
-            return; // 不应该发生
+        proposedRect = QRectF(
+            newGlobalCenter.x() - newLocalRect.width() / 2.0,
+            newGlobalCenter.y() - newLocalRect.height() / 2.0,
+            newLocalRect.width(),
+            newLocalRect.height()
+        );
     }
 
-    // 约束尺寸，防止过小。这是解决“推着走”问题的关键！
-    if (newLocalRect.width() < minWidth) {
-        // 判断是哪一边被拖动
-        if (handle == ROIObject::LeftCenter || handle == ROIObject::TopLeft || handle == ROIObject::BottomLeft) {
-            newLocalRect.setLeft(newLocalRect.right() - minWidth); // 左边被拖，右边固定
-        } else {
-            newLocalRect.setRight(newLocalRect.left() + minWidth); // 右边被拖，左边固定
+    // --- 统一的边界约束逻辑 ---
+    // 获取提议的、旋转后的ROI的四个角点
+    QVector<QPointF> corners = getRotatedRectCorners(proposedRect, currentAngle);
+
+    // 计算需要将整个ROI移动多少才能回到边界内
+    qreal dx_adjust = 0.0;
+    qreal dy_adjust = 0.0;
+
+    for (const QPointF& corner : corners) {
+        if (corner.x() < imageBounds.left()) {
+            dx_adjust = qMax(dx_adjust, imageBounds.left() - corner.x());
+        }
+        if (corner.x() > imageBounds.right()) {
+            dx_adjust = qMin(dx_adjust, imageBounds.right() - corner.x());
+        }
+        if (corner.y() < imageBounds.top()) {
+            dy_adjust = qMax(dy_adjust, imageBounds.top() - corner.y());
+        }
+        if (corner.y() > imageBounds.bottom()) {
+            dy_adjust = qMin(dy_adjust, imageBounds.bottom() - corner.y());
         }
     }
-    if (newLocalRect.height() < minHeight) {
-        // 判断是哪一边被拖动
-        if (handle == ROIObject::TopCenter || handle == ROIObject::TopLeft || handle == ROIObject::TopRight) {
-            newLocalRect.setTop(newLocalRect.bottom() - minHeight); // 上边被拖，下边固定
-        } else {
-            newLocalRect.setBottom(newLocalRect.top() + minHeight); // 下边被拖，上边固定
-        }
-    }
 
-    // 标准化矩形，以防拖拽时宽度或高度变为负数（例如，左边拖到右边）
-    newLocalRect = newLocalRect.normalized();
-    
-    // 计算新的局部中心点
-    QPointF newLocalCenter = newLocalRect.center();
-    
-    // 计算局部中心点的位移
-    QPointF localCenterDisplacement = newLocalCenter - currentRect.center();
+    // 应用计算出的调整量
+    proposedRect.translate(dx_adjust, dy_adjust);
 
-    // 将这个局部坐标系下的位移，旋转回全局坐标系
-    QPointF globalCenterDisplacement = rotatePoint(localCenterDisplacement, QPointF(0,0), currentAngle);
-
-    // 计算出最终的全局中心点
-    QPointF newGlobalCenter = currentCenter + globalCenterDisplacement;
-
-    // 使用新的全局中心和新的（局部）尺寸来定义最终的ROI矩形
-    m_currentROI.rect = QRectF(
-        newGlobalCenter.x() - newLocalRect.width() / 2.0,
-        newGlobalCenter.y() - newLocalRect.height() / 2.0,
-        newLocalRect.width(),
-        newLocalRect.height()
-    );
-
-    // 发送信号
+    // 最终更新ROI
+    m_currentROI.rect = proposedRect;
     emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 }
 
