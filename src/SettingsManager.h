@@ -43,8 +43,6 @@ public:
         int uiHeight;
 
         // 拍照参数预设
-        int captureInterval;
-        bool autoSaveEnabled;
         QString captureFormat;
         QString imageQuality;
 
@@ -97,8 +95,6 @@ public:
             uiHeight(600),
 
             // 拍照参数预设默认值
-            captureInterval(3),
-            autoSaveEnabled(true),
             captureFormat("PNG"),
             imageQuality("无损最高质量")
         {}

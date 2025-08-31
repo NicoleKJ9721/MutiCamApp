@@ -4682,10 +4682,6 @@ void MutiCamApp::initializeCapturePresets()
     connect(ui->btnResetPreset, &QPushButton::clicked, this, &MutiCamApp::resetCapturePreset);
 
     // 连接参数变化信号，实现实时保存
-    connect(ui->spinBoxCaptureInterval, QOverload<int>::of(&QSpinBox::valueChanged),
-            this, &MutiCamApp::applyCapturePreset);
-    connect(ui->checkBoxAutoSave, &QCheckBox::toggled,
-            this, &MutiCamApp::applyCapturePreset);
     connect(ui->comboBoxCaptureFormat, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &MutiCamApp::applyCapturePreset);
     connect(ui->comboBoxImageQuality, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -4706,8 +4702,6 @@ void MutiCamApp::saveCapturePreset()
         auto settings = m_settingsManager->getCurrentSettings();
 
         // 更新拍照预设参数
-        settings.captureInterval = ui->spinBoxCaptureInterval->value();
-        settings.autoSaveEnabled = ui->checkBoxAutoSave->isChecked();
         settings.captureFormat = ui->comboBoxCaptureFormat->currentText();
         settings.imageQuality = ui->comboBoxImageQuality->currentText();
 
@@ -4732,9 +4726,6 @@ void MutiCamApp::loadCapturePreset()
         const auto& settings = m_settingsManager->getCurrentSettings();
 
         // 应用预设参数到UI
-        ui->spinBoxCaptureInterval->setValue(settings.captureInterval);
-        ui->checkBoxAutoSave->setChecked(settings.autoSaveEnabled);
-
         // 设置图像格式
         int formatIndex = ui->comboBoxCaptureFormat->findText(settings.captureFormat);
         if (formatIndex >= 0) {
@@ -4761,8 +4752,6 @@ void MutiCamApp::resetCapturePreset()
     qDebug() << "重置拍照参数预设";
 
     // 重置为默认值
-    ui->spinBoxCaptureInterval->setValue(3);
-    ui->checkBoxAutoSave->setChecked(true);
     ui->comboBoxCaptureFormat->setCurrentIndex(0); // PNG
     ui->comboBoxImageQuality->setCurrentIndex(0);  // 无损最高质量
 
@@ -4781,8 +4770,6 @@ void MutiCamApp::applyCapturePreset()
 {
     // 实时应用参数变化（可以在这里添加实时生效的逻辑）
     qDebug() << "应用拍照参数预设:"
-             << "间隔=" << ui->spinBoxCaptureInterval->value() << "秒"
-             << "自动保存=" << ui->checkBoxAutoSave->isChecked()
              << "格式=" << ui->comboBoxCaptureFormat->currentText()
              << "质量=" << ui->comboBoxImageQuality->currentText();
 
