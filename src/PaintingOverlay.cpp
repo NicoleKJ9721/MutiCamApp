@@ -7452,8 +7452,8 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     QPointF textPos = matchRect.topLeft() + QPointF(0, -5);
 
     // 设置文本样式
-    QFont font = painter.font();
-    font.setPointSize(10);
+    QFont font = ctx.font;
+    font.setPointSize(qMax(8, qRound(ctx.fontSize * 0.8))); // 与ROI信息文字大小一致
     font.setBold(true);
     painter.setFont(font);
 
