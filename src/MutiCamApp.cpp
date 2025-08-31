@@ -4124,7 +4124,7 @@ void MutiCamApp::onRefreshStatusClicked()
 void MutiCamApp::onMoveXLeftClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "X轴负方向移动，步长：" << stepSize << "mm";
+    qDebug() << "X轴负方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(-stepSize, 0, 0);
@@ -4141,7 +4141,7 @@ void MutiCamApp::onMoveXLeftClicked()
 void MutiCamApp::onMoveXRightClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "X轴正方向移动，步长：" << stepSize << "mm";
+    qDebug() << "X轴正方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(stepSize, 0, 0);
@@ -4158,7 +4158,7 @@ void MutiCamApp::onMoveXRightClicked()
 void MutiCamApp::onMoveYUpClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "Y轴正方向移动，步长：" << stepSize << "mm";
+    qDebug() << "Y轴正方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(0, stepSize, 0);
@@ -4175,7 +4175,7 @@ void MutiCamApp::onMoveYUpClicked()
 void MutiCamApp::onMoveYDownClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "Y轴负方向移动，步长：" << stepSize << "mm";
+    qDebug() << "Y轴负方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(0, -stepSize, 0);
@@ -4192,7 +4192,7 @@ void MutiCamApp::onMoveYDownClicked()
 void MutiCamApp::onMoveZUpClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "Z轴正方向移动，步长：" << stepSize << "mm";
+    qDebug() << "Z轴正方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(0, 0, stepSize);
@@ -4209,7 +4209,7 @@ void MutiCamApp::onMoveZUpClicked()
 void MutiCamApp::onMoveZDownClicked()
 {
     double stepSize = getCurrentStepSize();
-    qDebug() << "Z轴负方向移动，步长：" << stepSize << "mm";
+    qDebug() << "Z轴负方向移动，步长：" << stepSize << "μm";
 
     // 更新当前位置
     updateCurrentPosition(0, 0, -stepSize);
@@ -4291,7 +4291,7 @@ void MutiCamApp::initializeTrajectoryRecorder()
     connect(m_trajectoryRecorder.get(), &TrajectoryRecorder::trajectoryCleared,
             this, [this]() {
                 ui->labelTrajectoryPoints->setText("0");
-                ui->labelTrajectoryDistance->setText("0.0 mm");
+                ui->labelTrajectoryDistance->setText("0.0 μm");
                 ui->labelTrajectoryStatus->setText("未记录");
                 ui->labelTrajectoryStatus->setStyleSheet("color: gray; font-weight: bold;");
             });
@@ -4306,9 +4306,9 @@ void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double delt
     m_currentZ += deltaZ;
 
     // 更新UI显示的当前位置
-    ui->labelXPositionValue->setText(QString("%1 mm").arg(m_currentX, 0, 'f', 3));
-    ui->labelYPositionValue->setText(QString("%1 mm").arg(m_currentY, 0, 'f', 3));
-    ui->labelZPositionValue->setText(QString("%1 mm").arg(m_currentZ, 0, 'f', 3));
+    ui->labelXPositionValue->setText(QString("%1 μm").arg(m_currentX, 0, 'f', 3));
+    ui->labelYPositionValue->setText(QString("%1 μm").arg(m_currentY, 0, 'f', 3));
+    ui->labelZPositionValue->setText(QString("%1 μm").arg(m_currentZ, 0, 'f', 3));
 }
 
 // 轨迹记录槽函数实现
@@ -4369,7 +4369,7 @@ void MutiCamApp::onTrajectoryStatisticsUpdated(const TrajectoryStatistics& stats
 {
     // 更新UI显示的统计信息
     ui->labelTrajectoryPoints->setText(QString::number(stats.totalPoints));
-    ui->labelTrajectoryDistance->setText(QString("%1 mm").arg(stats.totalDistance, 0, 'f', 2));
+    ui->labelTrajectoryDistance->setText(QString("%1 μm").arg(stats.totalDistance, 0, 'f', 2));
 }
 
 void MutiCamApp::updateTrajectoryDisplay()
