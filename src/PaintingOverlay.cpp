@@ -6408,6 +6408,12 @@ void PaintingOverlay::finishROICreation()
     m_isDrawingMode = false;
     m_activeHandle = ROIObject::NoHandle;
     m_isDragging = false;
+    m_isHoveringConfirmButton = false;
+    m_isHoveringCancelButton = false;
+    m_isHoveringRotationHandle = false;
+    
+    // 重置鼠标光标
+    setCursor(Qt::ArrowCursor);
 
     update();
 
@@ -6430,6 +6436,12 @@ void PaintingOverlay::cancelROICreation()
     m_isDrawingMode = false;
     m_activeHandle = ROIObject::NoHandle;
     m_isDragging = false;
+    m_isHoveringConfirmButton = false;
+    m_isHoveringCancelButton = false;
+    m_isHoveringRotationHandle = false;
+    
+    // 重置鼠标光标
+    setCursor(Qt::ArrowCursor);
 
     update();
 
@@ -6569,6 +6581,17 @@ void PaintingOverlay::handleROICreationClick(const QPointF& pos)
         } else {
             emit roiCancelled(m_viewName);
         }
+        
+        // 立即清理状态并重置鼠标光标
+        m_hasCurrentROI = false;
+        m_roiCreationMode = false;
+        m_activeHandle = ROIObject::NoHandle;
+        m_isDragging = false;
+        m_isHoveringConfirmButton = false;
+        m_isHoveringCancelButton = false;
+        m_isHoveringRotationHandle = false;
+        setCursor(Qt::ArrowCursor);
+        update();
         return;
     }
 
