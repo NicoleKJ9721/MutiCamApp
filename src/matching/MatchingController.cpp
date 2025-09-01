@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -262,6 +265,49 @@ std::future<bool> MatchingController::createTemplateAsync(
                 weak_thresh,
                 strong_thresh
             );
+            
+            // 创建轻量级 .json 元数据文件和缩略图
+            try {
+                // 保存缩略图
+                std::string thumbnail_path = model_save_path + "/" + new_class_name + ".png";
+                if (!cv::imwrite(thumbnail_path, template_image)) {
+                    std::cerr << "[WARNING] Failed to save thumbnail: " << thumbnail_path << std::endl;
+                }
+                
+                nlohmann::json metadata;
+                metadata["templateName"] = new_class_name;
+                metadata["modelFile"] = new_class_name + ".yaml";
+                metadata["imageFile"] = new_class_name + ".png";
+                
+                // 获取当前时间
+                auto now = std::chrono::system_clock::now();
+                auto time_t = std::chrono::system_clock::to_time_t(now);
+                std::stringstream ss;
+                ss << std::put_time(std::localtime(&time_t), "%Y-%m-%dT%H:%M:%S");
+                metadata["createdTime"] = ss.str();
+                
+                // 保存基础模板尺寸信息
+                metadata["imageSize"]["width"] = templateROI.width;
+                metadata["imageSize"]["height"] = templateROI.height;
+                metadata["imageSize"]["channels"] = template_image.channels();
+                metadata["originalROI"]["x"] = templateROI.x;
+                metadata["originalROI"]["y"] = templateROI.y;
+                metadata["originalROI"]["width"] = templateROI.width;
+                metadata["originalROI"]["height"] = templateROI.height;
+                
+                // 保存 .json 文件
+                std::string json_path = model_save_path + "/" + new_class_name + ".json";
+                std::ofstream meta_file(json_path);
+                if (meta_file.is_open()) {
+                    meta_file << std::setw(4) << metadata << std::endl;
+                    meta_file.close();
+                } else {
+                    std::cerr << "[WARNING] Failed to create metadata file: " << json_path << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "[WARNING] Failed to create metadata: " << e.what() << std::endl;
+            }
+            
             return true;
         } catch (const cv::Exception& e) { // 优先捕获OpenCV的异常
             std::cerr << "\n\n[FATAL-THREAD] OpenCV Exception during template creation: \n" 

@@ -7269,65 +7269,86 @@ QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString&
         return templates;
     }
 
-    // 查找所有 .yaml 模型文件
-    QStringList modelFilters;
-    modelFilters << "*.yaml";
-    QStringList modelFiles = dir.entryList(modelFilters, QDir::Files);
+    // 查找所有 .json 元数据文件（快速加载）
+    QStringList metadataFilters;
+    metadataFilters << "*.json";
+    QStringList metadataFiles = dir.entryList(metadataFilters, QDir::Files);
 
-    qInfo() << "在目录" << searchDir << "中找到" << modelFiles.size() << "个模型文件";
+    qInfo() << "在目录" << searchDir << "中找到" << metadataFiles.size() << "个元数据文件";
 
-    for (const QString& modelFile : modelFiles) {
-        QString modelPath = dir.filePath(modelFile);
+    for (const QString& jsonFile : metadataFiles) {
+        QString jsonPath = dir.filePath(jsonFile);
         
         try {
-            // 使用OpenCV的FileStorage来读取.yaml文件
-            cv::FileStorage fs(modelPath.toStdString(), cv::FileStorage::READ);
-            if (!fs.isOpened()) {
-                qWarning() << "无法打开模型文件:" << modelPath;
+            // 读取 JSON 元数据文件
+            QFile metaFile(jsonPath);
+            if (!metaFile.open(QIODevice::ReadOnly)) {
+                qWarning() << "无法打开元数据文件:" << jsonPath;
                 continue;
             }
 
+            QByteArray metaData = metaFile.readAll();
+            metaFile.close();
+
+            QJsonParseError parseError;
+            QJsonDocument doc = QJsonDocument::fromJson(metaData, &parseError);
+            if (parseError.error != QJsonParseError::NoError) {
+                qWarning() << "解析元数据文件失败:" << parseError.errorString() << "文件:" << jsonPath;
+                continue;
+            }
+
+            QJsonObject metadata = doc.object();
             TemplateInfo templateInfo;
             
-            // 从文件名推断模板名称
-            templateInfo.name = QFileInfo(modelFile).completeBaseName();
-            templateInfo.metadataPath = modelPath; // .yaml 文件现在就是我们的元数据
+            // 从 JSON 读取模板信息
+            templateInfo.name = metadata["templateName"].toString();
+            templateInfo.metadataPath = jsonPath;
+            templateInfo.createdTime = QDateTime::fromString(metadata["createdTime"].toString(), Qt::ISODate);
+            templateInfo.isSelected = false;
 
-            // 读取基础模板的尺寸信息 (从金字塔0层的第一个模板获取)
-            cv::FileNode templatesNode = fs["templates"];
-            if (!templatesNode.empty() && templatesNode.isSeq() && templatesNode.size() > 0) {
-                cv::FileNode firstTemplatePyrds = templatesNode[0]["template_pyrds"];
-                if (!firstTemplatePyrds.empty() && firstTemplatePyrds.isSeq() && firstTemplatePyrds.size() > 0) {
-                    cv::FileNode baseTemplateNode = firstTemplatePyrds[0];
-                    int width = baseTemplateNode["w"];
-                    int height = baseTemplateNode["h"];
-                    templateInfo.originalROI = QRectF(0, 0, width, height);
+            // 读取尺寸信息
+            if (metadata.contains("imageSize")) {
+                QJsonObject sizeObj = metadata["imageSize"].toObject();
+                int width = sizeObj["width"].toInt();
+                int height = sizeObj["height"].toInt();
+                templateInfo.originalROI = QRectF(0, 0, width, height);
+            }
+
+            // 读取原始ROI信息（如果有）
+            if (metadata.contains("originalROI")) {
+                QJsonObject roiObj = metadata["originalROI"].toObject();
+                templateInfo.originalROI = QRectF(
+                    roiObj["x"].toDouble(),
+                    roiObj["y"].toDouble(),
+                    roiObj["width"].toDouble(),
+                    roiObj["height"].toDouble()
+                );
+            }
+
+            // 加载缩略图用于显示
+            if (metadata.contains("imageFile")) {
+                QString imageFileName = metadata["imageFile"].toString();
+                QString imagePath = dir.filePath(imageFileName);
+                if (QFile::exists(imagePath)) {
+                    cv::Mat image = cv::imread(imagePath.toStdString());
+                    if (!image.empty()) {
+                        templateInfo.templateImage = image.clone();
+                        templateInfo.imagePath = imagePath;
+                    }
                 }
             }
 
-            // 我们没有简单的缩略图，但可以创建一个占位符或默认图标
-            // templateInfo.templateImage 暂时留空
-
-            // 尝试读取创建时间 (可选，如果模型文件中有的话)
-            // 这里我们用文件修改时间代替
-            templateInfo.createdTime = QFileInfo(modelPath).lastModified();
-            templateInfo.isSelected = false;
-
             if (!templateInfo.name.isEmpty()) {
                 templates.append(templateInfo);
-                qDebug() << "成功加载模型信息:" << templateInfo.name;
+                qDebug() << "成功加载模板元数据:" << templateInfo.name;
             }
 
-            fs.release();
-
-        } catch (const cv::Exception& e) {
-            qCritical() << "加载模型时发生OpenCV异常：" << modelPath << " - " << e.what();
         } catch (const std::exception& e) {
-            qCritical() << "加载模型时发生异常：" << modelPath << " - " << e.what();
+            qCritical() << "加载模板元数据时发生异常：" << jsonPath << " - " << e.what();
         }
     }
 
-    qInfo() << "总共加载了" << templates.size() << "个有效模型";
+    qInfo() << "总共加载了" << templates.size() << "个有效模板";
     return templates;
 }
 
