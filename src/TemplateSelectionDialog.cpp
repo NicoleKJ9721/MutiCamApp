@@ -217,17 +217,31 @@ void TemplateSelectionDialog::onTemplateItemChanged(QListWidgetItem* item)
 
 void TemplateSelectionDialog::updateTemplateItem(QListWidgetItem* item, const TemplateInfo& templateInfo)
 {
-    // 创建缩略图
-    QPixmap thumbnail = createThumbnail(templateInfo.templateImage);
-    item->setIcon(QIcon(thumbnail));
-    
-    // 设置文本信息
-    QString itemText = QString("%1\n尺寸: %2x%3\n创建时间: %4")
-                       .arg(templateInfo.name)
-                       .arg(templateInfo.templateImage.cols)
-                       .arg(templateInfo.templateImage.rows)
-                       .arg(templateInfo.createdTime.toString("yyyy-MM-dd hh:mm"));
-    item->setText(itemText);
+    // 检查 templateImage 是否有效
+    if (!templateInfo.templateImage.empty()) {
+        // 如果有图像 (旧逻辑，可能仍需兼容)，创建缩略图
+        QPixmap thumbnail = createThumbnail(templateInfo.templateImage);
+        item->setIcon(QIcon(thumbnail));
+        
+        // 设置文本信息 (从 templateImage 获取尺寸)
+        QString itemText = QString("%1\n尺寸: %2x%3\n创建时间: %4")
+                           .arg(templateInfo.name)
+                           .arg(templateInfo.templateImage.cols)
+                           .arg(templateInfo.templateImage.rows)
+                           .arg(templateInfo.createdTime.toString("yyyy-MM-dd hh:mm"));
+        item->setText(itemText);
+    } else {
+        // 如果没有图像 (新逻辑，从.yaml加载)，不设置图标
+        item->setIcon(QIcon()); // 清除图标
+        
+        // 设置文本信息 (现在从 originalROI 获取尺寸)
+        QString itemText = QString("%1\n尺寸: %2x%3\n创建时间: %4")
+                           .arg(templateInfo.name)
+                           .arg(static_cast<int>(templateInfo.originalROI.width()))
+                           .arg(static_cast<int>(templateInfo.originalROI.height()))
+                           .arg(templateInfo.createdTime.toString("yyyy-MM-dd hh:mm"));
+        item->setText(itemText);
+    }
 }
 
 QPixmap TemplateSelectionDialog::createThumbnail(const cv::Mat& image, const QSize& size)

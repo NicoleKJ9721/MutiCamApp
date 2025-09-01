@@ -2,6 +2,8 @@
 #include <math.h>
 #include <iostream>
 #include <chrono>
+#include <QFile>
+#include <QDebug>
 
 using namespace kcg;
 
@@ -955,8 +957,23 @@ namespace cv_dnn_nms {
 
 		ClearModel();
 		string model_name = model_root_ + class_name_ + KCG_MODEL_SUFFUX;
+
+		// 【关键修复】在尝试读取前，先检查文件是否存在
+		QFile modelFile(QString::fromStdString(model_name));
+		if (!modelFile.exists()) {
+			qWarning() << "Model file does not exist, skipping load:" << QString::fromStdString(model_name);
+			// 文件不存在是正常情况（例如在创建新模型时），所以直接返回，不报错
+			return; 
+		}
+
 		FileStorage fs(model_name, FileStorage::READ);
-		assert(fs.isOpened() && "load model failed.");
+		// 既然我们已经检查过文件存在，这里的断言就更像是一个对文件权限或损坏的检查
+		if (!fs.isOpened()) {
+			qCritical() << "Failed to open existing model file, check permissions or file integrity:" << QString::fromStdString(model_name);
+			// 如果文件存在但打不开，这是一个严重问题，所以保留断言或抛出异常
+			assert(fs.isOpened() && "load model failed."); 
+			return;
+		}
 		FileNode fn = fs.root();
 		angle_range_.begin = fn["angle_range_bgin"];
 		angle_range_.end = fn["angle_range_end"];

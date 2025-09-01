@@ -32,6 +32,11 @@
 #include <opencv2/opencv.hpp>
 #include "image_processing/edge_detector.h"
 
+// C++ 标准库前向声明
+namespace std {
+    template<class T> class future;
+}
+
 // 前向声明MatchingController以避免包含冲突
 class MatchingController;
 
@@ -442,11 +447,20 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     bool initializeMatchingController();
 
     /**
+     * @brief 使用MatchingController异步创建模板
+     * @param sourceImage 源图像
+     * @param templateName 模板名称
+     * @return std::future<bool> 异步结果
+     */
+    std::future<bool> createTemplateAsync(const cv::Mat& sourceImage, const QString& templateName);
+
+    /**
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
+     * @param modelName 模板名称（可选）
      * @return 是否启动成功
      */
-    bool startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates);
+    bool startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates, const QString& modelName = QString());
 
     /**
      * @brief 停止模板匹配

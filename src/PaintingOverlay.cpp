@@ -21,6 +21,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
+#include <future>
 #include "matching/MatchingController.h"
 
 #ifndef M_PI
@@ -7238,52 +7239,95 @@ bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QS
     }
 
     qInfo() << "模板创建完成:" << templateName;
+
+    QVector<TemplateInfo> templates = loadTemplatesFromDirectory(templateDir);
+    if (templates.isEmpty()) {
+        qWarning() << "无法加载模板列表";
+    } else {
+        qInfo() << "成功加载模板列表，共" << templates.size() << "个模板";
+    }
+
     return true;
 }
 
-QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString& templateDir) const
+QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString& modelDir) const
 {
     QVector<TemplateInfo> templates;
 
-    // 确定模板目录
-    QString searchDir = templateDir;
+    // 确定模型目录
+    QString searchDir = modelDir;
     if (searchDir.isEmpty()) {
-        searchDir = QCoreApplication::applicationDirPath() + "/templates";
+        // 路径需要和 MatchingController/config.jsonc 中配置的 ModelRootPath 一致
+        // 根据配置文件，ModelRootPath 是 "template"，实际位置在 config/template/
+        // 应用程序在 build 目录运行，需要回到项目根目录
+        searchDir = QCoreApplication::applicationDirPath() + "/../config/template";
     }
 
     QDir dir(searchDir);
     if (!dir.exists()) {
-        qWarning() << "模板目录不存在:" << searchDir;
+        qWarning() << "模型目录不存在:" << searchDir;
         return templates;
     }
 
-    // 查找所有PNG文件
-    QStringList imageFilters;
-    imageFilters << "*.png" << "*.jpg" << "*.jpeg" << "*.bmp";
-    QStringList imageFiles = dir.entryList(imageFilters, QDir::Files);
+    // 查找所有 .yaml 模型文件
+    QStringList modelFilters;
+    modelFilters << "*.yaml";
+    QStringList modelFiles = dir.entryList(modelFilters, QDir::Files);
 
-    qInfo() << "在目录" << searchDir << "中找到" << imageFiles.size() << "个图像文件";
+    qInfo() << "在目录" << searchDir << "中找到" << modelFiles.size() << "个模型文件";
 
-    for (const QString& imageFile : imageFiles) {
-        QString imagePath = dir.filePath(imageFile);
+    for (const QString& modelFile : modelFiles) {
+        QString modelPath = dir.filePath(modelFile);
+        
+        try {
+            // 使用OpenCV的FileStorage来读取.yaml文件
+            cv::FileStorage fs(modelPath.toStdString(), cv::FileStorage::READ);
+            if (!fs.isOpened()) {
+                qWarning() << "无法打开模型文件:" << modelPath;
+                continue;
+            }
 
-        // 构造对应的JSON文件路径
-        QString baseName = QFileInfo(imageFile).completeBaseName();
-        QString metadataPath = dir.filePath(baseName + ".json");
+            TemplateInfo templateInfo;
+            
+            // 从文件名推断模板名称
+            templateInfo.name = QFileInfo(modelFile).completeBaseName();
+            templateInfo.metadataPath = modelPath; // .yaml 文件现在就是我们的元数据
 
-        // 检查JSON文件是否存在
-        if (QFile::exists(metadataPath)) {
-            TemplateInfo templateInfo = loadSingleTemplate(imagePath, metadataPath);
+            // 读取基础模板的尺寸信息 (从金字塔0层的第一个模板获取)
+            cv::FileNode templatesNode = fs["templates"];
+            if (!templatesNode.empty() && templatesNode.isSeq() && templatesNode.size() > 0) {
+                cv::FileNode firstTemplatePyrds = templatesNode[0]["template_pyrds"];
+                if (!firstTemplatePyrds.empty() && firstTemplatePyrds.isSeq() && firstTemplatePyrds.size() > 0) {
+                    cv::FileNode baseTemplateNode = firstTemplatePyrds[0];
+                    int width = baseTemplateNode["w"];
+                    int height = baseTemplateNode["h"];
+                    templateInfo.originalROI = QRectF(0, 0, width, height);
+                }
+            }
+
+            // 我们没有简单的缩略图，但可以创建一个占位符或默认图标
+            // templateInfo.templateImage 暂时留空
+
+            // 尝试读取创建时间 (可选，如果模型文件中有的话)
+            // 这里我们用文件修改时间代替
+            templateInfo.createdTime = QFileInfo(modelPath).lastModified();
+            templateInfo.isSelected = false;
+
             if (!templateInfo.name.isEmpty()) {
                 templates.append(templateInfo);
-                qDebug() << "成功加载模板:" << templateInfo.name;
+                qDebug() << "成功加载模型信息:" << templateInfo.name;
             }
-        } else {
-            qWarning() << "找不到对应的元数据文件:" << metadataPath;
+
+            fs.release();
+
+        } catch (const cv::Exception& e) {
+            qCritical() << "加载模型时发生OpenCV异常：" << modelPath << " - " << e.what();
+        } catch (const std::exception& e) {
+            qCritical() << "加载模型时发生异常：" << modelPath << " - " << e.what();
         }
     }
 
-    qInfo() << "总共加载了" << templates.size() << "个有效模板";
+    qInfo() << "总共加载了" << templates.size() << "个有效模型";
     return templates;
 }
 
@@ -7360,15 +7404,74 @@ bool PaintingOverlay::initializeMatchingController()
 
     try {
         m_matchingController = new MatchingController();
+        qInfo() << "MatchingController 实例已创建";
+
+        // 【关键修复】添加 initialize 调用
+        // 假设配置文件位于项目构建目录的上一级的 config 文件夹中
+        // 您可能需要根据您的实际项目结构调整此相对路径
+        std::string config_path = "../config/config.jsonc"; 
+        
+        qInfo() << "正在使用配置文件初始化 MatchingController:" << QString::fromStdString(config_path);
+        if (!m_matchingController->initialize(config_path)) {
+            qCritical() << "MatchingController 初始化失败，请检查配置文件路径和内容";
+            delete m_matchingController;
+            m_matchingController = nullptr;
+            return false;
+        }
+        
         qInfo() << "匹配控制器初始化成功";
         return true;
     } catch (const std::exception& e) {
-        qCritical() << "初始化匹配控制器失败：" << e.what();
+        qCritical() << "初始化匹配控制器时发生异常：" << e.what();
+        if (m_matchingController) {
+            delete m_matchingController;
+            m_matchingController = nullptr;
+        }
         return false;
     }
 }
 
-bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
+std::future<bool> PaintingOverlay::createTemplateAsync(const cv::Mat& sourceImage, const QString& templateName)
+{
+    if (!m_matchingController) {
+        // 返回一个失败的future
+        std::promise<bool> promise;
+        promise.set_value(false);
+        return promise.get_future();
+    }
+
+    if (!m_hasCurrentROI || !m_currentROI.rect.isValid()) {
+        // 返回一个失败的future
+        std::promise<bool> promise;
+        promise.set_value(false);
+        return promise.get_future();
+    }
+
+    try {
+        // 转换坐标：QRectF -> cv::Rect
+        QRectF currentROI = m_currentROI.rect;
+        cv::Rect templateROI(
+            static_cast<int>(currentROI.x()),
+            static_cast<int>(currentROI.y()),
+            static_cast<int>(currentROI.width()),
+            static_cast<int>(currentROI.height())
+        );
+
+        // 调用MatchingController的异步模板创建
+        return m_matchingController->createTemplateAsync(
+            sourceImage, templateROI, templateName.toStdString()
+        );
+
+    } catch (const std::exception& e) {
+        qCritical() << "异步模板创建失败：" << e.what();
+        // 返回一个失败的future
+        std::promise<bool> promise;
+        promise.set_value(false);
+        return promise.get_future();
+    }
+}
+
+bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates, const QString& modelName)
 {
     if (!initializeMatchingController()) {
         qWarning() << "无法启动模板匹配：匹配控制器初始化失败";
@@ -7393,7 +7496,11 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
         // 重置帧跳过计数器，确保立即开始匹配
         m_matchingFrameSkip = MATCHING_FRAME_INTERVAL - 1;
 
-        qInfo() << "模板匹配已启动，加载了" << selectedTemplates.size() << "个模板";
+        if (!modelName.isEmpty()) {
+            qInfo() << "模板匹配已启动，为模型" << modelName << "加载了" << selectedTemplates.size() << "个模板";
+        } else {
+            qInfo() << "模板匹配已启动，加载了" << selectedTemplates.size() << "个模板";
+        }
         return true;
 
     } catch (const std::exception& e) {

@@ -2,6 +2,7 @@
 #include "ui_MutiCamApp.h"
 #include "TemplateSelectionDialog.h"
 #include "ZoomPanWidget.h"
+#include "matching/MatchingController.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -15,6 +16,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
+#include <QTimer>
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include "matching/ui/TemplateNameDialog.h"
@@ -48,6 +50,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_logManager(nullptr)
     , m_serialController(nullptr)
     , m_isUpdatingUISize(false)
+    , m_templateCreationTask(nullptr)
 {
     ui->setupUi(this);
 
@@ -162,6 +165,15 @@ MutiCamApp::~MutiCamApp()
         m_serialController->closePort();
         delete m_serialController;
         m_serialController = nullptr;
+    }
+
+    // 清理异步模板创建任务
+    if (m_templateCreationTask) {
+        if (m_templateCreationTask->timer) {
+            m_templateCreationTask->timer->stop();
+            delete m_templateCreationTask->timer;
+        }
+        m_templateCreationTask.reset();
     }
 
     delete ui;
@@ -1612,10 +1624,13 @@ void MutiCamApp::onStartMatchingVerticalClicked()
             return;
         }
 
+        // 获取第一个选中模板的名称
+        QString modelName = selectedTemplates[0].name;
+
         // 启动模板匹配
-        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates, modelName)) {
             QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+                QString("已为模型 %1 启动模板匹配，共加载 %2 个模板").arg(modelName).arg(selectedTemplates.size()));
 
             // 切换到垂直视图选项卡
             ui->tabWidget->setCurrentIndex(1);
@@ -1654,10 +1669,13 @@ void MutiCamApp::onStartMatchingLeftClicked()
             return;
         }
 
+        // 获取第一个选中模板的名称
+        QString modelName = selectedTemplates[0].name;
+
         // 启动模板匹配
-        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates, modelName)) {
             QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+                QString("已为模型 %1 启动模板匹配，共加载 %2 个模板").arg(modelName).arg(selectedTemplates.size()));
 
             // 切换到左侧视图选项卡
             ui->tabWidget->setCurrentIndex(2);
@@ -1696,10 +1714,13 @@ void MutiCamApp::onStartMatchingFrontClicked()
             return;
         }
 
+        // 获取第一个选中模板的名称
+        QString modelName = selectedTemplates[0].name;
+
         // 启动模板匹配
-        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates, modelName)) {
             QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
+                QString("已为模型 %1 启动模板匹配，共加载 %2 个模板").arg(modelName).arg(selectedTemplates.size()));
 
             // 切换到对向视图选项卡
             ui->tabWidget->setCurrentIndex(3);
@@ -1734,22 +1755,71 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
         }
 
         if (overlay && !currentImage.empty()) {
+            // 确保MatchingController已初始化
+            if (!overlay->initializeMatchingController()) {
+                QMessageBox::warning(this, "错误", "初始化匹配控制器失败，无法创建模板");
+                overlay->cancelROICreation();
+                return;
+            }
+
+            // 检查是否已有模板创建任务在进行
+            if (m_templateCreationTask) {
+                QMessageBox::warning(this, "提示", "已有模板创建任务在进行中，请等待完成");
+                return;
+            }
+
             // 设置ROI的模板名称
             overlay->setCurrentROITemplateName(templateName);
 
-            // 调用新的模板创建功能
-            bool success = overlay->createTemplateFromROI(currentImage, templateName);
+            // 从ROI提取图像
+            cv::Mat roiImage = overlay->extractROIImage(currentImage);
+            if (roiImage.empty()) {
+                QMessageBox::warning(this, "错误", "无法从ROI提取图像，请检查ROI区域");
+                overlay->cancelROICreation();
+                return;
+            }
 
-            if (success) {
-                overlay->finishROICreation();
-                QMessageBox::information(this, "成功",
-                    QString("模板 '%1' 创建成功！\n已保存到 templates 目录").arg(templateName));
-                qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
-            } else {
-                QMessageBox::warning(this, "错误",
-                    QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
-                qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
-                // 不完成ROI创建，让用户可以重新尝试
+            // 转换坐标：QRectF -> cv::Rect
+            QRectF currentROI = overlay->getCurrentROI();
+            cv::Rect templateROI(
+                static_cast<int>(currentROI.x()),
+                static_cast<int>(currentROI.y()),
+                static_cast<int>(currentROI.width()),
+                static_cast<int>(currentROI.height())
+            );
+
+            qInfo() << "开始异步创建模板:" << templateName
+                    << "ROI:" << templateROI.x << "," << templateROI.y
+                    << "," << templateROI.width << "x" << templateROI.height;
+
+            try {
+                // 创建异步任务
+                m_templateCreationTask = std::make_unique<TemplateCreationTask>();
+                m_templateCreationTask->templateName = templateName;
+                m_templateCreationTask->viewName = viewName;
+                m_templateCreationTask->overlay = overlay;
+
+                // 使用新的异步接口创建模板
+                m_templateCreationTask->future = overlay->createTemplateAsync(currentImage, templateName);
+                
+                // 创建定时器检查异步结果
+                m_templateCreationTask->timer = new QTimer(this);
+                connect(m_templateCreationTask->timer, &QTimer::timeout,
+                        this, &MutiCamApp::checkTemplateCreationResult);
+                m_templateCreationTask->timer->start(200); // 每200ms检查一次
+
+                // 显示进度提示
+                QMessageBox::information(this, "提示",
+                    QString("模板 '%1' 正在后台创建中，请稍候...").arg(templateName));
+
+            } catch (const std::exception& e) {
+                QString errorMsg = QString("启动异步模板创建失败: %1").arg(e.what());
+                qCritical() << errorMsg;
+                QMessageBox::warning(this, "错误", errorMsg);
+                overlay->cancelROICreation();
+                if (m_templateCreationTask) {
+                    m_templateCreationTask.reset();
+                }
             }
         } else {
             QMessageBox::warning(this, "错误", "无法获取当前图像，请确保相机正在运行");
@@ -4776,5 +4846,60 @@ void MutiCamApp::applyCapturePreset()
     // 延迟保存设置（避免频繁保存）
     if (m_settingsManager) {
         m_settingsManager->saveSettingsDelayed(this);
+    }
+}
+
+// 异步模板创建相关方法
+void MutiCamApp::checkTemplateCreationResult()
+{
+    if (!m_templateCreationTask) {
+        return;
+    }
+
+    // 检查异步结果是否完成
+    if (m_templateCreationTask->future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+        // 停止定时器
+        if (m_templateCreationTask->timer) {
+            m_templateCreationTask->timer->stop();
+            delete m_templateCreationTask->timer;
+            m_templateCreationTask->timer = nullptr;
+        }
+
+        try {
+            // 获取结果
+            bool success = m_templateCreationTask->future.get();
+            onTemplateCreationCompleted(success);
+        } catch (const std::exception& e) {
+            qCritical() << "获取异步模板创建结果时发生异常：" << e.what();
+            onTemplateCreationCompleted(false);
+        }
+    }
+}
+
+void MutiCamApp::onTemplateCreationCompleted(bool success)
+{
+    if (!m_templateCreationTask) {
+        return;
+    }
+
+    QString templateName = m_templateCreationTask->templateName;
+    QString viewName = m_templateCreationTask->viewName;
+    PaintingOverlay* overlay = m_templateCreationTask->overlay;
+
+    // 清理任务
+    m_templateCreationTask.reset();
+
+    if (success) {
+        if (overlay) {
+            overlay->finishROICreation();
+        }
+        QMessageBox::information(this, "成功",
+            QString("模板 '%1' 创建成功！\n已使用 MatchingController 和 KcgMatch 库创建").arg(templateName));
+        qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
+    } else {
+        QMessageBox::warning(this, "错误",
+            QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
+        qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
+        // 不完成ROI创建，让用户可以重新尝试
     }
 }
