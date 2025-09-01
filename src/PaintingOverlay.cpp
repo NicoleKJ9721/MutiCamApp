@@ -7585,8 +7585,8 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
         matchColor = QColor(255, 128, 0);    // 低置信度：橙色
     }
 
-    // 设置画笔
-    QPen pen(matchColor, 2.0);
+    // 设置画笔 - 使用与ROI框相同的线条粗细
+    QPen pen = createPen(matchColor, 2, ctx.scale, false);  // 使用createPen函数进行缩放调整
     painter.setPen(pen);
 
     // 绘制匹配边界框
