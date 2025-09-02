@@ -34,8 +34,6 @@
 #include "TrajectoryRecorder.h"
 #include "SerialController.h"
 #include <functional>
-#include <future>
-#include <QTimer>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -748,18 +746,6 @@ private:
      // 异步保存相关成员变量
      QProgressDialog* m_saveProgressDialog;
      QFutureWatcher<void>* m_saveWatcher;
-
-     // 异步模板创建相关成员变量和方法
-     struct TemplateCreationTask {
-         std::future<bool> future;
-         QString templateName;
-         QString viewName;
-         PaintingOverlay* overlay;
-         QTimer* timer;
-     };
-     std::unique_ptr<TemplateCreationTask> m_templateCreationTask;
-     void checkTemplateCreationResult();
-     void onTemplateCreationCompleted(bool success);
 
      // 设置管理器
      SettingsManager* m_settingsManager;
