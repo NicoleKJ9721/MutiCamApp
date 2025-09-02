@@ -39,6 +39,13 @@ public:
     bool initialize(const std::string& config_path);
     
     /**
+     * @brief 初始化控制器用于模板创建（不加载模型）。
+     * @param config_path 指向 config.jsonc 文件的完整路径。
+     * @return true 如果初始化成功, false 如果失败。
+     */
+    bool initializeForTemplateCreation(const std::string& config_path);
+    
+    /**
      * @brief 将当前内存中的配置参数保存回它最初加载的那个JSON文件。
      * @return true 如果保存成功, false 如果失败。
      */

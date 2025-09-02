@@ -7241,6 +7241,111 @@ bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QS
     return true;
 }
 
+// 创建KcgMatch格式模板
+bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName)
+{
+    // 尝试初始化MatchingController（用于模板创建）
+    if (!m_matchingController) {
+        if (!initializeKcgMatchForTemplateCreation()) {
+            qWarning() << "MatchingController初始化失败，无法创建KcgMatch模板";
+            return false;
+        }
+    }
+
+    if (!m_hasCurrentROI) {
+        qWarning() << "没有当前ROI，无法创建KcgMatch模板";
+        return false;
+    }
+
+    try {
+        updateMatchingStatus("开始创建KcgMatch模板...");
+        
+        // 转换ROI到cv::Rect
+        cv::Rect roiRect(
+            static_cast<int>(m_currentROI.rect.x()),
+            static_cast<int>(m_currentROI.rect.y()),
+            static_cast<int>(m_currentROI.rect.width()),
+            static_cast<int>(m_currentROI.rect.height())
+        );
+
+        // 调用MatchingController的异步模板创建
+        auto future = m_matchingController->createTemplateAsync(
+            sourceImage, 
+            roiRect, 
+            templateName.toStdString()
+        );
+
+        updateMatchingStatus("等待KcgMatch模板创建完成...");
+        
+        // 等待异步任务完成
+        bool success = future.get();
+        
+        if (success) {
+            updateMatchingStatus("KcgMatch模板创建成功");
+            qInfo() << "KcgMatch模板创建成功:" << templateName;
+            return true;
+        } else {
+            updateMatchingStatus("KcgMatch模板创建失败");
+            qWarning() << "KcgMatch模板创建失败:" << templateName;
+            return false;
+        }
+
+    } catch (const std::exception& e) {
+        updateMatchingStatus("KcgMatch模板创建异常");
+        qCritical() << "KcgMatch模板创建异常:" << e.what();
+        return false;
+    }
+}
+
+// 创建双格式模板
+bool PaintingOverlay::createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir)
+{
+    qInfo() << "开始创建双格式模板:" << templateName;
+    
+    bool pngJsonSuccess = false;
+    bool kcgMatchSuccess = false;
+
+    // 步骤1：创建传统PNG+JSON格式（用于缩略图和信息显示）
+    updateMatchingStatus("创建PNG+JSON格式模板...");
+    
+    cv::Mat roiImage = extractROIImage(sourceImage);
+    if (!roiImage.empty()) {
+        cv::Mat processedImage = validateAndPreprocessROI(roiImage);
+        if (!processedImage.empty()) {
+            pngJsonSuccess = saveTemplateData(processedImage, templateName, templateDir);
+        }
+    }
+
+    if (pngJsonSuccess) {
+        qInfo() << "PNG+JSON格式模板创建成功";
+    } else {
+        qWarning() << "PNG+JSON格式模板创建失败";
+    }
+
+    // 步骤2：创建KcgMatch格式模板（用于实际匹配）
+    updateMatchingStatus("创建KcgMatch格式模板...");
+    kcgMatchSuccess = createKcgMatchTemplate(sourceImage, templateName);
+
+    // 评估结果
+    if (pngJsonSuccess && kcgMatchSuccess) {
+        updateMatchingStatus("双格式模板创建完成");
+        qInfo() << "双格式模板创建成功:" << templateName;
+        return true;
+    } else if (kcgMatchSuccess) {
+        updateMatchingStatus("KcgMatch模板创建成功，PNG+JSON创建失败");
+        qWarning() << "仅KcgMatch模板创建成功，PNG+JSON创建失败:" << templateName;
+        return true; // KcgMatch是主要的，所以仍然返回成功
+    } else if (pngJsonSuccess) {
+        updateMatchingStatus("PNG+JSON模板创建成功，KcgMatch创建失败");
+        qWarning() << "仅PNG+JSON模板创建成功，KcgMatch创建失败:" << templateName;
+        return false; // KcgMatch失败则整体失败
+    } else {
+        updateMatchingStatus("双格式模板创建失败");
+        qCritical() << "双格式模板创建完全失败:" << templateName;
+        return false;
+    }
+}
+
 QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString& templateDir) const
 {
     QVector<TemplateInfo> templates;
@@ -7875,6 +7980,47 @@ void PaintingOverlay::analyzeMatchResults(const QVector<TemplateMatchResult>& re
                  << "角度" << result.angle << "度"
                  << "缩放" << result.scale
                  << "位置" << result.position;
+    }
+}
+
+// 用于模板创建的初始化（不检查模板文件）
+bool PaintingOverlay::initializeKcgMatchForTemplateCreation()
+{
+    if (m_matchingController) {
+        qDebug() << "KcgMatch已经初始化";
+        return true;
+    }
+
+    qInfo() << "开始初始化KcgMatch系统（模板创建模式）...";
+
+    QString configPath = getConfigPath();
+    if (configPath.isEmpty()) {
+        qWarning() << "未找到config.jsonc配置文件";
+        return false;
+    }
+
+    try {
+        m_matchingController = new MatchingController();
+        // 使用专门的模板创建初始化方法，不加载模型
+        bool success = m_matchingController->initializeForTemplateCreation(configPath.toStdString());
+
+        if (!success) {
+            qWarning() << "MatchingController初始化失败";
+            delete m_matchingController;
+            m_matchingController = nullptr;
+            return false;
+        }
+
+        qInfo() << "KcgMatch初始化成功（模板创建模式），配置文件：" << configPath;
+        return true;
+
+    } catch (const std::exception& e) {
+        qWarning() << "初始化KcgMatch失败：" << e.what();
+        if (m_matchingController) {
+            delete m_matchingController;
+            m_matchingController = nullptr;
+        }
+        return false;
     }
 }
 

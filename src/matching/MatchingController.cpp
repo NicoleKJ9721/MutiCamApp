@@ -47,6 +47,33 @@ bool MatchingController::initialize(const std::string& config_path) {
     return true;
 }
 
+bool MatchingController::initializeForTemplateCreation(const std::string& config_path) {
+    // 1. 加载配置
+    if (!loadConfigFromFile(config_path)) {
+        return false;
+    }
+
+    // 2. 创建KcgMatch对象但不加载模型
+    std::lock_guard<std::mutex> lock(mtx_);
+    if (kcg_matcher_) {
+        delete kcg_matcher_;
+    }
+    try {   
+        std::string class_name_to_load = config_data_["Model"].value("ClassName", "default_model");     
+        std::cout << "[INFO] Initializing for template creation with model: " << class_name_to_load << std::endl;
+        kcg_matcher_ = new kcg::KcgMatch(model_save_path_, class_name_to_load); 
+
+        // 注意：这里不调用 LoadModel()，因为模板文件可能还不存在
+        std::cout << "[SUCCESS] MatchingController initialized for template creation." << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[FATAL] An exception occurred during initialization: " << e.what() << std::endl;
+        delete kcg_matcher_;
+        kcg_matcher_ = nullptr;
+        return false;
+    }
+    return true;
+}
+
 // In MatchingController.cpp
 
 bool MatchingController::reloadConfiguration() {

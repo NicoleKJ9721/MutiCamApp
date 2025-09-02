@@ -1737,8 +1737,8 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
             // 设置ROI的模板名称
             overlay->setCurrentROITemplateName(templateName);
 
-            // 调用新的模板创建功能
-            bool success = overlay->createTemplateFromROI(currentImage, templateName);
+            // 调用双格式模板创建功能
+            bool success = overlay->createDualFormatTemplate(currentImage, templateName);
 
             if (success) {
                 overlay->finishROICreation();

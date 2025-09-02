@@ -442,6 +442,23 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @return 是否创建成功
      */
     bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
+    
+    /**
+     * @brief 创建KcgMatch格式模板
+     * @param sourceImage 源图像
+     * @param templateName 模板名称
+     * @return 是否创建成功
+     */
+    bool createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName);
+    
+    /**
+     * @brief 创建双格式模板（PNG+JSON + KcgMatch）
+     * @param sourceImage 源图像
+     * @param templateName 模板名称
+     * @param templateDir 模板保存目录
+     * @return 是否创建成功
+     */
+    bool createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString());
 
     // 模板加载和管理相关方法
     /**
@@ -502,6 +519,9 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     
     // 重试机制
     bool initializeKcgMatchWithRetry(int maxRetries = 3);
+    
+    // 用于模板创建的初始化（不检查模板文件）
+    bool initializeKcgMatchForTemplateCreation();
     
     // 配置热重载
     void reloadKcgMatchConfig();
