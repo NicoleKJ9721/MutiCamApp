@@ -78,7 +78,7 @@ set(srcs
     src/matching/MatchingController.h
     src/matching/MatchingController.cpp
     src/matching/KcgMatch.h
-    src/matching/KcgMatch_fixed.cpp
+    src/matching/KcgMatch.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
