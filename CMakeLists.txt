@@ -38,6 +38,8 @@ set(srcs
     src/ui/ZoomPanWidget.h
     src/ui/PaintingOverlay.cpp
     src/ui/PaintingOverlay.h
+    src/ui/TemplateNameDialog.h
+    src/ui/TemplateNameDialog.cpp
     src/ui/TemplateSelectionDialog.cpp
     src/ui/TemplateSelectionDialog.h
     src/ui/CalibrationDialog.cpp
@@ -77,8 +79,6 @@ set(srcs
     src/matching/MatchingController.cpp
     src/matching/KcgMatch.h
     src/matching/KcgMatch_fixed.cpp
-    src/matching/ui/TemplateNameDialog.h
-    src/matching/ui/TemplateNameDialog.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
