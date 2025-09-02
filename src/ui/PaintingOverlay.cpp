@@ -7118,10 +7118,11 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
     }
 
     try {
-        // 确定保存目录
+        // 确定保存目录，与KcgMatch保持一致
         QString saveDir = templateDir;
         if (saveDir.isEmpty()) {
-            saveDir = QCoreApplication::applicationDirPath() + "/templates";
+            // 使用与KcgMatch相同的模板目录
+            saveDir = "../template";
         }
 
         // 创建目录（如果不存在）
@@ -7353,7 +7354,7 @@ QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString&
     // 确定模板目录
     QString searchDir = templateDir;
     if (searchDir.isEmpty()) {
-        searchDir = QCoreApplication::applicationDirPath() + "/templates";
+        searchDir = QCoreApplication::applicationDirPath() + "/../template";
     }
 
     QDir dir(searchDir);
