@@ -4,24 +4,49 @@
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
-#include <QContextMenuEvent>
+#include <QWheelEvent>
+#include <QKeyEvent>
+#include <QTimer>
 #include <QVector>
-#include <QStack>
-#include <QSet>
 #include <QPointF>
 #include <QRectF>
-#include <QFont>
-#include <QPen>
-#include <QBrush>
-#include <QPainterPath>
-#include <QSvgRenderer>
-#include <QMenu>
-#include <QAction>
-#include <QTime>
-#include <QDialog>
-#include <QListWidget>
+#include <QPixmap>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QSlider>
+#include <QSpinBox>
 #include <QCheckBox>
-#include <QDateTime>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QScrollArea>
+#include <QSplitter>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QAction>
+#include <QActionGroup>
+#include <QToolBar>
+#include <QDockWidget>
+#include <QListWidget>
+#include <QTreeWidget>
+#include <QTableWidget>
+#include <QTextEdit>
+#include <QLineEdit>
+#include <QSpacerItem>
+#include <QSizePolicy>
+#include <QApplication>
+#include <QScreen>
+#include <QDebug>
+#include <QElapsedTimer>
+#include <QFuture>
+#include <QtConcurrent>
+#include <QSvgRenderer>
+#include <QThread>
+#include <QPainterPath>
 
 // 解决Windows SDK和OpenCV的符号冲突
 #ifdef _WIN32
@@ -443,25 +468,6 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
 
     /**
      * @brief 获取配置文件路径
-     * @return 配置文件路径，未找到返回空字符串
-     */
-    QString getConfigPath();
-
-    /**
-     * @brief 使用KcgMatch进行模板匹配
-     * @param sourceImage 源图像
-     * @return 匹配结果列表
-     */
-    QVector<TemplateMatchResult> performKcgMatching(const cv::Mat& sourceImage);
-
-    /**
-     * @brief 使用OpenCV进行模板匹配（备选方案）
-     * @param sourceImage 源图像
-     * @return 匹配结果列表
-     */
-    QVector<TemplateMatchResult> performOpenCVMatching(const cv::Mat& sourceImage);
-
-    /**
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
      * @return 是否启动成功
@@ -479,6 +485,35 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @return 匹配结果列表
      */
     QVector<TemplateMatchResult> performMatching(const cv::Mat& sourceImage);
+
+    // KcgMatch相关函数
+    QString getConfigPath();
+    QVector<TemplateMatchResult> performKcgMatching(const cv::Mat& sourceImage);
+    QVector<TemplateMatchResult> performOpenCVMatching(const cv::Mat& sourceImage);
+    
+    // 异步匹配处理
+    QFuture<QVector<TemplateMatchResult>> performMatchingAsync(const cv::Mat& sourceImage);
+    
+    // 状态反馈
+    void updateMatchingStatus(const QString& status);
+    
+    // 智能模板名称
+    QString getSmartTemplateName();
+    
+    // 重试机制
+    bool initializeKcgMatchWithRetry(int maxRetries = 3);
+    
+    // 配置热重载
+    void reloadKcgMatchConfig();
+    
+    // 性能监控
+    QVector<TemplateMatchResult> performKcgMatchingWithTiming(const cv::Mat& sourceImage);
+    
+    // 结果分析
+    void analyzeMatchResults(const QVector<TemplateMatchResult>& results);
+    
+    // 内存优化
+    void optimizeMemoryUsage();
 
     // 匹配结果可视化相关方法
     /**
@@ -521,6 +556,10 @@ signals:
     void roiChanged(const QString& viewName, const QRectF& rect, qreal angle); // ROI变化
     void roiFinished(const QString& viewName); // ROI编辑完成
     void roiCancelled(const QString& viewName); // ROI创建取消
+    
+    // 匹配状态信号
+    void matchingStatusChanged(const QString& status); // 匹配状态变化信号
+    void matchingCompleted(const QVector<TemplateMatchResult>& results); // 异步匹配完成信号
 
 protected:
     void paintEvent(QPaintEvent *event) override;
