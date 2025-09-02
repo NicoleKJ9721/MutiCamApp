@@ -7466,6 +7466,59 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
         return results;
     }
 
+    // 尝试使用KcgMatch
+    if (initializeKcgMatch()) {
+        return performKcgMatching(sourceImage);
+    }
+
+    // 降级到OpenCV方案
+    qWarning() << "KcgMatch不可用，使用OpenCV匹配";
+    return performOpenCVMatching(sourceImage);
+}
+
+QVector<TemplateMatchResult> PaintingOverlay::performKcgMatching(const cv::Mat& sourceImage)
+{
+    QVector<TemplateMatchResult> results;
+    
+    try {
+        // 调用KcgMatch进行匹配
+        std::vector<MatchResult> kcgResults = m_matchingController->processSingleFrame(sourceImage);
+        
+        // 转换结果格式
+        for (const auto& kcgResult : kcgResults) {
+            TemplateMatchResult result;
+            result.confidence = kcgResult.score;
+            result.angle = kcgResult.angle;
+            result.scale = kcgResult.scale;
+            result.timestamp = QDateTime::currentDateTime();
+            
+            // 位置转换
+            cv::Point2f center = kcgResult.rotated_box.center;
+            result.position = QPointF(center.x, center.y);
+            
+            // 边界框转换
+            cv::Rect bbox = kcgResult.axis_aligned_box;
+            result.boundingRect = QRectF(bbox.x, bbox.y, bbox.width, bbox.height);
+            
+            result.templateName = "KcgMatch_Result";
+            results.append(result);
+            
+            qDebug() << "KcgMatch找到匹配：置信度" << kcgResult.score 
+                     << "角度" << kcgResult.angle << "缩放" << kcgResult.scale
+                     << "位置" << center.x << center.y;
+        }
+        
+    } catch (const std::exception& e) {
+        qCritical() << "KcgMatch匹配异常：" << e.what();
+    }
+    
+    return results;
+}
+
+QVector<TemplateMatchResult> PaintingOverlay::performOpenCVMatching(const cv::Mat& sourceImage)
+{
+    QVector<TemplateMatchResult> results;
+    
     try {
         // 预处理源图像
         cv::Mat processedSourceImage;

@@ -448,6 +448,20 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     QString getConfigPath();
 
     /**
+     * @brief 使用KcgMatch进行模板匹配
+     * @param sourceImage 源图像
+     * @return 匹配结果列表
+     */
+    QVector<TemplateMatchResult> performKcgMatching(const cv::Mat& sourceImage);
+
+    /**
+     * @brief 使用OpenCV进行模板匹配（备选方案）
+     * @param sourceImage 源图像
+     * @return 匹配结果列表
+     */
+    QVector<TemplateMatchResult> performOpenCVMatching(const cv::Mat& sourceImage);
+
+    /**
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
      * @return 是否启动成功
