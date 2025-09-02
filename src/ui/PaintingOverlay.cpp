@@ -21,7 +21,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
-// #include "../matching/MatchingController.h" // 暂时移除，当前未使用
+#include "../matching/MatchingController.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -67,7 +67,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
-    // , m_matchingController(nullptr)  // 匹配控制器初始为空
+    , m_matchingController(nullptr)  // 匹配控制器初始为空
     , m_isMatchingEnabled(false)     // 默认禁用匹配
     , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
 {
@@ -102,11 +102,11 @@ PaintingOverlay::~PaintingOverlay()
         m_rotationIconRenderer = nullptr;
     }
 
-    // 清理匹配控制器 (暂时移除，当前未使用)
-    // if (m_matchingController) {
-    //     delete m_matchingController;
-    //     m_matchingController = nullptr;
-    // }
+    // 清理匹配控制器
+    if (m_matchingController) {
+        delete m_matchingController;
+        m_matchingController = nullptr;
+    }
 
     // 清理缓存的图像数据
     if (!m_lastProcessedFrame.empty()) {
@@ -7351,28 +7351,71 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
     return templateInfo;
 }
 
-// 暂时移除，当前未使用
-// bool PaintingOverlay::initializeMatchingController()
-// {
-//     if (m_matchingController) {
-//         qDebug() << "匹配控制器已经初始化";
-//         return true;
-//     }
-// 
-//     try {
-//         m_matchingController = new MatchingController();
-//         qInfo() << "匹配控制器初始化成功";
-//         return true;
-//     } catch (const std::exception& e) {
-//         qCritical() << "初始化匹配控制器失败：" << e.what();
-//         return false;
-//     }
-// }
+QString PaintingOverlay::getConfigPath()
+{
+    QString appPath = QCoreApplication::applicationDirPath();
+    
+    // 优先级顺序查找配置文件
+    QStringList candidates = {
+        appPath + "/config/config.jsonc",
+        "../config/config.jsonc",
+        "config/config.jsonc"
+    };
+    
+    for (const QString& path : candidates) {
+        if (QFile::exists(path)) {
+            qDebug() << "找到配置文件：" << path;
+            return path;
+        }
+    }
+    
+    qWarning() << "未找到config.jsonc配置文件，搜索路径：" << candidates;
+    return QString();
+}
+
+bool PaintingOverlay::initializeKcgMatch()
+{
+    if (m_matchingController) {
+        qDebug() << "KcgMatch已经初始化";
+        return true;
+    }
+
+    qInfo() << "开始初始化KcgMatch系统...";
+    
+    QString configPath = getConfigPath();
+    if (configPath.isEmpty()) {
+        qWarning() << "未找到config.jsonc配置文件";
+        return false;
+    }
+
+    try {
+        m_matchingController = new MatchingController();
+        bool success = m_matchingController->initialize(configPath.toStdString());
+        
+        if (!success) {
+            qCritical() << "MatchingController初始化失败";
+            delete m_matchingController;
+            m_matchingController = nullptr;
+            return false;
+        }
+        
+        qInfo() << "KcgMatch初始化成功，配置文件：" << configPath;
+        return true;
+        
+    } catch (const std::exception& e) {
+        qCritical() << "初始化KcgMatch失败：" << e.what();
+        if (m_matchingController) {
+            delete m_matchingController;
+            m_matchingController = nullptr;
+        }
+        return false;
+    }
+}
 
 bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
 {
     // 暂时移除MatchingController相关调用
-    // if (!initializeMatchingController()) {
+    // if (!initializeKcgMatch()) {
     //     qWarning() << "无法启动模板匹配：匹配控制器初始化失败";
     //     return false;
     // }
