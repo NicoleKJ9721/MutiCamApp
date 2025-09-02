@@ -1,9 +1,9 @@
 #pragma once
-#include "ui_MutiCamApp.h"
-#include "camera/camera_manager.h"
-#include "VideoDisplayWidget.h"
-#include "ZoomPanWidget.h"
-#include "PaintingOverlay.h"
+#include "../ui/ui_MutiCamApp.h"
+#include "../camera/camera_manager.h"
+#include "../ui/VideoDisplayWidget.h"
+#include "../ui/ZoomPanWidget.h"
+#include "../ui/PaintingOverlay.h"
 #include <QMainWindow>
 #include <QLabel>
 #include <QTimer>
@@ -25,8 +25,8 @@
 #include <QCache>
 #include <cmath>
 #include <opencv2/opencv.hpp>
-#include "image_processing/edge_detector.h"
-#include "image_processing/shape_detector.h"
+#include "../image_processing/edge_detector.h"
+#include "../image_processing/shape_detector.h"
 #include "SettingsManager.h"
 #include "CalibrationDialog.h"
 #include "CheckerboardCalibrationDialog.h"

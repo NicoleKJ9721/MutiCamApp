@@ -1,0 +1,39 @@
+{
+    "CannyCircleHigh": 200,
+    "CannyCircleLow": 100,
+    "CannyLineHigh": 150,
+    "CannyLineLow": 50,
+    "CircleDetParam2": 50,
+    "FrontCalibration": {
+        "accuracy": 0,
+        "calibrationTime": "",
+        "isCalibrated": false,
+        "method": "单点标定",
+        "pixelScale": 1,
+        "unit": "μm"
+    },
+    "FrontCamSN": "Vir89843537",
+    "LeftCalibration": {
+        "accuracy": 0,
+        "calibrationTime": "",
+        "isCalibrated": false,
+        "method": "单点标定",
+        "pixelScale": 1,
+        "unit": "μm"
+    },
+    "LeftCamSN": "Vir89842920",
+    "LineDetMaxGap": 10,
+    "LineDetMinLength": 50,
+    "LineDetThreshold": 50,
+    "UIHeight": 700,
+    "UIWidth": 1100,
+    "VerCamSN": "K75651644",
+    "VerticalCalibration": {
+        "accuracy": 0,
+        "calibrationTime": "",
+        "isCalibrated": false,
+        "method": "单点标定",
+        "pixelScale": 1,
+        "unit": "μm"
+    }
+}

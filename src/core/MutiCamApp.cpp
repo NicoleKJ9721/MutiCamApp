@@ -1,7 +1,7 @@
 #include "MutiCamApp.h"
-#include "ui_MutiCamApp.h"
-#include "TemplateSelectionDialog.h"
-#include "ZoomPanWidget.h"
+#include "../ui/ui_MutiCamApp.h"
+#include "../ui/TemplateSelectionDialog.h"
+#include "../ui/ZoomPanWidget.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -17,7 +17,7 @@
 #include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
-#include "matching/ui/TemplateNameDialog.h"
+#include "../matching/ui/TemplateNameDialog.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -3178,7 +3178,7 @@ void MutiCamApp::syncCalibrationParameters(const QString& viewName)
 void MutiCamApp::initializeSettingsManager()
 {
     // 创建设置管理器
-    m_settingsManager = new SettingsManager("./Settings/settings.json", this);
+    m_settingsManager = new SettingsManager("../config/settings.json", this);
 
     // 连接设置管理器信号
     connect(m_settingsManager, &SettingsManager::settingsLoaded,

@@ -1,5 +1,5 @@
 #include "PaintingOverlay.h"
-#include "MutiCamApp.h"
+#include "../core/MutiCamApp.h"
 #include <QApplication>
 #include <QDebug>
 #include <QtMath>
@@ -21,7 +21,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
-#include "matching/MatchingController.h"
+#include "../matching/MatchingController.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

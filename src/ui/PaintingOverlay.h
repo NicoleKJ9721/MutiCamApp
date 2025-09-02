@@ -30,14 +30,14 @@
 #endif
 
 #include <opencv2/opencv.hpp>
-#include "image_processing/edge_detector.h"
+#include "../image_processing/edge_detector.h"
 
 // 前向声明MatchingController以避免包含冲突
 class MatchingController;
 
 // 前向声明
 class ZoomPanWidget;
-#include "image_processing/shape_detector.h"
+#include "../image_processing/shape_detector.h"
 
 // 前向声明
 class MutiCamApp;

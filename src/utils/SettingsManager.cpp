@@ -260,8 +260,8 @@ SettingsManager::Settings SettingsManager::validateSettings(const Settings& sett
     validatedSettings.circleDetParam2 = qBound(1, settings.circleDetParam2, 200);
     
     // 验证UI尺寸
-    validatedSettings.uiWidth = qBound(800, settings.uiWidth, 4000);
-    validatedSettings.uiHeight = qBound(600, settings.uiHeight, 3000);
+    validatedSettings.uiWidth = qBound(1100, settings.uiWidth, 4000);
+    validatedSettings.uiHeight = qBound(700, settings.uiHeight, 3000);
     
     return validatedSettings;
 }

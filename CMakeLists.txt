@@ -26,32 +26,37 @@ find_package(OpenMP)
 
 # 手动指定源文件，确保所有文件都被包含
 set(srcs
-    src/main.cpp
-    src/MutiCamApp.cpp
-    src/MutiCamApp.h
-    src/VideoDisplayWidget.cpp
-    src/VideoDisplayWidget.h
-    src/ZoomPanWidget.cpp
-    src/ZoomPanWidget.h
-    src/PaintingOverlay.cpp
-    src/PaintingOverlay.h
-    src/TemplateSelectionDialog.cpp
-    src/TemplateSelectionDialog.h
-    src/SettingsManager.cpp
-    src/SettingsManager.h
-    src/CalibrationDialog.cpp
-    src/CalibrationDialog.h
-    src/CheckerboardCalibrationDialog.cpp
-    src/CheckerboardCalibrationDialog.h
-    src/LogManager.cpp
-    src/LogManager.h
-    src/TrajectoryRecorder.cpp
-    src/TrajectoryRecorder.h
-    src/SerialController.cpp
-    src/SerialController.h
-    src/dependencies_test.cpp
-    src/dependencies_test.h
-    src/MutiCamApp.ui
+    # 核心应用文件
+    src/core/main.cpp
+    src/core/MutiCamApp.cpp
+    src/core/MutiCamApp.h
+    
+    # UI组件文件
+    src/ui/VideoDisplayWidget.cpp
+    src/ui/VideoDisplayWidget.h
+    src/ui/ZoomPanWidget.cpp
+    src/ui/ZoomPanWidget.h
+    src/ui/PaintingOverlay.cpp
+    src/ui/PaintingOverlay.h
+    src/ui/TemplateSelectionDialog.cpp
+    src/ui/TemplateSelectionDialog.h
+    src/ui/CalibrationDialog.cpp
+    src/ui/CalibrationDialog.h
+    src/ui/CheckerboardCalibrationDialog.cpp
+    src/ui/CheckerboardCalibrationDialog.h
+    src/ui/MutiCamApp.ui
+    
+    # 工具类文件
+    src/utils/SettingsManager.cpp
+    src/utils/SettingsManager.h
+    src/utils/LogManager.cpp
+    src/utils/LogManager.h
+    src/utils/TrajectoryRecorder.cpp
+    src/utils/TrajectoryRecorder.h
+    src/utils/SerialController.cpp
+    src/utils/SerialController.h
+    src/utils/dependencies_test.cpp
+    src/utils/dependencies_test.h
     
     # 核心模块头文件
     src/camera/camera_controller.h
@@ -92,6 +97,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${HIKVISION_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/matching
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )

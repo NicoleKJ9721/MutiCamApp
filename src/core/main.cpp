@@ -1,5 +1,5 @@
 #include "MutiCamApp.h"
-#include "dependencies_test.h"
+#include "../utils/dependencies_test.h"
 
 #include <QApplication>
 #include <QMessageBox>

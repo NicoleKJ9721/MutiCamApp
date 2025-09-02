@@ -91,8 +91,8 @@ public:
             circleDetParam2(50),
             
             // UI尺寸参数默认值
-            uiWidth(800),
-            uiHeight(600),
+            uiWidth(1100),
+            uiHeight(700),
 
             // 拍照参数预设默认值
             captureFormat("PNG"),
@@ -105,7 +105,7 @@ public:
      * @param settingsFile 设置文件路径
      * @param parent 父对象
      */
-    explicit SettingsManager(const QString& settingsFile = "./Settings/settings.json", 
+    explicit SettingsManager(const QString& settingsFile = "../config/settings.json", 
                            QObject *parent = nullptr);
 
     /**
