@@ -35,6 +35,9 @@
 #include "SerialController.h"
 #include <functional>
 
+// 前向声明
+class MatchingController;
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -350,6 +353,9 @@ private:
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
 
+    // 模板匹配控制器
+    std::unique_ptr<MatchingController> m_matchingController;
+
     // 载物台控制
     double getCurrentStepSize() const;               ///< 获取当前选择的步长
     std::unique_ptr<TrajectoryRecorder> m_trajectoryRecorder;  ///< 轨迹记录器
@@ -488,6 +494,11 @@ private:
      * @brief 初始化相机系统
      */
     void initializeCameraSystem();
+    
+    /**
+     * @brief 初始化模板匹配控制器
+     */
+    void initializeMatchingController();
     
     /**
      * @brief 连接信号和槽

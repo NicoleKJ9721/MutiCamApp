@@ -86,6 +86,12 @@ public:
     std::future<bool> createTemplateAsync(const cv::Mat& uprightImage, const std::string& new_class_name, const TemplateCreationParams& params);
 
     /**
+     * @brief 获取默认模板创建参数。
+     * @return 包含当前配置文件中默认参数的TemplateCreationParams结构体。
+     */
+    TemplateCreationParams getDefaultTemplateCreationParams() const;
+
+    /**
      * @brief 设置或更新用于匹配的感兴趣区域 (ROI)。
      * @param roi 一个cv::Rect对象，坐标基于全尺寸视频帧。
      */

@@ -453,4 +453,18 @@ bool MatchingController::saveConfiguration() {
     return true;
 }
 
+TemplateCreationParams MatchingController::getDefaultTemplateCreationParams() const
+{
+    std::lock_guard<std::mutex> lock(const_cast<std::mutex&>(mtx_));
+    
+    TemplateCreationParams params;
+    params.angle_range = angle_range_;
+    params.scale_range = scale_range_;
+    params.num_features = num_features_;
+    params.weak_thresh = weak_thresh_;
+    params.strong_thresh = strong_thresh_;
+    
+    return params;
+}
+
 

@@ -19,6 +19,7 @@
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include "../ui/TemplateNameDialog.h"
+#include "../ui/TemplateCreationDialog.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -28,6 +29,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui_MutiCamApp)
     , m_cameraManager(nullptr)
+    , m_matchingController(nullptr)
     , m_currentX(0.0)
     , m_currentY(0.0)
     , m_currentZ(0.0)
@@ -69,6 +71,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 初始化拍照参数预设
     initializeCapturePresets();
+    
+    // 初始化模板匹配控制器
+    initializeMatchingController();
 
     // 注意：相机系统将在点击"开始测量"时初始化
 
@@ -163,6 +168,11 @@ MutiCamApp::~MutiCamApp()
         m_serialController->closePort();
         delete m_serialController;
         m_serialController = nullptr;
+    }
+    
+    // 清理模板匹配控制器
+    if (m_matchingController) {
+        m_matchingController.reset();
     }
 
     delete ui;
@@ -1714,70 +1724,67 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
 {
     qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
 
-    // 显示模板名称输入对话框
-    TemplateNameDialog dialog(this);
+    // 获取对应的overlay和当前图像
+    PaintingOverlay* overlay = nullptr;
+    cv::Mat currentImage;
+
+    if (viewName.contains("Vertical")) {
+        overlay = m_verticalPaintingOverlay2;
+        currentImage = m_lastVerticalFrame;
+    } else if (viewName.contains("Left")) {
+        overlay = m_leftPaintingOverlay2;
+        currentImage = m_lastLeftFrame;
+    } else if (viewName.contains("Front")) {
+        overlay = m_frontPaintingOverlay2;
+        currentImage = m_lastFrontFrame;
+    }
+
+    if (!overlay || currentImage.empty()) {
+        QMessageBox::warning(this, "错误", "无法获取当前图像，请确保相机正在运行");
+        qWarning() << "无法创建模板：overlay或图像为空";
+        return;
+    }
+
+    // 检查m_matchingController是否已初始化
+    if (!m_matchingController) {
+        QMessageBox::warning(this, "错误", "模板匹配控制器未初始化");
+        qWarning() << "m_matchingController为空，无法获取默认参数";
+        overlay->cancelROICreation();
+        return;
+    }
+
+    // 获取默认模板创建参数
+    TemplateCreationParams defaultParams = m_matchingController->getDefaultTemplateCreationParams();
+
+    // 显示模板创建参数对话框
+    TemplateCreationDialog dialog(this);
+    dialog.setParameters(defaultParams);
+
     if (dialog.exec() == QDialog::Accepted) {
+        // 获取用户输入的参数和模板名称
+        TemplateCreationParams userParams = dialog.getParameters();
         QString templateName = dialog.getTemplateName();
 
-        // 获取对应的overlay和当前图像
-        PaintingOverlay* overlay = nullptr;
-        cv::Mat currentImage;
+        // 设置ROI的模板名称
+        overlay->setCurrentROITemplateName(templateName);
 
-        if (viewName.contains("Vertical")) {
-            overlay = m_verticalPaintingOverlay2;
-            currentImage = m_lastVerticalFrame;
-        } else if (viewName.contains("Left")) {
-            overlay = m_leftPaintingOverlay2;
-            currentImage = m_lastLeftFrame;
-        } else if (viewName.contains("Front")) {
-            overlay = m_frontPaintingOverlay2;
-            currentImage = m_lastFrontFrame;
-        }
+        // 调用双格式模板创建功能
+        bool success = overlay->createDualFormatTemplate(currentImage, templateName, userParams);
 
-        if (overlay && !currentImage.empty()) {
-            // 设置ROI的模板名称
-            overlay->setCurrentROITemplateName(templateName);
-
-            // 创建临时的默认参数（阶段1临时方案）
-            TemplateCreationParams defaultParams;
-            defaultParams.angle_range = {-45.0f, 45.0f, 15.0f};
-            defaultParams.scale_range = {0.9f, 1.1f, 0.1f};
-            defaultParams.num_features = 100;
-            defaultParams.weak_thresh = 30.0f;
-            defaultParams.strong_thresh = 60.0f;
-
-            // 调用双格式模板创建功能
-            bool success = overlay->createDualFormatTemplate(currentImage, templateName, defaultParams);
-
-            if (success) {
-                overlay->finishROICreation();
-                QMessageBox::information(this, "成功",
-                    QString("模板 '%1' 创建成功！\n已保存到 templates 目录").arg(templateName));
-                qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
-            } else {
-                QMessageBox::warning(this, "错误",
-                    QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
-                qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
-                // 不完成ROI创建，让用户可以重新尝试
-            }
+        if (success) {
+            overlay->finishROICreation();
+            QMessageBox::information(this, "成功",
+                QString("模板 '%1' 创建成功！\n已保存到 templates 目录").arg(templateName));
+            qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
         } else {
-            QMessageBox::warning(this, "错误", "无法获取当前图像，请确保相机正在运行");
-            qWarning() << "无法创建模板：overlay或图像为空";
+            QMessageBox::warning(this, "错误",
+                QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
+            qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
+            // 不完成ROI创建，让用户可以重新尝试
         }
     } else {
         // 用户取消，清除ROI
-        PaintingOverlay* overlay = nullptr;
-        if (viewName.contains("Vertical")) {
-            overlay = m_verticalPaintingOverlay2;
-        } else if (viewName.contains("Left")) {
-            overlay = m_leftPaintingOverlay2;
-        } else if (viewName.contains("Front")) {
-            overlay = m_frontPaintingOverlay2;
-        }
-
-        if (overlay) {
-            overlay->cancelROICreation();
-        }
+        overlay->cancelROICreation();
     }
 }
 
@@ -4785,5 +4792,36 @@ void MutiCamApp::applyCapturePreset()
     // 延迟保存设置（避免频繁保存）
     if (m_settingsManager) {
         m_settingsManager->saveSettingsDelayed(this);
+    }
+}
+
+void MutiCamApp::initializeMatchingController()
+{
+    try {
+        // 创建模板匹配控制器
+        m_matchingController = std::make_unique<MatchingController>();
+        
+        // 从配置文件加载参数
+        QString configPath = "config/config.jsonc";
+        if (QFile::exists(configPath)) {
+            if (m_matchingController->initializeForTemplateCreation(configPath.toStdString())) {
+                qDebug() << "MatchingController initialized successfully with config:" << configPath;
+            } else {
+                qDebug() << "Failed to load MatchingController config, using defaults";
+            }
+        } else {
+            qDebug() << "Config file not found, MatchingController using default parameters";
+        }
+        
+        if (m_logManager) {
+            m_logManager->log("模板匹配控制器初始化完成", LogLevel::INFO);
+        }
+        
+    } catch (const std::exception& e) {
+        qDebug() << "Failed to initialize MatchingController:" << e.what();
+        if (m_logManager) {
+            QString errorMsg = QString("模板匹配控制器初始化失败: %1").arg(e.what());
+            m_logManager->logError(errorMsg);
+        }
     }
 }
