@@ -495,6 +495,8 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
 
     // KcgMatch相关函数
     QString getConfigPath();
+    QString findTemplateDirectory();
+    QString findTemplateFile(const QString& templateDir);
     QVector<TemplateMatchResult> performKcgMatching(const cv::Mat& sourceImage);
     QVector<TemplateMatchResult> performOpenCVMatching(const cv::Mat& sourceImage);
     
@@ -505,7 +507,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void updateMatchingStatus(const QString& status);
     
     // 智能模板名称
-    QString getSmartTemplateName();
+    QString getSmartTemplateName() const;
     
     // 重试机制
     bool initializeKcgMatchWithRetry(int maxRetries = 3);

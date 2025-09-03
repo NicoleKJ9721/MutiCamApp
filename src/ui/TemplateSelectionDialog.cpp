@@ -96,7 +96,7 @@ void TemplateSelectionDialog::createParameterPanel()
     maxMatchesLayout->addWidget(new QLabel("最大匹配数:", this));
     m_maxMatchesSpinBox = new QSpinBox(this);
     m_maxMatchesSpinBox->setRange(1, 100);
-    m_maxMatchesSpinBox->setValue(10);
+    m_maxMatchesSpinBox->setValue(1);
     maxMatchesLayout->addWidget(m_maxMatchesSpinBox);
     paramLayout->addLayout(maxMatchesLayout);
     

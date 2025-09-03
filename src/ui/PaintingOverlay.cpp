@@ -7480,6 +7480,56 @@ QString PaintingOverlay::getConfigPath()
     return QString();
 }
 
+QString PaintingOverlay::findTemplateDirectory()
+{
+    QString appPath = QCoreApplication::applicationDirPath();
+    
+    // 优先级顺序查找模板目录
+    QStringList candidates = {
+        appPath + "/template",
+        "../template",
+        "template"
+    };
+    
+    for (const QString& path : candidates) {
+        QDir dir(path);
+        if (dir.exists()) {
+            qDebug() << "找到模板目录：" << path;
+            return path;
+        }
+    }
+    
+    qWarning() << "未找到模板目录，搜索路径：" << candidates;
+    return QString();
+}
+
+QString PaintingOverlay::findTemplateFile(const QString& templateDir)
+{
+    if (templateDir.isEmpty()) {
+        return QString();
+    }
+    
+    QDir dir(templateDir);
+    if (!dir.exists()) {
+        qWarning() << "模板目录不存在：" << templateDir;
+        return QString();
+    }
+    
+    // 查找 .yaml 模板文件
+    QStringList filters;
+    filters << "*.yaml" << "*.yml";
+    QStringList yamlFiles = dir.entryList(filters, QDir::Files);
+    
+    if (!yamlFiles.isEmpty()) {
+        QString templateFile = dir.filePath(yamlFiles.first());
+        qDebug() << "找到模板文件：" << templateFile;
+        return templateFile;
+    }
+    
+    qWarning() << "模板目录中未找到 .yaml 文件：" << templateDir;
+    return QString();
+}
+
 bool PaintingOverlay::initializeKcgMatch()
 {
     if (m_matchingController) {
@@ -7495,12 +7545,20 @@ bool PaintingOverlay::initializeKcgMatch()
         return false;
     }
 
-    // 检查模板文件是否存在
-    QString templatePath = "../template/template_model.yaml";
-    if (!QFile::exists(templatePath)) {
-        qWarning() << "模板文件不存在：" << templatePath << "，需要先创建模板";
+    // 智能查找模板目录和文件
+    QString templateDir = findTemplateDirectory();
+    if (templateDir.isEmpty()) {
+        qWarning() << "未找到模板目录，需要先创建模板";
         return false;
     }
+    
+    QString templateFile = findTemplateFile(templateDir);
+    if (templateFile.isEmpty()) {
+        qWarning() << "模板目录中未找到有效的模板文件，需要先创建模板";
+        return false;
+    }
+    
+    qDebug() << "找到模板文件：" << templateFile;
 
     try {
         m_matchingController = new MatchingController();
@@ -7904,7 +7962,7 @@ void PaintingOverlay::updateMatchingStatus(const QString& status)
 }
 
 // 智能模板名称
-QString PaintingOverlay::getSmartTemplateName()
+QString PaintingOverlay::getSmartTemplateName() const
 {
     if (!m_loadedTemplates.isEmpty()) {
         for (const auto& tmpl : m_loadedTemplates) {
