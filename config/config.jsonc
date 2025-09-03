@@ -43,11 +43,11 @@
     "TemplateMaking": {
         // --- 模板生成时的角度范围 ---
         // 起始角度
-        "AngleStart": -45.0,
+        "AngleStart": -60.0,
         // 结束角度
-        "AngleEnd": 45.0,
+        "AngleEnd": 60.0,
         // 角度步长
-        "AngleStep": 15.0,
+        "AngleStep": 10.0,
 
         // --- 模板生成时的缩放范围 ---
         // 起始缩放比例

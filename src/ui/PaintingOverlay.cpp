@@ -709,7 +709,7 @@ void PaintingOverlay::mouseReleaseEvent(QMouseEvent *event)
         // 发送ROI变化信号
         emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 
-        qDebug() << "ROI拖拽结束，当前ROI:" << m_currentROI.rect << "角度:" << m_currentROI.angle;
+        // qDebug() << "ROI拖拽结束，当前ROI:" << m_currentROI.rect << "角度:" << m_currentROI.angle;
         update();
         return;
     }
@@ -6651,7 +6651,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
         QPointF handlePos = handlePositions[i];
         double distance = QLineF(localPos, handlePos).length();
         if (distance <= handleRadius) {
-            qDebug() << "检测到控制点" << i << "距离:" << distance;
+            // qDebug() << "检测到控制点" << i << "距离:" << distance;
             return static_cast<PaintingOverlay::ROIObject::HandleType>(i);
         }
     }
@@ -6665,13 +6665,13 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     double rotationHandleRadius = handleRadius * 2;
     // qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
     if (rotationDistance <= rotationHandleRadius) {
-        qDebug() << "检测到旋转手柄点击！";
+        // qDebug() << "检测到旋转手柄点击！";
         return PaintingOverlay::ROIObject::RotationHandle;
     }
 
     // 检查是否在ROI内部（用于移动）
     if (rect.contains(localPos)) {
-        qDebug() << "检测到ROI内部点击";
+        // qDebug() << "检测到ROI内部点击";
         return PaintingOverlay::ROIObject::MoveHandle;
     }
 
@@ -6857,7 +6857,7 @@ void PaintingOverlay::handleROIRotation(const QPointF& delta)
     while (m_currentROI.angle > 180) m_currentROI.angle -= 360;
     while (m_currentROI.angle < -180) m_currentROI.angle += 360;
 
-    qDebug() << "旋转处理 - 角度变化:" << angleChange << "新角度:" << m_currentROI.angle;
+    // qDebug() << "旋转处理 - 角度变化:" << angleChange << "新角度:" << m_currentROI.angle;
     emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 }
 
