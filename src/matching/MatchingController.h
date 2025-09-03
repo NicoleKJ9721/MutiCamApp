@@ -115,7 +115,7 @@ private:
     nlohmann::json config_data_;             // 在内存中完整地持有整个JSON配置
 
     // 线程安全保护
-    std::mutex mtx_;
+    mutable std::mutex mtx_;
 
     // --- 所有参数现在都是内部成员变量 ---
     cv::Rect current_roi_;
