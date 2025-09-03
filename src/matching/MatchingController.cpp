@@ -256,8 +256,7 @@ std::vector<MatchResult> MatchingController::processSingleFrame(const cv::Mat& f
 }
 
 std::future<bool> MatchingController::createTemplateAsync(
-    const cv::Mat& sourceImage, 
-    const cv::Rect& templateROI, 
+    const cv::Mat& uprightImage, 
     const std::string& new_class_name) 
 {
     // 加锁，复制所有模板创建参数
@@ -279,9 +278,8 @@ std::future<bool> MatchingController::createTemplateAsync(
                 model_save_path, 
                 new_class_name
             );
-            cv::Mat template_image = sourceImage(templateROI).clone();
             template_creator.MakingTemplates(
-                template_image,
+                uprightImage,
                 angle_range,
                 scale_range,
                 num_features,

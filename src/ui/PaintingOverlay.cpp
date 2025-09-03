@@ -7261,18 +7261,18 @@ bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const Q
     try {
         updateMatchingStatus("开始创建KcgMatch模板...");
         
-        // 转换ROI到cv::Rect
-        cv::Rect roiRect(
-            static_cast<int>(m_currentROI.rect.x()),
-            static_cast<int>(m_currentROI.rect.y()),
-            static_cast<int>(m_currentROI.rect.width()),
-            static_cast<int>(m_currentROI.rect.height())
-        );
+        // 提取扶正后的ROI图像
+        cv::Mat uprightImage = extractROIImage(sourceImage);
+        
+        if (uprightImage.empty()) {
+            updateMatchingStatus("提取ROI图像失败");
+            qCritical() << "提取ROI图像失败";
+            return false;
+        }
 
-        // 调用MatchingController的异步模板创建
+        // 调用MatchingController的异步模板创建，传递扶正后的图像
         auto future = m_matchingController->createTemplateAsync(
-            sourceImage, 
-            roiRect, 
+            uprightImage, 
             templateName.toStdString()
         );
 

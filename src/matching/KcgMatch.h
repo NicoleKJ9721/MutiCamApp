@@ -227,6 +227,9 @@ namespace kcg {
 		string refinement_search_mode_;
 		float fixed_angle_window_;
 		float scale_search_window_;
+		
+		// 存储原始模板图像用于调试保存
+		Mat original_model_;
 	};
 }
 

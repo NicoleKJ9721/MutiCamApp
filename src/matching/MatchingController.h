@@ -66,12 +66,11 @@ public:
 
     /**
      * @brief 异步地创建一个新的模板文件。它会使用配置文件中 "TemplateMaking" 部分的参数。
-     * @param sourceImage 用于截取模板的原始大图。
-     * @param templateROI 用户在UI上绘制的、定义了模板区域的矩形。
+     * @param uprightImage 已经扶正后的模板图像。
      * @param new_class_name 要创建的新模板的名称。
      * @return std::future<bool> - 用于查询任务状态和结果。
      */
-    std::future<bool> createTemplateAsync(const cv::Mat& sourceImage, const cv::Rect& templateROI, const std::string& new_class_name);
+    std::future<bool> createTemplateAsync(const cv::Mat& uprightImage, const std::string& new_class_name);
 
     /**
      * @brief 设置或更新用于匹配的感兴趣区域 (ROI)。
