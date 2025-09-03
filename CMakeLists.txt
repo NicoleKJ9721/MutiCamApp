@@ -40,6 +40,8 @@ set(srcs
     src/ui/PaintingOverlay.h
     src/ui/TemplateNameDialog.h
     src/ui/TemplateNameDialog.cpp
+    src/ui/TemplateCreationDialog.h
+    src/ui/TemplateCreationDialog.cpp
     src/ui/TemplateSelectionDialog.cpp
     src/ui/TemplateSelectionDialog.h
     src/ui/CalibrationDialog.cpp
