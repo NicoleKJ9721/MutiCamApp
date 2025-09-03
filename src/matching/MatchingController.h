@@ -25,6 +25,18 @@ struct MatchResult {
     std::vector<cv::Point2f> corners;   // 精确的4个角点坐标
 };
 
+/**
+ * @struct TemplateCreationParams
+ * @brief 模板创建参数结构体，包含所有模板生成所需的参数
+ */
+struct TemplateCreationParams {
+    kcg::AngleRange angle_range;
+    kcg::ScaleRange scale_range;
+    int num_features;
+    float weak_thresh;
+    float strong_thresh;
+};
+
 
 class MatchingController {
 public:
@@ -65,12 +77,13 @@ public:
     std::vector<MatchResult> processSingleFrame(const cv::Mat& frame);
 
     /**
-     * @brief 异步地创建一个新的模板文件。它会使用配置文件中 "TemplateMaking" 部分的参数。
+     * @brief 异步地创建一个新的模板文件。使用传入的参数进行模板生成。
      * @param uprightImage 已经扶正后的模板图像。
      * @param new_class_name 要创建的新模板的名称。
+     * @param params 模板创建参数。
      * @return std::future<bool> - 用于查询任务状态和结果。
      */
-    std::future<bool> createTemplateAsync(const cv::Mat& uprightImage, const std::string& new_class_name);
+    std::future<bool> createTemplateAsync(const cv::Mat& uprightImage, const std::string& new_class_name, const TemplateCreationParams& params);
 
     /**
      * @brief 设置或更新用于匹配的感兴趣区域 (ROI)。

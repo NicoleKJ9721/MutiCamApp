@@ -1,48 +1,37 @@
 #ifndef PAINTINGOVERLAY_H
 #define PAINTINGOVERLAY_H
 
+#pragma once
+
 #include <QWidget>
+#include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QKeyEvent>
 #include <QTimer>
-#include <QVector>
-#include <QPointF>
-#include <QRectF>
-#include <QPixmap>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QSlider>
-#include <QSpinBox>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QGroupBox>
-#include <QScrollArea>
-#include <QSplitter>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QProgressBar>
-#include <QStatusBar>
-#include <QMenuBar>
+#include <QRubberBand>
+#include <QMenu>
 #include <QAction>
 #include <QActionGroup>
-#include <QToolBar>
-#include <QDockWidget>
-#include <QListWidget>
-#include <QTreeWidget>
-#include <QTableWidget>
-#include <QTextEdit>
-#include <QLineEdit>
-#include <QSpacerItem>
-#include <QSizePolicy>
+#include <QColorDialog>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDateTime>
+#include <QDir>
+#include <QStandardPaths>
 #include <QApplication>
-#include <QScreen>
-#include <QDebug>
-#include <QElapsedTimer>
-#include <QFuture>
+#include <QClipboard>
+#include <QMimeData>
+#include <QBuffer>
+#include <QImageWriter>
+#include <QImageReader>
+#include <QProgressDialog>
+#include <QFutureWatcher>
 #include <QtConcurrent>
 #include <QSvgRenderer>
 #include <QThread>
@@ -59,6 +48,7 @@
 
 // 前向声明MatchingController以避免包含冲突
 class MatchingController;
+struct TemplateCreationParams;
 
 // 前向声明
 class ZoomPanWidget;
@@ -449,7 +439,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @param templateName 模板名称
      * @return 是否创建成功
      */
-    bool createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName);
+    bool createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params);
     
     /**
      * @brief 创建双格式模板（PNG+JSON + KcgMatch）
@@ -458,7 +448,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @param templateDir 模板保存目录
      * @return 是否创建成功
      */
-    bool createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString());
+    bool createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params, const QString& templateDir = QString());
 
     // 模板加载和管理相关方法
     /**

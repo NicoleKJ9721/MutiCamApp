@@ -2,6 +2,7 @@
 #include "../ui/ui_MutiCamApp.h"
 #include "../ui/TemplateSelectionDialog.h"
 #include "../ui/ZoomPanWidget.h"
+#include "../matching/MatchingController.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -1737,8 +1738,16 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
             // 设置ROI的模板名称
             overlay->setCurrentROITemplateName(templateName);
 
+            // 创建临时的默认参数（阶段1临时方案）
+            TemplateCreationParams defaultParams;
+            defaultParams.angle_range = {-45.0f, 45.0f, 15.0f};
+            defaultParams.scale_range = {0.9f, 1.1f, 0.1f};
+            defaultParams.num_features = 100;
+            defaultParams.weak_thresh = 30.0f;
+            defaultParams.strong_thresh = 60.0f;
+
             // 调用双格式模板创建功能
-            bool success = overlay->createDualFormatTemplate(currentImage, templateName);
+            bool success = overlay->createDualFormatTemplate(currentImage, templateName, defaultParams);
 
             if (success) {
                 overlay->finishROICreation();

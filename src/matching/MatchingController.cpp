@@ -257,21 +257,15 @@ std::vector<MatchResult> MatchingController::processSingleFrame(const cv::Mat& f
 
 std::future<bool> MatchingController::createTemplateAsync(
     const cv::Mat& uprightImage, 
-    const std::string& new_class_name) 
+    const std::string& new_class_name,
+    const TemplateCreationParams& params) 
 {
-    // 加锁，复制所有模板创建参数
+    // 加锁，复制model_save_path
     mtx_.lock();
-
-    std::string model_save_path  = this->model_save_path_;
-    kcg::AngleRange angle_range  = this->angle_range_;
-    kcg::ScaleRange scale_range  = this->scale_range_;
-    int num_features             = this->num_features_;
-    float weak_thresh            = this->weak_thresh_;
-    float strong_thresh          = this->strong_thresh_;
-
+    std::string model_save_path = this->model_save_path_;
     mtx_.unlock();
 
-    // 异步逻辑和之前一样，只是把复制出来的params传给lambda
+    // 使用传入的参数而不是内部成员变量
     return std::async(std::launch::async, [=]() -> bool {
         try {
             kcg::KcgMatch template_creator(
@@ -280,11 +274,11 @@ std::future<bool> MatchingController::createTemplateAsync(
             );
             template_creator.MakingTemplates(
                 uprightImage,
-                angle_range,
-                scale_range,
-                num_features,
-                weak_thresh,
-                strong_thresh
+                params.angle_range,
+                params.scale_range,
+                params.num_features,
+                params.weak_thresh,
+                params.strong_thresh
             );
             return true;
         } catch (const cv::Exception& e) { // 优先捕获OpenCV的异常

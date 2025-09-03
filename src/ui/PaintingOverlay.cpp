@@ -7243,7 +7243,7 @@ bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QS
 }
 
 // 创建KcgMatch格式模板
-bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName)
+bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params)
 {
     // 尝试初始化MatchingController（用于模板创建）
     if (!m_matchingController) {
@@ -7270,10 +7270,11 @@ bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const Q
             return false;
         }
 
-        // 调用MatchingController的异步模板创建，传递扶正后的图像
+        // 调用MatchingController的异步模板创建，传递扶正后的图像和参数
         auto future = m_matchingController->createTemplateAsync(
             uprightImage, 
-            templateName.toStdString()
+            templateName.toStdString(),
+            params
         );
 
         updateMatchingStatus("等待KcgMatch模板创建完成...");
@@ -7299,7 +7300,7 @@ bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const Q
 }
 
 // 创建双格式模板
-bool PaintingOverlay::createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir)
+bool PaintingOverlay::createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params, const QString& templateDir)
 {
     qInfo() << "开始创建双格式模板:" << templateName;
     
@@ -7325,7 +7326,7 @@ bool PaintingOverlay::createDualFormatTemplate(const cv::Mat& sourceImage, const
 
     // 步骤2：创建KcgMatch格式模板（用于实际匹配）
     updateMatchingStatus("创建KcgMatch格式模板...");
-    kcgMatchSuccess = createKcgMatchTemplate(sourceImage, templateName);
+    kcgMatchSuccess = createKcgMatchTemplate(sourceImage, templateName, params);
 
     // 评估结果
     if (pngJsonSuccess && kcgMatchSuccess) {
