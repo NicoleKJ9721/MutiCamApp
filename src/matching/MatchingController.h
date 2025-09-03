@@ -108,6 +108,9 @@ private:
     // 私有辅助函数，用于加载和解析JSON配置
     bool loadConfigFromFile(const std::string& path);
     std::vector<MatchResult> formatResults(const std::vector<kcg::Match>& raw_matches);
+    
+    // 动态发现模板文件名
+    std::string discoverTemplateFileName();
 
     // 核心算法对象指针
     kcg::KcgMatch* kcg_matcher_;

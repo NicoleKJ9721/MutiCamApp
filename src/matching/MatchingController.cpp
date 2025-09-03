@@ -2,6 +2,7 @@
 #include "../../third_party/json.hpp"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 using json = nlohmann::json;
 
@@ -20,14 +21,20 @@ bool MatchingController::initialize(const std::string& config_path) {
         return false;
     }
 
-    // 2. 根据配置加载模型
+    // 2. 动态发现模板文件名
+    std::string class_name_to_load = discoverTemplateFileName();
+    if (class_name_to_load.empty()) {
+        std::cerr << "[ERROR] No valid template file found in directory: " << model_save_path_ << std::endl;
+        return false;
+    }
+
+    // 3. 根据发现的模板文件名加载模型
     std::lock_guard<std::mutex> lock(mtx_);
     if (kcg_matcher_) {
         delete kcg_matcher_;
     }
     try {   
-        std::string class_name_to_load = config_data_["Model"].value("ClassName", "default_model");     
-        std::cout << "[INFO] Initializing with model: " << class_name_to_load << std::endl;
+        std::cout << "[INFO] Initializing with discovered model: " << class_name_to_load << std::endl;
         kcg_matcher_ = new kcg::KcgMatch(model_save_path_, class_name_to_load); 
 
         // c. 【最关键的一步】调用 LoadModel()，让对象从文件中加载数据
@@ -45,6 +52,46 @@ bool MatchingController::initialize(const std::string& config_path) {
         return false; // 返回失败
     }
     return true;
+}
+
+std::string MatchingController::discoverTemplateFileName() {
+    // 查找模板目录中的第一个 .yaml 文件
+    try {
+        std::filesystem::path template_dir(model_save_path_);
+        
+        if (!std::filesystem::exists(template_dir) || !std::filesystem::is_directory(template_dir)) {
+            std::cerr << "[ERROR] Template directory does not exist: " << model_save_path_ << std::endl;
+            return "";
+        }
+        
+        // 遍历目录查找 .yaml 文件
+        for (const auto& entry : std::filesystem::directory_iterator(template_dir)) {
+            if (entry.is_regular_file()) {
+                std::string filename = entry.path().filename().string();
+                std::string extension = entry.path().extension().string();
+                
+                // 检查是否为 .yaml 或 .yml 文件
+                if (extension == ".yaml" || extension == ".yml") {
+                    // 返回不带扩展名的文件名作为模型名称
+                    std::string model_name = entry.path().stem().string();
+                    std::cout << "[INFO] Discovered template file: " << filename 
+                              << ", using model name: " << model_name << std::endl;
+                    return model_name;
+                }
+            }
+        }
+        
+        std::cerr << "[WARNING] No .yaml template files found in directory: " << model_save_path_ << std::endl;
+        
+        // 如果没有找到 .yaml 文件，尝试使用配置文件中的默认值
+        std::string fallback_name = config_data_["Model"].value("ClassName", "default_model");
+        std::cout << "[INFO] Using fallback model name from config: " << fallback_name << std::endl;
+        return fallback_name;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "[ERROR] Exception while discovering template files: " << e.what() << std::endl;
+        return "";
+    }
 }
 
 bool MatchingController::initializeForTemplateCreation(const std::string& config_path) {
