@@ -28,10 +28,13 @@ TemplateCreationDialog::TemplateCreationDialog(QWidget* parent)
 void TemplateCreationDialog::setupUI()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(10);
     
     // 模板名称输入
     QGroupBox* nameGroup = new QGroupBox("模板名称", this);
+    nameGroup->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     QFormLayout* nameLayout = new QFormLayout(nameGroup);
+    nameLayout->setContentsMargins(10, 10, 10, 10);
     
     m_templateNameEdit = new QLineEdit(this);
     m_templateNameEdit->setPlaceholderText("请输入模板名称");
@@ -42,7 +45,9 @@ void TemplateCreationDialog::setupUI()
     
     // 角度范围设置
     QGroupBox* angleGroup = new QGroupBox("角度范围", this);
+    angleGroup->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     QFormLayout* angleLayout = new QFormLayout(angleGroup);
+    angleLayout->setContentsMargins(10, 10, 10, 10);
     
     m_angleStartSpinBox = new QDoubleSpinBox(this);
     m_angleStartSpinBox->setRange(-180.0, 180.0);
@@ -69,7 +74,9 @@ void TemplateCreationDialog::setupUI()
     
     // 缩放范围设置
     QGroupBox* scaleGroup = new QGroupBox("缩放范围", this);
+    scaleGroup->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     QFormLayout* scaleLayout = new QFormLayout(scaleGroup);
+    scaleLayout->setContentsMargins(10, 10, 10, 10);
     
     m_scaleStartSpinBox = new QDoubleSpinBox(this);
     m_scaleStartSpinBox->setRange(0.1, 5.0);
@@ -96,7 +103,9 @@ void TemplateCreationDialog::setupUI()
     
     // 其他参数设置
     QGroupBox* otherGroup = new QGroupBox("其他参数", this);
+    otherGroup->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     QFormLayout* otherLayout = new QFormLayout(otherGroup);
+    otherLayout->setContentsMargins(10, 10, 10, 10);
     
     m_numFeaturesSpinBox = new QSpinBox(this);
     m_numFeaturesSpinBox->setRange(50, 500);
@@ -123,7 +132,11 @@ void TemplateCreationDialog::setupUI()
     m_errorLabel->setStyleSheet("color: red; font-weight: bold;");
     m_errorLabel->setWordWrap(true);
     m_errorLabel->hide(); // 初始隐藏
+    m_errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
     mainLayout->addWidget(m_errorLabel);
+    
+    // 添加弹性空间，将按钮推到底部
+    mainLayout->addStretch();
     
     // 按钮布局
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -250,45 +263,45 @@ void TemplateCreationDialog::validateParameters()
     if (m_angleStartSpinBox->value() >= m_angleEndSpinBox->value()) {
         isValid = false;
         errorMsg = "错误：角度起始值必须小于结束值";
-        m_angleStartSpinBox->setStyleSheet("border: 2px solid red;");
-        m_angleEndSpinBox->setStyleSheet("border: 2px solid red;");
+        m_angleStartSpinBox->setStyleSheet("background-color: #ffe6e6;");
+        m_angleEndSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 验证角度步长
     if (m_angleStepSpinBox->value() <= 0) {
         isValid = false;
         errorMsg = "错误：角度步长必须大于0";
-        m_angleStepSpinBox->setStyleSheet("border: 2px solid red;");
+        m_angleStepSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 验证缩放范围
     if (m_scaleStartSpinBox->value() >= m_scaleEndSpinBox->value()) {
         isValid = false;
         errorMsg = "错误：缩放起始值必须小于结束值";
-        m_scaleStartSpinBox->setStyleSheet("border: 2px solid red;");
-        m_scaleEndSpinBox->setStyleSheet("border: 2px solid red;");
+        m_scaleStartSpinBox->setStyleSheet("background-color: #ffe6e6;");
+        m_scaleEndSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 验证缩放步长
     if (m_scaleStepSpinBox->value() <= 0) {
         isValid = false;
         errorMsg = "错误：缩放步长必须大于0";
-        m_scaleStepSpinBox->setStyleSheet("border: 2px solid red;");
+        m_scaleStepSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 验证特征点数量
     if (m_numFeaturesSpinBox->value() <= 0) {
         isValid = false;
         errorMsg = "错误：特征点数量必须大于0";
-        m_numFeaturesSpinBox->setStyleSheet("border: 2px solid red;");
+        m_numFeaturesSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 验证梯度阈值
     if (m_weakThreshSpinBox->value() >= m_strongThreshSpinBox->value()) {
         isValid = false;
         errorMsg = "错误：弱梯度阈值必须小于强梯度阈值";
-        m_weakThreshSpinBox->setStyleSheet("border: 2px solid red;");
-        m_strongThreshSpinBox->setStyleSheet("border: 2px solid red;");
+        m_weakThreshSpinBox->setStyleSheet("background-color: #ffe6e6;");
+        m_strongThreshSpinBox->setStyleSheet("background-color: #ffe6e6;");
     }
     
     // 更新错误标签显示

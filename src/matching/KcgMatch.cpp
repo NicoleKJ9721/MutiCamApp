@@ -966,21 +966,21 @@ namespace cv_dnn_nms {
 				// 对原始图像应用相同的变换
 				Mat transformed_image = Transform(original_model_, shape_info.angle, shape_info.scale);
 				
-				if (!transformed_image.empty()) {
-					// 构造文件名：类名_角度_缩放.png
-					char filename[256];
-					snprintf(filename, sizeof(filename), "%s_angle%.1f_scale%.2f.png", 
-							class_name_.c_str(), shape_info.angle, shape_info.scale);
-					string image_path = model_root_ + filename;
+				// if (!transformed_image.empty()) {
+				// 	// 构造文件名：类名_角度_缩放.png
+				// 	char filename[256];
+				// 	snprintf(filename, sizeof(filename), "%s_angle%.1f_scale%.2f.png", 
+				// 			class_name_.c_str(), shape_info.angle, shape_info.scale);
+				// 	string image_path = model_root_ + filename;
 					
-					// 保存图像
-					bool save_success = cv::imwrite(image_path, transformed_image);
-					if (save_success) {
-						cout << "[Debug] Saved template image: " << image_path << endl;
-					} else {
-						cerr << "[Error] Failed to save template image: " << image_path << endl;
-					}
-				}
+				// 	// 保存图像
+				// 	bool save_success = cv::imwrite(image_path, transformed_image);
+				// 	if (save_success) {
+				// 		cout << "[Debug] Saved template image: " << image_path << endl;
+				// 	} else {
+				// 		cerr << "[Error] Failed to save template image: " << image_path << endl;
+				// 	}
+				// }
 			}
 			cout << "[Debug] Template images save operation completed." << endl;
 		}
