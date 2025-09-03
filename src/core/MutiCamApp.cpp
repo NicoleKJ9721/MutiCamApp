@@ -4790,15 +4790,37 @@ void MutiCamApp::applyCapturePreset()
     }
 }
 
+QString MutiCamApp::findConfigPath() const
+{
+    QString appPath = QCoreApplication::applicationDirPath();
+    
+    // 优先级顺序查找配置文件
+    QStringList candidates = {
+        appPath + "/config/config.jsonc",
+        "../config/config.jsonc",
+        "config/config.jsonc"
+    };
+    
+    for (const QString& path : candidates) {
+        if (QFile::exists(path)) {
+            qDebug() << "找到配置文件：" << path;
+            return path;
+        }
+    }
+    
+    qWarning() << "未找到config.jsonc配置文件，搜索路径：" << candidates;
+    return QString();
+}
+
 void MutiCamApp::initializeMatchingController()
 {
     try {
         // 创建模板匹配控制器
         m_matchingController = std::make_unique<MatchingController>();
         
-        // 从配置文件加载参数
-        QString configPath = "config/config.jsonc";
-        if (QFile::exists(configPath)) {
+        // 智能查找配置文件路径
+        QString configPath = findConfigPath();
+        if (!configPath.isEmpty()) {
             if (m_matchingController->initializeForTemplateCreation(configPath.toStdString())) {
                 qDebug() << "MatchingController initialized successfully with config:" << configPath;
             } else {

@@ -686,6 +686,12 @@ private:
 
 private:
      /**
+      * @brief 智能查找配置文件路径
+      * @return 配置文件路径，如果未找到则返回空字符串
+      */
+     QString findConfigPath() const;
+
+     /**
       * @brief 从UI获取边缘检测参数
       * @return EdgeDetector参数结构体
       */
