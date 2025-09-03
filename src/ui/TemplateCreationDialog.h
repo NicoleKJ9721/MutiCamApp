@@ -55,4 +55,7 @@ private:
     // 按钮
     QPushButton* m_okButton;
     QPushButton* m_cancelButton;
+    
+    // 错误提示标签
+    QLabel* m_errorLabel;
 };

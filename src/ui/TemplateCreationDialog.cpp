@@ -15,6 +15,7 @@ TemplateCreationDialog::TemplateCreationDialog(QWidget* parent)
     , m_strongThreshSpinBox(nullptr)
     , m_okButton(nullptr)
     , m_cancelButton(nullptr)
+    , m_errorLabel(nullptr)
 {
     setWindowTitle("创建模板");
     setModal(true);
@@ -34,6 +35,7 @@ void TemplateCreationDialog::setupUI()
     
     m_templateNameEdit = new QLineEdit(this);
     m_templateNameEdit->setPlaceholderText("请输入模板名称");
+    m_templateNameEdit->setToolTip("模板的唯一标识名称。\n用于保存和识别不同的模板文件。\n建议使用有意义的描述性名称。");
     nameLayout->addRow("名称:", m_templateNameEdit);
     
     mainLayout->addWidget(nameGroup);
@@ -46,18 +48,21 @@ void TemplateCreationDialog::setupUI()
     m_angleStartSpinBox->setRange(-180.0, 180.0);
     m_angleStartSpinBox->setValue(-45.0);
     m_angleStartSpinBox->setSuffix("°");
+    m_angleStartSpinBox->setToolTip("模板匹配时允许的最小旋转角度。\n负值表示逆时针旋转。\n范围越大，匹配越灵活，但速度会变慢。\n推荐值：-45°到-90°");
     angleLayout->addRow("起始角度:", m_angleStartSpinBox);
     
     m_angleEndSpinBox = new QDoubleSpinBox(this);
     m_angleEndSpinBox->setRange(-180.0, 180.0);
     m_angleEndSpinBox->setValue(45.0);
     m_angleEndSpinBox->setSuffix("°");
+    m_angleEndSpinBox->setToolTip("模板匹配时允许的最大旋转角度。\n正值表示顺时针旋转。\n必须大于起始角度。\n推荐值：45°到90°");
     angleLayout->addRow("结束角度:", m_angleEndSpinBox);
     
     m_angleStepSpinBox = new QDoubleSpinBox(this);
     m_angleStepSpinBox->setRange(1.0, 45.0);
     m_angleStepSpinBox->setValue(15.0);
     m_angleStepSpinBox->setSuffix("°");
+    m_angleStepSpinBox->setToolTip("模板旋转时的角度间隔。\n步长越小，角度识别越精确，但创建和匹配时间会显著增加。\n推荐值：10°-20°，精确场合可用5°");
     angleLayout->addRow("角度步长:", m_angleStepSpinBox);
     
     mainLayout->addWidget(angleGroup);
@@ -70,18 +75,21 @@ void TemplateCreationDialog::setupUI()
     m_scaleStartSpinBox->setRange(0.1, 5.0);
     m_scaleStartSpinBox->setValue(0.9);
     m_scaleStartSpinBox->setDecimals(2);
+    m_scaleStartSpinBox->setToolTip("模板匹配时允许的最小缩放比例。\n1.0表示原始大小，小于1.0表示缩小。\n范围越大，对尺寸变化的适应性越强。\n推荐值：0.8-0.95");
     scaleLayout->addRow("起始缩放:", m_scaleStartSpinBox);
     
     m_scaleEndSpinBox = new QDoubleSpinBox(this);
     m_scaleEndSpinBox->setRange(0.1, 5.0);
     m_scaleEndSpinBox->setValue(1.1);
     m_scaleEndSpinBox->setDecimals(2);
+    m_scaleEndSpinBox->setToolTip("模板匹配时允许的最大缩放比例。\n大于1.0表示放大，必须大于起始缩放。\n过大的范围会增加误匹配风险。\n推荐值：1.05-1.2");
     scaleLayout->addRow("结束缩放:", m_scaleEndSpinBox);
     
     m_scaleStepSpinBox = new QDoubleSpinBox(this);
     m_scaleStepSpinBox->setRange(0.01, 1.0);
     m_scaleStepSpinBox->setValue(0.1);
     m_scaleStepSpinBox->setDecimals(2);
+    m_scaleStepSpinBox->setToolTip("缩放变化的步长间隔。\n步长越小，尺寸识别越精确，但处理时间会增加。\n推荐值：0.05-0.1，精确场合可用0.02");
     scaleLayout->addRow("缩放步长:", m_scaleStepSpinBox);
     
     mainLayout->addWidget(scaleGroup);
@@ -93,19 +101,29 @@ void TemplateCreationDialog::setupUI()
     m_numFeaturesSpinBox = new QSpinBox(this);
     m_numFeaturesSpinBox->setRange(50, 500);
     m_numFeaturesSpinBox->setValue(100);
+    m_numFeaturesSpinBox->setToolTip("模板中提取的特征点数量。\n数量越多，模板越稳定可靠，但创建和匹配速度会变慢。\n过少可能导致匹配不稳定，过多会影响性能。\n推荐值：100-200，复杂图案可用300+");
     otherLayout->addRow("特征点数量:", m_numFeaturesSpinBox);
     
     m_weakThreshSpinBox = new QDoubleSpinBox(this);
     m_weakThreshSpinBox->setRange(10.0, 100.0);
     m_weakThreshSpinBox->setValue(30.0);
+    m_weakThreshSpinBox->setToolTip("弱梯度阈值，用于检测较弱的边缘特征。\n值越低，检测到的边缘越多，但可能包含噪声。\n必须小于强梯度阈值。\n推荐值：20-40，噪声环境可适当提高");
     otherLayout->addRow("弱梯度阈值:", m_weakThreshSpinBox);
     
     m_strongThreshSpinBox = new QDoubleSpinBox(this);
     m_strongThreshSpinBox->setRange(30.0, 150.0);
     m_strongThreshSpinBox->setValue(60.0);
+    m_strongThreshSpinBox->setToolTip("强梯度阈值，用于确定最可靠的边缘特征。\n值越高，找到的边缘越少但越清晰可靠。\n必须大于弱梯度阈值。\n推荐值：50-80，清晰图像可用更高值");
     otherLayout->addRow("强梯度阈值:", m_strongThreshSpinBox);
     
     mainLayout->addWidget(otherGroup);
+    
+    // 错误提示标签
+    m_errorLabel = new QLabel(this);
+    m_errorLabel->setStyleSheet("color: red; font-weight: bold;");
+    m_errorLabel->setWordWrap(true);
+    m_errorLabel->hide(); // 初始隐藏
+    mainLayout->addWidget(m_errorLabel);
     
     // 按钮布局
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -208,38 +226,79 @@ void TemplateCreationDialog::validateParameters()
     bool isValid = true;
     QString errorMsg;
     
+    // 清除所有输入框的错误样式
+    m_templateNameEdit->setStyleSheet("");
+    m_angleStartSpinBox->setStyleSheet("");
+    m_angleEndSpinBox->setStyleSheet("");
+    m_angleStepSpinBox->setStyleSheet("");
+    m_scaleStartSpinBox->setStyleSheet("");
+    m_scaleEndSpinBox->setStyleSheet("");
+    m_scaleStepSpinBox->setStyleSheet("");
+    m_numFeaturesSpinBox->setStyleSheet("");
+    m_weakThreshSpinBox->setStyleSheet("");
+    m_strongThreshSpinBox->setStyleSheet("");
+    
     // 验证模板名称
     QString templateName = m_templateNameEdit->text().trimmed();
     if (templateName.isEmpty()) {
         isValid = false;
-        errorMsg = "模板名称不能为空";
+        errorMsg = "错误：模板名称不能为空";
+        m_templateNameEdit->setStyleSheet("border: 2px solid red;");
     }
     
     // 验证角度范围
     if (m_angleStartSpinBox->value() >= m_angleEndSpinBox->value()) {
         isValid = false;
-        errorMsg = "角度起始值必须小于结束值";
+        errorMsg = "错误：角度起始值必须小于结束值";
+        m_angleStartSpinBox->setStyleSheet("border: 2px solid red;");
+        m_angleEndSpinBox->setStyleSheet("border: 2px solid red;");
+    }
+    
+    // 验证角度步长
+    if (m_angleStepSpinBox->value() <= 0) {
+        isValid = false;
+        errorMsg = "错误：角度步长必须大于0";
+        m_angleStepSpinBox->setStyleSheet("border: 2px solid red;");
     }
     
     // 验证缩放范围
     if (m_scaleStartSpinBox->value() >= m_scaleEndSpinBox->value()) {
         isValid = false;
-        errorMsg = "缩放起始值必须小于结束值";
+        errorMsg = "错误：缩放起始值必须小于结束值";
+        m_scaleStartSpinBox->setStyleSheet("border: 2px solid red;");
+        m_scaleEndSpinBox->setStyleSheet("border: 2px solid red;");
+    }
+    
+    // 验证缩放步长
+    if (m_scaleStepSpinBox->value() <= 0) {
+        isValid = false;
+        errorMsg = "错误：缩放步长必须大于0";
+        m_scaleStepSpinBox->setStyleSheet("border: 2px solid red;");
+    }
+    
+    // 验证特征点数量
+    if (m_numFeaturesSpinBox->value() <= 0) {
+        isValid = false;
+        errorMsg = "错误：特征点数量必须大于0";
+        m_numFeaturesSpinBox->setStyleSheet("border: 2px solid red;");
     }
     
     // 验证梯度阈值
     if (m_weakThreshSpinBox->value() >= m_strongThreshSpinBox->value()) {
         isValid = false;
-        errorMsg = "弱梯度阈值必须小于强梯度阈值";
+        errorMsg = "错误：弱梯度阈值必须小于强梯度阈值";
+        m_weakThreshSpinBox->setStyleSheet("border: 2px solid red;");
+        m_strongThreshSpinBox->setStyleSheet("border: 2px solid red;");
+    }
+    
+    // 更新错误标签显示
+    if (!isValid && !errorMsg.isEmpty()) {
+        m_errorLabel->setText(errorMsg);
+        m_errorLabel->show();
+    } else {
+        m_errorLabel->hide();
     }
     
     // 更新OK按钮状态
     m_okButton->setEnabled(isValid);
-    
-    // 显示错误信息（可选）
-    if (!isValid && !errorMsg.isEmpty()) {
-        m_okButton->setToolTip(errorMsg);
-    } else {
-        m_okButton->setToolTip("");
-    }
 }

@@ -13,12 +13,7 @@
 #include <QCursor>
 #include <QStackedLayout>
 #include <QDir>
-#include <QDateTime>
-#include <QFile>
-#include <QFileInfo>
 #include <algorithm>
-#define _USE_MATH_DEFINES
-#include "../ui/TemplateNameDialog.h"
 #include "../ui/TemplateCreationDialog.h"
 
 #ifndef M_PI

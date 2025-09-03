@@ -38,8 +38,6 @@ set(srcs
     src/ui/ZoomPanWidget.h
     src/ui/PaintingOverlay.cpp
     src/ui/PaintingOverlay.h
-    src/ui/TemplateNameDialog.h
-    src/ui/TemplateNameDialog.cpp
     src/ui/TemplateCreationDialog.h
     src/ui/TemplateCreationDialog.cpp
     src/ui/TemplateSelectionDialog.cpp
