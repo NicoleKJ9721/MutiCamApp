@@ -35,9 +35,6 @@
 #include "SerialController.h"
 #include <functional>
 
-// 前向声明
-class MatchingController;
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -353,9 +350,6 @@ private:
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
 
-    // 模板匹配控制器
-    std::unique_ptr<MatchingController> m_matchingController;
-
     // 载物台控制
     double getCurrentStepSize() const;               ///< 获取当前选择的步长
     std::unique_ptr<TrajectoryRecorder> m_trajectoryRecorder;  ///< 轨迹记录器
@@ -494,11 +488,6 @@ private:
      * @brief 初始化相机系统
      */
     void initializeCameraSystem();
-    
-    /**
-     * @brief 初始化模板匹配控制器
-     */
-    void initializeMatchingController();
     
     /**
      * @brief 连接信号和槽
@@ -685,12 +674,6 @@ private:
      void updateZoomPanWidget(const QString& viewName, const cv::Mat& frame);
 
 private:
-     /**
-      * @brief 智能查找配置文件路径
-      * @return 配置文件路径，如果未找到则返回空字符串
-      */
-     QString findConfigPath() const;
-
      /**
       * @brief 从UI获取边缘检测参数
       * @return EdgeDetector参数结构体

@@ -1,41 +1,27 @@
 #ifndef PAINTINGOVERLAY_H
 #define PAINTINGOVERLAY_H
 
-#pragma once
-
 #include <QWidget>
-#include <QLabel>
 #include <QPainter>
 #include <QMouseEvent>
-#include <QWheelEvent>
-#include <QKeyEvent>
-#include <QTimer>
-#include <QRubberBand>
+#include <QContextMenuEvent>
+#include <QVector>
+#include <QStack>
+#include <QSet>
+#include <QPointF>
+#include <QRectF>
+#include <QFont>
+#include <QPen>
+#include <QBrush>
+#include <QPainterPath>
+#include <QSvgRenderer>
 #include <QMenu>
 #include <QAction>
-#include <QActionGroup>
-#include <QColorDialog>
-#include <QInputDialog>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QTime>
+#include <QDialog>
+#include <QListWidget>
+#include <QCheckBox>
 #include <QDateTime>
-#include <QDir>
-#include <QStandardPaths>
-#include <QApplication>
-#include <QClipboard>
-#include <QMimeData>
-#include <QBuffer>
-#include <QImageWriter>
-#include <QImageReader>
-#include <QProgressDialog>
-#include <QFutureWatcher>
-#include <QtConcurrent>
-#include <QSvgRenderer>
-#include <QThread>
-#include <QPainterPath>
 
 // 解决Windows SDK和OpenCV的符号冲突
 #ifdef _WIN32
@@ -46,9 +32,8 @@
 #include <opencv2/opencv.hpp>
 #include "../image_processing/edge_detector.h"
 
-// 前向声明MatchingController以避免包含冲突
-class MatchingController;
-struct TemplateCreationParams;
+// 前向声明MatchingController以避免包含冲突 (暂时移除，当前未使用)
+// class MatchingController;
 
 // 前向声明
 class ZoomPanWidget;
@@ -432,23 +417,6 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @return 是否创建成功
      */
     bool createTemplateFromROI(const cv::Mat& sourceImage, const QString& templateName, const QString& templateDir = QString()) const;
-    
-    /**
-     * @brief 创建KcgMatch格式模板
-     * @param sourceImage 源图像
-     * @param templateName 模板名称
-     * @return 是否创建成功
-     */
-    bool createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params);
-    
-    /**
-     * @brief 创建双格式模板（PNG+JSON + KcgMatch）
-     * @param sourceImage 源图像
-     * @param templateName 模板名称
-     * @param templateDir 模板保存目录
-     * @return 是否创建成功
-     */
-    bool createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params, const QString& templateDir = QString());
 
     // 模板加载和管理相关方法
     /**
@@ -468,13 +436,12 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
 
     // 模板匹配功能相关方法
     /**
-     * @brief 初始化匹配控制器
+     * @brief 初始化匹配控制器 (暂时移除，当前未使用)
      * @return 是否初始化成功
      */
-    bool initializeKcgMatch();
+    // bool initializeMatchingController();
 
     /**
-     * @brief 获取配置文件路径
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
      * @return 是否启动成功
@@ -492,40 +459,6 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      * @return 匹配结果列表
      */
     QVector<TemplateMatchResult> performMatching(const cv::Mat& sourceImage);
-
-    // KcgMatch相关函数
-    QString getConfigPath();
-    QString findTemplateDirectory();
-    QString findTemplateFile(const QString& templateDir);
-    QVector<TemplateMatchResult> performKcgMatching(const cv::Mat& sourceImage);
-    QVector<TemplateMatchResult> performOpenCVMatching(const cv::Mat& sourceImage);
-    
-    // 异步匹配处理
-    QFuture<QVector<TemplateMatchResult>> performMatchingAsync(const cv::Mat& sourceImage);
-    
-    // 状态反馈
-    void updateMatchingStatus(const QString& status);
-    
-    // 智能模板名称
-    QString getSmartTemplateName() const;
-    
-    // 重试机制
-    bool initializeKcgMatchWithRetry(int maxRetries = 3);
-    
-    // 用于模板创建的初始化（不检查模板文件）
-    bool initializeKcgMatchForTemplateCreation();
-    
-    // 配置热重载
-    void reloadKcgMatchConfig();
-    
-    // 性能监控
-    QVector<TemplateMatchResult> performKcgMatchingWithTiming(const cv::Mat& sourceImage);
-    
-    // 结果分析
-    void analyzeMatchResults(const QVector<TemplateMatchResult>& results);
-    
-    // 内存优化
-    void optimizeMemoryUsage();
 
     // 匹配结果可视化相关方法
     /**
@@ -568,10 +501,6 @@ signals:
     void roiChanged(const QString& viewName, const QRectF& rect, qreal angle); // ROI变化
     void roiFinished(const QString& viewName); // ROI编辑完成
     void roiCancelled(const QString& viewName); // ROI创建取消
-    
-    // 匹配状态信号
-    void matchingStatusChanged(const QString& status); // 匹配状态变化信号
-    void matchingCompleted(const QVector<TemplateMatchResult>& results); // 异步匹配完成信号
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -716,7 +645,7 @@ private:
     mutable int m_lastGridSpacing;      // 上次绘制网格时的间距
 
     // 模板匹配相关成员
-    MatchingController* m_matchingController;        // 匹配控制器
+    // MatchingController* m_matchingController;        // 匹配控制器 (暂时移除，当前未使用)
     QVector<TemplateInfo> m_loadedTemplates;         // 已加载的模板列表
     QVector<TemplateMatchResult> m_currentMatches;   // 当前匹配结果
     bool m_isMatchingEnabled;                        // 是否启用匹配

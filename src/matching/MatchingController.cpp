@@ -2,7 +2,6 @@
 #include "../../third_party/json.hpp"
 #include <iostream>
 #include <fstream>
-#include <filesystem>
 
 using json = nlohmann::json;
 
@@ -21,20 +20,14 @@ bool MatchingController::initialize(const std::string& config_path) {
         return false;
     }
 
-    // 2. 动态发现模板文件名
-    std::string class_name_to_load = discoverTemplateFileName();
-    if (class_name_to_load.empty()) {
-        std::cerr << "[ERROR] No valid template file found in directory: " << model_save_path_ << std::endl;
-        return false;
-    }
-
-    // 3. 根据发现的模板文件名加载模型
+    // 2. 根据配置加载模型
     std::lock_guard<std::mutex> lock(mtx_);
     if (kcg_matcher_) {
         delete kcg_matcher_;
     }
     try {   
-        std::cout << "[INFO] Initializing with discovered model: " << class_name_to_load << std::endl;
+        std::string class_name_to_load = config_data_["Model"].value("ClassName", "default_model");     
+        std::cout << "[INFO] Initializing with model: " << class_name_to_load << std::endl;
         kcg_matcher_ = new kcg::KcgMatch(model_save_path_, class_name_to_load); 
 
         // c. 【最关键的一步】调用 LoadModel()，让对象从文件中加载数据
@@ -50,73 +43,6 @@ bool MatchingController::initialize(const std::string& config_path) {
         kcg_matcher_ = nullptr;
         
         return false; // 返回失败
-    }
-    return true;
-}
-
-std::string MatchingController::discoverTemplateFileName() {
-    // 查找模板目录中的第一个 .yaml 文件
-    try {
-        std::filesystem::path template_dir(model_save_path_);
-        
-        if (!std::filesystem::exists(template_dir) || !std::filesystem::is_directory(template_dir)) {
-            std::cerr << "[ERROR] Template directory does not exist: " << model_save_path_ << std::endl;
-            return "";
-        }
-        
-        // 遍历目录查找 .yaml 文件
-        for (const auto& entry : std::filesystem::directory_iterator(template_dir)) {
-            if (entry.is_regular_file()) {
-                std::string filename = entry.path().filename().string();
-                std::string extension = entry.path().extension().string();
-                
-                // 检查是否为 .yaml 或 .yml 文件
-                if (extension == ".yaml" || extension == ".yml") {
-                    // 返回不带扩展名的文件名作为模型名称
-                    std::string model_name = entry.path().stem().string();
-                    std::cout << "[INFO] Discovered template file: " << filename 
-                              << ", using model name: " << model_name << std::endl;
-                    return model_name;
-                }
-            }
-        }
-        
-        std::cerr << "[WARNING] No .yaml template files found in directory: " << model_save_path_ << std::endl;
-        
-        // 如果没有找到 .yaml 文件，尝试使用配置文件中的默认值
-        std::string fallback_name = config_data_["Model"].value("ClassName", "default_model");
-        std::cout << "[INFO] Using fallback model name from config: " << fallback_name << std::endl;
-        return fallback_name;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "[ERROR] Exception while discovering template files: " << e.what() << std::endl;
-        return "";
-    }
-}
-
-bool MatchingController::initializeForTemplateCreation(const std::string& config_path) {
-    // 1. 加载配置
-    if (!loadConfigFromFile(config_path)) {
-        return false;
-    }
-
-    // 2. 创建KcgMatch对象但不加载模型
-    std::lock_guard<std::mutex> lock(mtx_);
-    if (kcg_matcher_) {
-        delete kcg_matcher_;
-    }
-    try {   
-        std::string class_name_to_load = config_data_["Model"].value("ClassName", "default_model");     
-        std::cout << "[INFO] Initializing for template creation with model: " << class_name_to_load << std::endl;
-        kcg_matcher_ = new kcg::KcgMatch(model_save_path_, class_name_to_load); 
-
-        // 注意：这里不调用 LoadModel()，因为模板文件可能还不存在
-        std::cout << "[SUCCESS] MatchingController initialized for template creation." << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "[FATAL] An exception occurred during initialization: " << e.what() << std::endl;
-        delete kcg_matcher_;
-        kcg_matcher_ = nullptr;
-        return false;
     }
     return true;
 }
@@ -303,29 +229,37 @@ std::vector<MatchResult> MatchingController::processSingleFrame(const cv::Mat& f
 }
 
 std::future<bool> MatchingController::createTemplateAsync(
-    const cv::Mat& uprightImage, 
-    const std::string& new_class_name,
-    const TemplateCreationParams& params) 
+    const cv::Mat& sourceImage, 
+    const cv::Rect& templateROI, 
+    const std::string& new_class_name) 
 {
-    // 加锁，复制model_save_path
+    // 加锁，复制所有模板创建参数
     mtx_.lock();
-    std::string model_save_path = this->model_save_path_;
+
+    std::string model_save_path  = this->model_save_path_;
+    kcg::AngleRange angle_range  = this->angle_range_;
+    kcg::ScaleRange scale_range  = this->scale_range_;
+    int num_features             = this->num_features_;
+    float weak_thresh            = this->weak_thresh_;
+    float strong_thresh          = this->strong_thresh_;
+
     mtx_.unlock();
 
-    // 使用传入的参数而不是内部成员变量
+    // 异步逻辑和之前一样，只是把复制出来的params传给lambda
     return std::async(std::launch::async, [=]() -> bool {
         try {
             kcg::KcgMatch template_creator(
                 model_save_path, 
                 new_class_name
             );
+            cv::Mat template_image = sourceImage(templateROI).clone();
             template_creator.MakingTemplates(
-                uprightImage,
-                params.angle_range,
-                params.scale_range,
-                params.num_features,
-                params.weak_thresh,
-                params.strong_thresh
+                template_image,
+                angle_range,
+                scale_range,
+                num_features,
+                weak_thresh,
+                strong_thresh
             );
             return true;
         } catch (const cv::Exception& e) { // 优先捕获OpenCV的异常
@@ -498,20 +432,6 @@ bool MatchingController::saveConfiguration() {
 
     std::cout << "[SUCCESS] Configuration saved successfully." << std::endl;
     return true;
-}
-
-TemplateCreationParams MatchingController::getDefaultTemplateCreationParams() const
-{
-    std::lock_guard<std::mutex> lock(mtx_);
-    
-    TemplateCreationParams params;
-    params.angle_range = angle_range_;
-    params.scale_range = scale_range_;
-    params.num_features = num_features_;
-    params.weak_thresh = weak_thresh_;
-    params.strong_thresh = strong_thresh_;
-    
-    return params;
 }
 
 

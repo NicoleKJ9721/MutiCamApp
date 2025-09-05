@@ -42,7 +42,7 @@ public:
      */
     struct MatchingParams {
         double confidenceThreshold = 0.7;  // 置信度阈值
-        int maxMatches = 1;                // 最大匹配数量
+        int maxMatches = 10;                // 最大匹配数量
         bool enableRotation = true;         // 是否启用旋转匹配
         double rotationRange = 360.0;       // 旋转范围（度）
         bool enableScaling = false;         // 是否启用缩放匹配

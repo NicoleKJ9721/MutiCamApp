@@ -277,9 +277,6 @@ namespace cv_dnn_nms {
 			cv::cvtColor(model, model, cv::COLOR_BGR2GRAY);
 		}
 		
-		// 存储原始模板图像用于调试保存
-		original_model_ = model.clone();
-		
 		// 2. 正常执行所有后续逻辑
 		ClearModel();
 		PaddingModelAndMask(model, mask, scale_range.end);
@@ -952,38 +949,6 @@ namespace cv_dnn_nms {
 
 		fs.release();
 		cout << "[Debug] Model save operation completed." << endl;
-		
-		// 保存每个旋转角度的模板图像用于对比验证
-		if (!original_model_.empty() && match_range_size > 0) {
-			cout << "[Debug] Saving template images for verification..." << endl;
-			
-			// 重新生成shape_infos以获取正确的角度和缩放值
-			vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range_, scale_range_);
-			
-			for (int i = 0; i < match_range_size && i < (int)shape_infos.size(); i++) {
-				ShapeInfo shape_info = shape_infos[i];
-				
-				// 对原始图像应用相同的变换
-				Mat transformed_image = Transform(original_model_, shape_info.angle, shape_info.scale);
-				
-				// if (!transformed_image.empty()) {
-				// 	// 构造文件名：类名_角度_缩放.png
-				// 	char filename[256];
-				// 	snprintf(filename, sizeof(filename), "%s_angle%.1f_scale%.2f.png", 
-				// 			class_name_.c_str(), shape_info.angle, shape_info.scale);
-				// 	string image_path = model_root_ + filename;
-					
-				// 	// 保存图像
-				// 	bool save_success = cv::imwrite(image_path, transformed_image);
-				// 	if (save_success) {
-				// 		cout << "[Debug] Saved template image: " << image_path << endl;
-				// 	} else {
-				// 		cerr << "[Error] Failed to save template image: " << image_path << endl;
-				// 	}
-				// }
-			}
-			cout << "[Debug] Template images save operation completed." << endl;
-		}
 	}
 
 	void KcgMatch::LoadModel() {

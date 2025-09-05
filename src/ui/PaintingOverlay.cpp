@@ -21,7 +21,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
-#include "../matching/MatchingController.h"
+// #include "../matching/MatchingController.h" // 暂时移除，当前未使用
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -67,7 +67,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
-    , m_matchingController(nullptr)  // 匹配控制器初始为空
+    // , m_matchingController(nullptr)  // 匹配控制器初始为空
     , m_isMatchingEnabled(false)     // 默认禁用匹配
     , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
 {
@@ -102,11 +102,11 @@ PaintingOverlay::~PaintingOverlay()
         m_rotationIconRenderer = nullptr;
     }
 
-    // 清理匹配控制器
-    if (m_matchingController) {
-        delete m_matchingController;
-        m_matchingController = nullptr;
-    }
+    // 清理匹配控制器 (暂时移除，当前未使用)
+    // if (m_matchingController) {
+    //     delete m_matchingController;
+    //     m_matchingController = nullptr;
+    // }
 
     // 清理缓存的图像数据
     if (!m_lastProcessedFrame.empty()) {
@@ -709,7 +709,7 @@ void PaintingOverlay::mouseReleaseEvent(QMouseEvent *event)
         // 发送ROI变化信号
         emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 
-        // qDebug() << "ROI拖拽结束，当前ROI:" << m_currentROI.rect << "角度:" << m_currentROI.angle;
+        qDebug() << "ROI拖拽结束，当前ROI:" << m_currentROI.rect << "角度:" << m_currentROI.angle;
         update();
         return;
     }
@@ -6651,7 +6651,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
         QPointF handlePos = handlePositions[i];
         double distance = QLineF(localPos, handlePos).length();
         if (distance <= handleRadius) {
-            // qDebug() << "检测到控制点" << i << "距离:" << distance;
+            qDebug() << "检测到控制点" << i << "距离:" << distance;
             return static_cast<PaintingOverlay::ROIObject::HandleType>(i);
         }
     }
@@ -6665,13 +6665,13 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
     double rotationHandleRadius = handleRadius * 2;
     // qDebug() << "旋转手柄检测 - 绘制位置:" << rotationHandlePos << "本地鼠标:" << localPos << "距离:" << rotationDistance << "半径:" << rotationHandleRadius;
     if (rotationDistance <= rotationHandleRadius) {
-        // qDebug() << "检测到旋转手柄点击！";
+        qDebug() << "检测到旋转手柄点击！";
         return PaintingOverlay::ROIObject::RotationHandle;
     }
 
     // 检查是否在ROI内部（用于移动）
     if (rect.contains(localPos)) {
-        // qDebug() << "检测到ROI内部点击";
+        qDebug() << "检测到ROI内部点击";
         return PaintingOverlay::ROIObject::MoveHandle;
     }
 
@@ -6857,7 +6857,7 @@ void PaintingOverlay::handleROIRotation(const QPointF& delta)
     while (m_currentROI.angle > 180) m_currentROI.angle -= 360;
     while (m_currentROI.angle < -180) m_currentROI.angle += 360;
 
-    // qDebug() << "旋转处理 - 角度变化:" << angleChange << "新角度:" << m_currentROI.angle;
+    qDebug() << "旋转处理 - 角度变化:" << angleChange << "新角度:" << m_currentROI.angle;
     emit roiChanged(m_viewName, m_currentROI.rect, m_currentROI.angle);
 }
 
@@ -7118,11 +7118,10 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
     }
 
     try {
-        // 确定保存目录，与KcgMatch保持一致
+        // 确定保存目录
         QString saveDir = templateDir;
         if (saveDir.isEmpty()) {
-            // 使用与KcgMatch相同的模板目录
-            saveDir = "../template";
+            saveDir = QCoreApplication::applicationDirPath() + "/templates";
         }
 
         // 创建目录（如果不存在）
@@ -7242,112 +7241,6 @@ bool PaintingOverlay::createTemplateFromROI(const cv::Mat& sourceImage, const QS
     return true;
 }
 
-// 创建KcgMatch格式模板
-bool PaintingOverlay::createKcgMatchTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params)
-{
-    // 尝试初始化MatchingController（用于模板创建）
-    if (!m_matchingController) {
-        if (!initializeKcgMatchForTemplateCreation()) {
-            qWarning() << "MatchingController初始化失败，无法创建KcgMatch模板";
-            return false;
-        }
-    }
-
-    if (!m_hasCurrentROI) {
-        qWarning() << "没有当前ROI，无法创建KcgMatch模板";
-        return false;
-    }
-
-    try {
-        updateMatchingStatus("开始创建KcgMatch模板...");
-        
-        // 提取扶正后的ROI图像
-        cv::Mat uprightImage = extractROIImage(sourceImage);
-        
-        if (uprightImage.empty()) {
-            updateMatchingStatus("提取ROI图像失败");
-            qCritical() << "提取ROI图像失败";
-            return false;
-        }
-
-        // 调用MatchingController的异步模板创建，传递扶正后的图像和参数
-        auto future = m_matchingController->createTemplateAsync(
-            uprightImage, 
-            templateName.toStdString(),
-            params
-        );
-
-        updateMatchingStatus("等待KcgMatch模板创建完成...");
-        
-        // 等待异步任务完成
-        bool success = future.get();
-        
-        if (success) {
-            updateMatchingStatus("KcgMatch模板创建成功");
-            qInfo() << "KcgMatch模板创建成功:" << templateName;
-            return true;
-        } else {
-            updateMatchingStatus("KcgMatch模板创建失败");
-            qWarning() << "KcgMatch模板创建失败:" << templateName;
-            return false;
-        }
-
-    } catch (const std::exception& e) {
-        updateMatchingStatus("KcgMatch模板创建异常");
-        qCritical() << "KcgMatch模板创建异常:" << e.what();
-        return false;
-    }
-}
-
-// 创建双格式模板
-bool PaintingOverlay::createDualFormatTemplate(const cv::Mat& sourceImage, const QString& templateName, const TemplateCreationParams& params, const QString& templateDir)
-{
-    qInfo() << "开始创建双格式模板:" << templateName;
-    
-    bool pngJsonSuccess = false;
-    bool kcgMatchSuccess = false;
-
-    // 步骤1：创建传统PNG+JSON格式（用于缩略图和信息显示）
-    updateMatchingStatus("创建PNG+JSON格式模板...");
-    
-    cv::Mat roiImage = extractROIImage(sourceImage);
-    if (!roiImage.empty()) {
-        cv::Mat processedImage = validateAndPreprocessROI(roiImage);
-        if (!processedImage.empty()) {
-            pngJsonSuccess = saveTemplateData(processedImage, templateName, templateDir);
-        }
-    }
-
-    if (pngJsonSuccess) {
-        qInfo() << "PNG+JSON格式模板创建成功";
-    } else {
-        qWarning() << "PNG+JSON格式模板创建失败";
-    }
-
-    // 步骤2：创建KcgMatch格式模板（用于实际匹配）
-    updateMatchingStatus("创建KcgMatch格式模板...");
-    kcgMatchSuccess = createKcgMatchTemplate(sourceImage, templateName, params);
-
-    // 评估结果
-    if (pngJsonSuccess && kcgMatchSuccess) {
-        updateMatchingStatus("双格式模板创建完成");
-        qInfo() << "双格式模板创建成功:" << templateName;
-        return true;
-    } else if (kcgMatchSuccess) {
-        updateMatchingStatus("KcgMatch模板创建成功，PNG+JSON创建失败");
-        qWarning() << "仅KcgMatch模板创建成功，PNG+JSON创建失败:" << templateName;
-        return true; // KcgMatch是主要的，所以仍然返回成功
-    } else if (pngJsonSuccess) {
-        updateMatchingStatus("PNG+JSON模板创建成功，KcgMatch创建失败");
-        qWarning() << "仅PNG+JSON模板创建成功，KcgMatch创建失败:" << templateName;
-        return false; // KcgMatch失败则整体失败
-    } else {
-        updateMatchingStatus("双格式模板创建失败");
-        qCritical() << "双格式模板创建完全失败:" << templateName;
-        return false;
-    }
-}
-
 QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString& templateDir) const
 {
     QVector<TemplateInfo> templates;
@@ -7355,7 +7248,7 @@ QVector<TemplateInfo> PaintingOverlay::loadTemplatesFromDirectory(const QString&
     // 确定模板目录
     QString searchDir = templateDir;
     if (searchDir.isEmpty()) {
-        searchDir = QCoreApplication::applicationDirPath() + "/../template";
+        searchDir = QCoreApplication::applicationDirPath() + "/templates";
     }
 
     QDir dir(searchDir);
@@ -7458,136 +7351,28 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
     return templateInfo;
 }
 
-QString PaintingOverlay::getConfigPath()
-{
-    QString appPath = QCoreApplication::applicationDirPath();
-    
-    // 优先级顺序查找配置文件
-    QStringList candidates = {
-        appPath + "/config/config.jsonc",
-        "../config/config.jsonc",
-        "config/config.jsonc"
-    };
-    
-    for (const QString& path : candidates) {
-        if (QFile::exists(path)) {
-            qDebug() << "找到配置文件：" << path;
-            return path;
-        }
-    }
-    
-    qWarning() << "未找到config.jsonc配置文件，搜索路径：" << candidates;
-    return QString();
-}
-
-QString PaintingOverlay::findTemplateDirectory()
-{
-    QString appPath = QCoreApplication::applicationDirPath();
-    
-    // 优先级顺序查找模板目录
-    QStringList candidates = {
-        appPath + "/template",
-        "../template",
-        "template"
-    };
-    
-    for (const QString& path : candidates) {
-        QDir dir(path);
-        if (dir.exists()) {
-            qDebug() << "找到模板目录：" << path;
-            return path;
-        }
-    }
-    
-    qWarning() << "未找到模板目录，搜索路径：" << candidates;
-    return QString();
-}
-
-QString PaintingOverlay::findTemplateFile(const QString& templateDir)
-{
-    if (templateDir.isEmpty()) {
-        return QString();
-    }
-    
-    QDir dir(templateDir);
-    if (!dir.exists()) {
-        qWarning() << "模板目录不存在：" << templateDir;
-        return QString();
-    }
-    
-    // 查找 .yaml 模板文件
-    QStringList filters;
-    filters << "*.yaml" << "*.yml";
-    QStringList yamlFiles = dir.entryList(filters, QDir::Files);
-    
-    if (!yamlFiles.isEmpty()) {
-        QString templateFile = dir.filePath(yamlFiles.first());
-        qDebug() << "找到模板文件：" << templateFile;
-        return templateFile;
-    }
-    
-    qWarning() << "模板目录中未找到 .yaml 文件：" << templateDir;
-    return QString();
-}
-
-bool PaintingOverlay::initializeKcgMatch()
-{
-    if (m_matchingController) {
-        qDebug() << "KcgMatch已经初始化";
-        return true;
-    }
-
-    qInfo() << "开始初始化KcgMatch系统...";
-    
-    QString configPath = getConfigPath();
-    if (configPath.isEmpty()) {
-        qWarning() << "未找到config.jsonc配置文件";
-        return false;
-    }
-
-    // 智能查找模板目录和文件
-    QString templateDir = findTemplateDirectory();
-    if (templateDir.isEmpty()) {
-        qWarning() << "未找到模板目录，需要先创建模板";
-        return false;
-    }
-    
-    QString templateFile = findTemplateFile(templateDir);
-    if (templateFile.isEmpty()) {
-        qWarning() << "模板目录中未找到有效的模板文件，需要先创建模板";
-        return false;
-    }
-    
-    qDebug() << "找到模板文件：" << templateFile;
-
-    try {
-        m_matchingController = new MatchingController();
-        bool success = m_matchingController->initialize(configPath.toStdString());
-        
-        if (!success) {
-            qWarning() << "MatchingController初始化失败，可能是模板文件问题";
-            delete m_matchingController;
-            m_matchingController = nullptr;
-            return false;
-        }
-        
-        qInfo() << "KcgMatch初始化成功，配置文件：" << configPath;
-        return true;
-        
-    } catch (const std::exception& e) {
-        qWarning() << "初始化KcgMatch失败：" << e.what() << "，将使用OpenCV备选方案";
-        if (m_matchingController) {
-            delete m_matchingController;
-            m_matchingController = nullptr;
-        }
-        return false;
-    }
-}
+// 暂时移除，当前未使用
+// bool PaintingOverlay::initializeMatchingController()
+// {
+//     if (m_matchingController) {
+//         qDebug() << "匹配控制器已经初始化";
+//         return true;
+//     }
+// 
+//     try {
+//         m_matchingController = new MatchingController();
+//         qInfo() << "匹配控制器初始化成功";
+//         return true;
+//     } catch (const std::exception& e) {
+//         qCritical() << "初始化匹配控制器失败：" << e.what();
+//         return false;
+//     }
+// }
 
 bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
 {
     // 暂时移除MatchingController相关调用
-    // if (!initializeKcgMatch()) {
+    // if (!initializeMatchingController()) {
     //     qWarning() << "无法启动模板匹配：匹配控制器初始化失败";
     //     return false;
     // }
@@ -7638,68 +7423,6 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
         return results;
     }
 
-    // 强制使用KcgMatch，不降级到OpenCV
-    if (initializeKcgMatch()) {
-        return performKcgMatching(sourceImage);
-    }
-
-    // KcgMatch初始化失败时返回空结果
-    qWarning() << "KcgMatch初始化失败，无法进行匹配";
-    return results;
-}
-
-QVector<TemplateMatchResult> PaintingOverlay::performKcgMatching(const cv::Mat& sourceImage)
-{
-    QVector<TemplateMatchResult> results;
-    
-    try {
-        // 检查模板文件是否存在
-        QString configPath = getConfigPath();
-        if (configPath.isEmpty()) {
-            qWarning() << "KcgMatch配置文件不存在";
-            return results;
-        }
-        
-        // 调用KcgMatch进行匹配
-        std::vector<MatchResult> kcgResults = m_matchingController->processSingleFrame(sourceImage);
-        
-        // 转换结果格式
-        for (const auto& kcgResult : kcgResults) {
-            TemplateMatchResult result;
-            result.confidence = kcgResult.score;
-            result.angle = kcgResult.angle;
-            result.scale = kcgResult.scale;
-            result.timestamp = QDateTime::currentDateTime();
-            
-            // 位置转换
-            cv::Point2f center = kcgResult.rotated_box.center;
-            result.position = QPointF(center.x, center.y);
-            
-            // 边界框转换
-            cv::Rect bbox = kcgResult.axis_aligned_box;
-            result.boundingRect = QRectF(bbox.x, bbox.y, bbox.width, bbox.height);
-            
-            result.templateName = getSmartTemplateName();
-            results.append(result);
-            
-            qDebug() << "KcgMatch找到匹配：置信度" << kcgResult.score 
-                     << "角度" << kcgResult.angle << "缩放" << kcgResult.scale
-                     << "位置" << center.x << center.y;
-        }
-        
-    } catch (const std::exception& e) {
-        qCritical() << "KcgMatch匹配异常：" << e.what();
-        // 发生异常时返回空结果，不降级
-        return results;
-    }
-    
-    return results;
-}
-
-QVector<TemplateMatchResult> PaintingOverlay::performOpenCVMatching(const cv::Mat& sourceImage)
-{
-    QVector<TemplateMatchResult> results;
-    
     try {
         // 预处理源图像
         cv::Mat processedSourceImage;
@@ -7939,156 +7662,5 @@ void PaintingOverlay::processFrameForMatching(const cv::Mat& frame)
 
     } catch (const std::exception& e) {
         qCritical() << "处理帧进行模板匹配时发生异常：" << e.what();
-    }
-}
-
-// 异步匹配处理
-QFuture<QVector<TemplateMatchResult>> PaintingOverlay::performMatchingAsync(const cv::Mat& sourceImage)
-{
-    return QtConcurrent::run([this, sourceImage]() {
-        updateMatchingStatus("开始异步匹配...");
-        auto results = performKcgMatchingWithTiming(sourceImage);
-        updateMatchingStatus("异步匹配完成");
-        emit matchingCompleted(results);
-        return results;
-    });
-}
-
-// 状态反馈
-void PaintingOverlay::updateMatchingStatus(const QString& status)
-{
-    emit matchingStatusChanged(status);
-    qInfo() << "匹配状态：" << status;
-}
-
-// 智能模板名称
-QString PaintingOverlay::getSmartTemplateName() const
-{
-    if (!m_loadedTemplates.isEmpty()) {
-        for (const auto& tmpl : m_loadedTemplates) {
-            if (tmpl.isSelected) {
-                return tmpl.name;
-            }
-        }
-        return m_loadedTemplates.first().name;
-    }
-    return "KcgMatch_Template";
-}
-
-// 重试机制
-bool PaintingOverlay::initializeKcgMatchWithRetry(int maxRetries)
-{
-    for (int i = 0; i < maxRetries; ++i) {
-        if (initializeKcgMatch()) {
-            return true;
-        }
-        
-        qWarning() << "KcgMatch初始化失败，重试" << (i + 1) << "/" << maxRetries;
-        
-        if (m_matchingController) {
-            delete m_matchingController;
-            m_matchingController = nullptr;
-        }
-        
-        QThread::msleep(100);
-    }
-    
-    return false;
-}
-
-// 配置热重载
-void PaintingOverlay::reloadKcgMatchConfig()
-{
-    if (m_matchingController) {
-        bool success = m_matchingController->reloadConfiguration();
-        if (success) {
-            qInfo() << "KcgMatch配置重载成功";
-        } else {
-            qWarning() << "KcgMatch配置重载失败";
-        }
-    }
-}
-
-// 性能监控
-QVector<TemplateMatchResult> PaintingOverlay::performKcgMatchingWithTiming(const cv::Mat& sourceImage)
-{
-    QElapsedTimer timer;
-    timer.start();
-    
-    auto results = performKcgMatching(sourceImage);
-    
-    qint64 elapsed = timer.elapsed();
-    qDebug() << "KcgMatch匹配耗时：" << elapsed << "ms，找到" << results.size() << "个匹配";
-    
-    analyzeMatchResults(results);
-    
-    return results;
-}
-
-// 结果分析
-void PaintingOverlay::analyzeMatchResults(const QVector<TemplateMatchResult>& results)
-{
-    if (results.isEmpty()) {
-        qDebug() << "未找到匹配结果";
-        return;
-    }
-    
-    for (const auto& result : results) {
-        qDebug() << "匹配详情：" 
-                 << "模板" << result.templateName
-                 << "置信度" << result.confidence
-                 << "角度" << result.angle << "度"
-                 << "缩放" << result.scale
-                 << "位置" << result.position;
-    }
-}
-
-// 用于模板创建的初始化（不检查模板文件）
-bool PaintingOverlay::initializeKcgMatchForTemplateCreation()
-{
-    if (m_matchingController) {
-        qDebug() << "KcgMatch已经初始化";
-        return true;
-    }
-
-    qInfo() << "开始初始化KcgMatch系统（模板创建模式）...";
-
-    QString configPath = getConfigPath();
-    if (configPath.isEmpty()) {
-        qWarning() << "未找到config.jsonc配置文件";
-        return false;
-    }
-
-    try {
-        m_matchingController = new MatchingController();
-        // 使用专门的模板创建初始化方法，不加载模型
-        bool success = m_matchingController->initializeForTemplateCreation(configPath.toStdString());
-
-        if (!success) {
-            qWarning() << "MatchingController初始化失败";
-            delete m_matchingController;
-            m_matchingController = nullptr;
-            return false;
-        }
-
-        qInfo() << "KcgMatch初始化成功（模板创建模式），配置文件：" << configPath;
-        return true;
-
-    } catch (const std::exception& e) {
-        qWarning() << "初始化KcgMatch失败：" << e.what();
-        if (m_matchingController) {
-            delete m_matchingController;
-            m_matchingController = nullptr;
-        }
-        return false;
-    }
-}
-
-// 内存优化
-void PaintingOverlay::optimizeMemoryUsage()
-{
-    const int MAX_HISTORY = 10;
-    if (m_currentMatches.size() > MAX_HISTORY) {
-        m_currentMatches.removeFirst();
     }
 }

@@ -25,18 +25,6 @@ struct MatchResult {
     std::vector<cv::Point2f> corners;   // 精确的4个角点坐标
 };
 
-/**
- * @struct TemplateCreationParams
- * @brief 模板创建参数结构体，包含所有模板生成所需的参数
- */
-struct TemplateCreationParams {
-    kcg::AngleRange angle_range;
-    kcg::ScaleRange scale_range;
-    int num_features;
-    float weak_thresh;
-    float strong_thresh;
-};
-
 
 class MatchingController {
 public:
@@ -49,13 +37,6 @@ public:
      * @return true 如果初始化成功, false 如果失败。
      */
     bool initialize(const std::string& config_path);
-    
-    /**
-     * @brief 初始化控制器用于模板创建（不加载模型）。
-     * @param config_path 指向 config.jsonc 文件的完整路径。
-     * @return true 如果初始化成功, false 如果失败。
-     */
-    bool initializeForTemplateCreation(const std::string& config_path);
     
     /**
      * @brief 将当前内存中的配置参数保存回它最初加载的那个JSON文件。
@@ -77,19 +58,13 @@ public:
     std::vector<MatchResult> processSingleFrame(const cv::Mat& frame);
 
     /**
-     * @brief 异步地创建一个新的模板文件。使用传入的参数进行模板生成。
-     * @param uprightImage 已经扶正后的模板图像。
+     * @brief 异步地创建一个新的模板文件。它会使用配置文件中 "TemplateMaking" 部分的参数。
+     * @param sourceImage 用于截取模板的原始大图。
+     * @param templateROI 用户在UI上绘制的、定义了模板区域的矩形。
      * @param new_class_name 要创建的新模板的名称。
-     * @param params 模板创建参数。
      * @return std::future<bool> - 用于查询任务状态和结果。
      */
-    std::future<bool> createTemplateAsync(const cv::Mat& uprightImage, const std::string& new_class_name, const TemplateCreationParams& params);
-
-    /**
-     * @brief 获取默认模板创建参数。
-     * @return 包含当前配置文件中默认参数的TemplateCreationParams结构体。
-     */
-    TemplateCreationParams getDefaultTemplateCreationParams() const;
+    std::future<bool> createTemplateAsync(const cv::Mat& sourceImage, const cv::Rect& templateROI, const std::string& new_class_name);
 
     /**
      * @brief 设置或更新用于匹配的感兴趣区域 (ROI)。
@@ -108,9 +83,6 @@ private:
     // 私有辅助函数，用于加载和解析JSON配置
     bool loadConfigFromFile(const std::string& path);
     std::vector<MatchResult> formatResults(const std::vector<kcg::Match>& raw_matches);
-    
-    // 动态发现模板文件名
-    std::string discoverTemplateFileName();
 
     // 核心算法对象指针
     kcg::KcgMatch* kcg_matcher_;
@@ -118,7 +90,7 @@ private:
     nlohmann::json config_data_;             // 在内存中完整地持有整个JSON配置
 
     // 线程安全保护
-    mutable std::mutex mtx_;
+    std::mutex mtx_;
 
     // --- 所有参数现在都是内部成员变量 ---
     cv::Rect current_roi_;
