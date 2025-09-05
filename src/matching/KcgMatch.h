@@ -152,11 +152,12 @@ namespace kcg {
 		@strategy: 精确匹配(0), 普通匹配(1), 粗略匹配(2)
 		@mask: 匹配掩码
 		*/
-		vector<Match> Matching(Mat source, float score_thresh = 0.9f, float overlap = 0.4f,
+		vector<Match> Matching(Mat source, float final_score_thresh = 0.9f, float initial_score_thresh = 0.4f, float overlap = 0.4f,
 			float mag_thresh = 30.f, float greediness = 0.8f, PyramidLevel pyrd_level = PyramidLevel_3,
 			int T = 2, int top_k = 0, MatchingStrategy strategy = Strategy_Accurate, 
 			const string& refinement_search_mode = "fixed", float fixed_angle_window = 25.0f, float scale_search_window = 0.1f);
-		void DrawMatches(Mat &image, vector<Match> matches, Scalar color);
+		void DrawMatches(Mat &image, vector<Match> matches, Scalar color, 
+			int line_thickness = 1, double font_scale = 1.0, int font_thickness = 1);
 
 		const Template& getTemplate(int pyramid_level, int template_id) const {
 			if (pyramid_level < 0 || pyramid_level >= PyramidLevel_TabooUse || 
@@ -184,15 +185,18 @@ namespace kcg {
 		void Quantify180(Mat angle, Mat &quantized_angle, Mat mag, float mag_thresh);
 		Template ExtractTemplate(Mat angle, Mat quantized_angle, Mat mag, ShapeInfo shape_info,
 			PyramidLevel pl, float weak_thresh, float strong_thresh, int num_features, Mat mask);
+		vector<Candidate> FindCandidates(Mat angle, Mat mag, float weak_thresh, float strong_thresh, Mat mask);
+		Template SelectAndLabelFeatures(vector<Candidate> candidates, Mat quantized_angle, ShapeInfo shape_info,
+			PyramidLevel pl, int num_features);
 		Template SelectScatteredFeatures(vector<Candidate> candidates, int num_features, float distance);
 		Rect CropTemplate(Template &templ);
 		void LoadRegion8Idxes();
 		void ClearModel();
 		void SaveModel();
-		void InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, float scale_search_window);
+		void InitMatchParameter(float final_score_thresh, float initial_score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, float scale_search_window);
 		void GetAllPyramidLevelValidSource(const Mat &source, PyramidLevel pyrd_level);
 		vector<Match> GetTopKMatches(vector<Match> matches);
-		vector<Match> DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap);
+		vector<Match> DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap, float nms_score_thresh);
 		vector<Match> MatchingPyrd180(Mat src, PyramidLevel pl, vector<int> region_idxes = vector<int>());
 		vector<Match> MatchingPyrd8(Mat src, PyramidLevel pl, vector<int> region_idxes = vector<int>());
 		void Spread(const Mat quantized_angle, Mat &spread_angle, int T);
@@ -215,7 +219,8 @@ namespace kcg {
 		ScaleRange scale_range_;
 		vector<int> region8_idxes_;
 
-		float score_thresh_;
+		float score_thresh_;        // 用于最终精确匹配阶段
+		float initial_score_thresh_; // 用于初始粗略搜索阶段
 		float overlap_;
 		float mag_thresh_;
 		float greediness_;

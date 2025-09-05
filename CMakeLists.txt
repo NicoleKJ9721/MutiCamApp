@@ -75,8 +75,6 @@ set(srcs
     src/image_processing/shape_detector.cpp
 
     # 模板匹配模块
-    src/matching/MatchingController.h
-    src/matching/MatchingController.cpp
     src/matching/KcgMatch.h
     src/matching/KcgMatch.cpp
 )

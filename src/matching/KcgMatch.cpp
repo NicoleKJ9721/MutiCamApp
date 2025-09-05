@@ -160,107 +160,6 @@ namespace cv_dnn_nms {
 
 	}
 
-	// void KcgMatch::MakingTemplates(Mat model, AngleRange angle_range, ScaleRange scale_range,
-	// 	int num_features, float weak_thresh, float strong_thresh, Mat mask) {
-	// 	//===
-	// 	if (model.channels() > 1) {
-	// 		cv::cvtColor(model, model, cv::COLOR_BGR2GRAY);
-	// 	}
-		
-	// 	// model 现在是 CV_8UC1
-	// 	std::cout << "[DEBUG] Model type before Transform: " << model.type() << " (CV_8UC1 is 0)" << std::endl;
-	
-	// 	try {
-	// 		// 直接调用 Transform 函数
-	// 		std::cout << "[DEBUG] Calling Transform..." << std::endl;
-	// 		Mat transformed_model = Transform(model, 30.0, 1.0); // 用任意值测试
-	// 		std::cout << "[SUCCESS] Transform function executed without error." << std::endl;
-	// 		std::cout << "[DEBUG] Transformed model type: " << transformed_model.type() << std::endl;
-	// 	} catch (const cv::Exception& e) {
-	// 		std::cerr << "[FATAL-DIRECT-TEST] Exception directly from Transform function: " << e.what() << std::endl;
-	// 	}
-	
-	// 	// 在这里直接 return，不执行后续代码
-	// 	return;
-	// 	//===
-	// 	ClearModel();
-	// 	PaddingModelAndMask(model, mask, scale_range.end);
-
-
-	// 	// --- Start of added code to compute base_template_box_ ---
-	// 	{
-	// 		cout << "computing base template box..." << endl;
-	// 		Mat base_model = MdlOf(model, { 0.0f, 1.0f }); // No rotation, scale 1.0
-	// 		Mat base_mask = MskOf(mask, { 0.0f, 1.0f });
-	// 		erode(base_mask, base_mask, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
-
-	// 		int base_features = (int)(num_features * 1.0f);
-
-	// 		Mat mag, angle, quantized_angle;
-	// 		// Use the 180-degree version for better precision if available
-	// 		QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true); 
-	// 		Template base_templ = ExtractTemplate(angle, quantized_angle, mag,
-	// 			{0.0f, 1.0f}, PyramidLevel(0),
-	// 			weak_thresh, strong_thresh,
-	// 			base_features, base_mask);
-			
-	// 		// The CropTemplate inside ExtractTemplate has already calculated the box.
-	// 		// We store it as our canonical/base bounding box.
-	// 		this->base_template_box_ = Rect(base_templ.x, base_templ.y, base_templ.w, base_templ.h);
-	// 		cout << "Base template box calculated: [x=" << base_template_box_.x 
-	// 			<< ", y=" << base_template_box_.y 
-	// 			<< ", w=" << base_template_box_.width 
-	// 			<< ", h=" << base_template_box_.height << "]" << endl;
-	// 	}
-
-
-	// 	angle_range_ = angle_range;
-	// 	scale_range_ = scale_range;
-	// 	vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
-	// 	vector<Mat> l0_mdls; l0_mdls.clear();
-	// 	vector<Mat> l0_msks; l0_msks.clear();
-	// 	for (size_t s = 0; s < shape_infos.size(); s++) {
-	// 		l0_mdls.push_back(MdlOf(model, shape_infos[s]));
-	// 		l0_msks.push_back(MskOf(mask, shape_infos[s]));
-	// 	}
-	// 	for (int p = 0; p <= PyramidLevel_7; p++) {
-	// 		for (size_t s = 0; s < shape_infos.size(); s++) {
-	// 			Mat mdl_pyrd = l0_mdls[s];
-	// 			Mat msk_pyrd = l0_msks[s];
-	// 			if (p > 0) {
-	// 				Size sz = Size(l0_mdls[s].cols >> 1, l0_mdls[s].rows >> 1);
-	// 				pyrDown(l0_mdls[s], mdl_pyrd, sz);
-	// 				pyrDown(l0_msks[s], msk_pyrd, sz);
-	// 			}
-	// 			erode(msk_pyrd, msk_pyrd, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
-	// 			l0_mdls[s] = mdl_pyrd;
-	// 			l0_msks[s] = msk_pyrd;
-
-	// 			int features_pyrd = (int)((num_features >> p) * shape_infos[s].scale);
-
-	// 			Mat mag8, angle8, quantized_angle8;
-	// 			QuantifyEdge(mdl_pyrd, angle8, quantized_angle8, mag8, weak_thresh, false);
-	// 			Template templ = ExtractTemplate(angle8, quantized_angle8, mag8,
-	// 				shape_infos[s], PyramidLevel(p),
-	// 				weak_thresh, strong_thresh,
-	// 				features_pyrd, msk_pyrd);
-	// 			templ_all_[p].push_back(templ);
-
-	// 			Mat mag180, angle180, quantized_angle180;
-	// 			QuantifyEdge(mdl_pyrd, angle180, quantized_angle180, mag180, weak_thresh, true);
-	// 			templ = ExtractTemplate(angle180, quantized_angle180, mag180,
-	// 				shape_infos[s], PyramidLevel(p),
-	// 				weak_thresh, strong_thresh,
-	// 				features_pyrd, msk_pyrd);
-	// 			templ_all_[p + 8].push_back(templ);
-	// 		}
-	// 		cout << "train pyramid level " << p << " complete." << endl;
-	// 	}
-	// 	SaveModel();
-	// }
-
-	// 在 KcgMatch.cpp 中
-
 	void KcgMatch::MakingTemplates(
 		Mat const_model, 
 		AngleRange angle_range, 
@@ -268,8 +167,7 @@ namespace cv_dnn_nms {
 		int num_features, 
 		float weak_thresh, 
 		float strong_thresh, 
-		Mat mask) 
-	{
+		Mat mask) {
 		// 1. 创建一个与输入完全无关的、可写的副本
 		Mat model;
 		const_model.copyTo(model);
@@ -299,15 +197,22 @@ namespace cv_dnn_nms {
 		scale_range_ = scale_range;
 		vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
 
-		// 4. 【核心修正】创建并使用独立的Mat列表，避免在循环中修改数据源
-		vector<Mat> l0_mdls, l0_msks;
-		for (size_t s = 0; s < shape_infos.size(); s++) {
-			l0_mdls.push_back(MdlOf(model, shape_infos[s]));
-			l0_msks.push_back(MskOf(mask, shape_infos[s]));
+		// 4. 【并行化优化】并行生成所有形状变换
+		vector<Mat> l0_mdls(shape_infos.size()), l0_msks(shape_infos.size());
+	
+		#pragma omp parallel for
+		for (int s = 0; s < (int)shape_infos.size(); s++) {
+			l0_mdls[s] = MdlOf(model, shape_infos[s]);
+			l0_msks[s] = MskOf(mask, shape_infos[s]);
 		}
 
-		vector<Mat> prev_level_mdls = l0_mdls;
-		vector<Mat> prev_level_msks = l0_msks;
+		vector<Mat> prev_level_mdls = std::move(l0_mdls);
+		vector<Mat> prev_level_msks = std::move(l0_msks);
+
+		// 预分配临时Mat对象，避免在循环中重复创建
+		Mat smaller_mdl, smaller_msk;
+		Mat mag8, angle8, quantized_angle8;
+		Mat mag180, angle180, quantized_angle180;
 
 		for (int p = 0; p <= PyramidLevel_7; p++) {
 			vector<Mat> current_level_mdls, current_level_msks;
@@ -316,47 +221,76 @@ namespace cv_dnn_nms {
 				current_level_mdls = prev_level_mdls;
 				current_level_msks = prev_level_msks;
 			} else {
-				for (size_t s = 0; s < shape_infos.size(); s++) {
-					Mat smaller_mdl, smaller_msk;
-					pyrDown(prev_level_mdls[s], smaller_mdl, Size(prev_level_mdls[s].cols >> 1, prev_level_mdls[s].rows >> 1));
-					pyrDown(prev_level_msks[s], smaller_msk, Size(prev_level_msks[s].cols >> 1, prev_level_msks[s].rows >> 1));
-					current_level_mdls.push_back(smaller_mdl);
-					current_level_msks.push_back(smaller_msk);
+				current_level_mdls.resize(shape_infos.size());
+				current_level_msks.resize(shape_infos.size());
+				
+				#pragma omp parallel for
+				for (int s = 0; s < (int)shape_infos.size(); s++) {
+					Mat temp_mdl, temp_msk;
+					pyrDown(prev_level_mdls[s], temp_mdl, Size(prev_level_mdls[s].cols >> 1, prev_level_mdls[s].rows >> 1));
+					pyrDown(prev_level_msks[s], temp_msk, Size(prev_level_msks[s].cols >> 1, prev_level_msks[s].rows >> 1));
+					current_level_mdls[s] = temp_mdl;
+					current_level_msks[s] = temp_msk;
 				}
 			}
 
-			for (size_t s = 0; s < shape_infos.size(); s++) {
-				Mat mdl_pyrd = current_level_mdls[s].clone(); // 使用clone确保每个循环拿到的都是独立副本
-				Mat msk_pyrd = current_level_msks[s].clone();
+			templ_all_[p].resize(shape_infos.size());
+			templ_all_[p + 8].resize(shape_infos.size());
+
+			#pragma omp parallel for
+			for (int s = 0; s < (int)shape_infos.size(); s++) {
+				// 减少不必要的内存拷贝
+				const Mat& mdl_pyrd = current_level_mdls[s];  // 只读，无需clone
+				Mat msk_pyrd = current_level_msks[s].clone(); // erode会原地修改，必须clone
+				
+				erode(msk_pyrd, msk_pyrd, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
 				
 				int features_pyrd = (int)((num_features >> p) * shape_infos[s].scale);
 
-				Mat mag8, angle8, quantized_angle8;
-				QuantifyEdge(mdl_pyrd, angle8, quantized_angle8, mag8, weak_thresh, false);
-				Template templ8 = ExtractTemplate(angle8, quantized_angle8, mag8, shape_infos[s], PyramidLevel(p), weak_thresh, strong_thresh, features_pyrd, msk_pyrd);
-				templ_all_[p].push_back(templ8);
+				// 共享候选点计算 + 预计算核矩阵
+				Mat dx, dy, mag, angle;
+				
+				// 使用预计算的静态核矩阵
+				static const float mask_x_data[9] = { -1,0,1, -2,0,2, -1,0,1 };
+				static const float mask_y_data[9] = { 1,2,1, 0,0,0, -1,-2,-1 };
+				static const Mat kernel_x = Mat(3, 3, CV_32F, (void*)mask_x_data);
+				static const Mat kernel_y = Mat(3, 3, CV_32F, (void*)mask_y_data);
+				
+				filter2D(mdl_pyrd, dx, CV_32F, kernel_x);
+				filter2D(mdl_pyrd, dy, CV_32F, kernel_y);
+				mag = dx.mul(dx) + dy.mul(dy);
+				phase(dx, dy, angle, true);
+				
+				// 共享候选点计算（最耗时的部分）
+				vector<Candidate> candidates = FindCandidates(angle, mag, weak_thresh, strong_thresh, msk_pyrd);
+				
+				// 分别量化为8方向和180方向，并使用共享的候选点
+				Mat quantized_angle8, quantized_angle180;
+				Quantify8(angle, quantized_angle8, mag, weak_thresh);
+				Quantify180(angle, quantized_angle180, mag, weak_thresh);
+				
+				Template templ8 = SelectAndLabelFeatures(candidates, quantized_angle8, shape_infos[s], PyramidLevel(p), features_pyrd);
+				Template templ180 = SelectAndLabelFeatures(candidates, quantized_angle180, shape_infos[s], PyramidLevel(p), features_pyrd);
 
-				Mat mag180, angle180, quantized_angle180;
-				QuantifyEdge(mdl_pyrd, angle180, quantized_angle180, mag180, weak_thresh, true);
-				Template templ180 = ExtractTemplate(angle180, quantized_angle180, mag180, shape_infos[s], PyramidLevel(p), weak_thresh, strong_thresh, features_pyrd, msk_pyrd);
-				templ_all_[p + 8].push_back(templ180);
+				// 无锁直接赋值到预分配的位置
+				templ_all_[p][s] = templ8;
+				templ_all_[p + 8][s] = templ180;
 			}
-			
 			cout << "train pyramid level " << p << " complete." << endl;
 
-			prev_level_mdls = current_level_mdls;
-			prev_level_msks = current_level_msks;
+			prev_level_mdls = std::move(current_level_mdls);
+			prev_level_msks = std::move(current_level_msks);
 		}
 		
 		SaveModel();
 	}
 
-	vector<Match> KcgMatch::Matching(Mat source, float score_thresh, float overlap,
+	vector<Match> KcgMatch::Matching(Mat source, float final_score_thresh, float initial_score_thresh, float overlap,
 		float mag_thresh, float greediness, PyramidLevel pyrd_level, int T, int top_k,
 		MatchingStrategy strategy, const string& refinement_search_mode, float fixed_angle_window, 
 		float scale_search_window) {
 
-		InitMatchParameter(score_thresh, overlap, mag_thresh, greediness, T, top_k, strategy, refinement_search_mode_, fixed_angle_window, scale_search_window);
+		InitMatchParameter(final_score_thresh, initial_score_thresh, overlap, mag_thresh, greediness, T, top_k, strategy, refinement_search_mode_, fixed_angle_window, scale_search_window);
 
 		auto start_pyramid = std::chrono::high_resolution_clock::now();
 		GetAllPyramidLevelValidSource(source, pyrd_level);
@@ -386,12 +320,12 @@ namespace cv_dnn_nms {
 		auto duration_final = std::chrono::duration_cast<std::chrono::milliseconds>(end_final - start_final);
 		std::cout << "    [Profile] MatchingFinal took: " << duration_final.count() << " ms" << std::endl;
 
-		matches = DoNmsMatches(matches, pyrd_level, overlap_);
+		matches = DoNmsMatches(matches, pyrd_level, overlap_, score_thresh_);
 		return matches;
 	}
 
-	// KcgMatch.cpp
-	void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color) {
+	void KcgMatch::DrawMatches(Mat &image, vector<Match> matches, Scalar color, 
+		int line_thickness, double font_scale, int font_thickness) {
 		for (size_t i = 0; i < matches.size(); i++) {
 			Match m = matches[i];
 			
@@ -427,32 +361,32 @@ namespace cv_dnn_nms {
 
 			// 6. 绘制连接顶点的4条线
 			for (int j = 0; j < 4; j++) {
-				line(image, vertices[j], vertices[(j + 1) % 4], color, 1); // 使用2像素宽度以提高可见性
+				line(image, vertices[j], vertices[(j + 1) % 4], color, line_thickness);
 			}
 			
 			// --- 结束修改的绘制逻辑 ---
 
 			// 可选:保留绘制特征点用于调试/可视化
-			for (const auto& feature : t.features) {
-				// 我们需要对特征点应用完整的变换才能正确绘制
-				// 这部分比较复杂,因为特征是相对于t.x,t.y的,而且需要旋转
-				// 为简单起见,我们可以跳过绘制单个特征或使用旧方法来获得粗略的效果
-				// 让我们只为匹配绘制一个中心点
-				circle(image, rect_center, 3, color, -1);
-				// Draw each feature point of the matched template
-				for (const auto& feature : t.features) {
-					line(image,
-						Point(m.x + feature.x, m.y + feature.y),
-						Point(m.x + feature.x, m.y + feature.y),
-						color, 1);
-				}
-			}
+			// for (const auto& feature : t.features) {
+			// 	// 我们需要对特征点应用完整的变换才能正确绘制
+			// 	// 这部分比较复杂,因为特征是相对于t.x,t.y的,而且需要旋转
+			// 	// 为简单起见,我们可以跳过绘制单个特征或使用旧方法来获得粗略的效果
+			// 	// 让我们只为匹配绘制一个中心点
+			// 	circle(image, rect_center, max(2, line_thickness), color, -1);
+			// 	// Draw each feature point of the matched template
+			// 	for (const auto& feature : t.features) {
+			// 		line(image,
+			// 			Point(m.x + feature.x, m.y + feature.y),
+			// 			Point(m.x + feature.x, m.y + feature.y),
+			// 			color, line_thickness);
+			// 	}
+			// }
 
 			// 绘制匹配信息(分数、角度、缩放)
 			string text = to_string(m.similarity).substr(0, 4) +
 						"|Ang:" + to_string(t.shape_info.angle).substr(0, 4) +
 						"|Sca:" + to_string(t.shape_info.scale).substr(0, 4);
-				putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, 1.0, color, 1);
+				putText(image, text, Point(m.x, m.y - 5), FONT_HERSHEY_PLAIN, font_scale, color, font_thickness);
 		}
 	}
 
@@ -571,6 +505,7 @@ namespace cv_dnn_nms {
 			quantized_angle.ptr<unsigned char>(quantized_angle.rows - 1)[c] = 255;
 		}
 
+		#pragma omp parallel for
 		for (int r = 1; r < angle.rows - 1; ++r)
 		{
 			float *mag_ptr = mag.ptr<float>(r);
@@ -623,7 +558,7 @@ namespace cv_dnn_nms {
 	void KcgMatch::Quantify180(Mat angle, Mat &quantized_angle, Mat mag, float mag_thresh) {
 
 		quantized_angle = Mat::zeros(angle.size(), CV_8U);
-#pragma omp parallel for
+		#pragma omp parallel for
 		for (int r = 0; r < angle.rows; ++r)
 		{
 			unsigned char *quantized_angle_ptr = quantized_angle.ptr<unsigned char>(r);
@@ -639,9 +574,8 @@ namespace cv_dnn_nms {
 		}
 	}
 
-	Template KcgMatch::ExtractTemplate(Mat angle, Mat quantized_angle, Mat mag, ShapeInfo shape_info,
-		PyramidLevel pl, float weak_thresh, float strong_thresh, int num_features, Mat mask) {
-
+	vector<Candidate> KcgMatch::FindCandidates(Mat angle, Mat mag, float weak_thresh, float strong_thresh, Mat mask) {
+		
 		Mat local_angle = Mat(angle.size(), angle.type());
 		for (int r = 0; r < angle.rows; ++r) {
 
@@ -725,19 +659,34 @@ namespace cv_dnn_nms {
 								}
 							}
 						}
-						if (validity == true &&
-							quantized_angle.at<unsigned char>(r, c) != 255) {
-
+						if (validity == true) {
 							Candidate cd;
 							cd.score = score;
 							cd.feature.x = c;
 							cd.feature.y = r;
-							cd.feature.lbl = quantized_angle.at<unsigned char>(r, c);
+							cd.feature.lbl = 0; // 临时值，将在SelectAndLabelFeatures中设置
 							candidates.push_back(cd);
 						}
 					}
 
 				}
+			}
+		}
+
+		return candidates;
+	}
+
+	// 新的SelectAndLabelFeatures函数：为候选点添加标签并选择特征
+	Template KcgMatch::SelectAndLabelFeatures(vector<Candidate> candidates, Mat quantized_angle, ShapeInfo shape_info,
+		PyramidLevel pl, int num_features) {
+		
+		// 为候选点添加标签，并过滤掉无效的候选点
+		vector<Candidate> valid_candidates;
+		for (auto& candidate : candidates) {
+			unsigned char lbl = quantized_angle.at<unsigned char>(candidate.feature.y, candidate.feature.x);
+			if (lbl != 255) {
+				candidate.feature.lbl = lbl;
+				valid_candidates.push_back(candidate);
 			}
 		}
 
@@ -748,27 +697,31 @@ namespace cv_dnn_nms {
 		templ.is_valid = 0;
 		templ.features.clear();
 
-		if (candidates.size() >= num_features && num_features > 0) {
-
-			std::stable_sort(candidates.begin(), candidates.end());
-			float distance = static_cast<float>(candidates.size() / num_features + 1);
-			templ = SelectScatteredFeatures(candidates, num_features, distance);
+		if (valid_candidates.size() >= num_features && num_features > 0) {
+			std::stable_sort(valid_candidates.begin(), valid_candidates.end());
+			float distance = static_cast<float>(valid_candidates.size() / num_features + 1);
+			templ = SelectScatteredFeatures(valid_candidates, num_features, distance);
 		}
 		else {
-
-			for (size_t c = 0; c < candidates.size(); c++) {
-
-				templ.features.push_back(candidates[c].feature);
+			for (size_t c = 0; c < valid_candidates.size(); c++) {
+				templ.features.push_back(valid_candidates[c].feature);
 			}
 		}
 
 		if (templ.features.size() > 0) {
-
 			templ.is_valid = 1;
 			CropTemplate(templ);
 		}
 
 		return templ;
+	}
+
+	// 保持原始ExtractTemplate函数作为兼容性包装器
+	Template KcgMatch::ExtractTemplate(Mat angle, Mat quantized_angle, Mat mag, ShapeInfo shape_info,
+		PyramidLevel pl, float weak_thresh, float strong_thresh, int num_features, Mat mask) {
+		
+		vector<Candidate> candidates = FindCandidates(angle, mag, weak_thresh, strong_thresh, mask);
+		return SelectAndLabelFeatures(candidates, quantized_angle, shape_info, pl, num_features);
 	}
 
 	Template KcgMatch::SelectScatteredFeatures(vector<Candidate> candidates, int num_features, float distance) {
@@ -1025,10 +978,11 @@ namespace cv_dnn_nms {
 		}
 	}
 
-	void KcgMatch::InitMatchParameter(float score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy,
+	void KcgMatch::InitMatchParameter(float final_score_thresh, float initial_score_thresh, float overlap, float mag_thresh, float greediness, int T, int top_k, MatchingStrategy strategy,
 		const string& refinement_search_mode, float fixed_angle_window, float scale_search_window) {
 
-		score_thresh_ = score_thresh;
+		score_thresh_ = final_score_thresh;
+		initial_score_thresh_ = initial_score_thresh;
 		overlap_ = overlap;
 		mag_thresh_ = mag_thresh;
 		greediness_ = greediness;
@@ -1074,7 +1028,7 @@ namespace cv_dnn_nms {
 		return vector<Match>(matches.begin(), matches.begin() + top_k_);
 	}
 
-	vector<Match> KcgMatch::DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap) {
+	vector<Match> KcgMatch::DoNmsMatches(vector<Match> matches, PyramidLevel pl, float overlap, float nms_score_thresh) {
 
 		vector<Rect> boxes; boxes.clear();
 		vector<float> scores; scores.clear();
@@ -1086,7 +1040,7 @@ namespace cv_dnn_nms {
 			boxes.insert(boxes.end(), box);
 			scores.insert(scores.end(), matches[m].similarity);
 		}
-		cv_dnn_nms::NMSBoxes(boxes, scores, score_thresh_, overlap, indices);
+		cv_dnn_nms::NMSBoxes(boxes, scores, nms_score_thresh, overlap, indices);
 		vector<Match> final_matches; final_matches.clear();
 		for (auto index : indices) {
 
@@ -1101,10 +1055,10 @@ namespace cv_dnn_nms {
 		vector<Match> matches; matches.clear();
 		Mat angle, quantized_angle, mag;
 		QuantifyEdge(src, angle, quantized_angle, mag, mag_thresh_, true);
-#pragma omp parallel 
+		#pragma omp parallel 
 		{
 			int tlsz = region_idxes.empty() ? ((int)templ_all_[pl].size()) : ((int)region_idxes.size());
-#pragma omp for nowait
+			#pragma omp for nowait
 			for (int t = 0; t < tlsz; t++) {
 
 				Template templ = region_idxes.empty() ? (templ_all_[pl][t]) : (templ_all_[pl][region_idxes[t]]);
@@ -1141,7 +1095,7 @@ namespace cv_dnn_nms {
 								match.y = r;
 								match.similarity = score;
 								match.template_id = templ.id;
-#pragma omp critical
+								#pragma omp critical
 								matches.insert(matches.end(), match);
 							}
 						}
@@ -1150,7 +1104,7 @@ namespace cv_dnn_nms {
 				}
 			}
 		}
-		matches = DoNmsMatches(matches, pl, overlap_);
+		matches = DoNmsMatches(matches, pl, overlap_, score_thresh_);
 		return matches;
 	}
 
@@ -1163,10 +1117,10 @@ namespace cv_dnn_nms {
 		Spread(quantized_angle, spread_angle, T_);
 		vector<Mat> response_maps;
 		ComputeResponseMaps(spread_angle, response_maps);
-#pragma omp parallel 
+		#pragma omp parallel 
 		{
 			int tlsz = region_idxes.empty() ? ((int)templ_all_[pl].size()) : ((int)region_idxes.size());
-#pragma omp for nowait
+			#pragma omp for nowait
 			for (int t = 0; t < tlsz; t++) {
 
 				Template templ = region_idxes.empty() ? (templ_all_[pl][t]) : (templ_all_[pl][region_idxes[t]]);
@@ -1185,7 +1139,7 @@ namespace cv_dnn_nms {
 							partial_sum +=
 								response_maps[label].ptr<unsigned char>(r + feat.y)[c + feat.x];
 							
-							if (partial_sum + (fsz - f - 1) * 100 * greediness_ < score_thresh_ * 100 * fsz) {
+							if (partial_sum + (fsz - f - 1) * 100 * greediness_ < initial_score_thresh_ * 100 * fsz) {
 
 								valid = false;
 								break;
@@ -1194,14 +1148,14 @@ namespace cv_dnn_nms {
 						if (valid) {
 
 							float score = partial_sum / (100.f * fsz);
-							if (score >= score_thresh_) {
+							if (score >= initial_score_thresh_) {
 
 								Match match;
 								match.x = c;
 								match.y = r;
 								match.similarity = score;
 								match.template_id = templ.id;
-#pragma omp critical
+								#pragma omp critical
 								matches.insert(matches.end(), match);
 							}
 						}
@@ -1209,7 +1163,7 @@ namespace cv_dnn_nms {
 				}
 			}
 		}
-		matches = DoNmsMatches(matches, pl, overlap_);
+		matches = DoNmsMatches(matches, pl, overlap_, initial_score_thresh_);
 		return matches;
 	}
 
@@ -1220,7 +1174,7 @@ namespace cv_dnn_nms {
 		int rows = quantized_angle.rows;
 		int half_T = 0;
 		if (T != 1) half_T = T / 2;
-#pragma omp parallel for
+		#pragma omp parallel for
 		for (int r = half_T; r < rows - half_T; r++) {
 
 			for (int c = half_T; c < cols - half_T; c++) {
@@ -1253,7 +1207,7 @@ namespace cv_dnn_nms {
 		}
 		int cols = spread_angle.cols;
 		int rows = spread_angle.rows;
-#pragma omp parallel for
+		#pragma omp parallel for
 		for (int i = 0; i < 8; i++) {
 
 			for (int r = 0; r < rows; r++) {
@@ -1435,7 +1389,7 @@ namespace cv_dnn_nms {
 				rf_matches.push_back(tmp_matches[0]);
 			}
 		}
-		rf_matches = DoNmsMatches(rf_matches, pl, overlap_);
+		rf_matches = DoNmsMatches(rf_matches, pl, overlap_, initial_score_thresh_);
 		return rf_matches;
 	}
 
@@ -1458,6 +1412,107 @@ namespace cv_dnn_nms {
 				final_matches.push_back(tmp_matches[0]);
 			}
 		}
-		final_matches = DoNmsMatches(final_matches, pl, overlap_);
+		final_matches = DoNmsMatches(final_matches, pl, overlap_, score_thresh_);
 		return final_matches;
 	} 
+
+
+
+// void KcgMatch::MakingTemplates(Mat model, AngleRange angle_range, ScaleRange scale_range,
+// 	int num_features, float weak_thresh, float strong_thresh, Mat mask) {
+// 	//===
+// 	if (model.channels() > 1) {
+// 		cv::cvtColor(model, model, cv::COLOR_BGR2GRAY);
+// 	}
+		
+	// 	// model 现在是 CV_8UC1
+	// 	std::cout << "[DEBUG] Model type before Transform: " << model.type() << " (CV_8UC1 is 0)" << std::endl;
+	
+	// 	try {
+	// 		// 直接调用 Transform 函数
+	// 		std::cout << "[DEBUG] Calling Transform..." << std::endl;
+	// 		Mat transformed_model = Transform(model, 30.0, 1.0); // 用任意值测试
+	// 		std::cout << "[SUCCESS] Transform function executed without error." << std::endl;
+	// 		std::cout << "[DEBUG] Transformed model type: " << transformed_model.type() << std::endl;
+	// 	} catch (const cv::Exception& e) {
+	// 		std::cerr << "[FATAL-DIRECT-TEST] Exception directly from Transform function: " << e.what() << std::endl;
+	// 	}
+	
+	// 	// 在这里直接 return，不执行后续代码
+	// 	return;
+	// 	//===
+	// 	ClearModel();
+	// 	PaddingModelAndMask(model, mask, scale_range.end);
+
+
+	// 	// --- Start of added code to compute base_template_box_ ---
+	// 	{
+	// 		cout << "computing base template box..." << endl;
+	// 		Mat base_model = MdlOf(model, { 0.0f, 1.0f }); // No rotation, scale 1.0
+	// 		Mat base_mask = MskOf(mask, { 0.0f, 1.0f });
+	// 		erode(base_mask, base_mask, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
+
+	// 		int base_features = (int)(num_features * 1.0f);
+
+	// 		Mat mag, angle, quantized_angle;
+	// 		// Use the 180-degree version for better precision if available
+	// 		QuantifyEdge(base_model, angle, quantized_angle, mag, weak_thresh, true); 
+	// 		Template base_templ = ExtractTemplate(angle, quantized_angle, mag,
+	// 			{0.0f, 1.0f}, PyramidLevel(0),
+	// 			weak_thresh, strong_thresh,
+	// 			base_features, base_mask);
+			
+	// 		// The CropTemplate inside ExtractTemplate has already calculated the box.
+	// 		// We store it as our canonical/base bounding box.
+	// 		this->base_template_box_ = Rect(base_templ.x, base_templ.y, base_templ.w, base_templ.h);
+	// 		cout << "Base template box calculated: [x=" << base_template_box_.x 
+	// 			<< ", y=" << base_template_box_.y 
+	// 			<< ", w=" << base_template_box_.width 
+	// 			<< ", h=" << base_template_box_.height << "]" << endl;
+	// 	}
+
+
+	// 	angle_range_ = angle_range;
+	// 	scale_range_ = scale_range;
+	// 	vector<ShapeInfo> shape_infos = ProduceShapeInfos(angle_range, scale_range);
+	// 	vector<Mat> l0_mdls; l0_mdls.clear();
+	// 	vector<Mat> l0_msks; l0_msks.clear();
+	// 	for (size_t s = 0; s < shape_infos.size(); s++) {
+	// 		l0_mdls.push_back(MdlOf(model, shape_infos[s]));
+	// 		l0_msks.push_back(MskOf(mask, shape_infos[s]));
+	// 	}
+	// 	for (int p = 0; p <= PyramidLevel_7; p++) {
+	// 		for (size_t s = 0; s < shape_infos.size(); s++) {
+	// 			Mat mdl_pyrd = l0_mdls[s];
+	// 			Mat msk_pyrd = l0_msks[s];
+	// 			if (p > 0) {
+	// 				Size sz = Size(l0_mdls[s].cols >> 1, l0_mdls[s].rows >> 1);
+	// 				pyrDown(l0_mdls[s], mdl_pyrd, sz);
+	// 				pyrDown(l0_msks[s], msk_pyrd, sz);
+	// 			}
+	// 			erode(msk_pyrd, msk_pyrd, Mat(), Point(-1, -1), 1, BORDER_REPLICATE);
+	// 			l0_mdls[s] = mdl_pyrd;
+	// 			l0_msks[s] = msk_pyrd;
+
+	// 			int features_pyrd = (int)((num_features >> p) * shape_infos[s].scale);
+
+	// 			Mat mag8, angle8, quantized_angle8;
+	// 			QuantifyEdge(mdl_pyrd, angle8, quantized_angle8, mag8, weak_thresh, false);
+	// 			Template templ = ExtractTemplate(angle8, quantized_angle8, mag8,
+	// 				shape_infos[s], PyramidLevel(p),
+	// 				weak_thresh, strong_thresh,
+	// 				features_pyrd, msk_pyrd);
+	// 			templ_all_[p].push_back(templ);
+
+	// 			Mat mag180, angle180, quantized_angle180;
+	// 			QuantifyEdge(mdl_pyrd, angle180, quantized_angle180, mag180, weak_thresh, true);
+	// 			templ = ExtractTemplate(angle180, quantized_angle180, mag180,
+	// 				shape_infos[s], PyramidLevel(p),
+	// 				weak_thresh, strong_thresh,
+	// 				features_pyrd, msk_pyrd);
+	// 			templ_all_[p + 8].push_back(templ);
+	// 		}
+	// 		cout << "train pyramid level " << p << " complete." << endl;
+	// 	}
+	// 	SaveModel();
+	// }
