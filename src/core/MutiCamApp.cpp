@@ -17,7 +17,7 @@
 #include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
-#include "../ui/TemplateNameDialog.h"
+#include "../ui/TemplateCreationDialog.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -1713,10 +1713,11 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
 {
     qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
 
-    // 显示模板名称输入对话框
-    TemplateNameDialog dialog(this);
+    // 显示模板创建对话框
+    TemplateCreationDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         QString templateName = dialog.getTemplateName();
+        QJsonObject creationConfig = dialog.getTemplateCreationConfig();
 
         // 获取对应的overlay和当前图像
         PaintingOverlay* overlay = nullptr;
