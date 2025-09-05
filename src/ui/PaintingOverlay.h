@@ -32,9 +32,6 @@
 #include <opencv2/opencv.hpp>
 #include "../image_processing/edge_detector.h"
 
-// 前向声明MatchingController以避免包含冲突 (暂时移除，当前未使用)
-// class MatchingController;
-
 // 前向声明
 class ZoomPanWidget;
 #include "../image_processing/shape_detector.h"
@@ -434,13 +431,6 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     TemplateInfo loadSingleTemplate(const QString& imagePath, const QString& metadataPath) const;
 
-    // 模板匹配功能相关方法
-    /**
-     * @brief 初始化匹配控制器 (暂时移除，当前未使用)
-     * @return 是否初始化成功
-     */
-    // bool initializeMatchingController();
-
     /**
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
@@ -645,7 +635,6 @@ private:
     mutable int m_lastGridSpacing;      // 上次绘制网格时的间距
 
     // 模板匹配相关成员
-    // MatchingController* m_matchingController;        // 匹配控制器 (暂时移除，当前未使用)
     QVector<TemplateInfo> m_loadedTemplates;         // 已加载的模板列表
     QVector<TemplateMatchResult> m_currentMatches;   // 当前匹配结果
     bool m_isMatchingEnabled;                        // 是否启用匹配

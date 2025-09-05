@@ -21,7 +21,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
-// #include "../matching/MatchingController.h" // 暂时移除，当前未使用
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -67,7 +66,6 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
-    // , m_matchingController(nullptr)  // 匹配控制器初始为空
     , m_isMatchingEnabled(false)     // 默认禁用匹配
     , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
 {
@@ -101,12 +99,6 @@ PaintingOverlay::~PaintingOverlay()
         delete m_rotationIconRenderer;
         m_rotationIconRenderer = nullptr;
     }
-
-    // 清理匹配控制器 (暂时移除，当前未使用)
-    // if (m_matchingController) {
-    //     delete m_matchingController;
-    //     m_matchingController = nullptr;
-    // }
 
     // 清理缓存的图像数据
     if (!m_lastProcessedFrame.empty()) {
@@ -7351,31 +7343,8 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
     return templateInfo;
 }
 
-// 暂时移除，当前未使用
-// bool PaintingOverlay::initializeMatchingController()
-// {
-//     if (m_matchingController) {
-//         qDebug() << "匹配控制器已经初始化";
-//         return true;
-//     }
-// 
-//     try {
-//         m_matchingController = new MatchingController();
-//         qInfo() << "匹配控制器初始化成功";
-//         return true;
-//     } catch (const std::exception& e) {
-//         qCritical() << "初始化匹配控制器失败：" << e.what();
-//         return false;
-//     }
-// }
-
 bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
 {
-    // 暂时移除MatchingController相关调用
-    // if (!initializeMatchingController()) {
-    //     qWarning() << "无法启动模板匹配：匹配控制器初始化失败";
-    //     return false;
-    // }
 
     if (selectedTemplates.isEmpty()) {
         qWarning() << "无法启动模板匹配：没有选中的模板";
