@@ -21,7 +21,21 @@ public:
     QString getTemplateName() const;
     QJsonObject getTemplateCreationConfig() const;
     
+    // 重写accept方法以保存参数
+    void accept() override;
+    
 private:
+    // 默认值常量
+    static constexpr double DEFAULT_ANGLE_BEGIN = -90.0;
+    static constexpr double DEFAULT_ANGLE_END = 90.0;
+    static constexpr double DEFAULT_ANGLE_STEP = 4.0;
+    static constexpr double DEFAULT_SCALE_BEGIN = 0.9;
+    static constexpr double DEFAULT_SCALE_END = 1.1;
+    static constexpr double DEFAULT_SCALE_STEP = 0.05;
+    static constexpr int DEFAULT_NUM_FEATURES = 0;
+    static constexpr double DEFAULT_WEAK_THRESH = 30.0;
+    static constexpr double DEFAULT_STRONG_THRESH = 60.0;
+    
     // UI组件
     QLineEdit* nameEdit_;
     
@@ -55,6 +69,7 @@ private:
     void setupUI();
     void setupValidation();
     void loadDefaultValues();
+    void saveCurrentValuesAsDefaults();
     void setInputError(QWidget* widget, bool hasError);
     void updateErrorMessage();
     void updateOkButtonState();

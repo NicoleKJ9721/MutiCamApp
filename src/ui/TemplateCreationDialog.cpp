@@ -141,7 +141,7 @@ void TemplateCreationDialog::setupUI() {
     mainLayout->addLayout(buttonLayout);
     
     // 连接信号
-    connect(okButton_, &QPushButton::clicked, this, &QDialog::accept);
+    connect(okButton_, &QPushButton::clicked, this, &TemplateCreationDialog::accept);
     connect(cancelButton_, &QPushButton::clicked, this, &QDialog::reject);
     
     nameEdit_->setFocus();
@@ -173,16 +173,16 @@ void TemplateCreationDialog::setupValidation() {
 void TemplateCreationDialog::loadDefaultValues() {
     QFile file("../config/template_matching.json");
     if (!file.open(QIODevice::ReadOnly)) {
-        // 使用硬编码默认值
-        angleBeginSpin_->setValue(-180.0);
-        angleEndSpin_->setValue(180.0);
-        angleStepSpin_->setValue(1.0);
-        scaleBeginSpin_->setValue(0.9);
-        scaleEndSpin_->setValue(1.1);
-        scaleStepSpin_->setValue(0.05);
-        numFeaturesSpin_->setValue(0);
-        weakThreshSpin_->setValue(30.0);
-        strongThreshSpin_->setValue(60.0);
+        // 使用常量默认值
+        angleBeginSpin_->setValue(DEFAULT_ANGLE_BEGIN);
+        angleEndSpin_->setValue(DEFAULT_ANGLE_END);
+        angleStepSpin_->setValue(DEFAULT_ANGLE_STEP);
+        scaleBeginSpin_->setValue(DEFAULT_SCALE_BEGIN);
+        scaleEndSpin_->setValue(DEFAULT_SCALE_END);
+        scaleStepSpin_->setValue(DEFAULT_SCALE_STEP);
+        numFeaturesSpin_->setValue(DEFAULT_NUM_FEATURES);
+        weakThreshSpin_->setValue(DEFAULT_WEAK_THRESH);
+        strongThreshSpin_->setValue(DEFAULT_STRONG_THRESH);
         return;
     }
     
@@ -192,19 +192,45 @@ void TemplateCreationDialog::loadDefaultValues() {
     
     if (!creation.isEmpty()) {
         QJsonObject angleRange = creation["angle_range"].toObject();
-        angleBeginSpin_->setValue(angleRange["begin"].toDouble(-90.0));
-        angleEndSpin_->setValue(angleRange["end"].toDouble(90.0));
-        angleStepSpin_->setValue(angleRange["step"].toDouble(4.0));
+        angleBeginSpin_->setValue(angleRange["begin"].toDouble(DEFAULT_ANGLE_BEGIN));
+        angleEndSpin_->setValue(angleRange["end"].toDouble(DEFAULT_ANGLE_END));
+        angleStepSpin_->setValue(angleRange["step"].toDouble(DEFAULT_ANGLE_STEP));
         
         QJsonObject scaleRange = creation["scale_range"].toObject();
-        scaleBeginSpin_->setValue(scaleRange["begin"].toDouble(0.9));
-        scaleEndSpin_->setValue(scaleRange["end"].toDouble(1.1));
-        scaleStepSpin_->setValue(scaleRange["step"].toDouble(0.05));
+        scaleBeginSpin_->setValue(scaleRange["begin"].toDouble(DEFAULT_SCALE_BEGIN));
+        scaleEndSpin_->setValue(scaleRange["end"].toDouble(DEFAULT_SCALE_END));
+        scaleStepSpin_->setValue(scaleRange["step"].toDouble(DEFAULT_SCALE_STEP));
         
-        numFeaturesSpin_->setValue(creation["num_features"].toInt(0));
-        weakThreshSpin_->setValue(creation["weak_thresh"].toDouble(30.0));
-        strongThreshSpin_->setValue(creation["strong_thresh"].toDouble(60.0));
+        numFeaturesSpin_->setValue(creation["num_features"].toInt(DEFAULT_NUM_FEATURES));
+        weakThreshSpin_->setValue(creation["weak_thresh"].toDouble(DEFAULT_WEAK_THRESH));
+        strongThreshSpin_->setValue(creation["strong_thresh"].toDouble(DEFAULT_STRONG_THRESH));
     }
+}
+
+void TemplateCreationDialog::saveCurrentValuesAsDefaults() {
+    // 读取现有配置文件
+    QJsonObject fullConfig;
+    QFile file("../config/template_matching.json");
+    if (file.open(QIODevice::ReadOnly)) {
+        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+        fullConfig = doc.object();
+        file.close();
+    }
+    
+    // 更新template_creation部分
+    fullConfig["template_creation"] = getTemplateCreationConfig();
+    
+    // 保存回文件
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(QJsonDocument(fullConfig).toJson(QJsonDocument::Indented));
+        file.close();
+    }
+}
+
+void TemplateCreationDialog::accept() {
+    // 保存当前参数为下次默认值
+    saveCurrentValuesAsDefaults();
+    QDialog::accept();
 }
 
 void TemplateCreationDialog::setInputError(QWidget* widget, bool hasError) {
