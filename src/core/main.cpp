@@ -67,6 +67,8 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication a(argc, argv);
+    // 将日志级别设置为 WARNING，低于此级别的信息（如 INFO）将不会显示
+    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_WARNING);     
 
     // 测试依赖库是否正确配置
     std::cout << "=== 依赖库测试开始 ===" << std::endl;

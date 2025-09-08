@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.5) # CMake install : https://cmake.org/download/
+cmake_minimum_required(VERSION 3.10) # CMake install : https://cmake.org/download/
 project(MutiCamApp LANGUAGES CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_PREFIX_PATH "c:/Qt/6.8.0/msvc2022_64") # Qt Kit Dir
+set(CMAKE_PREFIX_PATH "D:/AppData/Qt/6.8.0/msvc2022_64") # Qt Kit Dir 并且需要将 Qt 的 bin 目录添加到系统 PATH 环境变量中
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
