@@ -6528,7 +6528,7 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
 
     // 绘制SVG旋转图标（延迟加载，只创建一次）
     if (!m_rotationIconRenderer) {
-        m_rotationIconRenderer = new QSvgRenderer(QString("../icon/rotation.svg"));
+    m_rotationIconRenderer = new QSvgRenderer(QString("../../icon/rotation.svg"));
         // 如果加载失败，创建一个空的渲染器避免重复尝试
         if (!m_rotationIconRenderer->isValid()) {
             delete m_rotationIconRenderer;
@@ -6663,7 +6663,7 @@ PaintingOverlay::ROIObject::HandleType PaintingOverlay::getROIHandleAt(const QPo
 
     // 检查是否在ROI内部（用于移动）
     if (rect.contains(localPos)) {
-        qDebug() << "检测到ROI内部点击";
+        // qDebug() << "检测到ROI内部点击";
         return PaintingOverlay::ROIObject::MoveHandle;
     }
 
