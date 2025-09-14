@@ -169,7 +169,7 @@ void LogManager::logError(const QString& errorMsg, const QString& details)
     if (!details.isEmpty()) {
         message += QString(" - 详情: %1").arg(details);
     }
-    log(message, LogLevel::ERROR);
+    log(message, LogLevel::ERROR_LEVEL);
 }
 
 void LogManager::logWarning(const QString& warningMsg, const QString& details)
@@ -222,7 +222,7 @@ QString LogManager::getLevelString(LogLevel level) const
         case LogLevel::DEBUG:   return "DEBUG";
         case LogLevel::INFO:    return "INFO";
         case LogLevel::WARNING: return "WARNING";
-        case LogLevel::ERROR:   return "ERROR";
+        case LogLevel::ERROR_LEVEL:   return "ERROR";
         default:                return "UNKNOWN";
     }
 }
