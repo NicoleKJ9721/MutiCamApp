@@ -1,12 +1,9 @@
 /build
 /.vscode
-/third_party/opencv/bin/opencv_world4100d.pdb
-/third_party/opencv/bin/opencv_world4100d.dll
+/third_party/opencv/include
+/third_party/opencv/lib
+/third_party/opencv/bin
 /.cache
-/参考项目/MutiCamApp第一版，只能打开相机
-/参考项目/MutiCamApp_python原版/__pycache__
-/参考项目/MutiCamApp_python原版/Development/__pycache__
-/参考项目/MutiCamApp_python原版/Tools/__pycache__
-/参考项目/AxisControlSystem
-/参考项目/serial_test
+/refer/海康工业相机SDK取图历程例子
+/refer/MutiCamApp_python原版
 template
