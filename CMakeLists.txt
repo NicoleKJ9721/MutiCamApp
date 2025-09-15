@@ -7,6 +7,31 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17) # 提升到C++17以支持更好的特性
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- HALCON 集成开始 ---
+# 查找 HALCON 安装
+if(DEFINED ENV{HALCONROOT} AND NOT $ENV{HALCONROOT} STREQUAL "")
+  message(STATUS "正在使用环境变量中的 HALCON: " $ENV{HALCONROOT})
+  STRING(REGEX REPLACE "\\\\" "/" HALCONROOT $ENV{HALCONROOT}) 
+else()
+  message(FATAL_ERROR "HALCONROOT 环境变量未设置。请将其设置为您的 HALCON 安装目录。")
+endif()
+
+# 设置 HALCON 头文件目录
+set(HALCON_INCLUDE_DIRS 
+    ${HALCONROOT}/include
+    ${HALCONROOT}/include/halconcpp
+)
+
+# 设置 HALCON 库 (针对 64 位 Windows)
+set(HALCON_LIBS
+    ${HALCONROOT}/lib/x64-win64/halconcpp.lib
+    ${HALCONROOT}/lib/x64-win64/halcon.lib
+)
+
+message(STATUS "HALCON 头文件目录: " ${HALCON_INCLUDE_DIRS})
+message(STATUS "HALCON 库: " ${HALCON_LIBS})
+# --- HALCON 集成结束 ---
+
 # 配置第三方库路径
 set(OPENCV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencv)
 set(HIKVISION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/hikvision)
@@ -91,6 +116,7 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${HIKVISION_INCLUDE_DIRS}
+    ${HALCON_INCLUDE_DIRS} # 添加 HALCON 包含路径
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
@@ -114,6 +140,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # 链接海康SDK库
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${HIKVISION_LIB_DIR}/MvCameraControl.lib
+)
+
+# 链接HALCON库
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${HALCON_LIBS}
 )
 
 # 链接Qt6库
