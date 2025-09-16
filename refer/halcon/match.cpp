@@ -184,29 +184,91 @@ void action()
   HTuple  hv_Angle, hv_Scale, hv_Score, hv_Seconds2, hv_MatchingTime;
   HTuple  hv_WindowHandle, hv_i, hv_HomMat2DIdentity, hv_HomMat2DScale;
   HTuple  hv_HomMat2DRotate, hv_HomMat2DTranslate, hv_OutputPath;
+  HTuple  hv_TemplateFilePath, hv_LoadFromFile;
 
   ReadImage(&ho_TemplateImage, "D:/AppData/Documents/match/template/t4.png");
   ReadImage(&ho_SearchImage, "D:/AppData/Documents/match/template/s.png");
 
-  CreateScaledShapeModel(ho_TemplateImage, 5, HTuple(0).TupleRad(), HTuple(360).TupleRad(), 
-      HTuple(1).TupleRad(), 0.8, 1.2, 0.01, "auto", "use_polarity", "auto", "auto", 
-      &hv_ModelID);
-
+  //***********************************************************************************
+  //模板文件路径配置
+  //***********************************************************************************
+  hv_TemplateFilePath = "D:/AppData/Documents/match/template/template_model.shm";
+  
+  //***********************************************************************************
+  //智能模板管理：优先从文件加载，文件不存在时创建新模板
+  //工作流程：
+  //1. 检查模板文件是否存在
+  //2. 如果存在：从文件加载模板（快速启动）
+  //3. 如果不存在：创建新模板并保存到文件
+  //4. 使用加载的模板进行形状匹配
+  //***********************************************************************************
+  HTuple hv_FileExists;
+  FileExists(hv_TemplateFilePath, &hv_FileExists);
+  
+  if (hv_FileExists.I() == 1) {
+    // 模板文件存在，从文件加载
+    try {
+      ReadShapeModel(hv_TemplateFilePath, &hv_ModelID);
+      printf("Template model loaded from file: %s\n", hv_TemplateFilePath.S().TextA());
+      hv_LoadFromFile = 1;
+    } catch (HException &exception) {
+      printf("Error loading template from file: %s\n", exception.ErrorMessage().TextA());
+      printf("Creating new template instead...\n");
+      hv_LoadFromFile = 0;
+    }
+  } else {
+    // 模板文件不存在，创建新模板
+    printf("Template file not found, creating new template...\n");
+    hv_LoadFromFile = 0;
+  }
+  
+  if (hv_LoadFromFile.I() == 0) {
+    // 创建新模板
+    CreateScaledShapeModel(ho_TemplateImage, 5, HTuple(0).TupleRad(), HTuple(360).TupleRad(), 
+        HTuple(1).TupleRad(), 0.8, 1.2, 0.01, "auto", "use_polarity", "auto", "auto", 
+        &hv_ModelID);
+    printf("New template model created\n");
+  }
 
   //***********************************************************************************
-  //增加计时功能
+  //导出模板文件（仅在创建新模板时导出）
+  //***********************************************************************************
+  if (hv_LoadFromFile.I() == 0) {
+    try {
+      // 确保模板目录存在
+      std::string templateDir = "D:/AppData/Documents/match/template";
+      HTuple hv_TemplateDir = HTuple(templateDir.c_str());
+      HTuple hv_DirExists;
+      FileExists(hv_TemplateDir, &hv_DirExists);
+      if (hv_DirExists.I() == 0) {
+        MakeDir(hv_TemplateDir);
+        printf("Created template directory: %s\n", templateDir.c_str());
+      }
+      
+      // 导出模板到文件
+      WriteShapeModel(hv_ModelID, hv_TemplateFilePath);
+      printf("Template model exported to: %s\n", hv_TemplateFilePath.S().TextA());
+      
+    } catch (HException &exception) {
+      printf("Error exporting template: %s\n", exception.ErrorMessage().TextA());
+    }
+  }
+
+  //***********************************************************************************
+  //使用模板进行形状匹配（优先使用文件中的模板）
   //***********************************************************************************
   //1. 在匹配前，获取开始时间
   CountSeconds(&hv_Seconds1);
 
+  //2. 执行形状匹配（使用已加载的模板）
   FindScaledShapeModel(ho_SearchImage, hv_ModelID, HTuple(0).TupleRad(), HTuple(360).TupleRad(), 
       0.8, 1.2, 0.5, 0, 0.8, "none", 0, 1, &hv_Row, &hv_Column, &hv_Angle, &hv_Scale, 
       &hv_Score);
 
-  //2. 在匹配后，获取结束时间
+  //3. 在匹配后，获取结束时间
   CountSeconds(&hv_Seconds2);
 
-  //3. 计算时间差，并转换为毫秒 (ms)
+  //4. 计算时间差，并转换为毫秒 (ms)
   hv_MatchingTime = (hv_Seconds2-hv_Seconds1)*1000;
 
 
@@ -217,6 +279,18 @@ void action()
     DispObj(ho_SearchImage, HDevWindowStack::GetActive());
   if (HDevWindowStack::IsOpen())
     hv_WindowHandle = HDevWindowStack::GetActive();
+
+  // 获取图像尺寸，用于动态调整线条粗细
+  HTuple hv_ImageWidth, hv_ImageHeight;
+  GetImageSize(ho_SearchImage, &hv_ImageWidth, &hv_ImageHeight);
+  
+  // 根据图像分辨率动态计算线条粗细（四倍加粗）
+  // 基础线条粗细为图像宽度的0.4%，最小为12，最大为60
+  HTuple hv_LineWidth = (hv_ImageWidth * 0.004).TupleInt();
+  if (hv_LineWidth < 12) hv_LineWidth = 12;
+  if (hv_LineWidth > 60) hv_LineWidth = 60;
+  
+  printf("Image size: %dx%d, Line width: %d\n", (int)hv_ImageWidth, (int)hv_ImageHeight, (int)hv_LineWidth);
 
   if (0 != (int((hv_Score.TupleLength())>0)))
   {
@@ -238,7 +312,7 @@ void action()
       if (HDevWindowStack::IsOpen())
         SetColor(HDevWindowStack::GetActive(),"green");
       if (HDevWindowStack::IsOpen())
-        SetLineWidth(HDevWindowStack::GetActive(),2);
+        SetLineWidth(HDevWindowStack::GetActive(),hv_LineWidth);
       if (HDevWindowStack::IsOpen())
         DispObj(ho_ContoursAffinTrans, HDevWindowStack::GetActive());
     }
@@ -299,10 +373,6 @@ void action()
     
     // 创建临时窗口来渲染带轮廓的图像
     HTuple hv_TempWindow;
-    HTuple hv_ImageWidth, hv_ImageHeight;
-    
-    // 获取原始图像的尺寸
-    GetImageSize(ho_SearchImage, &hv_ImageWidth, &hv_ImageHeight);
     
     // 创建临时窗口（不显示），使用原始图像尺寸
     OpenWindow(0, 0, hv_ImageWidth, hv_ImageHeight, 0, "buffer", "", &hv_TempWindow);
@@ -313,7 +383,7 @@ void action()
     
     // 绘制所有匹配的轮廓
     SetColor(HDevWindowStack::GetActive(), "green");
-    SetLineWidth(HDevWindowStack::GetActive(), 2);
+    SetLineWidth(HDevWindowStack::GetActive(), hv_LineWidth);
     {
     HTuple end_val31 = (hv_Score.TupleLength())-1;
     HTuple step_val31 = 1;
