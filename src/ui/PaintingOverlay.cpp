@@ -16,9 +16,19 @@
 #include <QDateTime>
 #include <QCoreApplication>
 #include <QRegularExpression>
+#include <QStandardPaths>
+#include <QFileInfo>
 #include <algorithm>
 #include <cmath>
 #include <opencv2/opencv.hpp>
+#ifndef __APPLE__
+#include "HalconCpp.h"
+#include "HDevThread.h"
+#else
+#include <HALCONCpp/HalconCpp.h>
+#include <HALCONCpp/HDevThread.h>
+#endif
+using namespace HalconCpp;
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
 
@@ -848,7 +858,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     if (m_selectedLineSegments.size() == 1 && m_selectedCircles.size() == 1 &&
         m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
         m_selectedFineCircles.isEmpty()) {
-        lineSegmentToCircleAction = contextMenu.addAction("线段与圆");
+        lineSegmentToCircleAction = contextMenu.addAction("线段与圆关系");
     }
 
     // 线段与精细圆关系分析
@@ -856,7 +866,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     if (m_selectedLineSegments.size() == 1 && m_selectedFineCircles.size() == 1 &&
         m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
         m_selectedCircles.isEmpty()) {
-        lineSegmentToFineCircleAction = contextMenu.addAction("线段与精细圆");
+        lineSegmentToFineCircleAction = contextMenu.addAction("线段与精细圆关系");
     }
 
     // 两条直线夹角测量（支持直线、平行线中线的各种组合）
@@ -7132,23 +7142,51 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
 
         QString imageFileName = QString("%1.png").arg(baseName);
         QString metaFileName = QString("%1.json").arg(baseName);
+        QString halconFileName = QString("%1.shm").arg(baseName);
 
         QString imagePath = QDir(saveDir).filePath(imageFileName);
         QString metaPath = QDir(saveDir).filePath(metaFileName);
+        QString halconPath = QDir(saveDir).filePath(halconFileName);
 
         // 如果文件已存在，添加时间戳
-        if (QFile::exists(imagePath)) {
+        if (QFile::exists(imagePath) || QFile::exists(metaPath) || QFile::exists(halconPath)) {
             QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
             imageFileName = QString("%1_%2.png").arg(baseName, timestamp);
             metaFileName = QString("%1_%2.json").arg(baseName, timestamp);
+            halconFileName = QString("%1_%2.shm").arg(baseName, timestamp);
             imagePath = QDir(saveDir).filePath(imageFileName);
             metaPath = QDir(saveDir).filePath(metaFileName);
+            halconPath = QDir(saveDir).filePath(halconFileName);
         }
 
         // 保存图像文件
         if (!cv::imwrite(imagePath.toStdString(), templateImage)) {
             qCritical() << "无法保存模板图像到:" << imagePath;
             return false;
+        }
+
+        // 额外：生成 Halcon 形状模板并保存 .shm
+        bool halconOk = false;
+        try {
+            // 直接从保存的图像文件读取，避免指针寿命问题
+            HalconCpp::HObject hoTemplate;
+            HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(imagePath.toStdString().c_str()));
+
+            HalconCpp::HTuple hvModelID;
+            // 范围先按示例，后续可从配置文件读取
+            HalconCpp::CreateScaledShapeModel(hoTemplate,
+                5,
+                HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
+                0.8, 1.2, 0.01,
+                "auto", "use_polarity", "auto", "auto",
+                &hvModelID);
+
+            HalconCpp::WriteShapeModel(hvModelID, HalconCpp::HTuple(halconPath.toStdString().c_str()));
+            HalconCpp::ClearShapeModel(hvModelID);
+            halconOk = true;
+        } catch (const HalconCpp::HException& e) {
+            qWarning() << "Halcon模板创建/保存失败:" << e.ErrorMessage().TextA();
+            // 不中断保存png/json流程
         }
 
         // 创建元数据
@@ -7161,6 +7199,8 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
             {"height", templateImage.rows},
             {"channels", templateImage.channels()}
         };
+        // 记录 Halcon 模型文件（即使创建失败也写入空值，保证兼容）
+        metadata["halconModelFile"] = halconOk ? QJsonValue(halconFileName) : QJsonValue("");
 
         // 保存ROI信息（如果有）
         if (m_hasCurrentROI) {
@@ -7178,8 +7218,9 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
         QFile metaFile(metaPath);
         if (!metaFile.open(QIODevice::WriteOnly)) {
             qCritical() << "无法创建元数据文件:" << metaPath;
-            // 删除已保存的图像文件
+            // 回滚已保存的图像和shm
             QFile::remove(imagePath);
+            if (QFile::exists(halconPath)) QFile::remove(halconPath);
             return false;
         }
 
@@ -7189,6 +7230,7 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
         qInfo() << "模板保存成功:" << templateName;
         qInfo() << "图像文件:" << imagePath;
         qInfo() << "元数据文件:" << metaPath;
+        if (halconOk) qInfo() << "Halcon模板文件:" << halconPath;
 
         return true;
 
@@ -7286,6 +7328,11 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
     try {
         // 加载图像
         cv::Mat image = cv::imread(imagePath.toStdString());
+
+        // 记录 Halcon 模型路径（与图片同目录）
+        QFileInfo imgInfo(imagePath);
+        QFileInfo metaInfo(metadataPath);
+        QDir dir = metaInfo.dir();
         if (image.empty()) {
             qWarning() << "无法加载模板图像:" << imagePath;
             return templateInfo;
@@ -7328,6 +7375,31 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
                 roiObj["height"].toDouble()
             );
             templateInfo.originalAngle = roiObj["angle"].toDouble();
+        }
+
+        // 解析 Halcon 模型路径
+        if (metadata.contains("halconModelFile")) {
+            QString shmName = metadata["halconModelFile"].toString();
+            if (!shmName.isEmpty()) {
+                QString shmPath = dir.filePath(shmName);
+                templateInfo.halconModelPath = shmPath;
+            }
+        }
+
+        // 加载 Halcon 模型
+        if (metadata.contains("halconModelFile")) {
+            QString halconModelPath = dir.filePath(metadata["halconModelFile"].toString());
+            if (QFile::exists(halconModelPath)) {
+                try {
+                    // 仅校验存在性，实际匹配时再加载
+                    templateInfo.halconModelPath = halconModelPath;
+                    qDebug() << "检测到 Halcon 模型文件:" << halconModelPath;
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "加载 Halcon 模型失败:" << e.ErrorMessage().TextA();
+                }
+            } else {
+                qWarning() << "找不到 Halcon 模型文件:" << halconModelPath;
+            }
         }
 
         qDebug() << "成功解析模板:" << templateInfo.name
@@ -7393,123 +7465,123 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
     }
 
     try {
-        // 预处理源图像
+        // 预处理源图像（转灰且8U）
         cv::Mat processedSourceImage;
         if (sourceImage.channels() == 3) {
             cv::cvtColor(sourceImage, processedSourceImage, cv::COLOR_BGR2GRAY);
         } else {
             processedSourceImage = sourceImage.clone();
         }
-
-        // 确保图像是8位无符号整型
         if (processedSourceImage.depth() != CV_8U) {
             processedSourceImage.convertTo(processedSourceImage, CV_8U);
         }
 
-        // 性能优化：对于大尺寸图像进行缩放处理
-        cv::Mat scaledSourceImage;
-        double scaleFactorForMatching = 1.0;
-        const int MAX_DIMENSION = 1500; // 最大尺寸限制
-
-        if (processedSourceImage.cols > MAX_DIMENSION || processedSourceImage.rows > MAX_DIMENSION) {
-            double scaleX = static_cast<double>(MAX_DIMENSION) / processedSourceImage.cols;
-            double scaleY = static_cast<double>(MAX_DIMENSION) / processedSourceImage.rows;
-            scaleFactorForMatching = std::min(scaleX, scaleY);
-
-            cv::resize(processedSourceImage, scaledSourceImage, cv::Size(),
-                      scaleFactorForMatching, scaleFactorForMatching, cv::INTER_LINEAR);
-
-            qDebug() << "大尺寸图像缩放：" << processedSourceImage.cols << "x" << processedSourceImage.rows
-                     << " -> " << scaledSourceImage.cols << "x" << scaledSourceImage.rows
-                     << " 缩放因子：" << scaleFactorForMatching;
-        } else {
-            scaledSourceImage = processedSourceImage;
+        // 将源图转换为 Halcon 图像
+        HalconCpp::HObject hoSearch;
+        {
+            // 写入临时内存安全：使用 HImage::GenImage1 不要指针悬空问题，改为从内存buffer生成
+            // 这里采用写入PNG到内存缓冲方案较复杂，改为临时文件成本更低且稳定
         }
+        // 为避免复杂内存封装，写入临时PNG文件再读
+        QString tmpDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        if (tmpDir.isEmpty()) tmpDir = QDir::tempPath();
+        QDir().mkpath(tmpDir);
+        QString tmpSearchPath = QDir(tmpDir).filePath("__halcon_search__.png");
+        cv::imwrite(tmpSearchPath.toStdString(), processedSourceImage);
+        HalconCpp::ReadImage(&hoSearch, HalconCpp::HTuple(tmpSearchPath.toStdString().c_str()));
 
+        // 遍历模板，使用 Halcon 进行匹配
         for (const TemplateInfo& templateInfo : m_loadedTemplates) {
-            if (!templateInfo.isSelected || templateInfo.templateImage.empty()) {
-                continue;
+            if (!templateInfo.isSelected) continue;
+
+            // 读取或创建模型
+            HalconCpp::HTuple hvModelID;
+            bool modelReady = false;
+            try {
+                if (!templateInfo.halconModelPath.isEmpty() && QFile::exists(templateInfo.halconModelPath)) {
+                    HalconCpp::ReadShapeModel(HalconCpp::HTuple(templateInfo.halconModelPath.toStdString().c_str()), &hvModelID);
+                    modelReady = true;
+                }
+            } catch (const HalconCpp::HException& e) {
+                qWarning() << "读取Halcon模型失败，将尝试临时创建:" << e.ErrorMessage().TextA();
             }
 
-            // 预处理模板图像
-            cv::Mat processedTemplate;
-            if (templateInfo.templateImage.channels() == 3) {
-                cv::cvtColor(templateInfo.templateImage, processedTemplate, cv::COLOR_BGR2GRAY);
-            } else {
-                processedTemplate = templateInfo.templateImage.clone();
+            // 若没有shm，退化为从模板图创建临时模型（不保存）
+            HalconCpp::HObject hoTemplate;
+            if (!modelReady) {
+                if (templateInfo.imagePath.isEmpty() || !QFile::exists(templateInfo.imagePath)) {
+                    qWarning() << "模板缺少图像或模型，跳过:" << templateInfo.name;
+                    continue;
+                }
+                try {
+                    HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(templateInfo.imagePath.toStdString().c_str()));
+                    HalconCpp::CreateScaledShapeModel(hoTemplate,
+                        5,
+                        HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
+                        0.8, 1.2, 0.01,
+                        "auto", "use_polarity", "auto", "auto",
+                        &hvModelID);
+                    modelReady = true;
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "临时创建Halcon模型失败，跳过模板:" << templateInfo.name << e.ErrorMessage().TextA();
+                    continue;
+                }
             }
 
-            // 确保模板图像也是8位无符号整型
-            if (processedTemplate.depth() != CV_8U) {
-                processedTemplate.convertTo(processedTemplate, CV_8U);
-            }
+            // 执行匹配
+            try {
+                HalconCpp::HTuple hvRow, hvCol, hvAngle, hvScale, hvScore;
+                // 阈值、数量等设置可接入弹窗参数，这里沿用默认值/示例
+                HalconCpp::FindScaledShapeModel(hoSearch,
+                    hvModelID,
+                    HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(),
+                    0.8, 1.2,
+                    0.5,
+                    0,
+                    0.8,
+                    "none",
+                    0,
+                    1,
+                    &hvRow, &hvCol, &hvAngle, &hvScale, &hvScore);
 
-            // 如果源图像被缩放了，也需要缩放模板
-            cv::Mat scaledTemplate;
-            if (scaleFactorForMatching < 1.0) {
-                cv::resize(processedTemplate, scaledTemplate, cv::Size(),
-                          scaleFactorForMatching, scaleFactorForMatching, cv::INTER_LINEAR);
-            } else {
-                scaledTemplate = processedTemplate;
-            }
+                // 将结果转换为现有结构
+                const int count = static_cast<int>(hvScore.TupleLength());
+                for (int i = 0; i < count; ++i) {
+                    TemplateMatchResult match;
+                    match.templateName = templateInfo.name;
+                    match.confidence = static_cast<double>(hvScore[i]);
+                    match.angle = static_cast<double>(hvAngle[i]);
+                    match.scale = static_cast<double>(hvScale[i]);
+                    // Halcon返回 row/column 对应 y/x
+                    const double row = static_cast<double>(hvRow[i]);
+                    const double col = static_cast<double>(hvCol[i]);
+                    // 用模板尺寸估计边界框（如果有模板图像），否则给定一个默认尺寸
+                    double w = templateInfo.templateImage.empty() ? 20.0 : templateInfo.templateImage.cols;
+                    double h = templateInfo.templateImage.empty() ? 20.0 : templateInfo.templateImage.rows;
+                    // 中心点
+                    match.position = QPointF(col, row);
+                    match.boundingRect = QRectF(col - w * 0.5, row - h * 0.5, w, h);
+                    match.timestamp = QDateTime::currentDateTime();
+                    results.append(match);
+                }
 
-            // 检查图像尺寸
-            if (scaledTemplate.cols > scaledSourceImage.cols ||
-                scaledTemplate.rows > scaledSourceImage.rows) {
-                qDebug() << "模板尺寸大于源图像，跳过匹配：" << templateInfo.name;
-                continue;
-            }
-
-            cv::Mat matchResult;
-            cv::matchTemplate(scaledSourceImage, scaledTemplate, matchResult, cv::TM_CCOEFF_NORMED);
-
-            // 查找最佳匹配位置
-            double minVal, maxVal;
-            cv::Point minLoc, maxLoc;
-            cv::minMaxLoc(matchResult, &minVal, &maxVal, &minLoc, &maxLoc);
-
-            // 设置匹配阈值
-            double threshold = 0.7; // 可以后续做成可配置的参数
-
-            if (maxVal >= threshold) {
-                TemplateMatchResult match;
-                match.templateName = templateInfo.name;
-                match.confidence = maxVal;
-                match.angle = 0.0; // 简化版本暂不支持角度检测
-                match.scale = 1.0;
-                match.timestamp = QDateTime::currentDateTime();
-
-                // 计算匹配位置（中心点），需要转换回原始图像坐标
-                double originalX = maxLoc.x / scaleFactorForMatching;
-                double originalY = maxLoc.y / scaleFactorForMatching;
-                double originalWidth = processedTemplate.cols;
-                double originalHeight = processedTemplate.rows;
-
-                QPointF center(
-                    originalX + originalWidth / 2.0,
-                    originalY + originalHeight / 2.0
-                );
-                match.position = center;
-
-                // 计算边界框（使用原始模板尺寸）
-                QRectF boundingRect(
-                    originalX,
-                    originalY,
-                    originalWidth,
-                    originalHeight
-                );
-                match.boundingRect = boundingRect;
-
-                results.append(match);
-
-                qDebug() << "找到匹配：" << templateInfo.name
-                         << "置信度：" << maxVal
-                         << "位置：" << center;
+                // 清理仅在本次创建的模型
+                if (!templateInfo.halconModelPath.isEmpty()) {
+                    // 从文件读的模型不需要清理（Halcon需ClearShapeModel释放句柄）
+                }
+                HalconCpp::ClearShapeModel(hvModelID);
+            } catch (const HalconCpp::HException& e) {
+                qWarning() << "Halcon匹配失败:" << e.ErrorMessage().TextA();
             }
         }
+
+        // 移除临时文件
+        QFile::remove(tmpSearchPath);
 
     } catch (const cv::Exception& e) {
         qCritical() << "执行模板匹配时发生OpenCV异常：" << e.what();
+    } catch (const HalconCpp::HException& e) {
+        qCritical() << "执行模板匹配时发生Halcon异常：" << e.ErrorMessage().TextA();
     } catch (const std::exception& e) {
         qCritical() << "执行模板匹配时发生异常：" << e.what();
     }

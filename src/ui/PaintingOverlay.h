@@ -49,6 +49,7 @@ struct TemplateInfo {
     double originalAngle;            // 原始角度
     QDateTime createdTime;           // 创建时间
     bool isSelected;                 // 是否被选中用于匹配
+    QString halconModelPath;         // Halcon形状模板文件路径（.shm）
 
     TemplateInfo() : originalAngle(0.0), isSelected(false) {}
 };
