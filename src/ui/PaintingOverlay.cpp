@@ -7178,7 +7178,7 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
                 5,
                 HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
                 0.8, 1.2, 0.01,
-                "auto", "use_polarity", "auto", "auto",
+                "none", "use_polarity", "auto", "auto",
                 &hvModelID);
 
             HalconCpp::WriteShapeModel(hvModelID, HalconCpp::HTuple(halconPath.toStdString().c_str()));
@@ -7464,8 +7464,13 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
         return results;
     }
 
+    // 记录匹配开始时间
+    QTime matchingStartTime = QTime::currentTime();
+    qDebug() << "======== 开始模板匹配，模板数量:" << m_loadedTemplates.size() << " ========";
+
     try {
         // 预处理源图像（转灰且8U）
+        QTime preprocessStartTime = QTime::currentTime();
         cv::Mat processedSourceImage;
         if (sourceImage.channels() == 3) {
             cv::cvtColor(sourceImage, processedSourceImage, cv::COLOR_BGR2GRAY);
@@ -7475,26 +7480,57 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
         if (processedSourceImage.depth() != CV_8U) {
             processedSourceImage.convertTo(processedSourceImage, CV_8U);
         }
+        int preprocessTime = preprocessStartTime.msecsTo(QTime::currentTime());
+        qDebug() << "图像预处理耗时:" << preprocessTime << "ms";
 
-        // 将源图转换为 Halcon 图像
+        // 将源图转换为 Halcon 图像 - 优化：直接从内存创建，避免磁盘I/O
+        QTime halconConvertStartTime = QTime::currentTime();
         HalconCpp::HObject hoSearch;
-        {
-            // 写入临时内存安全：使用 HImage::GenImage1 不要指针悬空问题，改为从内存buffer生成
-            // 这里采用写入PNG到内存缓冲方案较复杂，改为临时文件成本更低且稳定
+        try {
+            // 直接从OpenCV Mat创建Halcon图像，避免文件I/O
+            // 确保数据连续性
+            cv::Mat continuousImage;
+            if (processedSourceImage.isContinuous()) {
+                continuousImage = processedSourceImage;
+            } else {
+                processedSourceImage.copyTo(continuousImage);
+            }
+            
+            // 使用GenImage1直接从内存数据创建Halcon图像
+            HalconCpp::GenImage1(&hoSearch, "byte", 
+                               continuousImage.cols, continuousImage.rows,
+                               reinterpret_cast<Hlong>(continuousImage.data));
+                               
+            qDebug() << "使用直接内存创建Halcon图像成功";
+        } catch (const HalconCpp::HException& e) {
+            qWarning() << "直接内存创建失败，回退到文件方式:" << e.ErrorMessage().TextA();
+            
+            // 回退方案：使用临时文件
+            QString tmpDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+            if (tmpDir.isEmpty()) tmpDir = QDir::tempPath();
+            QDir().mkpath(tmpDir);
+            QString tmpSearchPath = QDir(tmpDir).filePath("__halcon_search__.png");
+            cv::imwrite(tmpSearchPath.toStdString(), processedSourceImage);
+            HalconCpp::ReadImage(&hoSearch, HalconCpp::HTuple(tmpSearchPath.toStdString().c_str()));
+            QFile::remove(tmpSearchPath); // 立即清理临时文件
         }
-        // 为避免复杂内存封装，写入临时PNG文件再读
-        QString tmpDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-        if (tmpDir.isEmpty()) tmpDir = QDir::tempPath();
-        QDir().mkpath(tmpDir);
-        QString tmpSearchPath = QDir(tmpDir).filePath("__halcon_search__.png");
-        cv::imwrite(tmpSearchPath.toStdString(), processedSourceImage);
-        HalconCpp::ReadImage(&hoSearch, HalconCpp::HTuple(tmpSearchPath.toStdString().c_str()));
+        int halconConvertTime = halconConvertStartTime.msecsTo(QTime::currentTime());
+        qDebug() << "Halcon图像转换耗时:" << halconConvertTime << "ms";
+        
+        // 记录模板遍历开始时间
+        QTime templatesStartTime = QTime::currentTime();
+        qDebug() << "-------- 开始遍历模板 --------";
 
         // 遍历模板，使用 Halcon 进行匹配
+        int templateIndex = 0;
         for (const TemplateInfo& templateInfo : m_loadedTemplates) {
             if (!templateInfo.isSelected) continue;
 
+            QTime templateStartTime = QTime::currentTime();
+            qDebug() << "开始匹配模板" << (templateIndex + 1) << ":" << templateInfo.name;
+
             // 读取或创建模型
+            QTime modelLoadStartTime = QTime::currentTime();
             HalconCpp::HTuple hvModelID;
             bool modelReady = false;
             try {
@@ -7527,25 +7563,31 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                     continue;
                 }
             }
+            int modelLoadTime = modelLoadStartTime.msecsTo(QTime::currentTime());
+            qDebug() << "模板" << templateInfo.name << "模型加载耗时:" << modelLoadTime << "ms";
 
             // 执行匹配
+            QTime matchStartTime = QTime::currentTime();
             try {
                 HalconCpp::HTuple hvRow, hvCol, hvAngle, hvScale, hvScore;
                 // 阈值、数量等设置可接入弹窗参数，这里沿用默认值/示例
                 HalconCpp::FindScaledShapeModel(hoSearch,
                     hvModelID,
                     HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(),
-                    0.8, 1.2,
+                    0.9, 1.1,
+                    0.2,
+                    1,
                     0.5,
+                    "least_squares",
                     0,
                     0.8,
-                    "none",
-                    0,
-                    1,
                     &hvRow, &hvCol, &hvAngle, &hvScale, &hvScore);
 
-                // 将结果转换为现有结构
+                int matchTime = matchStartTime.msecsTo(QTime::currentTime());
                 const int count = static_cast<int>(hvScore.TupleLength());
+                qDebug() << "模板" << templateInfo.name << "匹配耗时:" << matchTime << "ms，找到" << count << "个匹配";
+
+                // 将结果转换为现有结构
                 for (int i = 0; i < count; ++i) {
                     TemplateMatchResult match;
                     match.templateName = templateInfo.name;
@@ -7555,9 +7597,11 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                     // Halcon返回 row/column 对应 y/x
                     const double row = static_cast<double>(hvRow[i]);
                     const double col = static_cast<double>(hvCol[i]);
-                    // 用模板尺寸估计边界框（如果有模板图像），否则给定一个默认尺寸
+                    // 用模板尺寸估计边界框并按匹配比例缩放（如果有模板图像），否则给定默认尺寸
                     double w = templateInfo.templateImage.empty() ? 20.0 : templateInfo.templateImage.cols;
                     double h = templateInfo.templateImage.empty() ? 20.0 : templateInfo.templateImage.rows;
+                    w *= match.scale;
+                    h *= match.scale;
                     // 中心点
                     match.position = QPointF(col, row);
                     match.boundingRect = QRectF(col - w * 0.5, row - h * 0.5, w, h);
@@ -7571,12 +7615,18 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                 }
                 HalconCpp::ClearShapeModel(hvModelID);
             } catch (const HalconCpp::HException& e) {
-                qWarning() << "Halcon匹配失败:" << e.ErrorMessage().TextA();
+                int matchTime = matchStartTime.msecsTo(QTime::currentTime());
+                qWarning() << "模板" << templateInfo.name << "Halcon匹配失败，耗时:" << matchTime << "ms，错误:" << e.ErrorMessage().TextA();
             }
-        }
 
-        // 移除临时文件
-        QFile::remove(tmpSearchPath);
+            int templateTotalTime = templateStartTime.msecsTo(QTime::currentTime());
+            qDebug() << "模板" << templateInfo.name << "总耗时:" << templateTotalTime << "ms" 
+                     << " [模型加载:" << modelLoadTime << "ms + 匹配执行:" << (templateTotalTime - modelLoadTime) << "ms]";
+            templateIndex++;
+        }
+        
+        int allTemplatesTime = templatesStartTime.msecsTo(QTime::currentTime());
+        qDebug() << "-------- 所有模板处理完成，耗时:" << allTemplatesTime << "ms --------";
 
     } catch (const cv::Exception& e) {
         qCritical() << "执行模板匹配时发生OpenCV异常：" << e.what();
@@ -7585,6 +7635,9 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
     } catch (const std::exception& e) {
         qCritical() << "执行模板匹配时发生异常：" << e.what();
     }
+
+    int totalMatchingTime = matchingStartTime.msecsTo(QTime::currentTime());
+    qDebug() << "======== 模板匹配完成，总耗时:" << totalMatchingTime << "ms，找到" << results.size() << "个匹配结果 ========";
 
     return results;
 }
@@ -7632,8 +7685,13 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     QPen pen = createPen(matchColor, 2, ctx.scale, false);  // 使用createPen函数进行缩放调整
     painter.setPen(pen);
 
-    // 绘制匹配边界框
-    painter.drawRect(matchRect);
+    // 绘制匹配边界框（按角度旋转并以中心为原点绘制）
+    painter.save();
+    painter.translate(matchCenter);
+    painter.rotate(-match.angle * 180.0 / M_PI);
+    painter.drawRect(QRectF(-matchRect.width() * 0.5, -matchRect.height() * 0.5,
+                            matchRect.width(), matchRect.height()));
+    painter.restore();
 
     // 绘制中心点
     painter.setBrush(QBrush(matchColor));
@@ -7686,13 +7744,6 @@ void PaintingOverlay::processFrameForMatching(const cv::Mat& frame)
     if (!m_isMatchingEnabled || frame.empty()) {
         return;
     }
-
-    // 帧跳过优化：不是每一帧都进行匹配
-    m_matchingFrameSkip++;
-    if (m_matchingFrameSkip < MATCHING_FRAME_INTERVAL) {
-        return;
-    }
-    m_matchingFrameSkip = 0; // 重置计数器
 
     try {
         // 执行模板匹配
