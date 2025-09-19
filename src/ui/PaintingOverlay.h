@@ -33,6 +33,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "../image_processing/edge_detector.h"
+#include "../config/TemplateMatchingConfig.h"
 
 // 前向声明
 class ZoomPanWidget;
@@ -440,9 +441,11 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     /**
      * @brief 启动模板匹配
      * @param selectedTemplates 选中的模板列表
+     * @param matchingParams 匹配参数（可选，为空则使用配置文件参数）
      * @return 是否启动成功
      */
-    bool startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates);
+    bool startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates,
+                              const TemplateMatchingConfig::TemplateMatchingParams* matchingParams = nullptr);
 
     /**
      * @brief 停止模板匹配

@@ -98,6 +98,10 @@ set(srcs
     src/image_processing/shape_detector.h
     src/image_processing/shape_detector.cpp
 
+    # 配置管理模块
+    src/config/TemplateMatchingConfig.h
+    src/config/TemplateMatchingConfig.cpp
+
     # 模板匹配模块
 )
 
@@ -120,6 +124,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/config
     ${CMAKE_CURRENT_SOURCE_DIR}/src/matching
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )

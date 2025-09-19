@@ -10,6 +10,8 @@
 #include <QLabel>
 #include <QGroupBox>
 #include <QJsonObject>
+#include <QComboBox>
+#include "../config/TemplateMatchingConfig.h"
 
 class TemplateCreationDialog : public QDialog {
     Q_OBJECT
@@ -23,6 +25,10 @@ public:
     
     // 重写accept方法以保存参数
     void accept() override;
+    
+    // 配置管理
+    void loadConfigFromFile();
+    void saveConfigToFile();
     
 private:
     // 默认值常量
@@ -39,20 +45,22 @@ private:
     // UI组件
     QLineEdit* nameEdit_;
     
-    // 角度范围参数
-    QDoubleSpinBox* angleBeginSpin_;
-    QDoubleSpinBox* angleEndSpin_;
+    // 角度范围参数 - Halcon官方命名
+    QDoubleSpinBox* angleStartSpin_;
+    QDoubleSpinBox* angleExtentSpin_;
     QDoubleSpinBox* angleStepSpin_;
     
-    // 缩放范围参数
-    QDoubleSpinBox* scaleBeginSpin_;
-    QDoubleSpinBox* scaleEndSpin_;
+    // 缩放范围参数 - Halcon官方命名
+    QDoubleSpinBox* scaleMinSpin_;
+    QDoubleSpinBox* scaleMaxSpin_;
     QDoubleSpinBox* scaleStepSpin_;
     
-    // 其他参数
-    QSpinBox* numFeaturesSpin_;
-    QDoubleSpinBox* weakThreshSpin_;
-    QDoubleSpinBox* strongThreshSpin_;
+    // Halcon特定参数
+    QSpinBox* numLevelsSpin_;
+    QComboBox* optimizationCombo_;
+    QComboBox* metricCombo_;
+    QComboBox* contrastCombo_;
+    QComboBox* minContrastCombo_;
     
     // 按钮和状态
     QPushButton* okButton_;
@@ -71,6 +79,11 @@ private:
     void loadDefaultValues();
     void saveCurrentValuesAsDefaults();
     void setInputError(QWidget* widget, bool hasError);
+    
+    // 配置相关私有方法
+    void loadParametersFromConfig();
+    void saveParametersToConfig();
+    void setupHalconParameterCombos();
     void updateErrorMessage();
     void updateOkButtonState();
     

@@ -26,6 +26,7 @@ TemplateSelectionDialog::TemplateSelectionDialog(QWidget *parent)
     , m_cancelButton(nullptr)
 {
     setupUI();
+    loadUIDefaultsFromConfig();
     setWindowTitle("模板选择和匹配参数设置");
     setModal(true);
     resize(600, 400);
@@ -86,7 +87,7 @@ void TemplateSelectionDialog::createParameterPanel()
     m_confidenceSpinBox = new QDoubleSpinBox(this);
     m_confidenceSpinBox->setRange(0.1, 1.0);
     m_confidenceSpinBox->setSingleStep(0.1);
-    m_confidenceSpinBox->setValue(0.7);
+    m_confidenceSpinBox->setValue(0.5);
     m_confidenceSpinBox->setDecimals(2);
     confidenceLayout->addWidget(m_confidenceSpinBox);
     paramLayout->addLayout(confidenceLayout);
@@ -96,7 +97,7 @@ void TemplateSelectionDialog::createParameterPanel()
     maxMatchesLayout->addWidget(new QLabel("最大匹配数:", this));
     m_maxMatchesSpinBox = new QSpinBox(this);
     m_maxMatchesSpinBox->setRange(1, 100);
-    m_maxMatchesSpinBox->setValue(10);
+    m_maxMatchesSpinBox->setValue(1);
     maxMatchesLayout->addWidget(m_maxMatchesSpinBox);
     paramLayout->addLayout(maxMatchesLayout);
     
@@ -116,7 +117,7 @@ void TemplateSelectionDialog::createParameterPanel()
     
     // 缩放匹配
     m_enableScalingCheckBox = new QCheckBox("启用缩放匹配", this);
-    m_enableScalingCheckBox->setChecked(false);
+    m_enableScalingCheckBox->setChecked(true);
     paramLayout->addWidget(m_enableScalingCheckBox);
     
     QHBoxLayout* scaleLayout = new QHBoxLayout();
@@ -189,6 +190,41 @@ TemplateSelectionDialog::MatchingParams TemplateSelectionDialog::getMatchingPara
     return params;
 }
 
+TemplateMatchingConfig::TemplateMatchingParams TemplateSelectionDialog::toHalconMatchingParams() const
+{
+    TemplateMatchingConfig::TemplateMatchingParams halconParams;
+    
+    // 获取当前配置作为基础
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    halconParams = config->getTemplateMatchingParams();
+    
+    // 应用对话框中的用户设置
+    halconParams.minScore = m_confidenceSpinBox->value();
+    halconParams.numMatches = m_maxMatchesSpinBox->value();
+    
+    // 角度设置
+    if (m_enableRotationCheckBox->isChecked()) {
+        double rotationRange = m_rotationRangeSpinBox->value();
+        halconParams.angleStart = -rotationRange / 2.0;  // 对称角度范围
+        halconParams.angleExtent = rotationRange;
+    } else {
+        halconParams.angleStart = 0.0;
+        halconParams.angleExtent = 0.0;  // 不允许旋转
+    }
+    
+    // 缩放设置
+    if (m_enableScalingCheckBox->isChecked()) {
+        double scaleRange = m_scaleRangeSpinBox->value();
+        halconParams.scaleMin = 1.0 - scaleRange;
+        halconParams.scaleMax = 1.0 + scaleRange;
+    } else {
+        halconParams.scaleMin = 1.0;
+        halconParams.scaleMax = 1.0;  // 不允许缩放
+    }
+    
+    return halconParams;
+}
+
 void TemplateSelectionDialog::onSelectAllClicked()
 {
     for (int i = 0; i < m_templateList->count(); ++i) {
@@ -256,4 +292,18 @@ QPixmap TemplateSelectionDialog::createThumbnail(const cv::Mat& image, const QSi
         qWarning() << "创建缩略图失败：" << e.what();
         return QPixmap(size);
     }
+}
+
+void TemplateSelectionDialog::loadUIDefaultsFromConfig() {
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    config->loadConfig();
+    TemplateMatchingConfig::UIDefaultParams params = config->getUIDefaultParams();
+    
+    // 设置默认值
+    m_confidenceSpinBox->setValue(params.confidenceThreshold);
+    m_maxMatchesSpinBox->setValue(params.maxMatches);
+    m_enableRotationCheckBox->setChecked(params.enableRotation);
+    m_rotationRangeSpinBox->setValue(params.rotationRange);
+    m_enableScalingCheckBox->setChecked(params.enableScaling);
+    m_scaleRangeSpinBox->setValue(params.scaleRange);
 }

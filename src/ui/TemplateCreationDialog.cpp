@@ -14,11 +14,11 @@ TemplateCreationDialog::TemplateCreationDialog(QWidget* parent)
     
     setWindowTitle("创建模板");
     setModal(true);
-    setFixedSize(450, 500);
+    setFixedSize(450, 600);  // 增加高度以容纳新参数
     
     setupUI();
     setupValidation();
-    loadDefaultValues();
+    loadConfigFromFile();  // 从配置文件加载参数
     
     // 初始化时设置名称输入框为错误状态（因为为空）
     setInputError(nameEdit_, true);
@@ -46,18 +46,18 @@ void TemplateCreationDialog::setupUI() {
     QGridLayout* angleLayout = new QGridLayout(angleGroup);
     
     angleLayout->addWidget(new QLabel("开始角度:"), 0, 0);
-    angleBeginSpin_ = new QDoubleSpinBox();
-    angleBeginSpin_->setRange(-180.0, 180.0);
-    angleBeginSpin_->setSuffix("°");
-    angleBeginSpin_->setToolTip("模板匹配的最小旋转角度，范围：-180°到180°");
-    angleLayout->addWidget(angleBeginSpin_, 0, 1);
+    angleStartSpin_ = new QDoubleSpinBox();
+    angleStartSpin_->setRange(-180.0, 180.0);
+    angleStartSpin_->setSuffix("°");
+    angleStartSpin_->setToolTip("模板匹配的起始旋转角度，对应Halcon的AngleStart参数");
+    angleLayout->addWidget(angleStartSpin_, 0, 1);
     
-    angleLayout->addWidget(new QLabel("结束角度:"), 0, 2);
-    angleEndSpin_ = new QDoubleSpinBox();
-    angleEndSpin_->setRange(-180.0, 180.0);
-    angleEndSpin_->setSuffix("°");
-    angleEndSpin_->setToolTip("模板匹配的最大旋转角度，必须大于开始角度");
-    angleLayout->addWidget(angleEndSpin_, 0, 3);
+    angleLayout->addWidget(new QLabel("角度范围:"), 0, 2);
+    angleExtentSpin_ = new QDoubleSpinBox();
+    angleExtentSpin_->setRange(0.0, 360.0);
+    angleExtentSpin_->setSuffix("°");
+    angleExtentSpin_->setToolTip("模板匹配的角度搜索范围，对应Halcon的AngleExtent参数");
+    angleLayout->addWidget(angleExtentSpin_, 0, 3);
     
     angleLayout->addWidget(new QLabel("角度步长:"), 1, 0);
     angleStepSpin_ = new QDoubleSpinBox();
@@ -73,18 +73,18 @@ void TemplateCreationDialog::setupUI() {
     QGridLayout* scaleLayout = new QGridLayout(scaleGroup);
     
     scaleLayout->addWidget(new QLabel("最小缩放:"), 0, 0);
-    scaleBeginSpin_ = new QDoubleSpinBox();
-    scaleBeginSpin_->setRange(0.1, 5.0);
-    scaleBeginSpin_->setDecimals(2);
-    scaleBeginSpin_->setToolTip("模板匹配的最小缩放比例，1.0为原始大小，建议0.5-1.5");
-    scaleLayout->addWidget(scaleBeginSpin_, 0, 1);
+    scaleMinSpin_ = new QDoubleSpinBox();
+    scaleMinSpin_->setRange(0.1, 5.0);
+    scaleMinSpin_->setDecimals(2);
+    scaleMinSpin_->setToolTip("模板匹配的最小缩放比例，对应Halcon的ScaleMin参数");
+    scaleLayout->addWidget(scaleMinSpin_, 0, 1);
     
     scaleLayout->addWidget(new QLabel("最大缩放:"), 0, 2);
-    scaleEndSpin_ = new QDoubleSpinBox();
-    scaleEndSpin_->setRange(0.1, 5.0);
-    scaleEndSpin_->setDecimals(2);
-    scaleEndSpin_->setToolTip("模板匹配的最大缩放比例，必须大于最小缩放");
-    scaleLayout->addWidget(scaleEndSpin_, 0, 3);
+    scaleMaxSpin_ = new QDoubleSpinBox();
+    scaleMaxSpin_->setRange(0.1, 5.0);
+    scaleMaxSpin_->setDecimals(2);
+    scaleMaxSpin_->setToolTip("模板匹配的最大缩放比例，对应Halcon的ScaleMax参数");
+    scaleLayout->addWidget(scaleMaxSpin_, 0, 3);
     
     scaleLayout->addWidget(new QLabel("缩放步长:"), 1, 0);
     scaleStepSpin_ = new QDoubleSpinBox();
@@ -95,30 +95,40 @@ void TemplateCreationDialog::setupUI() {
     
     mainLayout->addWidget(scaleGroup);
     
-    // 高级参数组
-    QGroupBox* advancedGroup = new QGroupBox("高级参数");
-    QGridLayout* advancedLayout = new QGridLayout(advancedGroup);
+    // Halcon参数组
+    QGroupBox* halconGroup = new QGroupBox("Halcon参数");
+    QGridLayout* halconLayout = new QGridLayout(halconGroup);
     
-    advancedLayout->addWidget(new QLabel("特征数量:"), 0, 0);
-    numFeaturesSpin_ = new QSpinBox();
-    numFeaturesSpin_->setRange(0, 10000);
-    numFeaturesSpin_->setSpecialValueText("自动");
-    numFeaturesSpin_->setToolTip("模板特征点数量，0表示自动，手动设置建议100-1000");
-    advancedLayout->addWidget(numFeaturesSpin_, 0, 1);
+    halconLayout->addWidget(new QLabel("金字塔层数:"), 0, 0);
+    numLevelsSpin_ = new QSpinBox();
+    numLevelsSpin_->setRange(1, 10);
+    numLevelsSpin_->setToolTip("形状模型的金字塔层数，对应Halcon的NumLevels参数");
+    halconLayout->addWidget(numLevelsSpin_, 0, 1);
     
-    advancedLayout->addWidget(new QLabel("弱阈值:"), 1, 0);
-    weakThreshSpin_ = new QDoubleSpinBox();
-    weakThreshSpin_->setRange(0.0, 255.0);
-    weakThreshSpin_->setToolTip("边缘检测的弱阈值，用于初步筛选特征点，建议10-50");
-    advancedLayout->addWidget(weakThreshSpin_, 1, 1);
+    halconLayout->addWidget(new QLabel("优化方式:"), 0, 2);
+    optimizationCombo_ = new QComboBox();
+    optimizationCombo_->setToolTip("形状模型优化方式，auto为自动选择");
+    halconLayout->addWidget(optimizationCombo_, 0, 3);
     
-    advancedLayout->addWidget(new QLabel("强阈值:"), 1, 2);
-    strongThreshSpin_ = new QDoubleSpinBox();
-    strongThreshSpin_->setRange(0.0, 255.0);
-    strongThreshSpin_->setToolTip("边缘检测的强阈值，用于确定关键特征点，必须大于弱阈值，建议30-100");
-    advancedLayout->addWidget(strongThreshSpin_, 1, 3);
+    halconLayout->addWidget(new QLabel("极性度量:"), 1, 0);
+    metricCombo_ = new QComboBox();
+    metricCombo_->setToolTip("极性度量方式，影响匹配的敏感度");
+    halconLayout->addWidget(metricCombo_, 1, 1);
     
-    mainLayout->addWidget(advancedGroup);
+    halconLayout->addWidget(new QLabel("对比度:"), 1, 2);
+    contrastCombo_ = new QComboBox();
+    contrastCombo_->setToolTip("对比度参数，auto为自动选择");
+    halconLayout->addWidget(contrastCombo_, 1, 3);
+    
+    halconLayout->addWidget(new QLabel("最小对比度:"), 2, 0);
+    minContrastCombo_ = new QComboBox();
+    minContrastCombo_->setToolTip("最小对比度阈值，auto为自动选择");
+    halconLayout->addWidget(minContrastCombo_, 2, 1);
+    
+    // 设置Halcon参数组合框选项
+    setupHalconParameterCombos();
+    
+    mainLayout->addWidget(halconGroup);
     
     // 错误信息标签 - 设置固定高度避免布局跳动
     errorLabel_ = new QLabel();
@@ -150,86 +160,34 @@ void TemplateCreationDialog::setupUI() {
 void TemplateCreationDialog::setupValidation() {
     connect(nameEdit_, &QLineEdit::textChanged, this, &TemplateCreationDialog::onNameChanged);
     
-    connect(angleBeginSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+    connect(angleStartSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onAngleRangeChanged);
-    connect(angleEndSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+    connect(angleExtentSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onAngleRangeChanged);
     connect(angleStepSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onAngleRangeChanged);
     
-    connect(scaleBeginSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+    connect(scaleMinSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onScaleRangeChanged);
-    connect(scaleEndSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
+    connect(scaleMaxSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onScaleRangeChanged);
     connect(scaleStepSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
             this, &TemplateCreationDialog::onScaleRangeChanged);
     
-    connect(weakThreshSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
-            this, &TemplateCreationDialog::onParametersChanged);
-    connect(strongThreshSpin_, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
-            this, &TemplateCreationDialog::onParametersChanged);
+    // Halcon参数变更时不需要特别的验证逻辑，都是下拉框选择
 }
 
 void TemplateCreationDialog::loadDefaultValues() {
-    QFile file("../config/template_matching.json");
-    if (!file.open(QIODevice::ReadOnly)) {
-        // 使用常量默认值
-        angleBeginSpin_->setValue(DEFAULT_ANGLE_BEGIN);
-        angleEndSpin_->setValue(DEFAULT_ANGLE_END);
-        angleStepSpin_->setValue(DEFAULT_ANGLE_STEP);
-        scaleBeginSpin_->setValue(DEFAULT_SCALE_BEGIN);
-        scaleEndSpin_->setValue(DEFAULT_SCALE_END);
-        scaleStepSpin_->setValue(DEFAULT_SCALE_STEP);
-        numFeaturesSpin_->setValue(DEFAULT_NUM_FEATURES);
-        weakThreshSpin_->setValue(DEFAULT_WEAK_THRESH);
-        strongThreshSpin_->setValue(DEFAULT_STRONG_THRESH);
-        return;
-    }
-    
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    QJsonObject config = doc.object();
-    QJsonObject creation = config["template_creation"].toObject();
-    
-    if (!creation.isEmpty()) {
-        QJsonObject angleRange = creation["angle_range"].toObject();
-        angleBeginSpin_->setValue(angleRange["begin"].toDouble(DEFAULT_ANGLE_BEGIN));
-        angleEndSpin_->setValue(angleRange["end"].toDouble(DEFAULT_ANGLE_END));
-        angleStepSpin_->setValue(angleRange["step"].toDouble(DEFAULT_ANGLE_STEP));
-        
-        QJsonObject scaleRange = creation["scale_range"].toObject();
-        scaleBeginSpin_->setValue(scaleRange["begin"].toDouble(DEFAULT_SCALE_BEGIN));
-        scaleEndSpin_->setValue(scaleRange["end"].toDouble(DEFAULT_SCALE_END));
-        scaleStepSpin_->setValue(scaleRange["step"].toDouble(DEFAULT_SCALE_STEP));
-        
-        numFeaturesSpin_->setValue(creation["num_features"].toInt(DEFAULT_NUM_FEATURES));
-        weakThreshSpin_->setValue(creation["weak_thresh"].toDouble(DEFAULT_WEAK_THRESH));
-        strongThreshSpin_->setValue(creation["strong_thresh"].toDouble(DEFAULT_STRONG_THRESH));
-    }
+    // 已弃用 - 现在使用loadConfigFromFile()
 }
 
 void TemplateCreationDialog::saveCurrentValuesAsDefaults() {
-    // 读取现有配置文件
-    QJsonObject fullConfig;
-    QFile file("../config/template_matching.json");
-    if (file.open(QIODevice::ReadOnly)) {
-        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-        fullConfig = doc.object();
-        file.close();
-    }
-    
-    // 更新template_creation部分
-    fullConfig["template_creation"] = getTemplateCreationConfig();
-    
-    // 保存回文件
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(QJsonDocument(fullConfig).toJson(QJsonDocument::Indented));
-        file.close();
-    }
+    // 已弃用 - 现在使用saveConfigToFile()
 }
 
 void TemplateCreationDialog::accept() {
-    // 保存当前参数为下次默认值
-    saveCurrentValuesAsDefaults();
+    // 保存当前参数到配置文件
+    saveConfigToFile();
     QDialog::accept();
 }
 
@@ -257,42 +215,34 @@ void TemplateCreationDialog::onNameChanged() {
 }
 
 void TemplateCreationDialog::onAngleRangeChanged() {
-    double begin = angleBeginSpin_->value();
-    double end = angleEndSpin_->value();
+    double extent = angleExtentSpin_->value();
     double step = angleStepSpin_->value();
     
-    angleRangeValid_ = (begin < end) && (step > 0) && (step <= (end - begin));
+    angleRangeValid_ = (extent > 0) && (step > 0) && (step <= extent);
     
-    setInputError(angleBeginSpin_, !angleRangeValid_);
-    setInputError(angleEndSpin_, !angleRangeValid_);
+    setInputError(angleStartSpin_, !angleRangeValid_);
+    setInputError(angleExtentSpin_, !angleRangeValid_);
     setInputError(angleStepSpin_, !angleRangeValid_);
     
     validateAllInputs();
 }
 
 void TemplateCreationDialog::onScaleRangeChanged() {
-    double begin = scaleBeginSpin_->value();
-    double end = scaleEndSpin_->value();
+    double min = scaleMinSpin_->value();
+    double max = scaleMaxSpin_->value();
     double step = scaleStepSpin_->value();
     
-    scaleRangeValid_ = (begin < end) && (step > 0) && (step <= (end - begin));
+    scaleRangeValid_ = (min < max) && (step > 0) && (step <= (max - min));
     
-    setInputError(scaleBeginSpin_, !scaleRangeValid_);
-    setInputError(scaleEndSpin_, !scaleRangeValid_);
+    setInputError(scaleMinSpin_, !scaleRangeValid_);
+    setInputError(scaleMaxSpin_, !scaleRangeValid_);
     setInputError(scaleStepSpin_, !scaleRangeValid_);
     
     validateAllInputs();
 }
 
 void TemplateCreationDialog::onParametersChanged() {
-    double weakThresh = weakThreshSpin_->value();
-    double strongThresh = strongThreshSpin_->value();
-    
-    parametersValid_ = strongThresh >= weakThresh;
-    
-    setInputError(weakThreshSpin_, !parametersValid_);
-    setInputError(strongThreshSpin_, !parametersValid_);
-    
+    // Halcon参数都是通过下拉框选择，无需特殊验证
     validateAllInputs();
 }
 
@@ -316,10 +266,6 @@ void TemplateCreationDialog::updateErrorMessage() {
         errors << "缩放范围无效：最大缩放必须大于最小缩放，步长必须大于0且不超过缩放范围";
     }
     
-    if (!parametersValid_) {
-        errors << "阈值设置无效：强阈值必须大于等于弱阈值";
-    }
-    
     if (errors.isEmpty()) {
         errorLabel_->setText("");  // 清空文本但保持标签可见以维持布局
     } else {
@@ -328,7 +274,7 @@ void TemplateCreationDialog::updateErrorMessage() {
 }
 
 void TemplateCreationDialog::updateOkButtonState() {
-    bool allValid = nameValid_ && angleRangeValid_ && scaleRangeValid_ && parametersValid_;
+    bool allValid = nameValid_ && angleRangeValid_ && scaleRangeValid_;
     okButton_->setEnabled(allValid);
 }
 
@@ -339,21 +285,97 @@ QString TemplateCreationDialog::getTemplateName() const {
 QJsonObject TemplateCreationDialog::getTemplateCreationConfig() const {
     QJsonObject config;
     
-    QJsonObject angleRange;
-    angleRange["begin"] = angleBeginSpin_->value();
-    angleRange["end"] = angleEndSpin_->value();
-    angleRange["step"] = angleStepSpin_->value();
-    
-    QJsonObject scaleRange;
-    scaleRange["begin"] = scaleBeginSpin_->value();
-    scaleRange["end"] = scaleEndSpin_->value();
-    scaleRange["step"] = scaleStepSpin_->value();
-    
-    config["angle_range"] = angleRange;
-    config["scale_range"] = scaleRange;
-    config["num_features"] = numFeaturesSpin_->value();
-    config["weak_thresh"] = weakThreshSpin_->value();
-    config["strong_thresh"] = strongThreshSpin_->value();
+    // 使用Halcon官方参数名称
+    config["angle_start"] = angleStartSpin_->value();
+    config["angle_extent"] = angleExtentSpin_->value();
+    config["angle_step"] = angleStepSpin_->value();
+    config["scale_min"] = scaleMinSpin_->value();
+    config["scale_max"] = scaleMaxSpin_->value();
+    config["scale_step"] = scaleStepSpin_->value();
+    config["num_levels"] = numLevelsSpin_->value();
+    config["optimization"] = optimizationCombo_->currentText();
+    config["metric"] = metricCombo_->currentText();
+    config["contrast"] = contrastCombo_->currentText();
+    config["min_contrast"] = minContrastCombo_->currentText();
     
     return config;
+}
+
+void TemplateCreationDialog::loadConfigFromFile() {
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    config->loadConfig();
+    loadParametersFromConfig();
+}
+
+void TemplateCreationDialog::saveConfigToFile() {
+    saveParametersToConfig();
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    config->saveConfig();
+}
+
+void TemplateCreationDialog::loadParametersFromConfig() {
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    TemplateMatchingConfig::TemplateCreationParams params = config->getTemplateCreationParams();
+    
+    // 设置角度范围
+    angleStartSpin_->setValue(params.angleStart);
+    angleExtentSpin_->setValue(params.angleExtent);
+    angleStepSpin_->setValue(params.angleStep);
+    
+    // 设置缩放范围
+    scaleMinSpin_->setValue(params.scaleMin);
+    scaleMaxSpin_->setValue(params.scaleMax);
+    scaleStepSpin_->setValue(params.scaleStep);
+    
+    // 设置Halcon参数
+    numLevelsSpin_->setValue(params.numLevels);
+    
+    // 设置组合框值
+    optimizationCombo_->setCurrentText(params.optimization);
+    metricCombo_->setCurrentText(params.metric);
+    contrastCombo_->setCurrentText(params.contrast);
+    minContrastCombo_->setCurrentText(params.minContrast);
+}
+
+void TemplateCreationDialog::saveParametersToConfig() {
+    TemplateMatchingConfig::TemplateCreationParams params;
+    
+    // 获取角度范围
+    params.angleStart = angleStartSpin_->value();
+    params.angleExtent = angleExtentSpin_->value();
+    params.angleStep = angleStepSpin_->value();
+    
+    // 获取缩放范围
+    params.scaleMin = scaleMinSpin_->value();
+    params.scaleMax = scaleMaxSpin_->value();
+    params.scaleStep = scaleStepSpin_->value();
+    
+    // 获取Halcon参数
+    params.numLevels = numLevelsSpin_->value();
+    params.optimization = optimizationCombo_->currentText();
+    params.metric = metricCombo_->currentText();
+    params.contrast = contrastCombo_->currentText();
+    params.minContrast = minContrastCombo_->currentText();
+    
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    config->setTemplateCreationParams(params);
+}
+
+void TemplateCreationDialog::setupHalconParameterCombos() {
+    // 优化方式选项
+    optimizationCombo_->addItems({"auto", "none", "precompilation"});
+    optimizationCombo_->setCurrentText("auto");
+    
+    // 极性度量选项
+    metricCombo_->addItems({"use_polarity", "ignore_global_polarity", 
+                           "ignore_local_polarity", "ignore_part_polarity"});
+    metricCombo_->setCurrentText("use_polarity");
+    
+    // 对比度选项
+    contrastCombo_->addItems({"auto", "high", "low"});
+    contrastCombo_->setCurrentText("auto");
+    
+    // 最小对比度选项
+    minContrastCombo_->addItems({"auto", "5", "10", "15", "20", "30"});
+    minContrastCombo_->setCurrentText("auto");
 }

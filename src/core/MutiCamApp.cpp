@@ -18,6 +18,7 @@
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include "../ui/TemplateCreationDialog.h"
+#include "../config/TemplateMatchingConfig.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -1612,8 +1613,11 @@ void MutiCamApp::onStartMatchingVerticalClicked()
             return;
         }
 
-        // 启动模板匹配
-        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        // 获取对话框中的匹配参数并转换为Halcon参数
+        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
+        
+        // 启动模板匹配，传递用户设置的参数
+        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
             QMessageBox::information(this, "成功",
                 QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
 
@@ -1654,8 +1658,11 @@ void MutiCamApp::onStartMatchingLeftClicked()
             return;
         }
 
-        // 启动模板匹配
-        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        // 获取对话框中的匹配参数并转换为Halcon参数
+        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
+        
+        // 启动模板匹配，传递用户设置的参数
+        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
             QMessageBox::information(this, "成功",
                 QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
 
@@ -1696,8 +1703,11 @@ void MutiCamApp::onStartMatchingFrontClicked()
             return;
         }
 
-        // 启动模板匹配
-        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates)) {
+        // 获取对话框中的匹配参数并转换为Halcon参数
+        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
+        
+        // 启动模板匹配，传递用户设置的参数
+        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
             QMessageBox::information(this, "成功",
                 QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
 

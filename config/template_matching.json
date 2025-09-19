@@ -1,38 +1,42 @@
 {
     "template_creation": {
-      "angle_range": {
-        "begin": -90.0,
-        "end": 90.0,
-        "step": 4.0
-      },
-      "scale_range": {
-        "begin": 0.9,
-        "end": 1.1,
-        "step": 0.05
-      },
-      "num_features": 0,
-      "weak_thresh": 30.0,
-      "strong_thresh": 60.0
+        "num_levels": 5,
+        "angle_start": 0.0,
+        "angle_extent": 360.0,
+        "angle_step": 1.0,
+        "scale_min": 0.8,
+        "scale_max": 1.2,
+        "scale_step": 0.01,
+        "optimization": "none",
+        "metric": "use_polarity",
+        "contrast": "auto",
+        "min_contrast": "auto"
     },
-    "matching": {
-      "final_score_thresh": 0.8,
-      "initial_score_thresh": 0.2,
-      "overlap": 0.4,
-      "mag_thresh": 30.0,
-      "greediness": 0.8,
-      "pyramid_level": 4,
-      "T": 2,
-      "top_k": 10,
-      "strategy": 0,
-      "refinement_search_mode": "fixed",
-      "fixed_angle_window": 20.0,
-      "scale_search_window": 0.1
+    "template_matching": {
+        "angle_start": 0.0,
+        "angle_extent": 360.0,
+        "scale_min": 0.9,
+        "scale_max": 1.1,
+        "min_score": 0.5,
+        "num_matches": 1,
+        "max_overlap": 0.5,
+        "sub_pixel": "least_squares",
+        "num_levels": 0,
+        "greediness": 0.8
+    },
+    "ui_defaults": {
+        "confidence_threshold": 0.5,
+        "max_matches": 1,
+        "enable_rotation": true,
+        "rotation_range": 360.0,
+        "enable_scaling": true,
+        "scale_range": 0.2
     },
     "paths": {
-      "model_root": "../template",
-      "class_name": "template",
-      "template_image": "../template/template.png",
-      "source_image": "../template/search.png",
-      "output_image": "../template/result.png"
+        "class_name": "template",
+        "model_root": "../template",
+        "output_image": "../template/result.png",
+        "source_image": "../template/search.png",
+        "template_image": "../template/template.png"
     }
 }

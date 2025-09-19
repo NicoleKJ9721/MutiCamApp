@@ -90,6 +90,9 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     // 初始化图像处理对象
     m_edgeDetector = new EdgeDetector();
     m_shapeDetector = new ShapeDetector();
+    
+    // 加载配置文件
+    TemplateMatchingConfig::instance()->loadConfig();
 }
 
 PaintingOverlay::~PaintingOverlay()
@@ -7176,12 +7179,21 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
             HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(imagePath.toStdString().c_str()));
 
             HalconCpp::HTuple hvModelID;
-            // 范围先按示例，后续可从配置文件读取
+            
+            // 从配置文件读取参数
+            TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+            TemplateMatchingConfig::TemplateCreationParams params = config->getTemplateCreationParams();
+            
             HalconCpp::CreateScaledShapeModel(hoTemplate,
-                5,
-                HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
-                0.8, 1.2, 0.01,
-                "none", "use_polarity", "auto", "auto",
+                params.numLevels,
+                HalconCpp::HTuple(params.angleStart).TupleRad(), 
+                HalconCpp::HTuple(params.angleExtent).TupleRad(), 
+                HalconCpp::HTuple(params.angleStep).TupleRad(),
+                params.scaleMin, params.scaleMax, params.scaleStep,
+                params.optimization.toStdString().c_str(), 
+                params.metric.toStdString().c_str(), 
+                params.contrast.toStdString().c_str(), 
+                params.minContrast.toStdString().c_str(),
                 &hvModelID);
 
             HalconCpp::WriteShapeModel(hvModelID, HalconCpp::HTuple(halconPath.toStdString().c_str()));
@@ -7418,7 +7430,8 @@ TemplateInfo PaintingOverlay::loadSingleTemplate(const QString& imagePath, const
     return templateInfo;
 }
 
-bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates)
+bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selectedTemplates,
+                                               const TemplateMatchingConfig::TemplateMatchingParams* matchingParams)
 {
 
     if (selectedTemplates.isEmpty()) {
@@ -7432,6 +7445,12 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
 
         // 保存选中的模板
         m_loadedTemplates = selectedTemplates;
+        
+        // 保存匹配参数（如果提供）
+        if (matchingParams) {
+            TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+            config->setTemplateMatchingParams(*matchingParams);
+        }
 
         // 释放旧的 Halcon 模型缓存，避免句柄泄漏
         clearHalconModelCache("启动匹配");
@@ -7464,11 +7483,20 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
                 try {
                     HalconCpp::HObject hoTemplate;
                     HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(t.imagePath.toStdString().c_str()));
+                    // 使用配置文件参数
+                    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+                    TemplateMatchingConfig::TemplateCreationParams params = config->getTemplateCreationParams();
+                    
                     HalconCpp::CreateScaledShapeModel(hoTemplate,
-                        5,
-                        HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
-                        0.8, 1.2, 0.01,
-                        "auto", "use_polarity", "auto", "auto",
+                        params.numLevels,
+                        HalconCpp::HTuple(params.angleStart).TupleRad(), 
+                        HalconCpp::HTuple(params.angleExtent).TupleRad(), 
+                        HalconCpp::HTuple(params.angleStep).TupleRad(),
+                        params.scaleMin, params.scaleMax, params.scaleStep,
+                        params.optimization.toStdString().c_str(), 
+                        params.metric.toStdString().c_str(), 
+                        params.contrast.toStdString().c_str(), 
+                        params.minContrast.toStdString().c_str(),
                         &modelId);
                     ok = true;
                 } catch (const HalconCpp::HException& e) {
@@ -7619,11 +7647,20 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                     try {
                         HalconCpp::HObject hoTemplate;
                         HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(templateInfo.imagePath.toStdString().c_str()));
+                        // 使用配置文件参数
+                        TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+                        TemplateMatchingConfig::TemplateCreationParams params = config->getTemplateCreationParams();
+                        
                         HalconCpp::CreateScaledShapeModel(hoTemplate,
-                            5,
-                            HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
-                            0.8, 1.2, 0.01,
-                            "auto", "use_polarity", "auto", "auto",
+                            params.numLevels,
+                            HalconCpp::HTuple(params.angleStart).TupleRad(), 
+                            HalconCpp::HTuple(params.angleExtent).TupleRad(), 
+                            HalconCpp::HTuple(params.angleStep).TupleRad(),
+                            params.scaleMin, params.scaleMax, params.scaleStep,
+                            params.optimization.toStdString().c_str(), 
+                            params.metric.toStdString().c_str(), 
+                            params.contrast.toStdString().c_str(), 
+                            params.minContrast.toStdString().c_str(),
                             &hvModelID);
                         modelReady = true;
                     } catch (const HalconCpp::HException& e) {
@@ -7645,17 +7682,32 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
             QTime matchStartTime = QTime::currentTime();
             try {
                 HalconCpp::HTuple hvRow, hvCol, hvAngle, hvScale, hvScore;
-                // 阈值、数量等设置可接入弹窗参数，这里沿用默认值/示例
+                
+                // 从配置文件读取匹配参数
+                TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+                TemplateMatchingConfig::TemplateMatchingParams matchParams = config->getTemplateMatchingParams();
+                qDebug() << "matchParams.angleStart:" << matchParams.angleStart;
+                qDebug() << "matchParams.angleExtent:" << matchParams.angleExtent;
+                qDebug() << "matchParams.scaleMin:" << matchParams.scaleMin;
+                qDebug() << "matchParams.scaleMax:" << matchParams.scaleMax;
+                qDebug() << "matchParams.minScore:" << matchParams.minScore;
+                qDebug() << "matchParams.numMatches:" << matchParams.numMatches;
+                qDebug() << "matchParams.maxOverlap:" << matchParams.maxOverlap;
+                qDebug() << "matchParams.subPixel:" << matchParams.subPixel;
+                qDebug() << "matchParams.numLevels:" << matchParams.numLevels;
+                qDebug() << "matchParams.greediness:" << matchParams.greediness;
+
                 HalconCpp::FindScaledShapeModel(hoSearch,
                     hvModelID,
-                    HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(),
-                    0.9, 1.1,
-                    0.2,
-                    1,
-                    0.5,
-                    "least_squares",
-                    0,
-                    0.8,
+                    HalconCpp::HTuple(matchParams.angleStart).TupleRad(), 
+                    HalconCpp::HTuple(matchParams.angleExtent).TupleRad(),
+                    matchParams.scaleMin, matchParams.scaleMax,
+                    matchParams.minScore,
+                    matchParams.numMatches > 0 ? matchParams.numMatches : 1,
+                    matchParams.maxOverlap,
+                    matchParams.subPixel.toStdString().c_str(),
+                    matchParams.numLevels,
+                    matchParams.greediness,
                     &hvRow, &hvCol, &hvAngle, &hvScale, &hvScore);
 
                 int matchTime = matchStartTime.msecsTo(QTime::currentTime());

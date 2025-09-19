@@ -15,6 +15,7 @@
 #include <QPixmap>
 #include <QVector>
 #include "PaintingOverlay.h"
+#include "../config/TemplateMatchingConfig.h"
 
 class TemplateSelectionDialog : public QDialog
 {
@@ -41,15 +42,24 @@ public:
      * @return 匹配参数结构体
      */
     struct MatchingParams {
-        double confidenceThreshold = 0.7;  // 置信度阈值
-        int maxMatches = 10;                // 最大匹配数量
+        double confidenceThreshold = 0.5;  // 置信度阈值
+        int maxMatches = 1;                 // 最大匹配数量
         bool enableRotation = true;         // 是否启用旋转匹配
         double rotationRange = 360.0;       // 旋转范围（度）
-        bool enableScaling = false;         // 是否启用缩放匹配
+        bool enableScaling = true;          // 是否启用缩放匹配
         double scaleRange = 0.2;            // 缩放范围（±）
     };
     
     MatchingParams getMatchingParams() const;
+    
+    /**
+     * @brief 将对话框参数转换为Halcon模板匹配参数
+     * @return Halcon兼容的模板匹配参数
+     */
+    TemplateMatchingConfig::TemplateMatchingParams toHalconMatchingParams() const;
+    
+    // 配置管理
+    void loadUIDefaultsFromConfig();
 
 private slots:
     void onSelectAllClicked();
