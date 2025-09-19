@@ -116,20 +116,7 @@ PaintingOverlay::~PaintingOverlay()
     }
 
     // 清理 Halcon 模型缓存
-    try {
-        for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
-            if (it.value() && it.value().get()) {
-                try {
-                    HalconCpp::ClearShapeModel(*(it.value()));
-                } catch (const HalconCpp::HException& e) {
-                    qWarning() << "清理Halcon模型失败(析构):" << e.ErrorMessage().TextA();
-                }
-            }
-        }
-        m_halconModelCache.clear();
-    } catch (...) {
-        // 忽略析构期异常
-    }
+    clearHalconModelCache("析构");
 
     qDebug() << "PaintingOverlay析构完成";
 }
@@ -7447,18 +7434,7 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
         m_loadedTemplates = selectedTemplates;
 
         // 释放旧的 Halcon 模型缓存，避免句柄泄漏
-        try {
-            for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
-                if (it.value() && it.value().get()) {
-                    try {
-                        HalconCpp::ClearShapeModel(*(it.value()));
-                    } catch (const HalconCpp::HException& e) {
-                        qWarning() << "清理旧Halcon模型失败:" << e.ErrorMessage().TextA();
-                    }
-                }
-            }
-            m_halconModelCache.clear();
-        } catch (...) {}
+        clearHalconModelCache("启动匹配");
 
         // 预加载选中模板的 Halcon 模型
         QTime preloadStartTime = QTime::currentTime();
@@ -7530,18 +7506,7 @@ void PaintingOverlay::stopTemplateMatching()
     qInfo() << "模板匹配已停止";
 
     // 释放 Halcon 模型缓存
-    try {
-        for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
-            if (it.value() && it.value().get()) {
-                try {
-                    HalconCpp::ClearShapeModel(*(it.value()));
-                } catch (const HalconCpp::HException& e) {
-                    qWarning() << "清理Halcon模型失败(stop):" << e.ErrorMessage().TextA();
-                }
-            }
-        }
-        m_halconModelCache.clear();
-    } catch (...) {}
+    clearHalconModelCache("停止匹配");
 }
 
 QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sourceImage)
@@ -7868,5 +7833,37 @@ void PaintingOverlay::processFrameForMatching(const cv::Mat& frame)
 
     } catch (const std::exception& e) {
         qCritical() << "处理帧进行模板匹配时发生异常：" << e.what();
+    }
+}
+
+void PaintingOverlay::clearHalconModelCache(const QString& logContext)
+{
+    try {
+        for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
+            if (it.value() && it.value().get()) {
+                try {
+                    HalconCpp::ClearShapeModel(*(it.value()));
+                } catch (const HalconCpp::HException& e) {
+                    QString context = logContext.isEmpty() ? "清理" : QString("清理(%1)").arg(logContext);
+                    qWarning() << QString("%1Halcon模型失败:").arg(context) << e.ErrorMessage().TextA();
+                } catch (const std::exception& e) {
+                    QString context = logContext.isEmpty() ? "清理" : QString("清理(%1)").arg(logContext);
+                    qWarning() << QString("%1Halcon模型时发生异常:").arg(context) << e.what();
+                }
+            }
+        }
+        m_halconModelCache.clear();
+        
+        if (!logContext.isEmpty()) {
+            qDebug() << QString("Halcon模型缓存清理完成(%1)").arg(logContext);
+        }
+    } catch (const std::exception& e) {
+        QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
+        qWarning() << QString("%1时发生异常:").arg(context) << e.what();
+    } catch (...) {
+        // 忽略析构期或其他未知异常，避免程序崩溃
+        if (!logContext.isEmpty() && logContext != "析构") {
+            qWarning() << QString("清理Halcon模型缓存时发生未知异常(%1)").arg(logContext);
+        }
     }
 }

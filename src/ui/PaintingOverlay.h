@@ -484,6 +484,12 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
      */
     void processFrameForMatching(const cv::Mat& frame);
 
+    /**
+     * @brief 清理Halcon模型缓存的公共方法
+     * @param logContext 日志上下文，用于标识调用位置
+     */
+    void clearHalconModelCache(const QString& logContext = QString());
+
 signals:
     void drawingCompleted(const QString& viewName); // 绘图完成信号
     void selectionChanged(const QString& info);   // 选择变化信号
