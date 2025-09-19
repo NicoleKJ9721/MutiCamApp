@@ -22,6 +22,8 @@
 #include <QListWidget>
 #include <QCheckBox>
 #include <QDateTime>
+#include <QHash>
+#include <memory>
 
 // 解决Windows SDK和OpenCV的符号冲突
 #ifdef _WIN32
@@ -38,6 +40,9 @@ class ZoomPanWidget;
 
 // 前向声明
 class MutiCamApp;
+
+// 前向声明 Halcon 类型，避免在头文件引入重型依赖
+namespace HalconCpp { class HTuple; }
 
 // 模板匹配相关数据结构
 struct TemplateInfo {
@@ -641,6 +646,9 @@ private:
     bool m_isMatchingEnabled;                        // 是否启用匹配
     int m_matchingFrameSkip;                         // 匹配帧跳过计数
     static const int MATCHING_FRAME_INTERVAL = 3;   // 每3帧执行一次匹配
+
+    // Halcon 模型缓存：key 采用 halconModelPath，否则回退到 imagePath/name
+    QHash<QString, std::shared_ptr<HalconCpp::HTuple>> m_halconModelCache;
 
     // 私有绘图方法
     void drawGrid(QPainter& painter, const DrawingContext& ctx) const;

@@ -115,6 +115,22 @@ PaintingOverlay::~PaintingOverlay()
         m_lastProcessedFrame.release();
     }
 
+    // 清理 Halcon 模型缓存
+    try {
+        for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
+            if (it.value() && it.value().get()) {
+                try {
+                    HalconCpp::ClearShapeModel(*(it.value()));
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "清理Halcon模型失败(析构):" << e.ErrorMessage().TextA();
+                }
+            }
+        }
+        m_halconModelCache.clear();
+    } catch (...) {
+        // 忽略析构期异常
+    }
+
     qDebug() << "PaintingOverlay析构完成";
 }
 
@@ -7430,6 +7446,68 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
         // 保存选中的模板
         m_loadedTemplates = selectedTemplates;
 
+        // 释放旧的 Halcon 模型缓存，避免句柄泄漏
+        try {
+            for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
+                if (it.value() && it.value().get()) {
+                    try {
+                        HalconCpp::ClearShapeModel(*(it.value()));
+                    } catch (const HalconCpp::HException& e) {
+                        qWarning() << "清理旧Halcon模型失败:" << e.ErrorMessage().TextA();
+                    }
+                }
+            }
+            m_halconModelCache.clear();
+        } catch (...) {}
+
+        // 预加载选中模板的 Halcon 模型
+        QTime preloadStartTime = QTime::currentTime();
+        int preloadCount = 0;
+        for (const TemplateInfo& t : m_loadedTemplates) {
+            if (!t.isSelected) continue;
+            QString key = !t.halconModelPath.isEmpty() ? t.halconModelPath
+                           : (!t.imagePath.isEmpty() ? t.imagePath : t.name);
+            if (m_halconModelCache.contains(key)) continue;
+
+            HalconCpp::HTuple modelId;
+            bool ok = false;
+            try {
+                if (!t.halconModelPath.isEmpty() && QFile::exists(t.halconModelPath)) {
+                    HalconCpp::ReadShapeModel(HalconCpp::HTuple(t.halconModelPath.toStdString().c_str()), &modelId);
+                    ok = true;
+                }
+            } catch (const HalconCpp::HException& e) {
+                qWarning() << "预加载读取Halcon模型失败，将尝试临时创建:" << e.ErrorMessage().TextA();
+            }
+
+            if (!ok) {
+                if (t.imagePath.isEmpty() || !QFile::exists(t.imagePath)) {
+                    qWarning() << "模板缺少图像或模型，跳过预加载:" << t.name;
+                    continue;
+                }
+                try {
+                    HalconCpp::HObject hoTemplate;
+                    HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(t.imagePath.toStdString().c_str()));
+                    HalconCpp::CreateScaledShapeModel(hoTemplate,
+                        5,
+                        HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
+                        0.8, 1.2, 0.01,
+                        "auto", "use_polarity", "auto", "auto",
+                        &modelId);
+                    ok = true;
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "预加载临时创建Halcon模型失败，跳过模板:" << t.name << e.ErrorMessage().TextA();
+                    continue;
+                }
+            }
+
+            if (ok) {
+                m_halconModelCache.insert(key, std::make_shared<HalconCpp::HTuple>(modelId));
+                preloadCount++;
+            }
+        }
+        qDebug() << "预加载 Halcon 模型" << preloadCount << "个，耗时:" << preloadStartTime.msecsTo(QTime::currentTime()) << "ms";
+
         // 启用匹配
         m_isMatchingEnabled = true;
 
@@ -7450,6 +7528,20 @@ void PaintingOverlay::stopTemplateMatching()
     m_isMatchingEnabled = false;
     m_currentMatches.clear();
     qInfo() << "模板匹配已停止";
+
+    // 释放 Halcon 模型缓存
+    try {
+        for (auto it = m_halconModelCache.begin(); it != m_halconModelCache.end(); ++it) {
+            if (it.value() && it.value().get()) {
+                try {
+                    HalconCpp::ClearShapeModel(*(it.value()));
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "清理Halcon模型失败(stop):" << e.ErrorMessage().TextA();
+                }
+            }
+        }
+        m_halconModelCache.clear();
+    } catch (...) {}
 }
 
 QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sourceImage)
@@ -7529,40 +7621,58 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
             QTime templateStartTime = QTime::currentTime();
             qDebug() << "开始匹配模板" << (templateIndex + 1) << ":" << templateInfo.name;
 
-            // 读取或创建模型
+            // 读取或创建模型（优先使用缓存）
             QTime modelLoadStartTime = QTime::currentTime();
             HalconCpp::HTuple hvModelID;
             bool modelReady = false;
-            try {
-                if (!templateInfo.halconModelPath.isEmpty() && QFile::exists(templateInfo.halconModelPath)) {
-                    HalconCpp::ReadShapeModel(HalconCpp::HTuple(templateInfo.halconModelPath.toStdString().c_str()), &hvModelID);
-                    modelReady = true;
+            bool modelFromCache = false;
+
+            QString cacheKey = !templateInfo.halconModelPath.isEmpty() ? templateInfo.halconModelPath
+                               : (!templateInfo.imagePath.isEmpty() ? templateInfo.imagePath : templateInfo.name);
+
+            auto cached = m_halconModelCache.find(cacheKey);
+            if (cached != m_halconModelCache.end() && cached.value()) {
+                hvModelID = *(cached.value());
+                modelReady = true;
+                modelFromCache = true;
+            } else {
+                try {
+                    if (!templateInfo.halconModelPath.isEmpty() && QFile::exists(templateInfo.halconModelPath)) {
+                        HalconCpp::ReadShapeModel(HalconCpp::HTuple(templateInfo.halconModelPath.toStdString().c_str()), &hvModelID);
+                        modelReady = true;
+                    }
+                } catch (const HalconCpp::HException& e) {
+                    qWarning() << "读取Halcon模型失败，将尝试临时创建:" << e.ErrorMessage().TextA();
                 }
-            } catch (const HalconCpp::HException& e) {
-                qWarning() << "读取Halcon模型失败，将尝试临时创建:" << e.ErrorMessage().TextA();
+
+                // 若没有shm，退化为从模板图创建临时模型
+                if (!modelReady) {
+                    if (templateInfo.imagePath.isEmpty() || !QFile::exists(templateInfo.imagePath)) {
+                        qWarning() << "模板缺少图像或模型，跳过:" << templateInfo.name;
+                        continue;
+                    }
+                    try {
+                        HalconCpp::HObject hoTemplate;
+                        HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(templateInfo.imagePath.toStdString().c_str()));
+                        HalconCpp::CreateScaledShapeModel(hoTemplate,
+                            5,
+                            HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
+                            0.8, 1.2, 0.01,
+                            "auto", "use_polarity", "auto", "auto",
+                            &hvModelID);
+                        modelReady = true;
+                    } catch (const HalconCpp::HException& e) {
+                        qWarning() << "临时创建Halcon模型失败，跳过模板:" << templateInfo.name << e.ErrorMessage().TextA();
+                        continue;
+                    }
+                }
+
+                if (modelReady) {
+                    m_halconModelCache.insert(cacheKey, std::make_shared<HalconCpp::HTuple>(hvModelID));
+                    modelFromCache = true; // 之后帧也将使用缓存；本帧不释放
+                }
             }
 
-            // 若没有shm，退化为从模板图创建临时模型（不保存）
-            HalconCpp::HObject hoTemplate;
-            if (!modelReady) {
-                if (templateInfo.imagePath.isEmpty() || !QFile::exists(templateInfo.imagePath)) {
-                    qWarning() << "模板缺少图像或模型，跳过:" << templateInfo.name;
-                    continue;
-                }
-                try {
-                    HalconCpp::ReadImage(&hoTemplate, HalconCpp::HTuple(templateInfo.imagePath.toStdString().c_str()));
-                    HalconCpp::CreateScaledShapeModel(hoTemplate,
-                        5,
-                        HalconCpp::HTuple(0).TupleRad(), HalconCpp::HTuple(360).TupleRad(), HalconCpp::HTuple(1).TupleRad(),
-                        0.8, 1.2, 0.01,
-                        "auto", "use_polarity", "auto", "auto",
-                        &hvModelID);
-                    modelReady = true;
-                } catch (const HalconCpp::HException& e) {
-                    qWarning() << "临时创建Halcon模型失败，跳过模板:" << templateInfo.name << e.ErrorMessage().TextA();
-                    continue;
-                }
-            }
             int modelLoadTime = modelLoadStartTime.msecsTo(QTime::currentTime());
             qDebug() << "模板" << templateInfo.name << "模型加载耗时:" << modelLoadTime << "ms";
 
@@ -7609,11 +7719,15 @@ QVector<TemplateMatchResult> PaintingOverlay::performMatching(const cv::Mat& sou
                     results.append(match);
                 }
 
-                // 清理仅在本次创建的模型
-                if (!templateInfo.halconModelPath.isEmpty()) {
-                    // 从文件读的模型不需要清理（Halcon需ClearShapeModel释放句柄）
+                // 仅当模型非缓存时释放；缓存模型由 stopTemplateMatching/析构统一释放
+                if (!modelFromCache) {
+                    try {
+                        HalconCpp::ClearShapeModel(hvModelID);
+                    } catch (const HalconCpp::HException& e) {
+                        qWarning() << "释放临时Halcon模型失败:" << e.ErrorMessage().TextA();
+                    }
                 }
-                HalconCpp::ClearShapeModel(hvModelID);
+
             } catch (const HalconCpp::HException& e) {
                 int matchTime = matchStartTime.msecsTo(QTime::currentTime());
                 qWarning() << "模板" << templateInfo.name << "Halcon匹配失败，耗时:" << matchTime << "ms，错误:" << e.ErrorMessage().TextA();
