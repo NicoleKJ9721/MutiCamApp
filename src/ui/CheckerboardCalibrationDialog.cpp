@@ -92,12 +92,14 @@ QGroupBox* CheckerboardCalibrationDialog::createParameterGroup()
     // X方向内角点数
     m_cornersXSpinBox = new QSpinBox(this);
     m_cornersXSpinBox->setRange(3, 20);
+    m_cornersXSpinBox->setSingleStep(1);  // 设置单步调整幅度为1
     m_cornersXSpinBox->setValue(9);
     layout->addRow("X方向内角点数:", m_cornersXSpinBox);
     
     // Y方向内角点数
     m_cornersYSpinBox = new QSpinBox(this);
     m_cornersYSpinBox->setRange(3, 20);
+    m_cornersYSpinBox->setSingleStep(1);  // 设置单步调整幅度为1
     m_cornersYSpinBox->setValue(7);
     layout->addRow("Y方向内角点数:", m_cornersYSpinBox);
     
@@ -105,6 +107,7 @@ QGroupBox* CheckerboardCalibrationDialog::createParameterGroup()
     m_squareSizeSpinBox = new QDoubleSpinBox(this);
     m_squareSizeSpinBox->setRange(0.001, 1000.0);
     m_squareSizeSpinBox->setDecimals(3);
+    m_squareSizeSpinBox->setSingleStep(0.1);  // 设置单步调整幅度为0.1
     m_squareSizeSpinBox->setValue(1.0);
     layout->addRow("方格尺寸:", m_squareSizeSpinBox);
     

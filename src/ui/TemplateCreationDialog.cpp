@@ -48,6 +48,7 @@ void TemplateCreationDialog::setupUI() {
     angleLayout->addWidget(new QLabel("开始角度:"), 0, 0);
     angleStartSpin_ = new QDoubleSpinBox();
     angleStartSpin_->setRange(-180.0, 180.0);
+    angleStartSpin_->setSingleStep(1.0);  // 设置单步调整幅度为1度
     angleStartSpin_->setSuffix("°");
     angleStartSpin_->setToolTip("模板匹配的起始旋转角度，对应Halcon的AngleStart参数");
     angleLayout->addWidget(angleStartSpin_, 0, 1);
@@ -55,6 +56,7 @@ void TemplateCreationDialog::setupUI() {
     angleLayout->addWidget(new QLabel("角度范围:"), 0, 2);
     angleExtentSpin_ = new QDoubleSpinBox();
     angleExtentSpin_->setRange(0.0, 360.0);
+    angleExtentSpin_->setSingleStep(5.0);  // 设置单步调整幅度为5度
     angleExtentSpin_->setSuffix("°");
     angleExtentSpin_->setToolTip("模板匹配的角度搜索范围，对应Halcon的AngleExtent参数");
     angleLayout->addWidget(angleExtentSpin_, 0, 3);
@@ -62,6 +64,7 @@ void TemplateCreationDialog::setupUI() {
     angleLayout->addWidget(new QLabel("角度步长:"), 1, 0);
     angleStepSpin_ = new QDoubleSpinBox();
     angleStepSpin_->setRange(0.1, 45.0);
+    angleStepSpin_->setSingleStep(0.5);  // 设置单步调整幅度为0.5度
     angleStepSpin_->setSuffix("°");
     angleStepSpin_->setToolTip("角度搜索的步长，值越小精度越高但速度越慢，建议1-10°");
     angleLayout->addWidget(angleStepSpin_, 1, 1);
@@ -76,6 +79,7 @@ void TemplateCreationDialog::setupUI() {
     scaleMinSpin_ = new QDoubleSpinBox();
     scaleMinSpin_->setRange(0.1, 5.0);
     scaleMinSpin_->setDecimals(2);
+    scaleMinSpin_->setSingleStep(0.1);  // 设置单步调整幅度为0.1
     scaleMinSpin_->setToolTip("模板匹配的最小缩放比例，对应Halcon的ScaleMin参数");
     scaleLayout->addWidget(scaleMinSpin_, 0, 1);
     
@@ -83,6 +87,7 @@ void TemplateCreationDialog::setupUI() {
     scaleMaxSpin_ = new QDoubleSpinBox();
     scaleMaxSpin_->setRange(0.1, 5.0);
     scaleMaxSpin_->setDecimals(2);
+    scaleMaxSpin_->setSingleStep(0.1);  // 设置单步调整幅度为0.1
     scaleMaxSpin_->setToolTip("模板匹配的最大缩放比例，对应Halcon的ScaleMax参数");
     scaleLayout->addWidget(scaleMaxSpin_, 0, 3);
     
@@ -90,6 +95,7 @@ void TemplateCreationDialog::setupUI() {
     scaleStepSpin_ = new QDoubleSpinBox();
     scaleStepSpin_->setRange(0.01, 1.0);
     scaleStepSpin_->setDecimals(2);
+    scaleStepSpin_->setSingleStep(0.01);  // 设置单步调整幅度为0.01
     scaleStepSpin_->setToolTip("缩放搜索的步长，值越小精度越高但速度越慢，建议0.05-0.1");
     scaleLayout->addWidget(scaleStepSpin_, 1, 1);
     

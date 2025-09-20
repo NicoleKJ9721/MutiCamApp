@@ -86,7 +86,7 @@ void TemplateSelectionDialog::createParameterPanel()
     confidenceLayout->addWidget(new QLabel("置信度阈值:", this));
     m_confidenceSpinBox = new QDoubleSpinBox(this);
     m_confidenceSpinBox->setRange(0.1, 1.0);
-    m_confidenceSpinBox->setSingleStep(0.1);
+    m_confidenceSpinBox->setSingleStep(0.05);  // 设置单步调整幅度为0.05
     m_confidenceSpinBox->setValue(0.5);
     m_confidenceSpinBox->setDecimals(2);
     confidenceLayout->addWidget(m_confidenceSpinBox);
@@ -97,6 +97,7 @@ void TemplateSelectionDialog::createParameterPanel()
     maxMatchesLayout->addWidget(new QLabel("最大匹配数:", this));
     m_maxMatchesSpinBox = new QSpinBox(this);
     m_maxMatchesSpinBox->setRange(1, 100);
+    m_maxMatchesSpinBox->setSingleStep(1);  // 设置单步调整幅度为1
     m_maxMatchesSpinBox->setValue(1);
     maxMatchesLayout->addWidget(m_maxMatchesSpinBox);
     paramLayout->addLayout(maxMatchesLayout);
@@ -110,6 +111,7 @@ void TemplateSelectionDialog::createParameterPanel()
     rotationLayout->addWidget(new QLabel("旋转范围(度):", this));
     m_rotationRangeSpinBox = new QDoubleSpinBox(this);
     m_rotationRangeSpinBox->setRange(0.0, 360.0);
+    m_rotationRangeSpinBox->setSingleStep(5.0);  // 设置单步调整幅度为5度
     m_rotationRangeSpinBox->setValue(360.0);
     m_rotationRangeSpinBox->setDecimals(1);
     rotationLayout->addWidget(m_rotationRangeSpinBox);
@@ -124,6 +126,7 @@ void TemplateSelectionDialog::createParameterPanel()
     scaleLayout->addWidget(new QLabel("缩放范围(±):", this));
     m_scaleRangeSpinBox = new QDoubleSpinBox(this);
     m_scaleRangeSpinBox->setRange(0.0, 1.0);
+    m_scaleRangeSpinBox->setSingleStep(0.05);  // 设置单步调整幅度为0.05
     m_scaleRangeSpinBox->setValue(0.2);
     m_scaleRangeSpinBox->setDecimals(2);
     scaleLayout->addWidget(m_scaleRangeSpinBox);
