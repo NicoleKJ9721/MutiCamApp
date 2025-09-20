@@ -7829,13 +7829,15 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     double centerSize = 4.0;
     painter.drawEllipse(matchCenter, centerSize, centerSize);
 
-    // 绘制模板名称和置信度信息
-    QString infoText = QString("%1\n置信度: %2%")
+    // 绘制模板名称、置信度、角度和缩放信息
+    QString infoText = QString("%1\n置信度: %2%\n角度: %3°\n缩放: %4")
                        .arg(match.templateName)
-                       .arg(QString::number(match.confidence * 100, 'f', 1));
+                       .arg(QString::number(match.confidence * 100, 'f', 1))
+                       .arg(QString::number(match.angle * 180.0 / M_PI, 'f', 1))
+                       .arg(QString::number(match.scale, 'f', 2));
 
-    // 计算文本位置（在边界框上方）
-    QPointF textPos = matchRect.topLeft() + QPointF(0, -5);
+    // 计算文本位置（在边界框上方，增加更多间距）
+    QPointF textPos = matchRect.topLeft() + QPointF(0, -10);
 
     // 设置文本样式
     QFont font = ctx.font;
@@ -7843,19 +7845,24 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     font.setBold(true);
     painter.setFont(font);
 
-    // 绘制文本背景
+    // 绘制文本背景（增加更多边距）
     QFontMetrics fm(font);
     QRect textBounds = fm.boundingRect(infoText);
-    QRectF textBackground(textPos.x() - 2, textPos.y() - textBounds.height() - 2,
-                         textBounds.width() + 4, textBounds.height() + 4);
+    const int marginX = 16;  // 水平边距
+    const int marginY = 16;  // 垂直边距
+    QRectF textBackground(textPos.x() - marginX, 
+                         textPos.y() - textBounds.height() - marginY,
+                         textBounds.width() + 2 * marginX, 
+                         textBounds.height() + 2 * marginY);
 
+    // 绘制圆角背景
     painter.setBrush(QBrush(QColor(0, 0, 0, 180))); // 半透明黑色背景
     painter.setPen(Qt::NoPen);
-    painter.drawRect(textBackground);
+    painter.drawRoundedRect(textBackground, 4, 4); // 圆角半径4像素
 
-    // 绘制文本
+    // 绘制文本（调整位置以适应新的边距）
     painter.setPen(QPen(Qt::white));
-    painter.drawText(textPos.x(), textPos.y() - 2, infoText);
+    painter.drawText(textPos.x(), textPos.y() - marginY/2, infoText);
 
     painter.restore();
 }
