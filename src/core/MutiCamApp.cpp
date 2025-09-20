@@ -14,6 +14,8 @@
 #include <QDir>
 #include <QDateTime>
 #include <QFile>
+#include <exception>
+#include <stdexcept>
 #include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
@@ -2048,9 +2050,21 @@ void MutiCamApp::saveImages(const QString& viewType)
                     qDebug() << "QImage备用方法也保存失败";
                 }
             } catch (const std::exception& e) {
-                qDebug() << "QImage备用保存方法出错：" << e.what();
+                qDebug() << "MutiCamApp::onSavePicture - QImage备用保存方法出错：" << e.what();
+            } catch (const std::bad_alloc& e) {
+                qDebug() << "MutiCamApp::onSavePicture - QImage备用保存时内存分配失败";
+            } catch (const std::runtime_error& e) {
+                qDebug() << "MutiCamApp::onSavePicture - QImage备用保存运行时异常：" << e.what();
             } catch (...) {
-                qDebug() << "QImage备用保存方法出现未知错误";
+                qDebug() << "MutiCamApp::onSavePicture - QImage备用保存方法出现未知错误";
+                // 尝试获取更多异常信息
+                try {
+                    std::rethrow_exception(std::current_exception());
+                } catch (const std::exception& e) {
+                    qDebug() << "重新捕获的异常详情：" << e.what();
+                } catch (...) {
+                    qDebug() << "无法获取未知异常的具体类型信息";
+                }
             }
         }
 
@@ -2128,9 +2142,21 @@ void MutiCamApp::saveImages(const QString& viewType)
                             qDebug() << "QImage备用方法保存可视化图像也失败";
                         }
                     } catch (const std::exception& e) {
-                        qDebug() << "QImage备用保存可视化图像出错：" << e.what();
+                        qDebug() << "MutiCamApp::onSavePicture - QImage备用保存可视化图像出错：" << e.what();
+                    } catch (const std::bad_alloc& e) {
+                        qDebug() << "MutiCamApp::onSavePicture - 保存可视化图像时内存分配失败";
+                    } catch (const std::runtime_error& e) {
+                        qDebug() << "MutiCamApp::onSavePicture - 保存可视化图像运行时异常：" << e.what();
                     } catch (...) {
-                        qDebug() << "QImage备用保存可视化图像出现未知错误";
+                        qDebug() << "MutiCamApp::onSavePicture - QImage备用保存可视化图像出现未知错误";
+                        // 尝试获取更多异常信息用于调试
+                        try {
+                            std::rethrow_exception(std::current_exception());
+                        } catch (const std::exception& e) {
+                            qDebug() << "重新捕获的可视化图像保存异常详情：" << e.what();
+                        } catch (...) {
+                            qDebug() << "无法获取未知异常的具体类型信息";
+                        }
                     }
                 }
             } else {

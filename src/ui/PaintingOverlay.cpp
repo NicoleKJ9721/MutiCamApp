@@ -14,6 +14,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
+#include <exception>
+#include <stdexcept>
 #include <QCoreApplication>
 #include <QRegularExpression>
 #include <QStandardPaths>
@@ -7919,10 +7921,24 @@ void PaintingOverlay::clearHalconModelCache(const QString& logContext)
     } catch (const std::exception& e) {
         QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
         qWarning() << QString("%1时发生异常:").arg(context) << e.what();
+    } catch (const std::bad_alloc& e) {
+        QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
+        qWarning() << QString("PaintingOverlay::clearHalconModelCache - %1时发生内存分配异常").arg(context);
+    } catch (const std::runtime_error& e) {
+        QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
+        qWarning() << QString("PaintingOverlay::clearHalconModelCache - %1时发生运行时异常: %2").arg(context).arg(e.what());
     } catch (...) {
-        // 忽略析构期或其他未知异常，避免程序崩溃
+        // 记录未知异常的详细信息，避免程序崩溃
         if (!logContext.isEmpty() && logContext != "析构") {
-            qWarning() << QString("清理Halcon模型缓存时发生未知异常(%1)").arg(logContext);
+            qWarning() << QString("PaintingOverlay::clearHalconModelCache - 清理Halcon模型缓存时发生未知异常(%1) - 函数: clearHalconModelCache").arg(logContext);
+            // 尝试获取当前异常类型信息
+            try {
+                std::rethrow_exception(std::current_exception());
+            } catch (const std::exception& e) {
+                qWarning() << QString("重新捕获的异常信息: %1").arg(e.what());
+            } catch (...) {
+                qWarning() << "无法获取具体异常类型信息";
+            }
         }
     }
 }
