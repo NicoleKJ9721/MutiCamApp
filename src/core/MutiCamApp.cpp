@@ -1473,12 +1473,12 @@ PaintingOverlay* MutiCamApp::getActivePaintingOverlay()
 // {{ AURA-X: Add - 保存图像按钮槽函数实现. Approval: 寸止(ID:save_image_buttons). }}
 void MutiCamApp::onSaveImageClicked()
 {
-    // 主界面保存图像按钮 - 异步保存所有视图的图像
-    qDebug() << "主界面保存图像按钮被点击 - 异步保存所有视图";
+    // 主界面保存图像按钮 - 只保存有有效帧的视图
+    qDebug() << "主界面保存图像按钮被点击 - 智能保存有连接的相机视图";
 
     // 记录保存图像操作
     if (m_logManager) {
-        m_logManager->logUIOperation("主界面保存图像按钮被点击", "异步保存所有视图");
+        m_logManager->logUIOperation("主界面保存图像按钮被点击", "智能保存有连接的相机视图");
     }
 
     // 检查是否已有保存任务在进行
@@ -1490,9 +1490,49 @@ void MutiCamApp::onSaveImageClicked()
         return;
     }
 
-    // 异步保存所有三个视图的图像
-    QStringList viewTypes = {"vertical", "left", "front"};
-    saveImagesAsync(viewTypes);
+    // 智能检测哪些视图有有效帧，只保存有连接相机的视图
+    QStringList validViewTypes;
+    
+    // 检查垂直视图
+    if (!m_currentFrameVertical.empty()) {
+        validViewTypes << "vertical";
+        qDebug() << "垂直视图有有效帧，将被保存";
+    } else {
+        qDebug() << "垂直视图无有效帧，跳过保存";
+    }
+    
+    // 检查左侧视图
+    if (!m_currentFrameLeft.empty()) {
+        validViewTypes << "left";
+        qDebug() << "左侧视图有有效帧，将被保存";
+    } else {
+        qDebug() << "左侧视图无有效帧，跳过保存";
+    }
+    
+    // 检查对向视图
+    if (!m_currentFrameFront.empty()) {
+        validViewTypes << "front";
+        qDebug() << "对向视图有有效帧，将被保存";
+    } else {
+        qDebug() << "对向视图无有效帧，跳过保存";
+    }
+
+    // 如果没有任何有效视图，显示警告
+    if (validViewTypes.isEmpty()) {
+        QString errorMsg = "没有检测到任何有效的相机图像。\n请确保至少有一个相机已连接并正在采集图像。";
+        qDebug() << "错误：没有有效的相机帧";
+        QMessageBox::warning(this, "保存失败", errorMsg);
+        
+        if (m_logManager) {
+            m_logManager->logError("保存图像失败", "没有有效的相机帧");
+        }
+        return;
+    }
+
+    qDebug() << QString("检测到 %1 个有效视图：%2").arg(validViewTypes.size()).arg(validViewTypes.join(", "));
+    
+    // 异步保存检测到的有效视图
+    saveImagesAsync(validViewTypes);
 }
 
 void MutiCamApp::onSaveImageVerticalClicked()
@@ -1502,6 +1542,14 @@ void MutiCamApp::onSaveImageVerticalClicked()
     // 检查是否已有保存任务在进行
     if (m_saveWatcher && m_saveWatcher->isRunning()) {
         qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 检查垂直视图是否有有效帧
+    if (m_currentFrameVertical.empty()) {
+        QString errorMsg = "垂直视图没有有效的相机图像。\n请确保垂直相机已连接并正在采集图像。";
+        qDebug() << "错误：垂直视图没有有效帧";
+        QMessageBox::warning(this, "保存失败", errorMsg);
         return;
     }
 
@@ -1520,6 +1568,14 @@ void MutiCamApp::onSaveImageLeftClicked()
         return;
     }
 
+    // 检查左侧视图是否有有效帧
+    if (m_currentFrameLeft.empty()) {
+        QString errorMsg = "左侧视图没有有效的相机图像。\n请确保左侧相机已连接并正在采集图像。";
+        qDebug() << "错误：左侧视图没有有效帧";
+        QMessageBox::warning(this, "保存失败", errorMsg);
+        return;
+    }
+
     // 异步保存左侧视图
     QStringList viewTypes = {"left"};
     saveImagesAsync(viewTypes);
@@ -1532,6 +1588,14 @@ void MutiCamApp::onSaveImageFrontClicked()
     // 检查是否已有保存任务在进行
     if (m_saveWatcher && m_saveWatcher->isRunning()) {
         qDebug() << "保存任务正在进行中，忽略重复点击";
+        return;
+    }
+
+    // 检查对向视图是否有有效帧
+    if (m_currentFrameFront.empty()) {
+        QString errorMsg = "对向视图没有有效的相机图像。\n请确保对向相机已连接并正在采集图像。";
+        qDebug() << "错误：对向视图没有有效帧";
+        QMessageBox::warning(this, "保存失败", errorMsg);
         return;
     }
 
@@ -1862,26 +1926,71 @@ void MutiCamApp::saveImages(const QString& viewType)
             return;
         }
 
-        // 获取当前帧
-        cv::Mat currentFrame = getCurrentFrame(viewType);
+        // 获取当前帧，添加额外的安全检查
+        cv::Mat currentFrame;
+        try {
+            currentFrame = getCurrentFrame(viewType);
+        } catch (const std::exception& e) {
+            QString errorMsg = QString("获取%1视图图像帧时发生异常: %2").arg(viewName).arg(e.what());
+            qDebug() << errorMsg;
+            QMessageBox::critical(this, "保存失败", errorMsg);
+            
+            if (m_logManager) {
+                m_logManager->logError("保存图像失败", errorMsg);
+            }
+            return;
+        }
+
         qDebug() << "获取到的帧信息：";
         qDebug() << "  - 是否为空：" << (currentFrame.empty() ? "是" : "否");
         if (!currentFrame.empty()) {
             qDebug() << "  - 尺寸：" << currentFrame.cols << "x" << currentFrame.rows;
             qDebug() << "  - 通道数：" << currentFrame.channels();
             qDebug() << "  - 数据类型：" << currentFrame.type();
+            qDebug() << "  - 数据指针：" << (currentFrame.data ? "有效" : "无效");
+            qDebug() << "  - 是否连续：" << (currentFrame.isContinuous() ? "是" : "否");
         }
 
         if (currentFrame.empty()) {
             QString errorMsg = QString("%1视图没有可用的图像帧").arg(viewName);
             qDebug() << errorMsg;
-            qDebug() << "可能的原因：";
-            qDebug() << "  1. 相机未启动或未连接";
-            qDebug() << "  2. 相机数据流中断";
-            qDebug() << "  3. onCameraFrameReady未被调用";
-            QMessageBox::warning(this, "保存失败", errorMsg + "\n\n请检查相机是否正常工作。");
+            qDebug() << "详细诊断信息：";
+            qDebug() << "  1. 相机管理器状态：" << (m_cameraManager ? "已初始化" : "未初始化");
+            if (m_cameraManager) {
+                qDebug() << "  2. 相机数量：" << m_cameraManager->getCameraCount();
+                std::vector<std::string> cameraIds = m_cameraManager->getCameraIds();
+                for (const auto& id : cameraIds) {
+                    QString idStr = QString::fromStdString(id);
+                    bool isConnected = m_cameraManager->isCameraConnected(id);
+                    bool isStreaming = m_cameraManager->isCameraStreaming(id);
+                    qDebug() << QString("  3. 相机 %1 - 连接: %2, 流式传输: %3")
+                                .arg(idStr).arg(isConnected ? "是" : "否").arg(isStreaming ? "是" : "否");
+                }
+            }
+            qDebug() << "  4. 当前测量状态：" << (m_isMeasuring ? "进行中" : "未开始");
+            qDebug() << "可能的解决方案：";
+            qDebug() << "  - 点击'开始测量'按钮启动相机采集";
+            qDebug() << "  - 检查相机连接和序列号配置";
+            qDebug() << "  - 确认相机硬件工作正常";
+            
+            // 记录详细错误日志
+            if (m_logManager) {
+                QString detailedError = QString("保存%1视图图像失败：没有可用的图像帧。相机管理器: %2, 测量状态: %3")
+                                      .arg(viewName)
+                                      .arg(m_cameraManager ? "已初始化" : "未初始化") 
+                                      .arg(m_isMeasuring ? "进行中" : "未开始");
+                m_logManager->logError("保存图像失败", detailedError);
+            }
+            
+            QMessageBox::warning(this, "保存失败", 
+                               errorMsg + "\n\n请检查：\n" +
+                               "1. 相机是否已连接\n" +
+                               "2. 是否已点击'开始测量'按钮\n" +
+                               "3. 相机配置是否正确");
             return;
         }
+
+        qDebug() << QString("%1视图图像帧验证成功，开始保存流程").arg(viewName);
 
         // 创建保存目录
         QString saveDir = createSaveDirectory(viewName);
