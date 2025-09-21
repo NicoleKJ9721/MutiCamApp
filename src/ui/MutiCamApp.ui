@@ -925,7 +925,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>精确圆</string>
+                 <string>精细圆</string>
                 </property>
                </widget>
               </item>
@@ -1367,7 +1367,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>精确圆</string>
+                 <string>精细圆</string>
                 </property>
                </widget>
               </item>
@@ -1809,7 +1809,7 @@ QPushButton:pressed { background-color: #b71c1c; }</string>
                  </font>
                 </property>
                 <property name="text">
-                 <string>精确圆</string>
+                 <string>精细圆</string>
                 </property>
                </widget>
               </item>
