@@ -993,8 +993,8 @@ void PaintingOverlay::handleCircleDrawingClick(const QPointF& imagePos)
                 // 计算圆的面积和周长并使用通用提交逻辑
                 double area = M_PI * m_currentCircle.radius * m_currentCircle.radius;
                 double circumference = 2 * M_PI * m_currentCircle.radius;
-                QString result = QString("圆形: 半径 %.1f, 面积 %.1f, 周长 %.1f")
-                                .arg(m_currentCircle.radius).arg(area).arg(circumference);
+                QString result = QString("圆形: 半径 %1, 面积 %2, 周长 %3")
+                                .arg(m_currentCircle.radius, 0, 'f', 1).arg(area, 0, 'f', 1).arg(circumference, 0, 'f', 1);
 
                 m_circles.append(m_currentCircle);
 
@@ -1036,8 +1036,8 @@ void PaintingOverlay::handleFineCircleDrawingClick(const QPointF& pos)
                 // 计算精细圆的面积和周长
                 double area = M_PI * m_currentFineCircle.radius * m_currentFineCircle.radius;
                 double circumference = 2 * M_PI * m_currentFineCircle.radius;
-                QString result = QString("精细圆: 半径 %.1f, 面积 %.1f, 周长 %.1f")
-                                .arg(m_currentFineCircle.radius).arg(area).arg(circumference);
+                QString result = QString("精细圆: 半径 %1, 面积 %2, 周长 %3")
+                                .arg(m_currentFineCircle.radius, 0, 'f', 1).arg(area, 0, 'f', 1).arg(circumference, 0, 'f', 1);
                 
                 DrawingAction action;
                 action.type = DrawingAction::AddFineCircle;
@@ -1105,8 +1105,8 @@ void PaintingOverlay::handleParallelDrawingClick(const QPointF& imagePos)
                 m_currentParallel.isCompleted = true;
 
                 // 使用通用提交逻辑
-                QString result = QString("平行线: 距离 %1, 角度 %.1f°")
-                                .arg(formatDistance(m_currentParallel.distance)).arg(m_currentParallel.angle);
+                QString result = QString("平行线: 距离 %1, 角度 %2°")
+                                .arg(formatDistance(m_currentParallel.distance)).arg(m_currentParallel.angle, 0, 'f', 1);
 
                 m_parallels.append(m_currentParallel);
 
@@ -1169,8 +1169,8 @@ void PaintingOverlay::handleTwoLinesDrawingClick(const QPointF& imagePos)
                 m_currentTwoLines.isCompleted = true;
 
                 // 使用通用提交逻辑
-                QString result = QString("两线夹角: %.1f°\n交点坐标: %.1f")
-                                .arg(m_currentTwoLines.angle).arg(formatCoordinate(m_currentTwoLines.intersection));
+                QString result = QString("两线夹角: %1°\n交点坐标: %2")
+                                .arg(m_currentTwoLines.angle, 0, 'f', 1).arg(formatCoordinate(m_currentTwoLines.intersection));
 
                 m_twoLines.append(m_currentTwoLines);
 
@@ -1387,26 +1387,29 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         }
     }
     
-    // 如果有3个点，绘制圆形（包括预览状态）
-    if (circle.points.size() >= 3) {
-        QPointF centerImage;
-        double radiusImage;
+    // 绘制圆形：已完成的圆形（直接使用center和radius）或有3个点的预览圆形
+    QPointF centerImage;
+    double radiusImage;
+    bool shouldDrawCircle = false;
 
-        if (circle.isCompleted) {
-            // 已完成的圆形，使用存储的圆心和半径
-            centerImage = circle.center;
-            radiusImage = circle.radius;
-        } else {
-            // 预览状态，实时计算圆心和半径
-            if (!calculateCircleFromThreePoints(circle.points, centerImage, radiusImage)) {
-                // 如果计算失败，不绘制圆形
-                return;
-            }
+    if (circle.isCompleted && circle.radius > 0) {
+        // 已完成的圆形，使用存储的圆心和半径
+        centerImage = circle.center;
+        radiusImage = circle.radius;
+        shouldDrawCircle = true;
+    } else if (!circle.isCompleted && circle.points.size() >= 3) {
+        // 预览状态，实时计算圆心和半径
+        if (calculateCircleFromThreePoints(circle.points, centerImage, radiusImage)) {
+            shouldDrawCircle = true;
         }
+    }
 
-        // 绘制圆形（使用绿色，预览时使用虚线）
+    if (shouldDrawCircle) {
+
+        // 绘制圆形（已完成使用圆形颜色，预览时使用绿色虚线）
         if (circle.isCompleted) {
-            painter.setPen(ctx.greenPen);
+            QPen circlePen(circle.color, circle.thickness, Qt::SolidLine);
+            painter.setPen(circlePen);
         } else {
             painter.setPen(ctx.greenDashedPen); // 预览时使用虚线
         }
@@ -1436,16 +1439,16 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
             // 第一个文本框偏移量（与点相同：右上角）
             QPointF centerOffset(centerMarkRadius, -centerMarkRadius - centerBgHeight);
 
-            // 1. 绘制第一个文本框（坐标文本）- 使用绿色
-            drawTextWithBackground(painter, centerImage, centerText, ctx.font, Qt::green, Qt::black, textPadding, bgBorderWidth, centerOffset);
+            // 1. 绘制第一个文本框（坐标文本）- 使用圆形颜色
+            drawTextWithBackground(painter, centerImage, centerText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, centerOffset);
 
             // 2. 计算第二个文本框的位置（紧挨着第一个文本框下方）
             QRect radiusTextBoundingRect = fm.boundingRect(radiusText);
             double radiusBgHeight = radiusTextBoundingRect.height() + 2 * textPadding;
             QPointF radiusOffset(centerMarkRadius, -centerMarkRadius - centerBgHeight + centerBgHeight);
 
-            // 绘制第二个文本框（半径文本）- 使用绿色
-            drawTextWithBackground(painter, centerImage, radiusText, ctx.font, Qt::green, Qt::black, textPadding, bgBorderWidth, radiusOffset);
+            // 绘制第二个文本框（半径文本）- 使用圆形颜色
+            drawTextWithBackground(painter, centerImage, radiusText, ctx.font, circle.color, Qt::black, textPadding, bgBorderWidth, radiusOffset);
         }
     }
 }
@@ -4334,8 +4337,8 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         }
 
                     // 发送测量完成信号
-                    QString result = QString("两线夹角: %.1f°\n交点坐标: %1")
-                                    .arg(angle).arg(formatCoordinate(intersection));
+                    QString result = QString("两线夹角: %1°\n交点坐标: %2")
+                                    .arg(angle, 0, 'f', 1).arg(formatCoordinate(intersection));
                     emit measurementCompleted(m_viewName, result);
                 } else {
                     // 两线平行
@@ -5424,8 +5427,8 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     QString lengthStr = formatDistance(bestLine.length);
     QString startCoordStr = formatCoordinate(QPointF(bestLine.start.x(), bestLine.start.y()));
     QString endCoordStr = formatCoordinate(QPointF(bestLine.end.x(), bestLine.end.y()));
-    detectedLineObj.label = QString("自动检测直线 (长度: %1, 角度: %.1f°, 起点: %2, 终点: %3, 置信度: %.1f)")
-                           .arg(lengthStr).arg(bestLine.angle).arg(startCoordStr).arg(endCoordStr).arg(bestLine.confidence);
+    detectedLineObj.label = QString("自动检测直线 (长度: %1, 角度: %2°, 起点: %3, 终点: %4, 置信度: %5)")
+                           .arg(lengthStr).arg(bestLine.angle, 0, 'f', 1).arg(startCoordStr).arg(endCoordStr).arg(bestLine.confidence, 0, 'f', 1);
     detectedLineObj.showLength = true;
     detectedLineObj.length = bestLine.length;
 
@@ -5443,8 +5446,8 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     removeLastROI();
 
     // 发出信号
-    QString result = QString("自动直线检测成功：长度 %.1f 像素，角度 %.1f° (共检测到%2条直线)")
-                    .arg(bestLine.length).arg(bestLine.angle).arg(detectedLines.size());
+    QString result = QString("自动直线检测成功：长度 %1 像素，角度 %2° (共检测到%3条直线)")
+                    .arg(bestLine.length, 0, 'f', 1).arg(bestLine.angle, 0, 'f', 1).arg(detectedLines.size());
     emit measurementCompleted(m_viewName, result);
     emit drawingDataChanged(m_viewName);
 
@@ -5541,10 +5544,11 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     detectedCircleObj.thickness = 3;
     detectedCircleObj.center = QPointF(bestCircle.center.x(), bestCircle.center.y());
     detectedCircleObj.radius = bestCircle.radius;
+
     QString radiusStr = formatRadius(bestCircle.radius);
     QString centerCoordStr = formatCoordinate(QPointF(bestCircle.center.x(), bestCircle.center.y()));
-    detectedCircleObj.label = QString("自动检测圆形 (%1, 中心: %2, 置信度: %.1f)")
-                             .arg(radiusStr).arg(centerCoordStr).arg(bestCircle.confidence);
+    detectedCircleObj.label = QString("自动检测圆形 (%1, 中心: %2, 置信度: %3)")
+                             .arg(radiusStr).arg(centerCoordStr).arg(bestCircle.confidence, 0, 'f', 1);
 
     // 添加到圆形列表
     m_circles.append(detectedCircleObj);
@@ -5560,8 +5564,8 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     removeLastROI();
 
     // 发出信号
-    QString result = QString("自动圆形检测成功：半径 %1 像素，置信度 %.1f (共检测到%2个圆形)")
-                    .arg(bestCircle.radius).arg(bestCircle.confidence).arg(detectedCircles.size());
+    QString result = QString("自动圆形检测成功：半径 %1 像素，置信度 %2 (共检测到%3个圆形)")
+                    .arg(bestCircle.radius).arg(bestCircle.confidence, 0, 'f', 1).arg(detectedCircles.size());
     emit measurementCompleted(m_viewName, result);
     emit drawingDataChanged(m_viewName);
 
