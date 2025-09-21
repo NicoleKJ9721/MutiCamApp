@@ -43,6 +43,7 @@ message(STATUS "HALCON 库: " ${HALCON_LIBS})
 # 配置第三方库路径
 set(OPENCV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/opencv)
 set(HIKVISION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/hikvision)
+set(MCC6_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mcc6/lib)
 
 # 设置OpenCV路径
 set(OpenCV_INCLUDE_DIRS ${OPENCV_DIR}/include)
@@ -52,6 +53,10 @@ set(OpenCV_BIN_DIR ${OPENCV_DIR}/bin)
 # 设置海康SDK路径
 set(HIKVISION_INCLUDE_DIRS ${HIKVISION_DIR}/include)
 set(HIKVISION_LIB_DIR ${HIKVISION_DIR}/lib)
+
+# 设置MCC6轴控制库路径
+set(MCC6_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mcc6/include)
+set(MCC6_LIB_DIR ${MCC6_DIR})
 
 find_package(Qt6 COMPONENTS Widgets Concurrent Svg REQUIRED) # Qt COMPONENTS
 find_package(OpenMP)
@@ -129,11 +134,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_INCLUDE_DIRS}
     ${HIKVISION_INCLUDE_DIRS}
     ${HALCON_INCLUDE_DIRS} # 添加 HALCON 包含路径
+    ${MCC6_INCLUDE_DIRS} # 添加 MCC6 轴控制库包含路径
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/config
     ${CMAKE_CURRENT_SOURCE_DIR}/src/matching
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/axis
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
@@ -166,6 +173,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${HIKVISION_LIB_DIR}/MvCameraControl.lib
 )
 
+# 链接MCC6轴控制库
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${MCC6_LIB_DIR}/MCC6DLL_x64_Release.lib
+)
+
 # 链接HALCON库
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${HALCON_LIBS}
@@ -189,5 +201,12 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${OpenCV_BIN_DIR}/opencv_videoio_ffmpeg4100_64.dll"
         "${OpenCV_BIN_DIR}/opencv_videoio_msmf4100_64.dll"
         "${OpenCV_BIN_DIR}/opencv_videoio_msmf4100_64d.dll"
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>
+)
+
+# 复制MCC6 DLL到输出目录
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${MCC6_LIB_DIR}/MCC6DLL_x64_Release.dll"
         $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
