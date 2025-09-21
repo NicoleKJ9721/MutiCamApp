@@ -608,26 +608,26 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     // 更新帧率计算
     updateFrameRate(cameraId);
 
-    // 存储当前帧供自动检测使用
+    // 存储当前帧供自动检测使用 (性能优化：使用直接赋值代替clone()以减少内存复制)
     if (cameraId == "vertical") {
-        m_currentFrameVertical = frame.clone();
-        m_lastVerticalFrame = frame.clone();  // 同时更新最新帧供模板创建使用
+        m_currentFrameVertical = frame;        // 优化：避免60MB内存复制
+        m_lastVerticalFrame = frame;           // 优化：避免60MB内存复制
 
         // 处理垂直视图的模板匹配
         if (m_verticalPaintingOverlay2) {
             m_verticalPaintingOverlay2->processFrameForMatching(frame);
         }
     } else if (cameraId == "left") {
-        m_currentFrameLeft = frame.clone();
-        m_lastLeftFrame = frame.clone();      // 同时更新最新帧供模板创建使用
+        m_currentFrameLeft = frame;            // 优化：避免60MB内存复制
+        m_lastLeftFrame = frame;               // 优化：避免60MB内存复制
 
         // 处理左侧视图的模板匹配
         if (m_leftPaintingOverlay2) {
             m_leftPaintingOverlay2->processFrameForMatching(frame);
         }
     } else if (cameraId == "front") {
-        m_currentFrameFront = frame.clone();
-        m_lastFrontFrame = frame.clone();     // 同时更新最新帧供模板创建使用
+        m_currentFrameFront = frame;           // 优化：避免60MB内存复制
+        m_lastFrontFrame = frame;              // 优化：避免60MB内存复制
 
         // 处理对向视图的模板匹配
         if (m_frontPaintingOverlay2) {
