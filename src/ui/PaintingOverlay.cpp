@@ -1408,7 +1408,7 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
 
         // 绘制圆形（已完成使用圆形颜色，预览时使用绿色虚线）
         if (circle.isCompleted) {
-            QPen circlePen(circle.color, circle.thickness, Qt::SolidLine);
+            QPen circlePen = createPen(circle.color, circle.thickness, ctx.scale);
             painter.setPen(circlePen);
         } else {
             painter.setPen(ctx.greenDashedPen); // 预览时使用虚线
