@@ -644,17 +644,40 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     // 只有当主界面Tab可见时才更新主视图，以节省性能
     if (mainWidget && ui->tabWidget->currentIndex() == 0) {
-        mainWidget->setVideoFrame(matToQPixmap(frame));
+        // 降低图像质量以提升性能
+        QPixmap pixmap = matToQPixmap(frame, false); // 不设置设备像素比
+        mainWidget->setVideoFrame(pixmap);
         // 同步主界面视图的坐标变换
         syncOverlayTransforms(cameraId);
     }
 
-    // 只有当对应的Tab页可见时才更新，以节省性能
-    if (tabWidget && tabWidget->isVisible()) {
-        tabWidget->setVideoFrame(matToQPixmap(frame));
+    // 只有当对应的Tab页可见且为当前标签页时才更新
+    if (tabWidget && tabWidget->isVisible() && isCurrentTabForCamera(cameraId)) {
+        QPixmap pixmap = matToQPixmap(frame, false); // 降低图像质量以提升性能
+        tabWidget->setVideoFrame(pixmap);
         // 同步选项卡视图的坐标变换
         syncOverlayTransforms(cameraId + "2");
     }
+}
+
+bool MutiCamApp::isCurrentTabForCamera(const QString& cameraId)
+{
+    int currentIndex = ui->tabWidget->currentIndex();
+    
+    // 获取当前标签页的标题来判断是哪个相机的Tab
+    QString currentTabText = ui->tabWidget->tabText(currentIndex);
+    
+    // 根据相机ID检查是否为对应的Tab页
+    // 索引对应：0-主界面, 1-垂直视图, 2-左侧视图, 3-对向视图
+    if (cameraId == "vertical" && currentIndex == 1) {
+        return true;
+    } else if (cameraId == "left" && currentIndex == 2) {
+        return true;
+    } else if (cameraId == "front" && currentIndex == 3) {
+        return true;
+    }
+    
+    return false;
 }
 
 void MutiCamApp::onCameraStateChanged(const QString& cameraId, MutiCam::Camera::CameraState state)

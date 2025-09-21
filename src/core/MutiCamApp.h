@@ -675,6 +675,13 @@ private:
 
 private:
      /**
+      * @brief 判断指定相机是否为当前活跃的标签页
+      * @param cameraId 相机ID
+      * @return 是否为当前活跃标签页
+      */
+     bool isCurrentTabForCamera(const QString& cameraId);
+
+     /**
       * @brief 从UI获取边缘检测参数
       * @return EdgeDetector参数结构体
       */
