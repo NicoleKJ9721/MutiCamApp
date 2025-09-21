@@ -7,6 +7,14 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17) # 提升到C++17以支持更好的特性
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# 设置默认构建类型为RelWithDebInfo（优化版本+调试信息）
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+    message(STATUS "构建类型设置为: RelWithDebInfo (优化+调试信息)")
+endif()
+
+
+
 # --- HALCON 集成开始 ---
 # 查找 HALCON 安装
 if(DEFINED ENV{HALCONROOT} AND NOT $ENV{HALCONROOT} STREQUAL "")
@@ -132,6 +140,17 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # 处理海康SDK编码警告 - 屏蔽C4828警告（无效字符编码）
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /wd4828)
+    
+    # 多相机应用性能优化编译选项
+    target_compile_options(${PROJECT_NAME} PRIVATE 
+        # Release模式：最大性能优化
+        $<$<CONFIG:Release>:/O2 /Ob2 /DNDEBUG /favor:INTEL64>
+        # RelWithDebInfo模式：优化+调试信息（推荐用于开发）
+        $<$<CONFIG:RelWithDebInfo>:/O2 /Ob1 /Zi /DEBUG:FULL /favor:INTEL64>
+        # Debug模式：保持调试友好性
+        $<$<CONFIG:Debug>:/Od /Zi /DEBUG:FULL /RTC1>
+    )
+    message(STATUS "已启用多相机应用性能优化编译选项")
 endif()
 
 # 链接OpenCV库
