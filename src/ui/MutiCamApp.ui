@@ -3588,6 +3588,9 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                    <height>0</height>
                   </size>
                  </property>
+                 <property name="currentIndex">
+                  <number>4</number>
+                 </property>
                  <item>
                   <property name="text">
                    <string>9600</string>
@@ -3655,7 +3658,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBoxAxisEnable">
+             <widget class="QGroupBox" name="groupBoxAxisStatus">
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -3663,187 +3666,227 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                </font>
               </property>
               <property name="title">
-               <string>轴使能控制</string>
+               <string>轴状态与控制</string>
               </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_axisEnable">
-               <item>
+              <layout class="QGridLayout" name="gridLayout_axisStatus">
+               <!-- 表头 -->
+               <item row="0" column="0">
+                <widget class="QLabel" name="labelAxisHeader">
+                 <property name="styleSheet">
+                  <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>轴</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="labelEnableHeader">
+                 <property name="styleSheet">
+                  <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>使能状态</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QLabel" name="labelCommandPosHeader">
+                 <property name="styleSheet">
+                  <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>命令位置</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="QLabel" name="labelActualPosHeader">
+                 <property name="styleSheet">
+                  <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>实际光栅尺读数位置</string>
+                 </property>
+                </widget>
+               </item>
+               
+               <!-- X轴行 -->
+               <item row="1" column="0">
+                <widget class="QLabel" name="labelXAxis">
+                 <property name="styleSheet">
+                  <string>font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #fafafa;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>X轴</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableX">
+                 <property name="styleSheet">
+                  <string>padding: 8px; border: 1px solid #ddd;</string>
+                 </property>
                  <property name="text">
-                  <string>X轴使能</string>
+                  <string>使能</string>
                  </property>
                  <property name="checked">
                   <bool>false</bool>
                  </property>
                 </widget>
                </item>
-               <item>
+               <item row="1" column="2">
+                <widget class="QLabel" name="labelXPositionValue">
+                 <property name="styleSheet">
+                  <string>color: #0066cc; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>0.00 μm</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QLabel" name="labelGratingXPosition">
+                 <property name="styleSheet">
+                  <string>color: #ff6600; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>0.0000 μm</string>
+                 </property>
+                </widget>
+               </item>
+               
+               <!-- Y轴行 -->
+               <item row="2" column="0">
+                <widget class="QLabel" name="labelYAxis">
+                 <property name="styleSheet">
+                  <string>font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #fafafa;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>Y轴</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableY">
+                 <property name="styleSheet">
+                  <string>padding: 8px; border: 1px solid #ddd;</string>
+                 </property>
                  <property name="text">
-                  <string>Y轴使能</string>
+                  <string>使能</string>
                  </property>
                  <property name="checked">
                   <bool>false</bool>
                  </property>
                 </widget>
                </item>
-               <item>
+               <item row="2" column="2">
+                <widget class="QLabel" name="labelYPositionValue">
+                 <property name="styleSheet">
+                  <string>color: #0066cc; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>0.00 μm</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="3">
+                <widget class="QLabel" name="labelGratingYPosition">
+                 <property name="styleSheet">
+                  <string>color: #ff6600; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>0.0000 μm</string>
+                 </property>
+                </widget>
+               </item>
+               
+               <!-- Z轴行 -->
+               <item row="3" column="0">
+                <widget class="QLabel" name="labelZAxis">
+                 <property name="styleSheet">
+                  <string>font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #fafafa;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>Z轴</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableZ">
+                 <property name="styleSheet">
+                  <string>padding: 8px; border: 1px solid #ddd;</string>
+                 </property>
                  <property name="text">
-                  <string>Z轴使能</string>
+                  <string>使能</string>
                  </property>
                  <property name="checked">
                   <bool>false</bool>
                  </property>
                 </widget>
                </item>
-               <item>
-                <spacer name="horizontalSpacer_axisEnable">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
+               <item row="3" column="2">
+                <widget class="QLabel" name="labelZPositionValue">
+                 <property name="styleSheet">
+                  <string>color: #0066cc; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
-                </spacer>
+                 <property name="text">
+                  <string>0.00 μm</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="3">
+                <widget class="QLabel" name="labelGratingZPosition">
+                 <property name="styleSheet">
+                  <string>color: #ff6600; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="text">
+                  <string>0.0000 μm</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
             </item>
-            <item>
-             <widget class="QGroupBox" name="groupBoxStagePosition">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="title">
-           <string>当前位置</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_stagePosition">
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelXPosition">
-             <property name="text">
-              <string>X轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="labelXPositionValue">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold;</string>
-             </property>
-             <property name="text">
-              <string>0.000 μm</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelYPosition">
-             <property name="text">
-              <string>Y轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="labelYPositionValue">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold;</string>
-             </property>
-             <property name="text">
-              <string>0.000 μm</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="labelZPosition">
-             <property name="text">
-              <string>Z轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="labelZPositionValue">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold;</string>
-             </property>
-             <property name="text">
-              <string>0.000 μm</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBoxGratingPosition">
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="title">
-           <string>光栅尺实时位置读数</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_gratingPosition">
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelGratingXPosTitle">
-             <property name="text">
-              <string>X轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="labelGratingXPosition">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold; font-size: 14px;</string>
-             </property>
-             <property name="text">
-              <string>0.0000 μm</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelGratingYPosTitle">
-             <property name="text">
-              <string>Y轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="labelGratingYPosition">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold; font-size: 14px;</string>
-             </property>
-             <property name="text">
-              <string>0.0000 μm</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="labelGratingZPosTitle">
-             <property name="text">
-              <string>Z轴位置:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="labelGratingZPosition">
-             <property name="styleSheet">
-              <string>color: blue; font-weight: bold; font-size: 14px;</string>
-             </property>
-             <property name="text">
-              <string>0.0000 μm</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item>
          <widget class="QGroupBox" name="groupBoxStageControl">
           <property name="font">
@@ -3886,6 +3929,27 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <widget class="QRadioButton" name="radioStep10">
                <property name="text">
                 <string>10μm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep100">
+               <property name="text">
+                <string>100μm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep1000">
+               <property name="text">
+                <string>1000μm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioStep10000">
+               <property name="text">
+                <string>10000μm</string>
                </property>
               </widget>
              </item>

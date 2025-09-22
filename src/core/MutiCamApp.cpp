@@ -4430,6 +4430,12 @@ double MutiCamApp::getCurrentStepSize() const
         return 1.0;
     } else if (ui->radioStep10->isChecked()) {
         return 10.0;
+    } else if (ui->radioStep100->isChecked()) {
+        return 100.0;
+    } else if (ui->radioStep1000->isChecked()) {
+        return 1000.0;
+    } else if (ui->radioStep10000->isChecked()) {
+        return 10000.0;
     }
     return 0.1; // 默认步长
 }
@@ -4475,9 +4481,9 @@ void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double delt
     m_currentZ += deltaZ;
 
     // 更新UI显示的当前位置
-    ui->labelXPositionValue->setText(QString("%1 μm").arg(m_currentX, 0, 'f', 3));
-    ui->labelYPositionValue->setText(QString("%1 μm").arg(m_currentY, 0, 'f', 3));
-    ui->labelZPositionValue->setText(QString("%1 μm").arg(m_currentZ, 0, 'f', 3));
+    ui->labelXPositionValue->setText(QString("%1 μm").arg(m_currentX, 0, 'f', 2));
+    ui->labelYPositionValue->setText(QString("%1 μm").arg(m_currentY, 0, 'f', 2));
+    ui->labelZPositionValue->setText(QString("%1 μm").arg(m_currentZ, 0, 'f', 2));
 }
 
 // 轨迹记录槽函数实现
