@@ -5045,7 +5045,15 @@ void MutiCamApp::toggleSerialConnection()
 {
     if (m_serialController->getStatus() == SerialController::SerialStatus::Disconnected) {
         // 尝试连接串口
-        QString portName = ui->comboBoxSerialPort->currentText();
+        QString portName;
+        
+        // 优先从ComboBox的数据部分获取纯净的串口名称
+        QVariant portData = ui->comboBoxSerialPort->currentData();
+        if (portData.isValid() && !portData.toString().isEmpty()) {
+            portName = portData.toString();  // 获取存储的数据（纯净的串口名，如 COM6）
+        } else {
+            portName = ui->comboBoxSerialPort->currentText();  // 后备方案，使用显示文本
+        }
         qDebug() << "尝试连接串口:" << portName;
 
         if (m_serialController->openPort(portName)) {
