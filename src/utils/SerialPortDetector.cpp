@@ -144,14 +144,24 @@ bool SerialPortDetector::isPortAvailable(const QString& portName)
 
 QString SerialPortDetector::getRecommendedPort()
 {
-    const QStringList portNames = getSerialPortNames();
+    const QList<SerialPortInfo> ports = getAvailableSerialPorts();
     
-    if (portNames.isEmpty()) {
+    if (ports.isEmpty()) {
         return QString();
     }
     
-    // 返回第一个可用串口作为推荐端口
-    return portNames.first();
+    // 优先查找包含"CH340"的串口
+    for (const SerialPortInfo& port : ports) {
+        if (port.description.contains("CH340", Qt::CaseInsensitive) ||
+            port.portName.contains("CH340", Qt::CaseInsensitive)) {
+            qDebug() << "找到CH340串口，优先使用:" << port.portName << port.description;
+            return port.portName;
+        }
+    }
+    
+    // 如果没有找到CH340串口，返回第一个可用串口
+    qDebug() << "未找到CH340串口，使用第一个可用串口:" << ports.first().portName;
+    return ports.first().portName;
 }
 
 void SerialPortDetector::detectPortChanges()

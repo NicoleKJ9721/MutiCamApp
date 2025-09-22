@@ -4866,25 +4866,63 @@ void MutiCamApp::initializeSerialController()
     // 连接串口控制按钮
     connect(ui->btnConnectSerial, &QPushButton::clicked, this, &MutiCamApp::toggleSerialConnection);
 
-    // 从设置中获取配置的串口
-    QString configuredPort;
-    if (m_settingsManager) {
-        const auto& settings = m_settingsManager->getCurrentSettings();
-        configuredPort = settings.physicalButtonPort;
-    }
+    // 优先使用推荐串口（优先CH340串口）
+    QString selectedPort = m_serialPortDetector->getRecommendedPort();
     
-    // 如果没有配置串口或配置的串口不可用，尝试获取推荐串口
-    if (configuredPort.isEmpty() || !m_serialPortDetector->isPortAvailable(configuredPort)) {
-        configuredPort = m_serialPortDetector->getRecommendedPort();
-        qDebug() << "使用推荐串口:" << configuredPort;
+    // 如果推荐串口（CH340）不可用，再尝试使用设置中配置的串口
+    if (selectedPort.isEmpty() || !m_serialPortDetector->isPortAvailable(selectedPort)) {
+        qDebug() << "推荐串口不可用，尝试使用配置的串口";
+        if (m_settingsManager) {
+            const auto& settings = m_settingsManager->getCurrentSettings();
+            QString configuredPort = settings.physicalButtonPort;
+            if (!configuredPort.isEmpty() && m_serialPortDetector->isPortAvailable(configuredPort)) {
+                selectedPort = configuredPort;
+                qDebug() << "使用配置的串口:" << selectedPort;
+            }
+        }
+    } else {
+        qDebug() << "使用推荐串口（优先CH340）:" << selectedPort;
     }
 
     // 如果有可用串口，尝试连接
-    if (!configuredPort.isEmpty()) {
-        if (m_serialController->openPort(configuredPort)) {
+    if (!selectedPort.isEmpty()) {
+        if (m_serialController->openPort(selectedPort)) {
             m_serialController->startListening();
             ui->btnConnectSerial->setText("断开");
-            qDebug() << "串口控制器初始化成功，端口:" << configuredPort;
+            qDebug() << "串口控制器初始化成功，端口:" << selectedPort;
+            
+            // 连接成功后，更新UI下拉框显示当前连接的串口
+            updateSerialPortLists();  // 先更新串口列表
+            
+            // 同步UI下拉框选择为当前连接的串口
+            if (ui->comboBoxSerialPort) {
+                int index = ui->comboBoxSerialPort->findData(selectedPort);
+                if (index >= 0) {
+                    ui->comboBoxSerialPort->setCurrentIndex(index);
+                    qDebug() << "UI下拉框已同步至连接的串口:" << selectedPort;
+                } else {
+                    // 如果通过数据匹配找不到，尝试文本匹配
+                    index = ui->comboBoxSerialPort->findText(selectedPort);
+                    if (index >= 0) {
+                        ui->comboBoxSerialPort->setCurrentIndex(index);
+                        qDebug() << "UI下拉框已通过文本匹配同步至:" << selectedPort;
+                    }
+                }
+            }
+            
+            // 更新设置中保存的物理按键串口
+            if (m_settingsManager) {
+                auto settings = m_settingsManager->getCurrentSettings();
+                if (settings.physicalButtonPort != selectedPort) {
+                    settings.physicalButtonPort = selectedPort;
+                    m_settingsManager->updateSettings(settings);
+                    qDebug() << "设置中的物理按键串口已更新为:" << selectedPort;
+                }
+            }
+            
+            // 在状态栏显示连接成功信息
+            statusBar()->showMessage(QString("物理按键串口已连接: %1").arg(selectedPort), 3000);
+            
         } else {
             qDebug() << "串口控制器初始化失败:" << m_serialController->getLastError();
             // 失败时保持"连接"按钮状态，用户可以手动重试
@@ -5060,6 +5098,20 @@ void MutiCamApp::toggleSerialConnection()
             m_serialController->startListening();
             ui->btnConnectSerial->setText("断开");
             qDebug() << "串口连接成功:" << portName;
+            
+            // 手动连接成功后，更新设置中保存的物理按键串口
+            if (m_settingsManager) {
+                auto settings = m_settingsManager->getCurrentSettings();
+                if (settings.physicalButtonPort != portName) {
+                    settings.physicalButtonPort = portName;
+                    m_settingsManager->updateSettings(settings);
+                    qDebug() << "设置中的物理按键串口已更新为:" << portName;
+                }
+            }
+            
+            // 在状态栏显示连接成功信息
+            statusBar()->showMessage(QString("物理按键串口已连接: %1").arg(portName), 3000);
+            
         } else {
             QMessageBox::warning(this, "串口连接失败",
                 QString("无法连接到串口 %1\n错误信息: %2")
