@@ -785,6 +785,11 @@ private:
     // 串口控制器
     SerialController* m_serialController;
     
+    // 按钮状态管理
+    QTimer* m_buttonReleaseTimer;        ///< 按钮释放超时定时器
+    bool m_isButtonPressed;              ///< 按钮当前状态
+    static const int BUTTON_RELEASE_TIMEOUT_MS = 1000;  ///< 按钮释放超时时间(1秒)
+    
     // 轴控制系统
     std::unique_ptr<AxisController> m_axisController;
     
@@ -804,6 +809,9 @@ private:
      void executeCaptureByType(const QString& actionType);
      void testCaptureButton();
     void toggleSerialConnection();
+    
+    // 按钮状态超时处理
+    void onButtonReleaseTimeout();
     
     // 串口检测相关方法
     void initializeSerialPortDetector();

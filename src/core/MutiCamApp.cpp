@@ -52,6 +52,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_settingsManager(nullptr)
     , m_logManager(nullptr)
     , m_serialController(nullptr)
+    , m_buttonReleaseTimer(nullptr)
+    , m_isButtonPressed(false)
     , m_axisController(nullptr)
     , m_serialPortDetector(nullptr)
     , m_isUpdatingUISize(false)
@@ -4820,6 +4822,11 @@ void MutiCamApp::initializeSerialController()
 
     // 创建串口控制器
     m_serialController = new SerialController(this);
+    
+    // 初始化按钮释放定时器
+    m_buttonReleaseTimer = new QTimer(this);
+    m_buttonReleaseTimer->setSingleShot(true);
+    connect(m_buttonReleaseTimer, &QTimer::timeout, this, &MutiCamApp::onButtonReleaseTimeout);
 
     // 连接信号和槽
     connect(m_serialController, &SerialController::buttonEventReceived,
@@ -4953,17 +4960,52 @@ void MutiCamApp::handleButtonEvent(SerialController::ButtonEvent event)
 
     switch (event) {
         case SerialController::ButtonEvent::Button1Pressed:
-            updateButtonStatus("CaptureKey", true);
-            executeCaptureAction();
+            // 避免重复处理按下事件
+            if (!m_isButtonPressed) {
+                updateButtonStatus("CaptureKey", true);
+                executeCaptureAction();
+                m_isButtonPressed = true;
+                
+                // 启动超时定时器，防止按钮状态一直显示按下
+                if (m_buttonReleaseTimer) {
+                    m_buttonReleaseTimer->start(BUTTON_RELEASE_TIMEOUT_MS);
+                }
+                qDebug() << "按钮按下，启动" << BUTTON_RELEASE_TIMEOUT_MS << "ms超时定时器";
+            } else {
+                qDebug() << "按钮已处于按下状态，忽略重复按下事件";
+            }
             break;
 
         case SerialController::ButtonEvent::Button1Released:
-            updateButtonStatus("CaptureKey", false);
+            // 收到真实的释放信号
+            if (m_isButtonPressed) {
+                // 停止超时定时器
+                if (m_buttonReleaseTimer) {
+                    m_buttonReleaseTimer->stop();
+                }
+                updateButtonStatus("CaptureKey", false);
+                m_isButtonPressed = false;
+                qDebug() << "收到真实释放信号，按钮状态已恢复";
+            }
             break;
 
         default:
             qDebug() << "未知按钮事件:" << static_cast<int>(event);
             break;
+    }
+}
+
+void MutiCamApp::onButtonReleaseTimeout()
+{
+    if (m_isButtonPressed) {
+        qDebug() << "按钮释放超时，自动恢复按钮状态";
+        updateButtonStatus("CaptureKey", false);
+        m_isButtonPressed = false;
+        
+        // 记录日志
+        if (m_logManager) {
+            m_logManager->log("物理按钮状态超时自动恢复", LogLevel::INFO);
+        }
     }
 }
 

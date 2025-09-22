@@ -178,14 +178,19 @@ void SerialController::processSerialData()
         buffer[bytesRead] = '\0';
         QByteArray data(buffer, bytesRead);
         
+        // 增强的调试日志输出
+        qDebug() << "收到串口数据:" << data.toHex() << "ASCII:" << data;
+        
         // 发射原始数据信号
         emit dataReceived(data);
         
         // 解析按钮事件
         ButtonEvent event = parseButtonEvent(data);
         if (event != ButtonEvent::Unknown) {
+            qDebug() << "检测到按钮事件:" << static_cast<int>(event) << "数据:" << data;
             emit buttonEventReceived(event, data);
-            qDebug() << "检测到按钮事件:" << static_cast<int>(event);
+        } else {
+            qDebug() << "收到的数据未匹配任何按钮事件";
         }
     }
 }
