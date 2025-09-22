@@ -227,6 +227,25 @@ private slots:
     void onStageStopClicked();             // 紧急停止
     void onStageConnectClicked();          // 轴控制系统连接
     void onStageDisconnectClicked();       // 轴控制系统断开
+    
+    // 绝对位置移动槽函数
+    void onMoveToXClicked();               // X轴绝对位置移动
+    void onMoveToYClicked();               // Y轴绝对位置移动
+    void onMoveToZClicked();               // Z轴绝对位置移动
+    void onMoveToXYZClicked();             // XYZ轴同时绝对位置移动
+    void onGetCurrentPosClicked();         // 获取当前位置
+    
+    // 使能控制槽函数
+    void onEnableXChanged(bool enabled);   // X轴使能状态改变
+    void onEnableYChanged(bool enabled);   // Y轴使能状态改变
+    void onEnableZChanged(bool enabled);   // Z轴使能状态改变
+    
+    // 速度和加速度设置槽函数
+    void onSpeedChanged(int speed);        // 速度改变
+    void onAccelChanged(int accel);        // 加速度改变
+    
+    // 运动模式切换槽函数
+    void onMotionModeChanged(int mode);    // 运动模式改变（0=点动，1=连续）
 
     /**
      * @brief 轨迹记录控制槽函数

@@ -315,6 +315,36 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnDisconnect, &QPushButton::clicked, 
             this, &MutiCamApp::onStageDisconnectClicked);
 
+    // 连接绝对位置移动按钮
+    connect(ui->btnMoveToX, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveToXClicked);
+    connect(ui->btnMoveToY, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveToYClicked);
+    connect(ui->btnMoveToZ, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveToZClicked);
+    connect(ui->btnMoveToXYZ, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveToXYZClicked);
+    connect(ui->btnGetCurrentPos, &QPushButton::clicked,
+            this, &MutiCamApp::onGetCurrentPosClicked);
+
+    // 连接使能控制复选框
+    connect(ui->checkBoxEnableX, &QCheckBox::toggled,
+            this, &MutiCamApp::onEnableXChanged);
+    connect(ui->checkBoxEnableY, &QCheckBox::toggled,
+            this, &MutiCamApp::onEnableYChanged);
+    connect(ui->checkBoxEnableZ, &QCheckBox::toggled,
+            this, &MutiCamApp::onEnableZChanged);
+
+    // 连接速度和加速度设置
+    connect(ui->spinBoxSpeed, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MutiCamApp::onSpeedChanged);
+    connect(ui->spinBoxAccel, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MutiCamApp::onAccelChanged);
+
+    // 连接运动模式切换
+    connect(ui->comboBoxMotionMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MutiCamApp::onMotionModeChanged);
+
     // 连接轨迹记录按钮
     connect(ui->btnTrajectoryStart, &QPushButton::clicked,
             this, &MutiCamApp::onTrajectoryStartClicked);
@@ -5404,5 +5434,374 @@ void MutiCamApp::onStageDisconnectClicked()
             
             qWarning() << errorMsg;
         }
+    }
+}
+
+// ==================== 绝对位置移动槽函数实现 ====================
+
+void MutiCamApp::onMoveToXClicked()
+{
+    qDebug() << "X轴绝对位置移动按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::warning(this, "提示", "请先连接轴控制设备");
+        return;
+    }
+    
+    double targetX = ui->spinBoxTargetX->value();
+    statusBar()->showMessage(QString("正在移动X轴到位置 %1 mm...").arg(targetX), 3000);
+    
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
+        if (m_logManager) {
+            m_logManager->log(QString("X轴开始移动到绝对位置：%1 mm").arg(targetX), LogLevel::INFO);
+        }
+        qDebug() << "X轴开始移动到绝对位置：" << targetX;
+    } else {
+        QString errorMsg = QString("X轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
+        QMessageBox::warning(this, "移动失败", errorMsg);
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onMoveToYClicked()
+{
+    qDebug() << "Y轴绝对位置移动按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::warning(this, "提示", "请先连接轴控制设备");
+        return;
+    }
+    
+    double targetY = ui->spinBoxTargetY->value();
+    statusBar()->showMessage(QString("正在移动Y轴到位置 %1 mm...").arg(targetY), 3000);
+    
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY)) {
+        if (m_logManager) {
+            m_logManager->log(QString("Y轴开始移动到绝对位置：%1 mm").arg(targetY), LogLevel::INFO);
+        }
+        qDebug() << "Y轴开始移动到绝对位置：" << targetY;
+    } else {
+        QString errorMsg = QString("Y轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
+        QMessageBox::warning(this, "移动失败", errorMsg);
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onMoveToZClicked()
+{
+    qDebug() << "Z轴绝对位置移动按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::warning(this, "提示", "请先连接轴控制设备");
+        return;
+    }
+    
+    double targetZ = ui->spinBoxTargetZ->value();
+    statusBar()->showMessage(QString("正在移动Z轴到位置 %1 mm...").arg(targetZ), 3000);
+    
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
+        if (m_logManager) {
+            m_logManager->log(QString("Z轴开始移动到绝对位置：%1 mm").arg(targetZ), LogLevel::INFO);
+        }
+        qDebug() << "Z轴开始移动到绝对位置：" << targetZ;
+    } else {
+        QString errorMsg = QString("Z轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
+        QMessageBox::warning(this, "移动失败", errorMsg);
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onMoveToXYZClicked()
+{
+    qDebug() << "XYZ轴同时绝对位置移动按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::warning(this, "提示", "请先连接轴控制设备");
+        return;
+    }
+    
+    double targetX = ui->spinBoxTargetX->value();
+    double targetY = ui->spinBoxTargetY->value();
+    double targetZ = ui->spinBoxTargetZ->value();
+    
+    statusBar()->showMessage(QString("正在移动XYZ轴到位置 (%1, %2, %3) mm...").arg(targetX).arg(targetY).arg(targetZ), 5000);
+    
+    // 同时移动三个轴
+    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
+    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
+    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
+    
+    if (xSuccess && ySuccess && zSuccess) {
+        if (m_logManager) {
+            m_logManager->log(QString("XYZ轴开始同时移动到绝对位置：X=%1, Y=%2, Z=%3 mm").arg(targetX).arg(targetY).arg(targetZ), LogLevel::INFO);
+        }
+        qDebug() << "XYZ轴开始同时移动到绝对位置：" << targetX << targetY << targetZ;
+    } else {
+        QString errorMsg = QString("XYZ轴同时移动失败：%1").arg(m_axisController->getLastErrorString());
+        QMessageBox::warning(this, "移动失败", errorMsg);
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onGetCurrentPosClicked()
+{
+    qDebug() << "获取当前位置按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::warning(this, "提示", "请先连接轴控制设备");
+        return;
+    }
+    
+    statusBar()->showMessage("正在读取当前位置...", 2000);
+    
+    // 读取各轴当前位置
+    double xPos = m_axisController->getCurrentPosition(AxisControl::AxisIndex::X_AXIS);
+    double yPos = m_axisController->getCurrentPosition(AxisControl::AxisIndex::Y_AXIS);
+    double zPos = m_axisController->getCurrentPosition(AxisControl::AxisIndex::Z_AXIS);
+    
+    // 将读取的位置设置到目标位置输入框
+    ui->spinBoxTargetX->setValue(xPos);
+    ui->spinBoxTargetY->setValue(yPos);
+    ui->spinBoxTargetZ->setValue(zPos);
+    
+    statusBar()->showMessage(QString("当前位置：X=%1, Y=%2, Z=%3 mm").arg(xPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(zPos, 0, 'f', 3), 5000);
+    
+    if (m_logManager) {
+        m_logManager->log(QString("读取当前位置：X=%1, Y=%2, Z=%3 mm").arg(xPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(zPos, 0, 'f', 3), LogLevel::INFO);
+    }
+    
+    qDebug() << "当前位置：X=" << xPos << "Y=" << yPos << "Z=" << zPos;
+}
+
+// ==================== 使能控制槽函数实现 ====================
+
+void MutiCamApp::onEnableXChanged(bool enabled)
+{
+    qDebug() << "X轴使能状态改变：" << enabled;
+    
+    if (!m_axisController) {
+        qWarning() << "轴控制系统未初始化";
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        qDebug() << "轴控制系统未连接，跳过使能设置";
+        return;
+    }
+    
+    if (m_axisController->setAxisEnabled(AxisControl::AxisIndex::X_AXIS, enabled)) {
+        if (m_logManager) {
+            m_logManager->log(QString("X轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
+        }
+        qDebug() << "X轴使能状态设置成功：" << enabled;
+    } else {
+        QString errorMsg = QString("X轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+        
+        // 恢复复选框状态
+        ui->checkBoxEnableX->blockSignals(true);
+        ui->checkBoxEnableX->setChecked(!enabled);
+        ui->checkBoxEnableX->blockSignals(false);
+    }
+}
+
+void MutiCamApp::onEnableYChanged(bool enabled)
+{
+    qDebug() << "Y轴使能状态改变：" << enabled;
+    
+    if (!m_axisController) {
+        qWarning() << "轴控制系统未初始化";
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        qDebug() << "轴控制系统未连接，跳过使能设置";
+        return;
+    }
+    
+    if (m_axisController->setAxisEnabled(AxisControl::AxisIndex::Y_AXIS, enabled)) {
+        if (m_logManager) {
+            m_logManager->log(QString("Y轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
+        }
+        qDebug() << "Y轴使能状态设置成功：" << enabled;
+    } else {
+        QString errorMsg = QString("Y轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+        
+        // 恢复复选框状态
+        ui->checkBoxEnableY->blockSignals(true);
+        ui->checkBoxEnableY->setChecked(!enabled);
+        ui->checkBoxEnableY->blockSignals(false);
+    }
+}
+
+void MutiCamApp::onEnableZChanged(bool enabled)
+{
+    qDebug() << "Z轴使能状态改变：" << enabled;
+    
+    if (!m_axisController) {
+        qWarning() << "轴控制系统未初始化";
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        qDebug() << "轴控制系统未连接，跳过使能设置";
+        return;
+    }
+    
+    if (m_axisController->setAxisEnabled(AxisControl::AxisIndex::Z_AXIS, enabled)) {
+        if (m_logManager) {
+            m_logManager->log(QString("Z轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
+        }
+        qDebug() << "Z轴使能状态设置成功：" << enabled;
+    } else {
+        QString errorMsg = QString("Z轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+        
+        // 恢复复选框状态
+        ui->checkBoxEnableZ->blockSignals(true);
+        ui->checkBoxEnableZ->setChecked(!enabled);
+        ui->checkBoxEnableZ->blockSignals(false);
+    }
+}
+
+// ==================== 速度和加速度设置槽函数实现 ====================
+
+void MutiCamApp::onSpeedChanged(int speed)
+{
+    qDebug() << "速度设置改变：" << speed;
+    
+    if (!m_axisController) {
+        qWarning() << "轴控制系统未初始化";
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        qDebug() << "轴控制系统未连接，跳过速度设置";
+        return;
+    }
+    
+    // 为所有轴设置相同的速度
+    bool xSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::X_AXIS, static_cast<double>(speed));
+    bool ySuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(speed));
+    bool zSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(speed));
+    
+    if (xSuccess && ySuccess && zSuccess) {
+        if (m_logManager) {
+            m_logManager->log(QString("所有轴速度设置为：%1 μm/s").arg(speed), LogLevel::INFO);
+        }
+        qDebug() << "所有轴速度设置成功：" << speed;
+        statusBar()->showMessage(QString("速度已设置为：%1 μm/s").arg(speed), 2000);
+    } else {
+        QString errorMsg = QString("速度设置失败：%1").arg(m_axisController->getLastErrorString());
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onAccelChanged(int accel)
+{
+    qDebug() << "加速度设置改变：" << accel;
+    
+    if (!m_axisController) {
+        qWarning() << "轴控制系统未初始化";
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        qDebug() << "轴控制系统未连接，跳过加速度设置";
+        return;
+    }
+    
+    // 为所有轴设置相同的加速度
+    bool xSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::X_AXIS, static_cast<double>(accel));
+    bool ySuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(accel));
+    bool zSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(accel));
+    
+    if (xSuccess && ySuccess && zSuccess) {
+        if (m_logManager) {
+            m_logManager->log(QString("所有轴加速度设置为：%1").arg(accel), LogLevel::INFO);
+        }
+        qDebug() << "所有轴加速度设置成功：" << accel;
+        statusBar()->showMessage(QString("加速度已设置为：%1").arg(accel), 2000);
+    } else {
+        QString errorMsg = QString("加速度设置失败：%1").arg(m_axisController->getLastErrorString());
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        qWarning() << errorMsg;
+    }
+}
+
+// ==================== 运动模式切换槽函数实现 ====================
+
+void MutiCamApp::onMotionModeChanged(int mode)
+{
+    qDebug() << "运动模式改变：" << (mode == 0 ? "点动模式" : "连续模式");
+    
+    QString modeText = (mode == 0) ? "点动模式" : "连续模式";
+    
+    if (m_logManager) {
+        m_logManager->log(QString("运动模式切换为：%1").arg(modeText), LogLevel::INFO);
+    }
+    
+    statusBar()->showMessage(QString("运动模式已切换为：%1").arg(modeText), 2000);
+    
+    // 根据模式调整UI行为
+    if (mode == 0) {
+        // 点动模式：需要修改方向按钮为按下开始移动，松开停止移动
+        // 这里可以添加特殊的点动模式处理逻辑
+        qDebug() << "切换到点动模式，方向按钮将支持按压式移动";
+    } else {
+        // 连续模式：点击按钮执行固定距离移动
+        qDebug() << "切换到连续模式，方向按钮将执行固定步长移动";
     }
 }
