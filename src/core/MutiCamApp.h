@@ -33,6 +33,7 @@
 #include "LogManager.h"
 #include "TrajectoryRecorder.h"
 #include "SerialController.h"
+#include "AxisController.h"
 #include <functional>
 
 #ifndef M_PI
@@ -224,6 +225,8 @@ private slots:
     void onMoveZDownClicked();             // Z轴负方向移动
     void onStageHomeClicked();             // 回到原点
     void onStageStopClicked();             // 紧急停止
+    void onStageConnectClicked();          // 轴控制系统连接
+    void onStageDisconnectClicked();       // 轴控制系统断开
 
     /**
      * @brief 轨迹记录控制槽函数
@@ -760,8 +763,11 @@ private:
      // 日志管理器
      LogManager* m_logManager;
 
-     // 串口控制器
-     SerialController* m_serialController;
+    // 串口控制器
+    SerialController* m_serialController;
+    
+    // 轴控制系统
+    std::unique_ptr<AxisController> m_axisController;
 
      // UI尺寸双向绑定相关
      bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发
@@ -775,9 +781,25 @@ private:
      void executeCaptureAction();
      void executeCaptureByType(const QString& actionType);
      void testCaptureButton();
-     void toggleSerialConnection();
+    void toggleSerialConnection();
+    
+    // 轴控制系统相关方法
+    void initializeAxisController();
+    void connectAxisControllerSignals();
+    
+    // 轴控制系统槽函数
+    void onAxisDeviceConnected(const AxisController::DeviceInfo& deviceInfo);
+    void onAxisDeviceDisconnected();
+    void onAxisConnectionStateChanged(bool connected);
+    void onAxisPositionChanged(AxisIndex axis, double position);
+    void onAxisMotionStateChanged(AxisIndex axis, MotionState state);
+    void onAxisMotionCompleted(AxisIndex axis, double finalPosition);
+    void onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString);
+    void onAxisLimitTriggered(AxisIndex axis, LimitState limitState);
+    void onAxisHomeCompleted(AxisIndex axis, bool success);
+    void onAxisEmergencyStopTriggered();
 
-     // 参数预设相关方法
+    // 参数预设相关方法
      void initializeCapturePresets();
      void saveCapturePreset();
      void loadCapturePreset();

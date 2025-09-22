@@ -50,6 +50,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_settingsManager(nullptr)
     , m_logManager(nullptr)
     , m_serialController(nullptr)
+    , m_axisController(nullptr)
     , m_isUpdatingUISize(false)
 {
     ui->setupUi(this);
@@ -68,6 +69,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 初始化串口控制器
     initializeSerialController();
+    
+    // 初始化轴控制系统
+    initializeAxisController();
 
     // 初始化拍照参数预设
     initializeCapturePresets();
@@ -303,6 +307,12 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onStageHomeClicked);
     connect(ui->btnStageStop, &QPushButton::clicked,
             this, &MutiCamApp::onStageStopClicked);
+            
+    // 连接载物台连接控制按钮
+    connect(ui->btnConnect, &QPushButton::clicked, 
+            this, &MutiCamApp::onStageConnectClicked);
+    connect(ui->btnDisconnect, &QPushButton::clicked, 
+            this, &MutiCamApp::onStageDisconnectClicked);
 
     // 连接轨迹记录按钮
     connect(ui->btnTrajectoryStart, &QPushButton::clicked,
@@ -4303,8 +4313,18 @@ void MutiCamApp::onMoveXLeftClicked()
         m_trajectoryRecorder->recordMovement("x-", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(-stepSize, 0, 0);
+    // 实际的载物台X轴负向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
+            QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onMoveXRightClicked()
@@ -4320,8 +4340,18 @@ void MutiCamApp::onMoveXRightClicked()
         m_trajectoryRecorder->recordMovement("x+", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(stepSize, 0, 0);
+    // 实际的载物台X轴正向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
+            QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onMoveYUpClicked()
@@ -4337,8 +4367,18 @@ void MutiCamApp::onMoveYUpClicked()
         m_trajectoryRecorder->recordMovement("y+", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(0, stepSize, 0);
+    // 实际的载物台Y轴正向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
+            QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onMoveYDownClicked()
@@ -4354,8 +4394,18 @@ void MutiCamApp::onMoveYDownClicked()
         m_trajectoryRecorder->recordMovement("y-", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(0, -stepSize, 0);
+    // 实际的载物台Y轴负向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
+            QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onMoveZUpClicked()
@@ -4371,8 +4421,18 @@ void MutiCamApp::onMoveZUpClicked()
         m_trajectoryRecorder->recordMovement("z+", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(0, 0, stepSize);
+    // 实际的载物台Z轴正向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
+            QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onMoveZDownClicked()
@@ -4388,8 +4448,18 @@ void MutiCamApp::onMoveZDownClicked()
         m_trajectoryRecorder->recordMovement("z-", stepSize, m_currentX, m_currentY, m_currentZ);
     }
 
-    // TODO: 实现实际的载物台移动逻辑
-    // stageController->moveRelative(0, 0, -stepSize);
+    // 实际的载物台Z轴负向移动
+    if (m_axisController && m_axisController->isConnected()) {
+        if (!m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
+            QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "移动错误", errorMsg);
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onStageHomeClicked()
@@ -4405,8 +4475,31 @@ void MutiCamApp::onStageHomeClicked()
         m_trajectoryRecorder->recordPoint(m_currentX, m_currentY, m_currentZ, "home");
     }
 
-    // TODO: 实现实际的载物台回原点逻辑
-    // stageController->moveToHome();
+    // 实际的载物台回零功能
+    if (m_axisController && m_axisController->isConnected()) {
+        // 询问用户是否要执行回零操作
+        int ret = QMessageBox::question(this, "确认回零", 
+                                       "是否确定要执行所有轴回零操作？\n注意：此操作可能需要较长时间。",
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+        
+        if (ret == QMessageBox::Yes) {
+            if (!m_axisController->goHomeAll()) {
+                QString errorMsg = QString("回零操作失败：%1").arg(m_axisController->getLastErrorString());
+                QMessageBox::warning(this, "回零错误", errorMsg);
+                if (m_logManager) {
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
+            } else {
+                statusBar()->showMessage("正在执行回零操作...", 10000);
+                if (m_logManager) {
+                    m_logManager->log("开始执行所有轴回零操作", LogLevel::INFO);
+                }
+            }
+        }
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+    }
 }
 
 void MutiCamApp::onStageStopClicked()
@@ -4418,8 +4511,22 @@ void MutiCamApp::onStageStopClicked()
         m_trajectoryRecorder->recordPoint(m_currentX, m_currentY, m_currentZ, "emergency_stop");
     }
 
-    // TODO: 实现实际的载物台紧急停止逻辑
-    // stageController->emergencyStop();
+    // 实际的载物台急停功能
+    if (m_axisController) {
+        // 触发急停（无论是否连接，都要尝试停止）
+        m_axisController->emergencyStop();
+        
+        statusBar()->showMessage("急停已触发！所有运动已停止", 5000);
+        if (m_logManager) {
+            m_logManager->log("用户触发急停操作", LogLevel::ERROR_LEVEL);
+        }
+        
+        // 显示急停确认对话框
+        QMessageBox::warning(this, "急停确认", 
+                           "急停已触发！\n所有轴运动已立即停止。\n如需恢复，请重新连接设备或重置控制器。");
+    } else {
+        QMessageBox::information(this, "提示", "轴控制系统未初始化");
+    }
 }
 
 double MutiCamApp::getCurrentStepSize() const
@@ -4472,6 +4579,62 @@ void MutiCamApp::initializeTrajectoryRecorder()
             });
 
     qDebug() << "轨迹记录器初始化完成";
+}
+
+void MutiCamApp::initializeAxisController()
+{
+    try {
+        // 创建轴控制器实例
+        m_axisController = std::make_unique<AxisController>(this);
+        
+        // 连接轴控制器信号
+        connectAxisControllerSignals();
+        
+        qDebug() << "轴控制系统初始化完成";
+        
+    } catch (const std::exception& e) {
+        QString errorMsg = QString("轴控制系统初始化失败：%1").arg(e.what());
+        QMessageBox::critical(this, "错误", errorMsg);
+        qCritical() << errorMsg;
+        
+        // 如果初始化失败，确保指针为空
+        m_axisController.reset();
+    }
+}
+
+void MutiCamApp::connectAxisControllerSignals()
+{
+    if (!m_axisController) {
+        return;
+    }
+    
+    // 连接设备连接状态信号
+    connect(m_axisController.get(), &AxisController::deviceConnected,
+            this, &MutiCamApp::onAxisDeviceConnected);
+    connect(m_axisController.get(), &AxisController::deviceDisconnected,
+            this, &MutiCamApp::onAxisDeviceDisconnected);
+    connect(m_axisController.get(), &AxisController::connectionStateChanged,
+            this, &MutiCamApp::onAxisConnectionStateChanged);
+            
+    // 连接运动状态信号
+    connect(m_axisController.get(), &AxisController::positionChanged,
+            this, &MutiCamApp::onAxisPositionChanged);
+    connect(m_axisController.get(), &AxisController::motionStateChanged,
+            this, &MutiCamApp::onAxisMotionStateChanged);
+    connect(m_axisController.get(), &AxisController::motionCompleted,
+            this, &MutiCamApp::onAxisMotionCompleted);
+            
+    // 连接错误和异常信号
+    connect(m_axisController.get(), &AxisController::errorOccurred,
+            this, &MutiCamApp::onAxisErrorOccurred);
+    connect(m_axisController.get(), &AxisController::limitTriggered,
+            this, &MutiCamApp::onAxisLimitTriggered);
+    connect(m_axisController.get(), &AxisController::homeCompleted,
+            this, &MutiCamApp::onAxisHomeCompleted);
+    connect(m_axisController.get(), &AxisController::emergencyStopTriggered,
+            this, &MutiCamApp::onAxisEmergencyStopTriggered);
+    
+    qDebug() << "轴控制器信号连接完成";
 }
 
 void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double deltaZ)
@@ -4951,5 +5114,296 @@ void MutiCamApp::applyCapturePreset()
     // 延迟保存设置（避免频繁保存）
     if (m_settingsManager) {
         m_settingsManager->saveSettingsDelayed(this);
+    }
+}
+
+// ==================== 轴控制系统槽函数实现 ====================
+
+void MutiCamApp::onAxisDeviceConnected(const AxisController::DeviceInfo& deviceInfo)
+{
+    QString connectedMsg = QString("轴控制设备已连接：%1@%2:%3")
+                          .arg(deviceInfo.deviceModel)
+                          .arg(deviceInfo.portName)
+                          .arg(deviceInfo.baudRate);
+    
+    statusBar()->showMessage(connectedMsg, 5000);
+    
+    if (m_logManager) {
+        m_logManager->log(connectedMsg, LogLevel::INFO);
+    }
+    
+    qDebug() << connectedMsg;
+}
+
+void MutiCamApp::onAxisDeviceDisconnected()
+{
+    QString disconnectedMsg = "轴控制设备已断开连接";
+    statusBar()->showMessage(disconnectedMsg, 3000);
+    
+    if (m_logManager) {
+        m_logManager->log(disconnectedMsg, LogLevel::INFO);
+    }
+    
+    qDebug() << disconnectedMsg;
+}
+
+void MutiCamApp::onAxisConnectionStateChanged(bool connected)
+{
+    // 更新UI状态，如果有连接按钮的话
+    QString stateMsg = connected ? "轴控制系统已连接" : "轴控制系统已断开";
+    
+    if (m_logManager) {
+        m_logManager->log(stateMsg, LogLevel::INFO);
+    }
+}
+
+void MutiCamApp::onAxisPositionChanged(AxisIndex axis, double position)
+{
+    // 更新轴位置到UI和内部状态
+    switch (axis) {
+        case AxisIndex::X_AXIS:
+            m_currentX = position;
+            ui->labelXPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            break;
+        case AxisIndex::Y_AXIS:
+            m_currentY = position;
+            ui->labelYPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            break;
+        case AxisIndex::Z_AXIS:
+            m_currentZ = position;
+            ui->labelZPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            break;
+        default:
+            break;
+    }
+}
+
+void MutiCamApp::onAxisMotionStateChanged(AxisIndex axis, MotionState state)
+{
+    QString axisName = axisToString(axis);
+    QString stateName;
+    
+    switch (state) {
+        case MotionState::Idle:
+            stateName = "空闲";
+            break;
+        case MotionState::Moving:
+            stateName = "运动中";
+            break;
+        case MotionState::Homing:
+            stateName = "回零中";
+            break;
+        case MotionState::Stopped:
+            stateName = "已停止";
+            break;
+        case MotionState::Error:
+            stateName = "错误";
+            break;
+    }
+    
+    QString stateMsg = QString("%1状态：%2").arg(axisName).arg(stateName);
+    
+    // 如果有状态标签，更新UI显示
+    // ui->labelAxisStatus->setText(stateMsg);
+    
+    qDebug() << stateMsg;
+}
+
+void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
+{
+    QString axisName = axisToString(axis);
+    QString completedMsg = QString("%1运动完成，最终位置：%2 μm")
+                          .arg(axisName)
+                          .arg(finalPosition, 0, 'f', 2);
+    
+    if (m_logManager) {
+        m_logManager->log(completedMsg, LogLevel::INFO);
+    }
+    
+    qDebug() << completedMsg;
+}
+
+void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString)
+{
+    QString axisName = axis == AxisIndex::INVALID_AXIS ? "系统" : axisToString(axis);
+    QString errorMsg = QString("%1错误：%2").arg(axisName).arg(errorString);
+    
+    // 显示错误消息
+    QMessageBox::warning(this, "轴控制错误", errorMsg);
+    
+    if (m_logManager) {
+        m_logManager->log(errorMsg, LogLevel::WARNING);
+    }
+    
+    qWarning() << errorMsg;
+}
+
+void MutiCamApp::onAxisLimitTriggered(AxisIndex axis, LimitState limitState)
+{
+    QString axisName = axisToString(axis);
+    QString limitName;
+    
+    switch (limitState) {
+        case LimitState::Positive:
+            limitName = "正限位";
+            break;
+        case LimitState::Negative:
+            limitName = "负限位";
+            break;
+        case LimitState::Both:
+            limitName = "双限位";
+            break;
+        default:
+            limitName = "未知限位";
+            break;
+    }
+    
+    QString limitMsg = QString("%1触发%2").arg(axisName).arg(limitName);
+    
+    QMessageBox::warning(this, "限位警告", limitMsg);
+    
+    if (m_logManager) {
+        m_logManager->log(limitMsg, LogLevel::WARNING);
+    }
+    
+    qWarning() << limitMsg;
+}
+
+void MutiCamApp::onAxisHomeCompleted(AxisIndex axis, bool success)
+{
+    QString axisName = axisToString(axis);
+    QString homeMsg = QString("%1回零%2").arg(axisName).arg(success ? "成功" : "失败");
+    
+    if (success) {
+        statusBar()->showMessage(homeMsg, 3000);
+        if (m_logManager) {
+            m_logManager->log(homeMsg, LogLevel::INFO);
+        }
+    } else {
+        QMessageBox::warning(this, "回零失败", homeMsg);
+        if (m_logManager) {
+            m_logManager->log(homeMsg, LogLevel::WARNING);
+        }
+    }
+    
+    qDebug() << homeMsg;
+}
+
+void MutiCamApp::onAxisEmergencyStopTriggered()
+{
+    QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止";
+    
+    QMessageBox::critical(this, "急停警告", emergencyMsg);
+    
+    if (m_logManager) {
+        m_logManager->log(emergencyMsg, LogLevel::ERROR_LEVEL);
+    }
+    
+    qCritical() << emergencyMsg;
+}
+
+// ==================== 载物台连接控制槽函数实现 ====================
+
+void MutiCamApp::onStageConnectClicked()
+{
+    qDebug() << "载物台连接按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统已经连接");
+        return;
+    }
+    
+    // 获取连接参数（这里使用默认参数，实际使用时可以从UI获取）
+    QString portName = "COM1";  // 默认串口，可以从设置中读取
+    int baudRate = 9600;        // 默认波特率
+    AxisControl::ConnectionType connectionType = AxisControl::ConnectionType::Serial;
+    
+    // 尝试连接
+    statusBar()->showMessage("正在连接轴控制设备...", 3000);
+    
+    if (m_axisController->connectDevice(portName, baudRate, connectionType)) {
+        // 连接成功
+        ui->btnConnect->setEnabled(false);
+        ui->btnDisconnect->setEnabled(true);
+        // TODO: 添加状态标签到UI
+        // ui->labelStageConnectionStatus->setText("已连接");
+        // ui->labelStageConnectionStatus->setStyleSheet("color: green; font-weight: bold;");
+        
+        statusBar()->showMessage("轴控制设备连接成功", 3000);
+        
+        if (m_logManager) {
+            m_logManager->log(QString("轴控制设备连接成功：%1@%2").arg(portName).arg(baudRate), LogLevel::INFO);
+        }
+        
+        qDebug() << "轴控制设备连接成功";
+        
+    } else {
+        // 连接失败
+        QString errorMsg = QString("轴控制设备连接失败：%1").arg(m_axisController->getLastErrorString());
+        QMessageBox::warning(this, "连接失败", errorMsg);
+        
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+        
+        qWarning() << errorMsg;
+    }
+}
+
+void MutiCamApp::onStageDisconnectClicked()
+{
+    qDebug() << "载物台断开按钮点击";
+    
+    if (!m_axisController) {
+        QMessageBox::warning(this, "错误", "轴控制系统未初始化");
+        return;
+    }
+    
+    if (!m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统尚未连接");
+        return;
+    }
+    
+    // 询问用户是否确认断开
+    int ret = QMessageBox::question(this, "确认断开", 
+                                   "是否确定要断开轴控制设备？\n正在进行的运动将被停止。",
+                                   QMessageBox::Yes | QMessageBox::No,
+                                   QMessageBox::No);
+    
+    if (ret == QMessageBox::Yes) {
+        statusBar()->showMessage("正在断开轴控制设备...", 3000);
+        
+        if (m_axisController->disconnectDevice()) {
+            // 断开成功
+            ui->btnConnect->setEnabled(true);
+            ui->btnDisconnect->setEnabled(false);
+            // TODO: 添加状态标签到UI
+            // ui->labelStageConnectionStatus->setText("未连接");
+            // ui->labelStageConnectionStatus->setStyleSheet("color: gray; font-weight: bold;");
+            
+            statusBar()->showMessage("轴控制设备已断开", 3000);
+            
+            if (m_logManager) {
+                m_logManager->log("轴控制设备已断开", LogLevel::INFO);
+            }
+            
+            qDebug() << "轴控制设备已断开";
+            
+        } else {
+            // 断开失败
+            QString errorMsg = QString("轴控制设备断开失败：%1").arg(m_axisController->getLastErrorString());
+            QMessageBox::warning(this, "断开失败", errorMsg);
+            
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+            
+            qWarning() << errorMsg;
+        }
     }
 }
