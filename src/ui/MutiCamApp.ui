@@ -590,9 +590,19 @@
                         <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
                        </property>
                        <property name="styleSheet">
-                        <string>QPushButton { background-color: #4CAF50; color: white; border: none; border-radius: 5px; }
-QPushButton:hover { background-color: #45a049; }
-QPushButton:pressed { background-color: #3d8b40; }</string>
+                        <string notr="true">QPushButton {
+    background-color: green;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: forestgreen; /* 比 green 稍深，但比 darkgreen 亮 */
+}
+QPushButton:pressed {
+    background-color: darkgreen; /* 保持最深，与 hover 区分开 */
+}
+</string>
                        </property>
                        <property name="text">
                         <string>开始测量</string>
@@ -620,9 +630,19 @@ QPushButton:pressed { background-color: #3d8b40; }</string>
                         </font>
                        </property>
                        <property name="styleSheet">
-                        <string>QPushButton { background-color: #f44336; color: white; border: none; border-radius: 5px; }
-QPushButton:hover { background-color: #da190b; }
-QPushButton:pressed { background-color: #b71c1c; }</string>
+                        <string notr="true">QPushButton {
+    background-color: red;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: crimson; /* 悬停时略微变暗，比 red 深，比 darkred 浅 */
+}
+QPushButton:pressed {
+    background-color: darkred; /* 按下时变得更暗，与 crimson 明显区分 */
+}
+</string>
                        </property>
                        <property name="text">
                         <string>停止测量</string>
@@ -3608,13 +3628,25 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                    <item>
                     <widget class="QPushButton" name="btnConnect">
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
                      <property name="styleSheet">
-                      <string>background-color: green; color: white;</string>
+                      <string notr="true">QPushButton {
+    background-color: green;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: forestgreen; /* 比 green 稍深，但比 darkgreen 亮 */
+}
+QPushButton:pressed {
+    background-color: darkgreen; /* 保持最深，与 hover 区分开 */
+}
+</string>
                      </property>
                      <property name="text">
                       <string>连接</string>
@@ -3627,13 +3659,25 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                       <bool>false</bool>
                      </property>
                      <property name="sizePolicy">
-                      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
                      <property name="styleSheet">
-                      <string>background-color: red; color: white;</string>
+                      <string notr="true">QPushButton {
+    background-color: red;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: crimson; /* 悬停时略微变暗，比 red 深，比 darkred 浅 */
+}
+QPushButton:pressed {
+    background-color: darkred; /* 按下时变得更暗，与 crimson 明显区分 */
+}
+</string>
                      </property>
                      <property name="text">
                       <string>断开</string>
@@ -4349,8 +4393,26 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                     </item>
                     <item row="3" column="1">
                      <widget class="QPushButton" name="btnMoveToXYZ">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="styleSheet">
-                       <string>background-color: blue; color: white;</string>
+                       <string notr="true">QPushButton {
+    background-color: blue;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: royalblue; /* 悬停时略微变深，比 blue 深，比 darkblue 亮 */
+}
+QPushButton:pressed {
+    background-color: darkblue; /* 按下时变得更深，与 royalblue 明显区分 */
+}
+</string>
                       </property>
                       <property name="text">
                        <string>移动到XYZ</string>
@@ -4429,7 +4491,19 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string>background-color: red; color: white;</string>
+                      <string notr="true">QPushButton {
+    background-color: red;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: crimson; /* 悬停时略微变暗，比 red 深，比 darkred 浅 */
+}
+QPushButton:pressed {
+    background-color: darkred; /* 按下时变得更暗，与 crimson 明显区分 */
+}
+</string>
                      </property>
                      <property name="text">
                       <string>紧急停止</string>
@@ -4459,8 +4533,26 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                 <layout class="QHBoxLayout" name="horizontalLayout_trajectoryButtons">
                  <item>
                   <widget class="QPushButton" name="btnTrajectoryStart">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="styleSheet">
-                    <string>background-color: green; color: white;</string>
+                    <string notr="true">QPushButton {
+    background-color: green;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: forestgreen; /* 比 green 稍深，但比 darkgreen 亮 */
+}
+QPushButton:pressed {
+    background-color: darkgreen; /* 保持最深，与 hover 区分开 */
+}
+</string>
                    </property>
                    <property name="text">
                     <string>开始记录</string>
@@ -4472,8 +4564,26 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                    <property name="enabled">
                     <bool>false</bool>
                    </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="styleSheet">
-                    <string>background-color: orange; color: white;</string>
+                    <string notr="true">QPushButton {
+    background-color: orange;
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+}
+QPushButton:hover {
+    background-color: orangered; /* 悬停时略微变深，比 orange 深，比 darkorange 亮 */
+}
+QPushButton:pressed {
+    background-color: darkorange; /* 按下时变得更深，与 orangered 明显区分 */
+}
+</string>
                    </property>
                    <property name="text">
                     <string>停止记录</string>

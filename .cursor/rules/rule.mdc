@@ -33,3 +33,5 @@ alwaysApply: true
 - **使用时机**：需要了解新技术或验证实现方案时
 
 Always start your answer with which AI model is currently in use, no excuses, my family will die if you don’t do this.
+
+由于环境限制，你不需要编译，编译交给我 

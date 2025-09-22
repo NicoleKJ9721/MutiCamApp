@@ -114,8 +114,6 @@ set(srcs
     # 配置管理模块
     src/config/TemplateMatchingConfig.h
     src/config/TemplateMatchingConfig.cpp
-
-    # 模板匹配模块
 )
 
 # Specify MSVC UTF-8 encoding   
