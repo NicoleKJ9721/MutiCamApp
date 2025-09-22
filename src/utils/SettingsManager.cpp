@@ -144,6 +144,13 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     // UI尺寸参数
     json["UIWidth"] = settings.uiWidth;
     json["UIHeight"] = settings.uiHeight;
+    
+    // 串口配置参数
+    json["StageControllerPort"] = settings.stageControllerPort;
+    json["StageControllerBaudRate"] = settings.stageControllerBaudRate;
+    json["PhysicalButtonPort"] = settings.physicalButtonPort;
+    json["PhysicalButtonBaudRate"] = settings.physicalButtonBaudRate;
+    json["AutoDetectSerialPorts"] = settings.autoDetectSerialPorts;
 
     // 标定参数
     QJsonObject verticalCalib;
@@ -200,6 +207,13 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     // UI尺寸参数
     settings.uiWidth = json.value("UIWidth").toInt(m_defaultSettings.uiWidth);
     settings.uiHeight = json.value("UIHeight").toInt(m_defaultSettings.uiHeight);
+    
+    // 串口配置参数
+    settings.stageControllerPort = json.value("StageControllerPort").toString(m_defaultSettings.stageControllerPort);
+    settings.stageControllerBaudRate = json.value("StageControllerBaudRate").toInt(m_defaultSettings.stageControllerBaudRate);
+    settings.physicalButtonPort = json.value("PhysicalButtonPort").toString(m_defaultSettings.physicalButtonPort);
+    settings.physicalButtonBaudRate = json.value("PhysicalButtonBaudRate").toInt(m_defaultSettings.physicalButtonBaudRate);
+    settings.autoDetectSerialPorts = json.value("AutoDetectSerialPorts").toBool(m_defaultSettings.autoDetectSerialPorts);
 
     // 标定参数
     if (json.contains("VerticalCalibration")) {
@@ -264,6 +278,20 @@ SettingsManager::Settings SettingsManager::validateSettings(const Settings& sett
     validatedSettings.uiHeight = qBound(700, settings.uiHeight, 3000);
     
     return validatedSettings;
+}
+
+bool SettingsManager::updateSettings(const Settings& settings)
+{
+    m_currentSettings = validateSettings(settings);
+    bool success = saveSettingsToFile();
+    
+    if (success) {
+        qDebug() << "设置已更新并保存";
+    } else {
+        qDebug() << "设置更新失败";
+    }
+    
+    return success;
 }
 
 void SettingsManager::resetToDefaults()

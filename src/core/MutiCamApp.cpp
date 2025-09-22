@@ -3,6 +3,7 @@
 #include "../ui/TemplateSelectionDialog.h"
 #include "../ui/ZoomPanWidget.h"
 #include "../controllers/AxisControllerEnums.h"
+#include "../utils/SerialPortDetector.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -52,6 +53,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_logManager(nullptr)
     , m_serialController(nullptr)
     , m_axisController(nullptr)
+    , m_serialPortDetector(nullptr)
     , m_isUpdatingUISize(false)
 {
     ui->setupUi(this);
@@ -67,6 +69,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 初始化轨迹记录器
     initializeTrajectoryRecorder();
+
+    // 初始化串口检测器
+    initializeSerialPortDetector();
 
     // 初始化串口控制器
     initializeSerialController();
@@ -170,6 +175,12 @@ MutiCamApp::~MutiCamApp()
         m_serialController->closePort();
         delete m_serialController;
         m_serialController = nullptr;
+    }
+
+    // 清理串口检测器
+    if (m_serialPortDetector) {
+        delete m_serialPortDetector;
+        m_serialPortDetector = nullptr;
     }
 
     delete ui;
@@ -381,6 +392,12 @@ void MutiCamApp::connectSignalsAndSlots()
 
     // 连接参数输入框的实时保存信号
     connectSettingsSignals();
+    
+    // 连接串口选择框变化信号
+    connect(ui->comboBoxPort, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MutiCamApp::onStagePortSelectionChanged);
+    connect(ui->comboBoxSerialPort, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MutiCamApp::onPhysicalButtonPortSelectionChanged);
 
     // 注意：相机管理器信号将在相机系统初始化时连接
     
@@ -4849,22 +4866,32 @@ void MutiCamApp::initializeSerialController()
     // 连接串口控制按钮
     connect(ui->btnConnectSerial, &QPushButton::clicked, this, &MutiCamApp::toggleSerialConnection);
 
-    // 尝试自动连接默认串口
-    QString defaultPort = "COM5";  // 可以从设置中读取
-#ifndef _WIN32
-    defaultPort = "/dev/ttyUSB0";
-#endif
+    // 从设置中获取配置的串口
+    QString configuredPort;
+    if (m_settingsManager) {
+        const auto& settings = m_settingsManager->getCurrentSettings();
+        configuredPort = settings.physicalButtonPort;
+    }
+    
+    // 如果没有配置串口或配置的串口不可用，尝试获取推荐串口
+    if (configuredPort.isEmpty() || !m_serialPortDetector->isPortAvailable(configuredPort)) {
+        configuredPort = m_serialPortDetector->getRecommendedPort();
+        qDebug() << "使用推荐串口:" << configuredPort;
+    }
 
-    // 设置默认串口到选择框
-    ui->comboBoxSerialPort->setCurrentText(defaultPort);
-
-    if (m_serialController->openPort(defaultPort)) {
-        m_serialController->startListening();
-        ui->btnConnectSerial->setText("断开");
-        qDebug() << "串口控制器初始化成功，端口:" << defaultPort;
+    // 如果有可用串口，尝试连接
+    if (!configuredPort.isEmpty()) {
+        if (m_serialController->openPort(configuredPort)) {
+            m_serialController->startListening();
+            ui->btnConnectSerial->setText("断开");
+            qDebug() << "串口控制器初始化成功，端口:" << configuredPort;
+        } else {
+            qDebug() << "串口控制器初始化失败:" << m_serialController->getLastError();
+            // 失败时保持"连接"按钮状态，用户可以手动重试
+        }
     } else {
-        qDebug() << "串口控制器初始化失败:" << m_serialController->getLastError();
-        // 失败时保持"连接"按钮状态，用户可以手动重试
+        qDebug() << "未找到可用的串口，请手动选择串口连接";
+        statusBar()->showMessage("未找到可用串口，请手动选择串口连接", 5000);
     }
 }
 
@@ -5349,9 +5376,33 @@ void MutiCamApp::onStageConnectClicked()
         return;
     }
     
-    // 获取连接参数（这里使用默认参数，实际使用时可以从UI获取）
-    QString portName = "COM1";  // 默认串口，可以从设置中读取
-    int baudRate = 9600;        // 默认波特率
+    // 从UI或设置中获取连接参数
+    QString portName;
+    int baudRate = 9600;  // 默认波特率
+    
+    // 优先从UI选择框获取串口名称
+    if (ui->comboBoxPort && ui->comboBoxPort->currentIndex() >= 0) {
+        QVariant portData = ui->comboBoxPort->currentData();
+        if (portData.isValid() && !portData.toString().isEmpty()) {
+            portName = portData.toString();
+        } else {
+            portName = ui->comboBoxPort->currentText();
+        }
+    }
+    
+    // 如果UI没有选择或选择无效，从设置中获取
+    if (portName.isEmpty() && m_settingsManager) {
+        const auto& settings = m_settingsManager->getCurrentSettings();
+        portName = settings.stageControllerPort;
+        baudRate = settings.stageControllerBaudRate;
+    }
+    
+    // 如果仍然没有端口，使用推荐端口
+    if (portName.isEmpty() || !m_serialPortDetector->isPortAvailable(portName)) {
+        portName = m_serialPortDetector->getRecommendedPort();
+        qDebug() << "载物台控制使用推荐串口:" << portName;
+    }
+    
     AxisControl::ConnectionType connectionType = AxisControl::ConnectionType::Serial;
     
     // 尝试连接
@@ -5803,5 +5854,144 @@ void MutiCamApp::onMotionModeChanged(int mode)
     } else {
         // 连续模式：点击按钮执行固定距离移动
         qDebug() << "切换到连续模式，方向按钮将执行固定步长移动";
+    }
+}
+
+void MutiCamApp::initializeSerialPortDetector()
+{
+    qDebug() << "初始化串口检测器...";
+    
+    // 创建串口检测器
+    m_serialPortDetector = new SerialPortDetector(this);
+    
+    // 连接信号
+    connect(m_serialPortDetector, &SerialPortDetector::portsChanged,
+            this, &MutiCamApp::onSerialPortsChanged);
+    
+    // 初始化串口列表
+    updateSerialPortLists();
+    
+    // 如果设置中启用了自动检测，开始自动检测
+    if (m_settingsManager) {
+        const auto& settings = m_settingsManager->getCurrentSettings();
+        if (settings.autoDetectSerialPorts) {
+            m_serialPortDetector->startAutoDetection(3000); // 每3秒检测一次
+            qDebug() << "启动串口自动检测";
+        }
+    }
+    
+    qDebug() << "串口检测器初始化完成";
+}
+
+void MutiCamApp::updateSerialPortLists()
+{
+    if (!m_serialPortDetector) {
+        return;
+    }
+    
+    // 更新载物台控制串口列表
+    if (ui->comboBoxPort) {
+        m_serialPortDetector->updateComboBoxPorts(ui->comboBoxPort, true);
+        qDebug() << "更新载物台控制串口列表";
+    }
+    
+    // 更新物理按键串口列表
+    if (ui->comboBoxSerialPort) {
+        m_serialPortDetector->updateComboBoxPorts(ui->comboBoxSerialPort, true);
+        qDebug() << "更新物理按键串口列表";
+    }
+    
+    // 从设置中恢复选择的串口
+    if (m_settingsManager) {
+        const auto& settings = m_settingsManager->getCurrentSettings();
+        
+        // 设置载物台控制串口
+        if (ui->comboBoxPort && !settings.stageControllerPort.isEmpty()) {
+            int index = ui->comboBoxPort->findData(settings.stageControllerPort);
+            if (index >= 0) {
+                ui->comboBoxPort->setCurrentIndex(index);
+            } else {
+                // 如果找不到数据匹配，尝试文本匹配
+                index = ui->comboBoxPort->findText(settings.stageControllerPort);
+                if (index >= 0) {
+                    ui->comboBoxPort->setCurrentIndex(index);
+                }
+            }
+        }
+        
+        // 设置物理按键串口
+        if (ui->comboBoxSerialPort && !settings.physicalButtonPort.isEmpty()) {
+            int index = ui->comboBoxSerialPort->findData(settings.physicalButtonPort);
+            if (index >= 0) {
+                ui->comboBoxSerialPort->setCurrentIndex(index);
+            } else {
+                // 如果找不到数据匹配，尝试文本匹配
+                index = ui->comboBoxSerialPort->findText(settings.physicalButtonPort);
+                if (index >= 0) {
+                    ui->comboBoxSerialPort->setCurrentIndex(index);
+                }
+            }
+        }
+    }
+}
+
+void MutiCamApp::onSerialPortsChanged()
+{
+    qDebug() << "检测到串口变化，更新列表";
+    updateSerialPortLists();
+    
+    // 在状态栏显示提示
+    statusBar()->showMessage("串口列表已更新", 2000);
+}
+
+void MutiCamApp::onStagePortSelectionChanged()
+{
+    if (!ui->comboBoxPort || !m_settingsManager) {
+        return;
+    }
+    
+    // 获取选择的串口
+    QString selectedPort;
+    QVariant portData = ui->comboBoxPort->currentData();
+    if (portData.isValid() && !portData.toString().isEmpty()) {
+        selectedPort = portData.toString();
+    } else {
+        selectedPort = ui->comboBoxPort->currentText();
+    }
+    
+    // 更新设置
+    auto settings = m_settingsManager->getCurrentSettings();
+    if (settings.stageControllerPort != selectedPort) {
+        settings.stageControllerPort = selectedPort;
+        m_settingsManager->updateSettings(settings);
+        
+        qDebug() << "载物台控制串口已更新为:" << selectedPort;
+        statusBar()->showMessage(QString("载物台控制串口: %1").arg(selectedPort), 2000);
+    }
+}
+
+void MutiCamApp::onPhysicalButtonPortSelectionChanged()
+{
+    if (!ui->comboBoxSerialPort || !m_settingsManager) {
+        return;
+    }
+    
+    // 获取选择的串口
+    QString selectedPort;
+    QVariant portData = ui->comboBoxSerialPort->currentData();
+    if (portData.isValid() && !portData.toString().isEmpty()) {
+        selectedPort = portData.toString();
+    } else {
+        selectedPort = ui->comboBoxSerialPort->currentText();
+    }
+    
+    // 更新设置
+    auto settings = m_settingsManager->getCurrentSettings();
+    if (settings.physicalButtonPort != selectedPort) {
+        settings.physicalButtonPort = selectedPort;
+        m_settingsManager->updateSettings(settings);
+        
+        qDebug() << "物理按键串口已更新为:" << selectedPort;
+        statusBar()->showMessage(QString("物理按键串口: %1").arg(selectedPort), 2000);
     }
 }

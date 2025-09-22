@@ -58,7 +58,7 @@ set(HIKVISION_LIB_DIR ${HIKVISION_DIR}/lib)
 set(MCC6_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/mcc6/include)
 set(MCC6_LIB_DIR ${MCC6_DIR})
 
-find_package(Qt6 COMPONENTS Widgets Concurrent Svg REQUIRED) # Qt COMPONENTS
+find_package(Qt6 COMPONENTS Widgets Concurrent Svg SerialPort REQUIRED) # Qt COMPONENTS
 find_package(OpenMP)
 
 # 手动指定源文件，确保所有文件都被包含
@@ -94,6 +94,8 @@ set(srcs
     src/utils/TrajectoryRecorder.h
     src/utils/SerialController.cpp
     src/utils/SerialController.h
+    src/utils/SerialPortDetector.cpp
+    src/utils/SerialPortDetector.h
     src/utils/dependencies_test.cpp
     src/utils/dependencies_test.h
     
@@ -188,7 +190,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # 链接Qt6库
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Concurrent Qt6::Svg)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Concurrent Qt6::Svg Qt6::SerialPort)
 
 # 链接OpenMP库(如果找到)
 if(OpenMP_CXX_FOUND)

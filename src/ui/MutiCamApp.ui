@@ -3862,7 +3862,6 @@ QPushButton:pressed {
                    <property name="text">
                     <string>最大速度(μm/s):</string>
                    </property>
-                   </property>
                   </widget>
                  </item>
                  <item row="2" column="1">
@@ -4770,7 +4769,7 @@ QPushButton:pressed {
              <item>
               <widget class="QComboBox" name="comboBoxSerialPort">
                <property name="editable">
-                <bool>true</bool>
+                <bool>false</bool>
                </property>
                <item>
                 <property name="text">
@@ -4904,58 +4903,6 @@ QPushButton:pressed {
            <string>拍照参数预设</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_capturePresets">
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelCaptureFormat">
-             <property name="text">
-              <string>图像格式:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="comboBoxCaptureFormat">
-             <item>
-              <property name="text">
-               <string>PNG</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>JPEG</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>BMP</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelImageQuality">
-             <property name="text">
-              <string>图像质量:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="comboBoxImageQuality">
-             <item>
-              <property name="text">
-               <string>无损最高质量</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>高质量</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>标准质量</string>
-              </property>
-             </item>
-            </widget>
-           </item>
            <item row="2" column="0" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout_presetButtons">
              <item>
@@ -4980,6 +4927,58 @@ QPushButton:pressed {
               </widget>
              </item>
             </layout>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="labelCaptureFormat">
+             <property name="text">
+              <string>图像格式:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="labelImageQuality">
+             <property name="text">
+              <string>图像质量:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="comboBoxCaptureFormat">
+             <item>
+              <property name="text">
+               <string>PNG</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>JPEG</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>BMP</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="comboBoxImageQuality">
+             <item>
+              <property name="text">
+               <string>无损最高质量</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>高质量</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>标准质量</string>
+              </property>
+             </item>
+            </widget>
            </item>
           </layout>
          </widget>

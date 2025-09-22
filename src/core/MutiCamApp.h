@@ -787,6 +787,9 @@ private:
     
     // 轴控制系统
     std::unique_ptr<AxisController> m_axisController;
+    
+    // 串口检测器
+    class SerialPortDetector* m_serialPortDetector;
 
      // UI尺寸双向绑定相关
      bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发
@@ -801,6 +804,13 @@ private:
      void executeCaptureByType(const QString& actionType);
      void testCaptureButton();
     void toggleSerialConnection();
+    
+    // 串口检测相关方法
+    void initializeSerialPortDetector();
+    void updateSerialPortLists();
+    void onSerialPortsChanged();
+    void onStagePortSelectionChanged();
+    void onPhysicalButtonPortSelectionChanged();
     
     // 轴控制系统相关方法
     void initializeAxisController();

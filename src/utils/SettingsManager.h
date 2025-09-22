@@ -69,6 +69,13 @@ public:
         CalibrationData leftCalibration;
         CalibrationData frontCalibration;
         
+        // 串口配置参数
+        QString stageControllerPort;     // 载物台控制器串口
+        int stageControllerBaudRate;     // 载物台控制器波特率
+        QString physicalButtonPort;      // 物理按键串口
+        int physicalButtonBaudRate;      // 物理按键波特率
+        bool autoDetectSerialPorts;      // 是否自动检测串口
+        
         /**
          * @brief 构造函数，设置默认值
          */
@@ -96,7 +103,14 @@ public:
 
             // 拍照参数预设默认值
             captureFormat("PNG"),
-            imageQuality("无损最高质量")
+            imageQuality("无损最高质量"),
+            
+            // 串口配置默认值
+            stageControllerPort("COM1"),
+            stageControllerBaudRate(9600),
+            physicalButtonPort("COM5"),
+            physicalButtonBaudRate(9600),
+            autoDetectSerialPorts(true)
         {}
     };
 
@@ -144,6 +158,13 @@ public:
      * @param settings 设置结构体
      */
     void setCurrentSettings(const Settings& settings) { m_currentSettings = settings; }
+    
+    /**
+     * @brief 更新设置并保存到文件
+     * @param settings 新的设置结构体
+     * @return 是否保存成功
+     */
+    bool updateSettings(const Settings& settings);
 
     /**
      * @brief 重置为默认设置
