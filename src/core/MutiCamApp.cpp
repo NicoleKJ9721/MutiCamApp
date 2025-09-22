@@ -4365,7 +4365,14 @@ void MutiCamApp::onMoveXLeftClicked()
 
     // 实际的载物台X轴负向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons - stepSize;
+            updateCommandPosition(AxisIndex::X_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4392,7 +4399,14 @@ void MutiCamApp::onMoveXRightClicked()
 
     // 实际的载物台X轴正向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons + stepSize;
+            updateCommandPosition(AxisIndex::X_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4419,7 +4433,14 @@ void MutiCamApp::onMoveYUpClicked()
 
     // 实际的载物台Y轴正向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons + stepSize;
+            updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4446,7 +4467,14 @@ void MutiCamApp::onMoveYDownClicked()
 
     // 实际的载物台Y轴负向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons - stepSize;
+            updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4473,7 +4501,14 @@ void MutiCamApp::onMoveZUpClicked()
 
     // 实际的载物台Z轴正向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons + stepSize;
+            updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4500,7 +4535,14 @@ void MutiCamApp::onMoveZDownClicked()
 
     // 实际的载物台Z轴负向移动
     if (m_axisController && m_axisController->isConnected()) {
-        if (!m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
+        if (m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
+            // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
+            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
+            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
+            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double targetPos = currentPosInMicrons - stepSize;
+            updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
+        } else {
             QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
             QMessageBox::warning(this, "移动错误", errorMsg);
             if (m_logManager) {
@@ -4693,10 +4735,30 @@ void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double delt
     m_currentY += deltaY;
     m_currentZ += deltaZ;
 
-    // 更新UI显示的当前位置
-    ui->labelXPositionValue->setText(QString("%1 μm").arg(m_currentX, 0, 'f', 2));
-    ui->labelYPositionValue->setText(QString("%1 μm").arg(m_currentY, 0, 'f', 2));
-    ui->labelZPositionValue->setText(QString("%1 μm").arg(m_currentZ, 0, 'f', 2));
+    // 注意：这里不再更新UI，因为位置更新应该通过onAxisPositionChanged信号处理
+    // 命令位置的更新应该通过updateCommandPosition函数处理
+}
+
+/**
+ * @brief 更新命令位置显示（左侧列）
+ * @param axis 轴编号
+ * @param targetPosition 目标位置
+ */
+void MutiCamApp::updateCommandPosition(AxisIndex axis, double targetPosition)
+{
+    switch (axis) {
+        case AxisIndex::X_AXIS:
+            ui->labelXPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
+            break;
+        case AxisIndex::Y_AXIS:
+            ui->labelYPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
+            break;
+        case AxisIndex::Z_AXIS:
+            ui->labelZPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
+            break;
+        default:
+            break;
+    }
 }
 
 // 轨迹记录槽函数实现
@@ -5310,18 +5372,25 @@ void MutiCamApp::onAxisConnectionStateChanged(bool connected)
 void MutiCamApp::onAxisPositionChanged(AxisIndex axis, double position)
 {
     // 更新轴位置到UI和内部状态
+    // 这里接收的是从载物台读取的实际位置（mm单位），需要转换为μm显示
+    // position是mm单位，转换为μm需要乘以1000
+    double positionInMicrons = position * 1000.0;
+    
     switch (axis) {
         case AxisIndex::X_AXIS:
-            m_currentX = position;
-            ui->labelXPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            m_currentX = positionInMicrons;  // 内部存储也使用μm单位保持一致
+            // 更新到实际光栅尺读数位置显示（右侧列）
+            ui->labelGratingXPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
             break;
         case AxisIndex::Y_AXIS:
-            m_currentY = position;
-            ui->labelYPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            m_currentY = positionInMicrons;  // 内部存储也使用μm单位保持一致
+            // 更新到实际光栅尺读数位置显示（右侧列）
+            ui->labelGratingYPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
             break;
         case AxisIndex::Z_AXIS:
-            m_currentZ = position;
-            ui->labelZPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            m_currentZ = positionInMicrons;  // 内部存储也使用μm单位保持一致
+            // 更新到实际光栅尺读数位置显示（右侧列）
+            ui->labelGratingZPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
             break;
         default:
             break;
@@ -5596,10 +5665,14 @@ void MutiCamApp::onMoveToXClicked()
         return;
     }
     
-    double targetX = ui->spinBoxTargetX->value();
+    double targetX = ui->spinBoxTargetX->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动X轴到位置 %1 mm...").arg(targetX), 3000);
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
+        // 更新命令位置显示 - 需要将mm转换为μm
+        double targetXInMicrons = targetX * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::X_AXIS, targetXInMicrons);
+        
         if (m_logManager) {
             m_logManager->log(QString("X轴开始移动到绝对位置：%1 mm").arg(targetX), LogLevel::INFO);
         }
@@ -5628,10 +5701,14 @@ void MutiCamApp::onMoveToYClicked()
         return;
     }
     
-    double targetY = ui->spinBoxTargetY->value();
+    double targetY = ui->spinBoxTargetY->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动Y轴到位置 %1 mm...").arg(targetY), 3000);
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY)) {
+        // 更新命令位置显示 - 需要将mm转换为μm
+        double targetYInMicrons = targetY * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::Y_AXIS, targetYInMicrons);
+        
         if (m_logManager) {
             m_logManager->log(QString("Y轴开始移动到绝对位置：%1 mm").arg(targetY), LogLevel::INFO);
         }
@@ -5660,10 +5737,14 @@ void MutiCamApp::onMoveToZClicked()
         return;
     }
     
-    double targetZ = ui->spinBoxTargetZ->value();
+    double targetZ = ui->spinBoxTargetZ->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动Z轴到位置 %1 mm...").arg(targetZ), 3000);
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
+        // 更新命令位置显示 - 需要将mm转换为μm
+        double targetZInMicrons = targetZ * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::Z_AXIS, targetZInMicrons);
+        
         if (m_logManager) {
             m_logManager->log(QString("Z轴开始移动到绝对位置：%1 mm").arg(targetZ), LogLevel::INFO);
         }
@@ -5702,6 +5783,20 @@ void MutiCamApp::onMoveToXYZClicked()
     bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
     bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
     bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
+    
+    // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
+    if (xSuccess) {
+        double targetXInMicrons = targetX * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::X_AXIS, targetXInMicrons);
+    }
+    if (ySuccess) {
+        double targetYInMicrons = targetY * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::Y_AXIS, targetYInMicrons);
+    }
+    if (zSuccess) {
+        double targetZInMicrons = targetZ * 1000.0;
+        updateCommandPosition(AxisControl::AxisIndex::Z_AXIS, targetZInMicrons);
+    }
     
     if (xSuccess && ySuccess && zSuccess) {
         if (m_logManager) {

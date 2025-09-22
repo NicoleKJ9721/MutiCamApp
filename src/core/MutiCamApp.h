@@ -377,6 +377,7 @@ private:
     std::unique_ptr<TrajectoryRecorder> m_trajectoryRecorder;  ///< 轨迹记录器
     double m_currentX, m_currentY, m_currentZ;       ///< 当前载物台位置
     void updateCurrentPosition(double deltaX, double deltaY, double deltaZ);  ///< 更新当前位置
+    void updateCommandPosition(AxisIndex axis, double targetPosition);  ///< 更新命令位置显示
     void updateTrajectoryDisplay();                  ///< 更新轨迹显示
 
     // 相机状态监控
