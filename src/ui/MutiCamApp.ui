@@ -3672,7 +3672,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                   <string>X轴使能</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -3682,7 +3682,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                   <string>Y轴使能</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -3692,7 +3692,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                   <string>Z轴使能</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -3737,7 +3737,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold;</string>
              </property>
              <property name="text">
-              <string>125.456 μm</string>
+              <string>0.000 μm</string>
              </property>
             </widget>
            </item>
@@ -3754,7 +3754,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold;</string>
              </property>
              <property name="text">
-              <string>89.234 μm</string>
+              <string>0.000 μm</string>
              </property>
             </widget>
            </item>
@@ -3771,7 +3771,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold;</string>
              </property>
              <property name="text">
-              <string>67.890 μm</string>
+              <string>0.000 μm</string>
              </property>
             </widget>
            </item>
@@ -3803,7 +3803,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold; font-size: 14px;</string>
              </property>
              <property name="text">
-              <string>125.4567 μm</string>
+              <string>0.0000 μm</string>
              </property>
             </widget>
            </item>
@@ -3820,7 +3820,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold; font-size: 14px;</string>
              </property>
              <property name="text">
-              <string>89.2345 μm</string>
+              <string>0.0000 μm</string>
              </property>
             </widget>
            </item>
@@ -3837,7 +3837,7 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
               <string>color: blue; font-weight: bold; font-size: 14px;</string>
              </property>
              <property name="text">
-              <string>67.8901 μm</string>
+              <string>0.0000 μm</string>
              </property>
             </widget>
            </item>
