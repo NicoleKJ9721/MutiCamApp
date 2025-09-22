@@ -4877,19 +4877,9 @@ void MutiCamApp::initializeSerialController()
     QString selectedPort = m_serialPortDetector->getRecommendedPort();
     
     // 如果推荐串口（CH340）不可用，再尝试使用设置中配置的串口
-    if (selectedPort.isEmpty() || !m_serialPortDetector->isPortAvailable(selectedPort)) {
-        qDebug() << "推荐串口不可用，尝试使用配置的串口";
-        if (m_settingsManager) {
-            const auto& settings = m_settingsManager->getCurrentSettings();
-            QString configuredPort = settings.physicalButtonPort;
-            if (!configuredPort.isEmpty() && m_serialPortDetector->isPortAvailable(configuredPort)) {
-                selectedPort = configuredPort;
-                qDebug() << "使用配置的串口:" << selectedPort;
-            }
-        }
-    } else {
+    if (!selectedPort.isEmpty() && m_serialPortDetector->isPortAvailable(selectedPort)) {
         qDebug() << "使用推荐串口（优先CH340）:" << selectedPort;
-    }
+    } 
 
     // 如果有可用串口，尝试连接
     if (!selectedPort.isEmpty()) {
