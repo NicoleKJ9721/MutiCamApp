@@ -2,6 +2,7 @@
 #include "../ui/ui_MutiCamApp.h"
 #include "../ui/TemplateSelectionDialog.h"
 #include "../ui/ZoomPanWidget.h"
+#include "../controllers/AxisControllerEnums.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -5330,9 +5331,8 @@ void MutiCamApp::onStageConnectClicked()
         // 连接成功
         ui->btnConnect->setEnabled(false);
         ui->btnDisconnect->setEnabled(true);
-        // TODO: 添加状态标签到UI
-        // ui->labelStageConnectionStatus->setText("已连接");
-        // ui->labelStageConnectionStatus->setStyleSheet("color: green; font-weight: bold;");
+        ui->labelStageConnection->setText("已连接");
+        ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
         
         statusBar()->showMessage("轴控制设备连接成功", 3000);
         
@@ -5382,9 +5382,8 @@ void MutiCamApp::onStageDisconnectClicked()
             // 断开成功
             ui->btnConnect->setEnabled(true);
             ui->btnDisconnect->setEnabled(false);
-            // TODO: 添加状态标签到UI
-            // ui->labelStageConnectionStatus->setText("未连接");
-            // ui->labelStageConnectionStatus->setStyleSheet("color: gray; font-weight: bold;");
+            ui->labelStageConnection->setText("未连接");
+            ui->labelStageConnection->setStyleSheet("color: gray; font-weight: bold;");
             
             statusBar()->showMessage("轴控制设备已断开", 3000);
             
