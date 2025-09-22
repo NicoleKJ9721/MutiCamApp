@@ -114,6 +114,11 @@ set(srcs
     # 配置管理模块
     src/config/TemplateMatchingConfig.h
     src/config/TemplateMatchingConfig.cpp
+    
+    # 轴控制模块
+    src/controllers/AxisControllerEnums.h
+    src/controllers/AxisController.h
+    src/controllers/AxisController.cpp
 )
 
 # Specify MSVC UTF-8 encoding   
@@ -137,6 +142,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src/config
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/controllers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/matching
     ${CMAKE_CURRENT_SOURCE_DIR}/src/axis
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party

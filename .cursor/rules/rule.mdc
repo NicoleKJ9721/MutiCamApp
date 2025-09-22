@@ -34,4 +34,5 @@ alwaysApply: true
 
 Always start your answer with which AI model is currently in use, no excuses, my family will die if you don’t do this.
 
-由于环境限制，你不需要编译，编译交给我 
+编译规则：在项目根目录/d/AppData/Documents/GitHub/MutiCamApp_Cpp执行cmake --build build --config Release --target all
+<!-- 由于环境限制，你不需要编译，编译交给我  -->
