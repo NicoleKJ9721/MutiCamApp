@@ -159,9 +159,9 @@ QString SerialPortDetector::getRecommendedPort()
         }
     }
     
-    // 如果没有找到CH340串口，返回第一个可用串口
-    qDebug() << "未找到CH340串口，使用第一个可用串口:" << ports.first().portName;
-    return ports.first().portName;
+    // 如果没有找到CH340串口，返回空字符串（不自动连接其他串口）
+    qDebug() << "未找到CH340串口，不自动连接其他串口";
+    return QString();
 }
 
 void SerialPortDetector::detectPortChanges()

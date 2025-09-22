@@ -78,8 +78,8 @@ public:
     bool isPortAvailable(const QString& portName);
 
     /**
-     * @brief 获取推荐的串口（通常是第一个可用串口）
-     * @return 推荐串口名称，如果没有可用串口则返回空字符串
+     * @brief 获取推荐的串口（优先CH340串口，如果没有CH340串口则不推荐）
+     * @return CH340串口名称，如果没有找到CH340串口或没有可用串口则返回空字符串
      */
     QString getRecommendedPort();
 
