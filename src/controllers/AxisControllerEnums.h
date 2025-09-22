@@ -98,9 +98,9 @@ namespace Constants {
     
     // 运动参数限制
     constexpr double MIN_SPEED = 0.1;           ///< 最小速度 (mm/min)
-    constexpr double MAX_SPEED = 10000.0;       ///< 最大速度 (mm/min)
+    constexpr double MAX_SPEED = 50.0;          ///< 最大速度 (mm/min)
     constexpr double MIN_ACCELERATION = 1.0;     ///< 最小加速度 (mm/s²)
-    constexpr double MAX_ACCELERATION = 1000.0;  ///< 最大加速度 (mm/s²)
+    constexpr double MAX_ACCELERATION = 50.0;   ///< 最大加速度 (mm/s²)
     
     // 位置限制  
     constexpr double MIN_POSITION = -999999.9;  ///< 最小位置 (μm)
