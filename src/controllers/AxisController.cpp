@@ -1496,8 +1496,9 @@ bool AxisController::validateMotionParams(AxisIndex axis, double distance, doubl
 
 bool AxisController::handleMCC6Error(int errorCode, const QString& operation)
 {
-    if (errorCode == 0) {
-        return true; // 无错误
+    // MCC6成功返回值是1 (funResOk = 0x01)，不是0！
+    if (errorCode == MCC6Constants::MCC6_SUCCESS) {
+        return true; // 操作成功
     }
     
     QString errorMsg;
@@ -1505,6 +1506,21 @@ bool AxisController::handleMCC6Error(int errorCode, const QString& operation)
     
     // 根据MCC6错误码映射到AxisError
     switch (errorCode) {
+        // MCC6标准错误码
+        case MCC6Constants::MCC6_AXIS_ERROR: // 0x02
+            axisError = AxisError::InvalidParameter;
+            errorMsg = QString("%1：轴序号错误").arg(operation);
+            break;
+        case MCC6Constants::MCC6_PORT_ERROR: // 0x80
+            axisError = AxisError::CommunicationError;
+            errorMsg = QString("%1：串口打开失败").arg(operation);
+            break;
+        case MCC6Constants::MCC6_ERROR: // 0x83
+            axisError = AxisError::HardwareError;
+            errorMsg = QString("%1：MCC6设备错误").arg(operation);
+            break;
+        
+        // 自定义错误码（保持向后兼容）
         case -1:
             axisError = AxisError::CommunicationError;
             errorMsg = QString("%1：通信错误").arg(operation);

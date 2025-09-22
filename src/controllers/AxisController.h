@@ -17,6 +17,16 @@
 using namespace AxisControl;
 
 /**
+ * @brief MCC6DLL返回值常量
+ */
+namespace MCC6Constants {
+    constexpr int MCC6_SUCCESS = 0x01;      ///< MCC6成功返回值 (funResOk)
+    constexpr int MCC6_ERROR = 0x83;        ///< MCC6错误返回值 (funResErr)
+    constexpr int MCC6_AXIS_ERROR = 0x02;   ///< 轴序号错误 (funResErrAxisId)
+    constexpr int MCC6_PORT_ERROR = 0x80;   ///< 串口打开失败 (funResOpenPortErr)
+}
+
+/**
  * @class AxisController
  * @brief 完整全面的轴控制系统类
  * 
