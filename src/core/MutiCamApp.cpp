@@ -4647,8 +4647,10 @@ double MutiCamApp::getCurrentStepSize() const
         return 100.0;
     } else if (ui->radioStep1000->isChecked()) {
         return 1000.0;
-    } else if (ui->radioStep10000->isChecked()) {
-        return 10000.0;
+    } else if (ui->radioStep2000->isChecked()) {
+        return 2000.0;
+    } else if (ui->radioStep5000->isChecked()) {
+        return 5000.0;
     }
     return 0.1; // 默认步长
 }

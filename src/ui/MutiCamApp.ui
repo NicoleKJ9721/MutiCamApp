@@ -4164,13 +4164,20 @@ QPushButton:pressed {
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep10000">
-                   <property name="text">
-                    <string>10000μm</string>
-                   </property>
-                  </widget>
-                 </item>
+                <item>
+                 <widget class="QRadioButton" name="radioStep2000">
+                  <property name="text">
+                   <string>2000μm</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioStep5000">
+                  <property name="text">
+                   <string>5000μm</string>
+                  </property>
+                 </widget>
+                </item>
                  <item>
                   <spacer name="horizontalSpacer_stepSize">
                    <property name="orientation">
