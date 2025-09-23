@@ -1381,7 +1381,7 @@ void AxisController::updateAxisStatus()
             float position[1] = {0.0f};
             int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(i), position);
             if (result == 1) { // funResOk = 0x01
-                double newPos = static_cast<double>(position[0]);
+                double newPos = static_cast<double>(position[0]) * 1000.0; // mm -> µm
                 if (qAbs(m_axisStates[i].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].currentPosition = newPos;
                     emitPositionChanged(static_cast<AxisIndex>(i), newPos);
@@ -1393,7 +1393,7 @@ void AxisController::updateAxisStatus()
             float actualPosition[1] = {0.0f};
             result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(i), actualPosition);
             if (result == 1) { // funResOk = 0x01
-                double newActualPos = static_cast<double>(actualPosition[0]);
+                double newActualPos = static_cast<double>(actualPosition[0]) * 1000.0; // mm -> µm
                 if (qAbs(m_axisStates[i].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].actualPosition = newActualPos;
                     emitActualPositionChanged(static_cast<AxisIndex>(i), newActualPos);
@@ -1608,7 +1608,7 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
         float position[1] = {0.0f};
         int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(axisIndex), position);
         if (result == 1) { // funResOk = 0x01
-            double newPos = static_cast<double>(position[0]);
+            double newPos = static_cast<double>(position[0]) * 1000.0; // mm -> µm
             if (forceUpdate || qAbs(m_axisStates[axisIndex].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                 m_axisStates[axisIndex].currentPosition = newPos;
                 emitPositionChanged(axis, newPos);
@@ -1619,7 +1619,7 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
         float actualPosition[1] = {0.0f};
         result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(axisIndex), actualPosition);
         if (result == 1) { // funResOk = 0x01
-            double newActualPos = static_cast<double>(actualPosition[0]);
+            double newActualPos = static_cast<double>(actualPosition[0]) * 1000.0; // mm -> µm
             if (forceUpdate || qAbs(m_axisStates[axisIndex].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
                 m_axisStates[axisIndex].actualPosition = newActualPos;
                 emitActualPositionChanged(axis, newActualPos);
