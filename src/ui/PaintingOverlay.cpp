@@ -5755,7 +5755,8 @@ void PaintingOverlay::startCheckerboardCalibration(int cornersX, int cornersY, d
         QString targetUnit = "μm";
         double convertedScale = pixelScale;
         if (unit == "mm") {
-            convertedScale = pixelScale * 1000.0; // mm to μm
+            const double MM_TO_UM = 1000.0;
+            convertedScale = pixelScale * MM_TO_UM; // mm to μm
         } else if (unit == "cm") {
             convertedScale = pixelScale * 10000.0; // cm to μm
         } else if (unit == "inch") {

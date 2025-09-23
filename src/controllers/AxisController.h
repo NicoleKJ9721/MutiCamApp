@@ -50,9 +50,9 @@ public:
      * @brief 运动参数结构体
      */
     struct MotionParams {
-        double maxSpeed = 3.0;          ///< 最大速度 (μm/s)
-        double acceleration = 3.0;      ///< 加速度 (μm/s²)
-        double deceleration = 3.0;      ///< 减速度 (μm/s²)
+        double maxSpeed = 3000.0;          ///< 最大速度 (μm/s)
+        double acceleration = 3000.0;      ///< 加速度 (μm/s²)
+        double deceleration = 3000.0;      ///< 减速度 (μm/s²)
         int subdivision = Constants::DEFAULT_SUBDIVISION;  ///< 细分数
         double stepSize = 1.0;          ///< 基础步长 (μm)
         double softLimitPos = Constants::MAX_POSITION;     ///< 正向软限位

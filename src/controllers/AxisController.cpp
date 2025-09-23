@@ -6,6 +6,14 @@
 #include <QDateTime>
 #include <cmath>
 
+// 单位转换助手（仅在本实现文件内可见）
+namespace {
+    inline float um_to_mm_f(double um) { return static_cast<float>(um * AxisControl::Constants::UM_TO_MM); }
+    inline float ums_to_mms_f(double um_per_s) { return static_cast<float>(um_per_s * AxisControl::Constants::UM_TO_MM); }
+    inline float ums2_to_mms2_f(double um_per_s2) { return static_cast<float>(um_per_s2 * AxisControl::Constants::UM_TO_MM); }
+    inline double mm_to_um(double mm) { return mm * AxisControl::Constants::MM_TO_UM; }
+}
+
 /**
  * @file AxisController.cpp
  * @brief AxisController类的完整实现
@@ -289,12 +297,12 @@ bool AxisController::moveRelative(AxisIndex axis, double distance, double speed)
             return false;
         }
         
-        // 执行相对运动（MCC6DLL的函数同时设置速度和加速度）
+        // 执行相对运动（MCC6DLL使用 mm 单位）
         int result = m_controller->MoCtrCard_MCrlAxisRelMove(
             static_cast<uint8_t>(axisIndex), 
-            static_cast<float>(distance),
-            static_cast<float>(moveSpeed),
-            static_cast<float>(m_motionParams[axisIndex].acceleration)
+            um_to_mm_f(distance),
+            ums_to_mms_f(moveSpeed),
+            ums2_to_mms2_f(m_motionParams[axisIndex].acceleration)
         );
         if (!handleMCC6Error(result, QString("%1相对运动").arg(axisToString(axis)))) {
             return false;
@@ -360,12 +368,12 @@ bool AxisController::moveAbsolute(AxisIndex axis, double position, double speed)
             return false;
         }
         
-        // 执行绝对运动（MCC6DLL的函数同时设置速度和加速度）
+        // 执行绝对运动（MCC6DLL使用 mm 单位）
         int result = m_controller->MoCtrCard_MCrlAxisAbsMove(
             static_cast<uint8_t>(axisIndex), 
-            static_cast<float>(position),
-            static_cast<float>(moveSpeed),
-            static_cast<float>(m_motionParams[axisIndex].acceleration)
+            um_to_mm_f(position),
+            ums_to_mms_f(moveSpeed),
+            ums2_to_mms2_f(m_motionParams[axisIndex].acceleration)
         );
         if (!handleMCC6Error(result, QString("%1绝对运动").arg(axisToString(axis)))) {
             return false;
@@ -448,9 +456,9 @@ bool AxisController::moveMultiAxis(const std::vector<AxisIndex>& axes,
             
             int result = m_controller->MoCtrCard_MCrlAxisRelMove(
                 static_cast<uint8_t>(axisIndex), 
-                static_cast<float>(distances[i]),
-                static_cast<float>(moveSpeed),
-                static_cast<float>(m_motionParams[axisIndex].acceleration)
+                um_to_mm_f(distances[i]),
+                ums_to_mms_f(moveSpeed),
+                ums2_to_mms2_f(m_motionParams[axisIndex].acceleration)
             );
             
             if (!handleMCC6Error(result, QString("%1多轴运动").arg(axisToString(axes[i])))) {
@@ -513,10 +521,10 @@ bool AxisController::stopAxis(AxisIndex axis, bool immediate)
                 return false;
             }
         } else {
-            // 使用默认减速度停止轴
+            // 使用默认减速度停止轴（单位转换为 mm/s²）
             result = m_controller->MoCtrCard_StopAxisMov(
                 static_cast<uint8_t>(axisIndex), 
-                static_cast<float>(m_motionParams[axisIndex].deceleration)
+                ums2_to_mms2_f(m_motionParams[axisIndex].deceleration)
             );
             if (!handleMCC6Error(result, QString("%1停止").arg(axisToString(axis)))) {
                 return false;
@@ -561,7 +569,7 @@ bool AxisController::stopAllAxes(bool immediate)
                 } else {
                     result = m_controller->MoCtrCard_StopAxisMov(
                         static_cast<uint8_t>(i), 
-                        static_cast<float>(m_motionParams[i].deceleration)
+                        ums2_to_mms2_f(m_motionParams[i].deceleration)
                     );
                 }
                 // 记录错误但继续停止其他轴
@@ -624,8 +632,8 @@ bool AxisController::goHome(AxisIndex axis)
         // 执行回零（使用寻零功能，正向寻零）
         int result = m_controller->MoCtrCard_SeekZero(
             static_cast<uint8_t>(axisIndex), 
-            static_cast<float>(m_motionParams[axisIndex].maxSpeed * 0.3), // 使用30%的最大速度回零
-            static_cast<float>(m_motionParams[axisIndex].acceleration)
+            ums_to_mms_f(m_motionParams[axisIndex].maxSpeed * 0.3), // 使用30%的最大速度回零，单位 mm/s
+            ums2_to_mms2_f(m_motionParams[axisIndex].acceleration)
         );
         if (!handleMCC6Error(result, QString("%1回零").arg(axisToString(axis)))) {
             return false;
@@ -679,8 +687,8 @@ bool AxisController::goHomeAll()
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
             int result = m_controller->MoCtrCard_SeekZero(
                 static_cast<uint8_t>(i), 
-                static_cast<float>(m_motionParams[i].maxSpeed * 0.3), // 使用30%的最大速度回零
-                static_cast<float>(m_motionParams[i].acceleration)
+                ums_to_mms_f(m_motionParams[i].maxSpeed * 0.3), // 使用30%的最大速度回零，单位 mm/s
+                ums2_to_mms2_f(m_motionParams[i].acceleration)
             );
             if (!handleMCC6Error(result, QString("轴%1回零").arg(i))) {
                 // 如果有轴失败，取消所有已启动的回零
@@ -960,16 +968,16 @@ bool AxisController::setAxisParams(AxisIndex axis, const MotionParams& params)
             // 设置最大速度（假设参数索引0为速度）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                0, // 速度参数索引
-                static_cast<float>(params.maxSpeed)
+                0, // 速度参数索引（单位 mm/s）
+                ums_to_mms_f(params.maxSpeed)
             );
             handleMCC6Error(result, QString("设置%1最大速度").arg(axisToString(axis)));
             
             // 设置加速度（假设参数索引1为加速度）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                1, // 加速度参数索引
-                static_cast<float>(params.acceleration)
+                1, // 加速度参数索引（单位 mm/s²）
+                ums2_to_mms2_f(params.acceleration)
             );
             handleMCC6Error(result, QString("设置%1加速度").arg(axisToString(axis)));
             
@@ -1035,8 +1043,8 @@ bool AxisController::setAxisSpeed(AxisIndex axis, double speed)
         if (isConnected()) {
             int result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                0, // 速度参数索引
-                static_cast<float>(speed)
+                0, // 速度参数索引（单位 mm/s）
+                ums_to_mms_f(speed)
             );
             if (!handleMCC6Error(result, QString("设置%1速度").arg(axisToString(axis)))) {
                 return false;
@@ -1080,8 +1088,8 @@ bool AxisController::setAxisAcceleration(AxisIndex axis, double acceleration)
         if (isConnected()) {
             int result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                1, // 加速度参数索引
-                static_cast<float>(acceleration)
+                1, // 加速度参数索引（单位 mm/s²）
+                ums2_to_mms2_f(acceleration)
             );
             if (!handleMCC6Error(result, QString("设置%1加速度").arg(axisToString(axis)))) {
                 return false;
@@ -1265,19 +1273,19 @@ bool AxisController::initializeAllAxes()
             // 设置默认参数
             int result;
             
-            // 设置默认速度
+            // 设置默认速度（单位 mm/s）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(i), 
                 0, // 速度参数索引
-                static_cast<float>(m_motionParams[i].maxSpeed)
+                ums_to_mms_f(m_motionParams[i].maxSpeed)
             );
             handleMCC6Error(result, QString("设置%1默认速度").arg(axisToString(static_cast<AxisIndex>(i))));
             
-            // 设置默认加速度
+            // 设置默认加速度（单位 mm/s²）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(i), 
                 1, // 加速度参数索引
-                static_cast<float>(m_motionParams[i].acceleration)
+                ums2_to_mms2_f(m_motionParams[i].acceleration)
             );
             handleMCC6Error(result, QString("设置%1默认加速度").arg(axisToString(static_cast<AxisIndex>(i))));
             
@@ -1397,7 +1405,7 @@ void AxisController::updateAxisStatus()
             float position[1] = {0.0f};
             int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(i), position);
             if (result == 1) { // funResOk = 0x01
-                double newPos = static_cast<double>(position[0]) * 1000.0; // mm -> µm
+                double newPos = mm_to_um(static_cast<double>(position[0])); // mm -> µm
                 if (qAbs(m_axisStates[i].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].currentPosition = newPos;
                     emitPositionChanged(static_cast<AxisIndex>(i), newPos);
@@ -1409,7 +1417,7 @@ void AxisController::updateAxisStatus()
             float actualPosition[1] = {0.0f};
             result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(i), actualPosition);
             if (result == 1) { // funResOk = 0x01
-                double newActualPos = static_cast<double>(actualPosition[0]) * 1000.0; // mm -> µm
+                double newActualPos = mm_to_um(static_cast<double>(actualPosition[0])); // mm -> µm
                 if (qAbs(m_axisStates[i].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].actualPosition = newActualPos;
                     emitActualPositionChanged(static_cast<AxisIndex>(i), newActualPos);
@@ -1631,7 +1639,7 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
         float position[1] = {0.0f};
         int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(axisIndex), position);
         if (result == 1) { // funResOk = 0x01
-            double newPos = static_cast<double>(position[0]) * 1000.0; // mm -> µm
+            double newPos = mm_to_um(static_cast<double>(position[0])); // mm -> µm
             if (forceUpdate || qAbs(m_axisStates[axisIndex].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                 m_axisStates[axisIndex].currentPosition = newPos;
                 emitPositionChanged(axis, newPos);
@@ -1642,7 +1650,7 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
         float actualPosition[1] = {0.0f};
         result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(axisIndex), actualPosition);
         if (result == 1) { // funResOk = 0x01
-            double newActualPos = static_cast<double>(actualPosition[0]) * 1000.0; // mm -> µm
+            double newActualPos = mm_to_um(static_cast<double>(actualPosition[0])); // mm -> µm
             if (forceUpdate || qAbs(m_axisStates[axisIndex].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
                 m_axisStates[axisIndex].actualPosition = newActualPos;
                 emitActualPositionChanged(axis, newActualPos);

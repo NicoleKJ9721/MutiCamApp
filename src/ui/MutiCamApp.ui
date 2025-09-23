@@ -3789,10 +3789,10 @@ QPushButton:pressed {
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>50</number>
+                    <number>7000</number>
                    </property>
                    <property name="value">
-                    <number>3</number>
+                    <number>3000</number>
                    </property>
                   </widget>
                  </item>
@@ -3809,10 +3809,10 @@ QPushButton:pressed {
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>50</number>
+                    <number>7000</number>
                    </property>
                    <property name="value">
-                    <number>3</number>
+                    <number>3000</number>
                    </property>
                   </widget>
                  </item>
@@ -3850,10 +3850,10 @@ QPushButton:pressed {
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>50</number>
+                    <number>7000</number>
                    </property>
                    <property name="value">
-                    <number>3</number>
+                    <number>3000</number>
                    </property>
                   </widget>
                  </item>
@@ -3870,10 +3870,10 @@ QPushButton:pressed {
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <number>50</number>
+                    <number>7000</number>
                    </property>
                    <property name="value">
-                    <number>3</number>
+                    <number>3000</number>
                    </property>
                   </widget>
                  </item>

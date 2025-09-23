@@ -4383,7 +4383,7 @@ void MutiCamApp::onMoveXLeftClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::X_AXIS, targetPos);
         } else {
@@ -4417,7 +4417,7 @@ void MutiCamApp::onMoveXRightClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::X_AXIS, targetPos);
         } else {
@@ -4451,7 +4451,7 @@ void MutiCamApp::onMoveYUpClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
         } else {
@@ -4485,7 +4485,7 @@ void MutiCamApp::onMoveYDownClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
         } else {
@@ -4519,7 +4519,7 @@ void MutiCamApp::onMoveZUpClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
         } else {
@@ -4553,7 +4553,7 @@ void MutiCamApp::onMoveZDownClicked()
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
             // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
             double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
-            double currentPosInMicrons = currentPosInMm * 1000.0;
+            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
         } else {
@@ -5732,7 +5732,7 @@ void MutiCamApp::onMoveToXClicked()
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
         // 更新命令位置显示 - 需要将mm转换为μm
-        double targetXInMicrons = targetX * 1000.0;
+        double targetXInMicrons = targetX * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::X_AXIS, targetXInMicrons);
         
         if (m_logManager) {
@@ -5768,7 +5768,7 @@ void MutiCamApp::onMoveToYClicked()
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY)) {
         // 更新命令位置显示 - 需要将mm转换为μm
-        double targetYInMicrons = targetY * 1000.0;
+        double targetYInMicrons = targetY * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::Y_AXIS, targetYInMicrons);
         
         if (m_logManager) {
@@ -5804,7 +5804,7 @@ void MutiCamApp::onMoveToZClicked()
     
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
         // 更新命令位置显示 - 需要将mm转换为μm
-        double targetZInMicrons = targetZ * 1000.0;
+        double targetZInMicrons = targetZ * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::Z_AXIS, targetZInMicrons);
         
         if (m_logManager) {
@@ -5848,15 +5848,15 @@ void MutiCamApp::onMoveToXYZClicked()
     
     // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
     if (xSuccess) {
-        double targetXInMicrons = targetX * 1000.0;
+        double targetXInMicrons = targetX * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::X_AXIS, targetXInMicrons);
     }
     if (ySuccess) {
-        double targetYInMicrons = targetY * 1000.0;
+        double targetYInMicrons = targetY * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::Y_AXIS, targetYInMicrons);
     }
     if (zSuccess) {
-        double targetZInMicrons = targetZ * 1000.0;
+        double targetZInMicrons = targetZ * AxisControl::Constants::MM_TO_UM;
         updateCommandPosition(AxisControl::AxisIndex::Z_AXIS, targetZInMicrons);
     }
     
