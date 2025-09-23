@@ -111,6 +111,15 @@ public:
                       ConnectionType connectionType = ConnectionType::Serial);
 
     /**
+     * @brief 连接设备（不关心波特率，适用于串口载物台）
+     * @param portName 端口名称 (如 "COM3", "/dev/ttyUSB0")
+     * @param connectionType 连接类型 (默认串口)
+     * @return 成功返回true，失败返回false
+     */
+    bool connectDevice(const QString& portName,
+                       ConnectionType connectionType);
+
+    /**
      * @brief 断开设备连接
      * @return 成功返回true，失败返回false
      */

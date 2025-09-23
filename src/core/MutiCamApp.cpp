@@ -5335,10 +5335,17 @@ void MutiCamApp::applyCapturePreset()
 
 void MutiCamApp::onAxisDeviceConnected(const AxisController::DeviceInfo& deviceInfo)
 {
-    QString connectedMsg = QString("轴控制设备已连接：%1@%2:%3")
-                          .arg(deviceInfo.deviceModel)
-                          .arg(deviceInfo.portName)
-                          .arg(deviceInfo.baudRate);
+    QString connectedMsg;
+    if (deviceInfo.connectionType == AxisControl::ConnectionType::Ethernet) {
+        connectedMsg = QString("轴控制设备已连接：%1@%2:%3")
+                      .arg(deviceInfo.deviceModel)
+                      .arg(deviceInfo.portName)
+                      .arg(deviceInfo.baudRate);
+    } else {
+        connectedMsg = QString("轴控制设备已连接：%1@%2")
+                      .arg(deviceInfo.deviceModel)
+                      .arg(deviceInfo.portName);
+    }
     
     statusBar()->showMessage(connectedMsg, 5000);
     
@@ -5558,9 +5565,8 @@ void MutiCamApp::onStageConnectClicked()
         return;
     }
     
-    // 从UI或设置中获取连接参数
+    // 从UI或设置中获取连接参数（不再使用波特率）
     QString portName;
-    int baudRate = 9600;  // 默认波特率
     
     // 优先从UI选择框获取串口名称
     if (ui->comboBoxPort && ui->comboBoxPort->currentIndex() >= 0) {
@@ -5576,7 +5582,6 @@ void MutiCamApp::onStageConnectClicked()
     if (portName.isEmpty() && m_settingsManager) {
         const auto& settings = m_settingsManager->getCurrentSettings();
         portName = settings.stageControllerPort;
-        baudRate = settings.stageControllerBaudRate;
     }
     
     // 如果仍然没有端口，使用推荐端口
@@ -5590,7 +5595,7 @@ void MutiCamApp::onStageConnectClicked()
     // 尝试连接
     statusBar()->showMessage("正在连接轴控制设备...", 3000);
     
-    if (m_axisController->connectDevice(portName, baudRate, connectionType)) {
+    if (m_axisController->connectDevice(portName, connectionType)) {
         // 连接成功
         ui->btnConnect->setEnabled(false);
         ui->btnDisconnect->setEnabled(true);
@@ -5600,7 +5605,7 @@ void MutiCamApp::onStageConnectClicked()
         statusBar()->showMessage("轴控制设备连接成功", 3000);
         
         if (m_logManager) {
-            m_logManager->log(QString("轴控制设备连接成功：%1@%2").arg(portName).arg(baudRate), LogLevel::INFO);
+            m_logManager->log(QString("轴控制设备连接成功：%1").arg(portName), LogLevel::INFO);
         }
         
         qDebug() << "轴控制设备连接成功";

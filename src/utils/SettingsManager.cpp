@@ -147,7 +147,6 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     
     // 串口配置参数
     json["StageControllerPort"] = settings.stageControllerPort;
-    json["StageControllerBaudRate"] = settings.stageControllerBaudRate;
     json["PhysicalButtonPort"] = settings.physicalButtonPort;
     json["PhysicalButtonBaudRate"] = settings.physicalButtonBaudRate;
     json["AutoDetectSerialPorts"] = settings.autoDetectSerialPorts;
@@ -210,7 +209,6 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     
     // 串口配置参数
     settings.stageControllerPort = json.value("StageControllerPort").toString(m_defaultSettings.stageControllerPort);
-    settings.stageControllerBaudRate = json.value("StageControllerBaudRate").toInt(m_defaultSettings.stageControllerBaudRate);
     settings.physicalButtonPort = json.value("PhysicalButtonPort").toString(m_defaultSettings.physicalButtonPort);
     settings.physicalButtonBaudRate = json.value("PhysicalButtonBaudRate").toInt(m_defaultSettings.physicalButtonBaudRate);
     settings.autoDetectSerialPorts = json.value("AutoDetectSerialPorts").toBool(m_defaultSettings.autoDetectSerialPorts);

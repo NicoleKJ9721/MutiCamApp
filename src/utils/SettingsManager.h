@@ -71,7 +71,6 @@ public:
         
         // 串口配置参数
         QString stageControllerPort;     // 载物台控制器串口
-        int stageControllerBaudRate;     // 载物台控制器波特率
         QString physicalButtonPort;      // 物理按键串口
         int physicalButtonBaudRate;      // 物理按键波特率
         bool autoDetectSerialPorts;      // 是否自动检测串口
@@ -107,7 +106,6 @@ public:
             
             // 串口配置默认值
             stageControllerPort("COM1"),
-            stageControllerBaudRate(9600),
             physicalButtonPort("COM5"),
             physicalButtonBaudRate(9600),
             autoDetectSerialPorts(true)

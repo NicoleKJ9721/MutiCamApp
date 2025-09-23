@@ -78,10 +78,7 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         return false;
     }
     
-    if (baudRate < 1200 || baudRate > 115200) {
-        setError(AxisError::InvalidParameter, QString("波特率%1超出范围[1200-115200]").arg(baudRate));
-        return false;
-    }
+    // 注：串口模式下，MCC6 串口初始化不使用波特率；仅以太网模式使用第二参数作为端口。
     
     try {
         // 创建MCC6控制卡实例
@@ -144,7 +141,11 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         emit deviceConnected(m_deviceInfo);
         emit connectionStateChanged(true);
         
-        qDebug() << QString("成功连接到设备 %1，波特率：%2").arg(portName).arg(baudRate);
+        if (connectionType == ConnectionType::Ethernet) {
+            qDebug() << QString("成功连接到设备 %1，端口：%2").arg(portName).arg(baudRate);
+        } else {
+            qDebug() << QString("成功连接到设备 %1（串口）").arg(portName);
+        }
         return true;
         
     } catch (const std::exception& e) {
@@ -156,6 +157,14 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         cleanup();
         return false;
     }
+}
+
+bool AxisController::connectDevice(const QString& portName, ConnectionType connectionType)
+{
+    // 仅端口重载：对串口不校验波特率，Ethernet 沿用默认端口 Constants::DEFAULT_BAUDRATE 仅作占位
+    return connectDevice(portName,
+                         Constants::DEFAULT_BAUDRATE,
+                         connectionType);
 }
 
 bool AxisController::disconnectDevice()
