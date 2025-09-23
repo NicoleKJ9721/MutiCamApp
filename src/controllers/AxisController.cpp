@@ -169,44 +169,54 @@ bool AxisController::connectDevice(const QString& portName, ConnectionType conne
 
 bool AxisController::disconnectDevice()
 {
-    QMutexLocker locker(&m_mutex);
-    
-    if (!m_connectionActive) {
-        return true; // 已经断开
-    }
-    
     try {
-        // 停止所有运动
+        // 先在持锁状态下仅检查连接状态，避免后续再入死锁
+        {
+            QMutexLocker locker(&m_mutex);
+            if (!m_connectionActive) {
+                return true; // 已经断开
+            }
+        }
+
+        // 在未持有互斥锁时执行可能阻塞/再次加锁的操作
+        // 1) 停止所有运动（内部会自行加锁）
         stopAllAxes(true);
-        
-        // 停止状态监控
+
+        // 2) 停止状态监控（需在UI线程调用）
         setStatusMonitorEnabled(false);
-        
-        // 断开连接
-        if (m_controller) {
-            int result = m_controller->MoCtrCard_Unload();
+
+        // 3) 卸载控制器（避免在持锁状态下调用硬件API）
+        MoCtrCard* controllerToUnload = nullptr;
+        {
+            QMutexLocker locker(&m_mutex);
+            controllerToUnload = m_controller;
+        }
+        if (controllerToUnload) {
+            int result = controllerToUnload->MoCtrCard_Unload();
             handleMCC6Error(result, "断开设备连接");
-            
-            delete m_controller;
+            delete controllerToUnload;
+            controllerToUnload = nullptr;
+        }
+
+        // 4) 持锁更新本地状态，但不在锁内发射任何信号
+        {
+            QMutexLocker locker(&m_mutex);
             m_controller = nullptr;
+            m_deviceInfo.isConnected = false;
+            m_connectionActive = false;
+            m_isInitialized = false;
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                m_axisStates[i] = AxisState{};
+            }
         }
-        
-        // 重置状态
-        m_deviceInfo.isConnected = false;
-        m_connectionActive = false;
-        m_isInitialized = false;
-        
-        // 重置轴状态
-        for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
-            m_axisStates[i] = AxisState{};
-        }
-        
+
+        // 5) 解锁后发射信号
         emit deviceDisconnected();
         emit connectionStateChanged(false);
-        
+
         qDebug() << "设备已断开连接";
         return true;
-        
+
     } catch (const std::exception& e) {
         setError(AxisError::HardwareError, QString("断开连接异常：%1").arg(e.what()));
         return false;
@@ -1425,7 +1435,14 @@ void AxisController::updateAxisStatus()
                     const_cast<AxisController*>(this)->emit motionCompleted(static_cast<AxisIndex>(i), m_axisStates[i].currentPosition);
                     
                     // 停止运动超时定时器（如果没有其他轴在运动）
-                    if (!isAnyAxisMoving()) {
+                    bool anyMoving = false;
+                    for (int j = 0; j < Constants::MAX_AXIS_COUNT; ++j) {
+                        if (m_axisStates[j].motionState == MotionState::Moving) {
+                            anyMoving = true;
+                            break;
+                        }
+                    }
+                    if (!anyMoving) {
                         m_motionTimeoutTimer->stop();
                     }
                 }
