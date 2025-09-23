@@ -132,9 +132,9 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         m_deviceInfo.firmwareVersion = "MCC6DLL v1.0";
         m_deviceInfo.deviceModel = "MCC6 Motion Controller";
         
-        // 启动状态监控
-        setStatusMonitorEnabled(true);
-        
+        // 状态监控启动应在主线程进行（避免跨线程启动QTimer）
+        // 由UI线程在连接完成回调中调用 setStatusMonitorEnabled(true)
+
         // 清除错误状态
         clearError();
         

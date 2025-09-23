@@ -57,6 +57,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_axisController(nullptr)
     , m_serialPortDetector(nullptr)
     , m_isUpdatingUISize(false)
+    , m_stageConnectWatcher(nullptr)
+    , m_isStageConnecting(false)
 {
     ui->setupUi(this);
 
@@ -106,6 +108,11 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     m_saveWatcher = new QFutureWatcher<void>(this);
     connect(m_saveWatcher, &QFutureWatcher<void>::finished,
             this, &MutiCamApp::onAsyncSaveFinished);
+
+    // 初始化载物台异步连接监视器
+    m_stageConnectWatcher = new QFutureWatcher<bool>(this);
+    connect(m_stageConnectWatcher, &QFutureWatcher<bool>::finished,
+            this, &MutiCamApp::onStageConnectFinished);
 }
 
 MutiCamApp::~MutiCamApp()
@@ -122,6 +129,13 @@ MutiCamApp::~MutiCamApp()
     // 停止测量
     if (m_isMeasuring) {
         onStopMeasureClicked();
+    }
+
+    // 释放载物台连接监视器
+    if (m_stageConnectWatcher) {
+        m_stageConnectWatcher->disconnect(this);
+        m_stageConnectWatcher->deleteLater();
+        m_stageConnectWatcher = nullptr;
     }
     
     // 清理相机管理器 - 确保完全释放资源
@@ -5564,6 +5578,11 @@ void MutiCamApp::onStageConnectClicked()
         QMessageBox::information(this, "提示", "轴控制系统已经连接");
         return;
     }
+
+    if (m_isStageConnecting) {
+        QMessageBox::information(this, "提示", "正在连接中，请稍候...");
+        return;
+    }
     
     // 从UI或设置中获取连接参数（不再使用波特率）
     QString portName;
@@ -5592,33 +5611,50 @@ void MutiCamApp::onStageConnectClicked()
     
     AxisControl::ConnectionType connectionType = AxisControl::ConnectionType::Serial;
     
-    // 尝试连接
+    // 异步尝试连接，避免阻塞UI
     statusBar()->showMessage("正在连接轴控制设备...", 3000);
-    
-    if (m_axisController->connectDevice(portName, connectionType)) {
-        // 连接成功
+    m_isStageConnecting = true;
+    m_pendingStagePort = portName;
+    ui->btnConnect->setEnabled(false);
+    ui->btnDisconnect->setEnabled(false);
+    ui->labelStageConnection->setText("连接中...");
+    ui->labelStageConnection->setStyleSheet("color: orange; font-weight: bold;");
+
+    QFuture<bool> future = QtConcurrent::run([this, portName, connectionType]() {
+        return m_axisController->connectDevice(portName, connectionType);
+    });
+    m_stageConnectWatcher->setFuture(future);
+}
+
+void MutiCamApp::onStageConnectFinished()
+{
+    const bool success = m_stageConnectWatcher && m_stageConnectWatcher->result();
+    m_isStageConnecting = false;
+
+    if (success) {
         ui->btnConnect->setEnabled(false);
         ui->btnDisconnect->setEnabled(true);
         ui->labelStageConnection->setText("已连接");
         ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
-        
         statusBar()->showMessage("轴控制设备连接成功", 3000);
-        
-        if (m_logManager) {
-            m_logManager->log(QString("轴控制设备连接成功：%1").arg(portName), LogLevel::INFO);
+        // 在主线程启动轴状态监控，避免跨线程启动QTimer
+        if (m_axisController) {
+            m_axisController->setStatusMonitorEnabled(true);
         }
-        
+        if (m_logManager) {
+            m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);
+        }
         qDebug() << "轴控制设备连接成功";
-        
     } else {
-        // 连接失败
-        QString errorMsg = QString("轴控制设备连接失败：%1").arg(m_axisController->getLastErrorString());
+        ui->btnConnect->setEnabled(true);
+        ui->btnDisconnect->setEnabled(false);
+        ui->labelStageConnection->setText("未连接");
+        ui->labelStageConnection->setStyleSheet("color: gray; font-weight: bold;");
+        const QString errorMsg = QString("轴控制设备连接失败：%1").arg(m_axisController->getLastErrorString());
         QMessageBox::warning(this, "连接失败", errorMsg);
-        
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
         }
-        
         qWarning() << errorMsg;
     }
 }

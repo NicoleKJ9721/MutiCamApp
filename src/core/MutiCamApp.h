@@ -227,6 +227,7 @@ private slots:
     void onStageStopClicked();             // 紧急停止
     void onStageConnectClicked();          // 轴控制系统连接
     void onStageDisconnectClicked();       // 轴控制系统断开
+    void onStageConnectFinished();         // 轴控制系统连接完成（异步）
     
     // 绝对位置移动槽函数
     void onMoveToXClicked();               // X轴绝对位置移动
@@ -793,6 +794,9 @@ private:
     
     // 轴控制系统
     std::unique_ptr<AxisController> m_axisController;
+    QFutureWatcher<bool>* m_stageConnectWatcher;   ///< 载物台连接异步监视器
+    bool m_isStageConnecting;                      ///< 是否正在连接载物台
+    QString m_pendingStagePort;                    ///< 正在尝试连接的端口名
     
     // 串口检测器
     class SerialPortDetector* m_serialPortDetector;
