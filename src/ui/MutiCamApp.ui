@@ -3792,7 +3792,7 @@ QPushButton:pressed {
                     <number>50</number>
                    </property>
                    <property name="value">
-                    <number>10</number>
+                    <number>3</number>
                    </property>
                   </widget>
                  </item>
@@ -3812,7 +3812,7 @@ QPushButton:pressed {
                     <number>50</number>
                    </property>
                    <property name="value">
-                    <number>10</number>
+                    <number>3</number>
                    </property>
                   </widget>
                  </item>
@@ -3853,7 +3853,7 @@ QPushButton:pressed {
                     <number>50</number>
                    </property>
                    <property name="value">
-                    <number>10</number>
+                    <number>3</number>
                    </property>
                   </widget>
                  </item>
@@ -3873,7 +3873,7 @@ QPushButton:pressed {
                     <number>50</number>
                    </property>
                    <property name="value">
-                    <number>10</number>
+                    <number>3</number>
                    </property>
                   </widget>
                  </item>
