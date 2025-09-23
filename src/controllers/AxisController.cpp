@@ -1150,9 +1150,6 @@ bool AxisController::setPositionZero(AxisIndex axis)
             case AxisIndex::X_AXIS: axisChar = "X"; break;
             case AxisIndex::Y_AXIS: axisChar = "Y"; break;
             case AxisIndex::Z_AXIS: axisChar = "Z"; break;
-            case AxisIndex::A_AXIS: axisChar = "A"; break;
-            case AxisIndex::B_AXIS: axisChar = "B"; break;
-            case AxisIndex::C_AXIS: axisChar = "C"; break;
             default: axisChar = "X"; break;
         }
         QString mdiCommand = QString("G92 %1%2").arg(axisChar).arg(0.0);
@@ -1494,7 +1491,7 @@ void AxisController::cleanup()
 
 bool AxisController::isValidAxis(AxisIndex axis) const
 {
-    return axis >= AxisIndex::X_AXIS && axis <= AxisIndex::C_AXIS;
+    return axis >= AxisIndex::X_AXIS && axis <= AxisIndex::Z_AXIS;
 }
 
 bool AxisController::validateMotionParams(AxisIndex axis, double distance, double speed) const
@@ -1682,9 +1679,6 @@ QString AxisController::axisToString(AxisIndex axis) const
         case AxisIndex::X_AXIS: return "X轴";
         case AxisIndex::Y_AXIS: return "Y轴";
         case AxisIndex::Z_AXIS: return "Z轴";
-        case AxisIndex::A_AXIS: return "A轴";
-        case AxisIndex::B_AXIS: return "B轴";
-        case AxisIndex::C_AXIS: return "C轴";
         default: return "未知轴";
     }
 }

@@ -19,9 +19,6 @@ enum class AxisIndex {
     X_AXIS = 0,     ///< X轴
     Y_AXIS = 1,     ///< Y轴  
     Z_AXIS = 2,     ///< Z轴
-    A_AXIS = 3,     ///< A轴（旋转轴）
-    B_AXIS = 4,     ///< B轴（旋转轴）
-    C_AXIS = 5,     ///< C轴（旋转轴）
     INVALID_AXIS = -1
 };
 
@@ -92,9 +89,9 @@ enum class MotionMode {
  */
 namespace Constants {
     // 轴数量限制
-    constexpr int MAX_AXIS_COUNT = 6;
+    constexpr int MAX_AXIS_COUNT = 3;
     constexpr int MIN_AXIS_INDEX = 0;
-    constexpr int MAX_AXIS_INDEX = 5;
+    constexpr int MAX_AXIS_INDEX = 2;
     
     // 运动参数限制
     constexpr double MIN_SPEED = 0.1;           ///< 最小速度 (mm/min)
@@ -168,9 +165,6 @@ inline const char* axisToString(AxisIndex axis) {
         case AxisIndex::X_AXIS:     return "X轴";
         case AxisIndex::Y_AXIS:     return "Y轴";
         case AxisIndex::Z_AXIS:     return "Z轴";
-        case AxisIndex::A_AXIS:     return "A轴";
-        case AxisIndex::B_AXIS:     return "B轴";
-        case AxisIndex::C_AXIS:     return "C轴";
         default:                   return "无效轴";
     }
 }
