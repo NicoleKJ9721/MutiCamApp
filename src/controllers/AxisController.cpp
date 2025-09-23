@@ -310,7 +310,7 @@ bool AxisController::moveRelative(AxisIndex axis, double distance, double speed)
         
         emitMotionStateChanged(axis, MotionState::Moving);
         
-        qDebug() << QString("%1相对运动 %2 μm，速度：%3 μm/min")
+        qDebug() << QString("%1相对运动 %2 μm，速度：%3 μm/s")
                     .arg(axisToString(axis)).arg(distance).arg(moveSpeed);
         
         return true;
@@ -381,7 +381,7 @@ bool AxisController::moveAbsolute(AxisIndex axis, double position, double speed)
         
         emitMotionStateChanged(axis, MotionState::Moving);
         
-        qDebug() << QString("%1绝对运动到 %2 μm，速度：%3 μm/min")
+        qDebug() << QString("%1绝对运动到 %2 μm，速度：%3 μm/s")
                     .arg(axisToString(axis)).arg(position).arg(moveSpeed);
         
         return true;
@@ -767,7 +767,7 @@ bool AxisController::startJogging(AxisIndex axis, int direction, double speed)
         
         emitMotionStateChanged(axis, MotionState::Moving);
         
-        qDebug() << QString("%1开始%2点动，速度：%3 μm/min")
+        qDebug() << QString("%1开始%2点动，速度：%3 μm/s")
                     .arg(axisToString(axis))
                     .arg(direction > 0 ? "正向" : "负向")
                     .arg(speed);
@@ -1045,7 +1045,7 @@ bool AxisController::setAxisSpeed(AxisIndex axis, double speed)
         
         m_motionParams[axisIndex].maxSpeed = speed;
         
-        qDebug() << QString("%1速度设置为 %2 μm/min").arg(axisToString(axis)).arg(speed);
+        qDebug() << QString("%1速度设置为 %2 μm/s").arg(axisToString(axis)).arg(speed);
         
         return true;
         

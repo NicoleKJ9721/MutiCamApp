@@ -50,7 +50,7 @@ public:
      * @brief 运动参数结构体
      */
     struct MotionParams {
-        double maxSpeed = 3.0;          ///< 最大速度 (μm/min)
+        double maxSpeed = 3.0;          ///< 最大速度 (μm/s)
         double acceleration = 3.0;      ///< 加速度 (μm/s²)
         double deceleration = 3.0;      ///< 减速度 (μm/s²)
         int subdivision = Constants::DEFAULT_SUBDIVISION;  ///< 细分数
@@ -149,7 +149,7 @@ public:
      * @brief 相对运动
      * @param axis 轴编号
      * @param distance 移动距离 (μm)
-     * @param speed 运动速度 (μm/min，0表示使用默认速度)
+     * @param speed 运动速度 (μm/s，0表示使用默认速度)
      * @return 成功返回true，失败返回false
      */
     bool moveRelative(AxisIndex axis, double distance, double speed = 0);
@@ -158,7 +158,7 @@ public:
      * @brief 绝对运动
      * @param axis 轴编号  
      * @param position 目标位置 (μm)
-     * @param speed 运动速度 (μm/min，0表示使用默认速度)
+     * @param speed 运动速度 (μm/s，0表示使用默认速度)
      * @return 成功返回true，失败返回false
      */
     bool moveAbsolute(AxisIndex axis, double position, double speed = 0);
@@ -167,7 +167,7 @@ public:
      * @brief 多轴同步运动
      * @param axes 轴编号数组
      * @param distances 移动距离数组 (μm)
-     * @param speed 运动速度 (μm/min，0表示使用默认速度)
+     * @param speed 运动速度 (μm/s，0表示使用默认速度)
      * @return 成功返回true，失败返回false
      */
     bool moveMultiAxis(const std::vector<AxisIndex>& axes, 
@@ -206,7 +206,7 @@ public:
      * @brief 点动运动开始
      * @param axis 轴编号
      * @param direction 运动方向（正数为正向，负数为负向）
-     * @param speed 运动速度 (μm/min)
+     * @param speed 运动速度 (μm/s)
      * @return 成功返回true，失败返回false
      */
     bool startJogging(AxisIndex axis, int direction, double speed);
@@ -308,7 +308,7 @@ public:
     /**
      * @brief 设置轴速度
      * @param axis 轴编号
-     * @param speed 速度 (μm/min)
+     * @param speed 速度 (μm/s)
      * @return 成功返回true，失败返回false
      */
     bool setAxisSpeed(AxisIndex axis, double speed);
