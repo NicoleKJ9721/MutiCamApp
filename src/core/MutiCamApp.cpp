@@ -4711,6 +4711,8 @@ void MutiCamApp::connectAxisControllerSignals()
     // 连接运动状态信号
     connect(m_axisController.get(), &AxisController::positionChanged,
             this, &MutiCamApp::onAxisPositionChanged);
+    connect(m_axisController.get(), &AxisController::actualPositionChanged,
+            this, &MutiCamApp::onAxisActualPositionChanged);
     connect(m_axisController.get(), &AxisController::motionStateChanged,
             this, &MutiCamApp::onAxisMotionStateChanged);
     connect(m_axisController.get(), &AxisController::motionCompleted,
@@ -5371,26 +5373,45 @@ void MutiCamApp::onAxisConnectionStateChanged(bool connected)
 
 void MutiCamApp::onAxisPositionChanged(AxisIndex axis, double position)
 {
-    // 更新轴位置到UI和内部状态
-    // 这里接收的是从载物台读取的实际位置（mm单位），需要转换为μm显示
-    // position是mm单位，转换为μm需要乘以1000
-    double positionInMicrons = position * 1000.0;
-    
+    // 更新命令位置显示（从MoCtrCard_GetAxisPos获取）
+    // position是μm单位，直接显示
     switch (axis) {
         case AxisIndex::X_AXIS:
-            m_currentX = positionInMicrons;  // 内部存储也使用μm单位保持一致
-            // 更新到实际光栅尺读数位置显示（右侧列）
-            ui->labelGratingXPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
+            // 更新到命令位置显示（左侧列）
+            ui->labelXPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
             break;
         case AxisIndex::Y_AXIS:
-            m_currentY = positionInMicrons;  // 内部存储也使用μm单位保持一致
-            // 更新到实际光栅尺读数位置显示（右侧列）
-            ui->labelGratingYPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
+            // 更新到命令位置显示（左侧列）
+            ui->labelYPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
             break;
         case AxisIndex::Z_AXIS:
-            m_currentZ = positionInMicrons;  // 内部存储也使用μm单位保持一致
+            // 更新到命令位置显示（左侧列）
+            ui->labelZPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
+            break;
+        default:
+            break;
+    }
+}
+
+void MutiCamApp::onAxisActualPositionChanged(AxisIndex axis, double actualPosition)
+{
+    // 更新实际位置显示（从MoCtrCard_GetAxisActualPos获取的光栅尺读数）
+    // actualPosition是μm单位，直接显示
+    switch (axis) {
+        case AxisIndex::X_AXIS:
+            m_currentX = actualPosition;  // 内部状态使用实际位置
             // 更新到实际光栅尺读数位置显示（右侧列）
-            ui->labelGratingZPosition->setText(QString("%1 μm").arg(positionInMicrons, 0, 'f', 4));
+            ui->labelGratingXPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            break;
+        case AxisIndex::Y_AXIS:
+            m_currentY = actualPosition;  // 内部状态使用实际位置
+            // 更新到实际光栅尺读数位置显示（右侧列）
+            ui->labelGratingYPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            break;
+        case AxisIndex::Z_AXIS:
+            m_currentZ = actualPosition;  // 内部状态使用实际位置
+            // 更新到实际光栅尺读数位置显示（右侧列）
+            ui->labelGratingZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
             break;
         default:
             break;

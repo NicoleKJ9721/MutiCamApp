@@ -70,7 +70,8 @@ public:
      * @brief 轴状态结构体
      */
     struct AxisState {
-        double currentPosition = 0.0;    ///< 当前位置 (μm)
+        double currentPosition = 0.0;    ///< 当前命令位置 (μm)
+        double actualPosition = 0.0;     ///< 当前实际位置/光栅尺读数 (μm)
         double targetPosition = 0.0;     ///< 目标位置 (μm)  
         MotionState motionState = MotionState::Idle;  ///< 运动状态
         bool isHomed = false;            ///< 是否已回零
@@ -211,11 +212,18 @@ public:
     // ==================== 状态查询 ====================
 
     /**
-     * @brief 获取当前位置
+     * @brief 获取当前命令位置
      * @param axis 轴编号
-     * @return 当前位置 (μm)，错误时返回0
+     * @return 当前命令位置 (μm)，错误时返回0
      */
     double getCurrentPosition(AxisIndex axis) const;
+
+    /**
+     * @brief 获取当前实际位置（光栅尺读数）
+     * @param axis 轴编号
+     * @return 当前实际位置 (μm)，错误时返回0
+     */
+    double getActualPosition(AxisIndex axis) const;
 
     /**
      * @brief 获取目标位置
@@ -400,11 +408,18 @@ signals:
     // ==================== 运动状态信号 ====================
 
     /**
-     * @brief 位置改变信号
+     * @brief 命令位置改变信号
      * @param axis 轴编号
-     * @param position 当前位置 (μm)
+     * @param position 当前命令位置 (μm)
      */
     void positionChanged(AxisIndex axis, double position);
+
+    /**
+     * @brief 实际位置改变信号（光栅尺读数）
+     * @param axis 轴编号
+     * @param actualPosition 当前实际位置 (μm)
+     */
+    void actualPositionChanged(AxisIndex axis, double actualPosition);
 
     /**
      * @brief 运动状态改变信号
@@ -555,11 +570,18 @@ private:
     void updateSingleAxisStatus(AxisIndex axis, bool forceUpdate = false);
 
     /**
-     * @brief 发射位置改变信号
+     * @brief 发射命令位置改变信号
      * @param axis 轴编号
-     * @param newPosition 新位置
+     * @param newPosition 新命令位置
      */
     void emitPositionChanged(AxisIndex axis, double newPosition);
+
+    /**
+     * @brief 发射实际位置改变信号（光栅尺读数）
+     * @param axis 轴编号
+     * @param newActualPosition 新实际位置
+     */
+    void emitActualPositionChanged(AxisIndex axis, double newActualPosition);
 
     /**
      * @brief 发射运动状态改变信号

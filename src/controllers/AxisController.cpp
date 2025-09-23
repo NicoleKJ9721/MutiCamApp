@@ -818,6 +818,17 @@ double AxisController::getCurrentPosition(AxisIndex axis) const
     return m_axisStates[axisToMCC6Index(axis)].currentPosition;
 }
 
+double AxisController::getActualPosition(AxisIndex axis) const
+{
+    QMutexLocker locker(&m_mutex);
+    
+    if (!isValidAxis(axis)) {
+        return 0.0;
+    }
+    
+    return m_axisStates[axisToMCC6Index(axis)].actualPosition;
+}
+
 double AxisController::getTargetPosition(AxisIndex axis) const
 {
     QMutexLocker locker(&m_mutex);
@@ -1153,9 +1164,11 @@ bool AxisController::setPositionZero(AxisIndex axis)
         }
         
         m_axisStates[axisIndex].currentPosition = 0.0;
+        m_axisStates[axisIndex].actualPosition = 0.0;
         m_axisStates[axisIndex].targetPosition = 0.0;
         
         emitPositionChanged(axis, 0.0);
+        emitActualPositionChanged(axis, 0.0);
         
         qDebug() << QString("%1位置已设为零点").arg(axisToString(axis));
         
@@ -1364,7 +1377,7 @@ void AxisController::updateAxisStatus()
         bool anyStatusChanged = false;
         
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
-            // 查询位置
+            // 查询命令位置
             float position[1] = {0.0f};
             int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(i), position);
             if (result == 1) { // funResOk = 0x01
@@ -1372,6 +1385,18 @@ void AxisController::updateAxisStatus()
                 if (qAbs(m_axisStates[i].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].currentPosition = newPos;
                     emitPositionChanged(static_cast<AxisIndex>(i), newPos);
+                    anyStatusChanged = true;
+                }
+            }
+            
+            // 查询实际位置（光栅尺读数）
+            float actualPosition[1] = {0.0f};
+            result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(i), actualPosition);
+            if (result == 1) { // funResOk = 0x01
+                double newActualPos = static_cast<double>(actualPosition[0]);
+                if (qAbs(m_axisStates[i].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
+                    m_axisStates[i].actualPosition = newActualPos;
+                    emitActualPositionChanged(static_cast<AxisIndex>(i), newActualPos);
                     anyStatusChanged = true;
                 }
             }
@@ -1579,7 +1604,7 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
     int axisIndex = axisToMCC6Index(axis);
     
     try {
-        // 查询位置
+        // 查询命令位置
         float position[1] = {0.0f};
         int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(axisIndex), position);
         if (result == 1) { // funResOk = 0x01
@@ -1587,6 +1612,17 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
             if (forceUpdate || qAbs(m_axisStates[axisIndex].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
                 m_axisStates[axisIndex].currentPosition = newPos;
                 emitPositionChanged(axis, newPos);
+            }
+        }
+        
+        // 查询实际位置（光栅尺读数）
+        float actualPosition[1] = {0.0f};
+        result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(axisIndex), actualPosition);
+        if (result == 1) { // funResOk = 0x01
+            double newActualPos = static_cast<double>(actualPosition[0]);
+            if (forceUpdate || qAbs(m_axisStates[axisIndex].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
+                m_axisStates[axisIndex].actualPosition = newActualPos;
+                emitActualPositionChanged(axis, newActualPos);
             }
         }
         
@@ -1611,6 +1647,11 @@ void AxisController::updateSingleAxisStatus(AxisIndex axis, bool forceUpdate)
 void AxisController::emitPositionChanged(AxisIndex axis, double newPosition)
 {
     emit positionChanged(axis, newPosition);
+}
+
+void AxisController::emitActualPositionChanged(AxisIndex axis, double newActualPosition)
+{
+    emit actualPositionChanged(axis, newActualPosition);
 }
 
 void AxisController::emitMotionStateChanged(AxisIndex axis, MotionState newState)
