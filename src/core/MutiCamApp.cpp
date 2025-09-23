@@ -6114,12 +6114,28 @@ void MutiCamApp::updateSerialPortLists()
         qDebug() << "更新物理按键串口列表";
     }
     
-    // 从设置中恢复选择的串口
+    // 优先选择描述为 "USB Serial Port" 的载物台串口；若不可用再按设置恢复
+    bool stagePortSelectedByPreference = false;
+    if (ui->comboBoxPort) {
+        const auto availablePorts = m_serialPortDetector->getAvailableSerialPorts();
+        for (const auto& port : availablePorts) {
+            if (port.description.compare("USB Serial Port", Qt::CaseInsensitive) == 0) {
+                int index = ui->comboBoxPort->findData(port.portName);
+                if (index >= 0) {
+                    ui->comboBoxPort->setCurrentIndex(index);
+                    stagePortSelectedByPreference = true;
+                }
+                break;
+            }
+        }
+    }
+    
+    // 从设置中恢复选择的串口（当未命中优先项时）
     if (m_settingsManager) {
         const auto& settings = m_settingsManager->getCurrentSettings();
         
         // 设置载物台控制串口
-        if (ui->comboBoxPort && !settings.stageControllerPort.isEmpty()) {
+        if (!stagePortSelectedByPreference && ui->comboBoxPort && !settings.stageControllerPort.isEmpty()) {
             int index = ui->comboBoxPort->findData(settings.stageControllerPort);
             if (index >= 0) {
                 ui->comboBoxPort->setCurrentIndex(index);

@@ -28,10 +28,9 @@
     "LineDetThreshold": 50,
     "PhysicalButtonBaudRate": 9600,
     "PhysicalButtonPort": "COM3",
-    "StageControllerBaudRate": 9600,
-    "StageControllerPort": "COM1",
-    "UIHeight": 700,
-    "UIWidth": 1100,
+    "StageControllerPort": "COM5",
+    "UIHeight": 783,
+    "UIWidth": 1365,
     "VerCamSN": "K75651644",
     "VerticalCalibration": {
         "accuracy": 0,
