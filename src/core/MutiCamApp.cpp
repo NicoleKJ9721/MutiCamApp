@@ -5639,9 +5639,9 @@ void MutiCamApp::onStageConnectFinished()
         ui->labelStageConnection->setText("已连接");
         ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
         statusBar()->showMessage("轴控制设备连接成功", 3000);
-        // 在主线程启动轴状态监控，避免跨线程启动QTimer
+        // 启动轴状态监控（低频启动，避免UI抖动；自适应逻辑会在运动时提升）
         if (m_axisController) {
-            m_axisController->setStatusMonitorEnabled(true);
+            m_axisController->setStatusMonitorEnabled(true, 700);
         }
         if (m_logManager) {
             m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);

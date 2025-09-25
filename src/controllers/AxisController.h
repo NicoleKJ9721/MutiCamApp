@@ -496,6 +496,13 @@ private slots:
      */
     void handleMotionCompleted(int axis);
 
+    /**
+     * @brief 在工作线程启动或停止状态定时器
+     * @param start 是否启动
+     * @param interval 间隔(ms)
+     */
+    void controlStatusTimer(bool start, int interval);
+
 private:
     // ==================== 私有成员变量 ====================
     
@@ -513,9 +520,10 @@ private:
     std::array<MotionParams, Constants::MAX_AXIS_COUNT> m_motionParams; ///< 运动参数数组
     
     // 状态监控
-    QTimer* m_statusTimer;                      ///< 状态更新定时器
+    QTimer* m_statusTimer;                      ///< 状态更新定时器（运行于工作线程）
     std::atomic<bool> m_statusMonitorEnabled;   ///< 状态监控使能
     int m_statusUpdateInterval;                 ///< 状态更新间隔
+    QThread* m_statusThread;                    ///< 状态监控线程
     
     // 错误管理
     AxisError m_lastError;                      ///< 最后错误
@@ -614,6 +622,16 @@ private:
      */
     int axisToMCC6Index(AxisIndex axis) const;
     QString axisToString(AxisIndex axis) const;
+
+    /**
+     * @brief 自适应计算当前应使用的监控间隔
+     */
+    int computeAdaptiveInterval() const;
+
+    /**
+     * @brief 在工作线程执行一次状态采集
+     */
+    void performStatusPoll();
 };
 
 #endif // AXISCONTROLLER_H

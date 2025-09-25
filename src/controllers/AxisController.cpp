@@ -31,12 +31,13 @@ AxisController::AxisController(QObject *parent)
     , m_controller(nullptr)
     , m_isInitialized(false)
     , m_connectionActive(false)
-    , m_statusTimer(new QTimer(this))
+    , m_statusTimer(nullptr)
     , m_statusMonitorEnabled(false)
     , m_statusUpdateInterval(Constants::STATUS_UPDATE_INTERVAL)
     , m_lastError(AxisError::NoError)
     , m_emergencyStopActive(false)
     , m_motionTimeoutTimer(new QTimer(this))
+    , m_statusThread(new QThread(this))
 {
     // 初始化设备信息
     m_deviceInfo.isConnected = false;
@@ -49,9 +50,15 @@ AxisController::AxisController(QObject *parent)
         m_motionParams[i] = MotionParams{};
     }
     
-    // 设置状态更新定时器
+    // 启动状态监控线程并将定时器放入该线程
+    m_statusThread->setObjectName("AxisStatusThread");
+    m_statusThread->start();
+    m_statusTimer = new QTimer(nullptr);
     m_statusTimer->setSingleShot(false);
-    connect(m_statusTimer, &QTimer::timeout, this, &AxisController::updateAxisStatus);
+    m_statusTimer->setTimerType(Qt::CoarseTimer);
+    m_statusTimer->moveToThread(m_statusThread);
+    // 使用DirectConnection使槽在定时器所属线程中执行，避免阻塞UI线程
+    connect(m_statusTimer, &QTimer::timeout, this, &AxisController::performStatusPoll, Qt::DirectConnection);
     
     // 设置运动超时定时器
     m_motionTimeoutTimer->setSingleShot(true);
@@ -60,12 +67,39 @@ AxisController::AxisController(QObject *parent)
         stopAllAxes(true); // 急停
     });
     
+    // 运动相关信号联动自适应轮询频率（在UI线程排队执行）
+    connect(this, &AxisController::motionStateChanged, this, [this](AxisIndex, MotionState){
+        if (m_statusMonitorEnabled) {
+            setStatusMonitorEnabled(true, computeAdaptiveInterval());
+        }
+    }, Qt::QueuedConnection);
+    connect(this, &AxisController::motionCompleted, this, [this](AxisIndex, double){
+        if (m_statusMonitorEnabled) {
+            setStatusMonitorEnabled(true, computeAdaptiveInterval());
+        }
+    }, Qt::QueuedConnection);
+    connect(this, &AxisController::homeCompleted, this, [this](AxisIndex, bool){
+        if (m_statusMonitorEnabled) {
+            setStatusMonitorEnabled(true, computeAdaptiveInterval());
+        }
+    }, Qt::QueuedConnection);
+    
     qDebug() << "AxisController initialized";
 }
 
 AxisController::~AxisController()
 {
     cleanup();
+    // 安全退出状态监控线程
+    if (m_statusTimer) {
+        QMetaObject::invokeMethod(m_statusTimer, "stop", Qt::BlockingQueuedConnection);
+    }
+    if (m_statusThread) {
+        m_statusThread->quit();
+        m_statusThread->wait(2000);
+    }
+    delete m_statusTimer; m_statusTimer = nullptr;
+    delete m_statusThread; m_statusThread = nullptr;
     qDebug() << "AxisController destroyed";
 }
 
@@ -1251,12 +1285,14 @@ void AxisController::setStatusMonitorEnabled(bool enabled, int interval)
     m_statusMonitorEnabled = enabled;
     m_statusUpdateInterval = qBound(10, interval, 10000); // 限制在10ms-10s之间
     
-    if (enabled && isConnected()) {
-        m_statusTimer->start(m_statusUpdateInterval);
-        qDebug() << QString("状态监控已启用，更新间隔：%1ms").arg(m_statusUpdateInterval);
-    } else {
-        m_statusTimer->stop();
-        qDebug() << "状态监控已停用";
+    if (m_statusTimer) {
+        if (enabled && isConnected()) {
+            controlStatusTimer(true, m_statusUpdateInterval);
+            qDebug() << QString("状态监控已启用，更新间隔：%1ms").arg(m_statusUpdateInterval);
+        } else {
+            controlStatusTimer(false, m_statusUpdateInterval);
+            qDebug() << "状态监控已停用";
+        }
     }
 }
 
@@ -1451,7 +1487,8 @@ void AxisController::updateAxisStatus()
                         }
                     }
                     if (!anyMoving) {
-                        m_motionTimeoutTimer->stop();
+                        // 跨线程安全停止UI线程中的超时定时器
+                        QMetaObject::invokeMethod(m_motionTimeoutTimer, "stop", Qt::QueuedConnection);
                     }
                 }
                 
@@ -1478,6 +1515,38 @@ void AxisController::updateAxisStatus()
     } catch (...) {
         setError(AxisError::UnknownError, "状态更新时发生未知异常");
     }
+}
+
+void AxisController::performStatusPoll()
+{
+    // 在工作线程执行实际采集
+    updateAxisStatus();
+}
+
+void AxisController::controlStatusTimer(bool start, int interval)
+{
+    if (!m_statusTimer) {
+        return;
+    }
+    const int bounded = qBound(10, interval, 10000);
+    QMetaObject::invokeMethod(m_statusTimer, "setInterval", Qt::QueuedConnection, Q_ARG(int, bounded));
+    if (start) {
+        QMetaObject::invokeMethod(m_statusTimer, "start", Qt::QueuedConnection);
+    } else {
+        QMetaObject::invokeMethod(m_statusTimer, "stop", Qt::QueuedConnection);
+    }
+}
+
+int AxisController::computeAdaptiveInterval() const
+{
+    QMutexLocker locker(&m_mutex);
+    bool busy = false;
+    for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+        if (m_axisStates[i].motionState == MotionState::Moving || m_axisStates[i].motionState == MotionState::Homing) {
+            busy = true; break;
+        }
+    }
+    return busy ? 150 : 700; // 运动/回零：150ms；空闲：700ms
 }
 
 void AxisController::handleMotionCompleted(int axis)
