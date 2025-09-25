@@ -4391,9 +4391,8 @@ void MutiCamApp::onMoveXLeftClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::X_AXIS, targetPos);
         } else {
@@ -4425,9 +4424,8 @@ void MutiCamApp::onMoveXRightClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::X_AXIS);
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::X_AXIS, targetPos);
         } else {
@@ -4459,9 +4457,8 @@ void MutiCamApp::onMoveYUpClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
         } else {
@@ -4493,9 +4490,8 @@ void MutiCamApp::onMoveYDownClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::Y_AXIS);
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::Y_AXIS, targetPos);
         } else {
@@ -4527,9 +4523,8 @@ void MutiCamApp::onMoveZUpClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
             double targetPos = currentPosInMicrons + stepSize;
             updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
         } else {
@@ -4561,9 +4556,8 @@ void MutiCamApp::onMoveZDownClicked()
     if (m_axisController && m_axisController->isConnected()) {
         if (m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
             // 移动命令成功，更新命令位置显示（当前位置 + 移动距离）
-            // getCurrentPosition返回mm单位，需要转换为μm与stepSize单位匹配
-            double currentPosInMm = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
-            double currentPosInMicrons = currentPosInMm * AxisControl::Constants::MM_TO_UM;
+            // getCurrentPosition返回μm单位，直接使用
+            double currentPosInMicrons = m_axisController->getCurrentPosition(AxisIndex::Z_AXIS);
             double targetPos = currentPosInMicrons - stepSize;
             updateCommandPosition(AxisIndex::Z_AXIS, targetPos);
         } else {
