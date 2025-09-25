@@ -5718,7 +5718,7 @@ void MutiCamApp::onMoveToXClicked()
     double targetX = ui->spinBoxTargetX->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动X轴到位置 %1 mm...").arg(targetX), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX * AxisControl::Constants::MM_TO_UM)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
@@ -5752,7 +5752,7 @@ void MutiCamApp::onMoveToYClicked()
     double targetY = ui->spinBoxTargetY->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动Y轴到位置 %1 mm...").arg(targetY), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY * AxisControl::Constants::MM_TO_UM)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
@@ -5786,7 +5786,7 @@ void MutiCamApp::onMoveToZClicked()
     double targetZ = ui->spinBoxTargetZ->value();  // spinBox中的值是mm单位
     statusBar()->showMessage(QString("正在移动Z轴到位置 %1 mm...").arg(targetZ), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ * AxisControl::Constants::MM_TO_UM)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
@@ -5824,9 +5824,9 @@ void MutiCamApp::onMoveToXYZClicked()
     statusBar()->showMessage(QString("正在移动XYZ轴到位置 (%1, %2, %3) mm...").arg(targetX).arg(targetY).arg(targetZ), 5000);
     
     // 同时移动三个轴
-    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
-    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
-    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
+    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX * AxisControl::Constants::MM_TO_UM);
+    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY * AxisControl::Constants::MM_TO_UM);
+    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ * AxisControl::Constants::MM_TO_UM);
     
     // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
     // 由 onAxisPositionChanged 回调平滑更新UI
