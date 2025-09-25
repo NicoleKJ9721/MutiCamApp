@@ -610,27 +610,43 @@ bool AxisController::stopAllAxes(bool immediate)
     
     try {
         // MCC6DLL没有停止所有轴的函数，需要依次停止每个轴
-        for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
-            if (m_axisStates[i].motionState == MotionState::Moving) {
-                int result;
-                if (immediate) {
-                    result = m_controller->MoCtrCard_EmergencyStopAxisMov(static_cast<uint8_t>(i));
-                } else {
-                    result = m_controller->MoCtrCard_StopAxisMov(
+        if (immediate) {
+            // 急停场景：无条件对所有轴下发急停命令，避免状态不同步导致漏停
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                int result = m_controller->MoCtrCard_EmergencyStopAxisMov(static_cast<uint8_t>(i));
+                handleMCC6Error(result, QString("急停轴%1").arg(i));
+            }
+        } else {
+            // 正常停止：对处于运动/回零的轴减速停止
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                if (m_axisStates[i].motionState == MotionState::Moving ||
+                    m_axisStates[i].motionState == MotionState::Homing) {
+                    int result = m_controller->MoCtrCard_StopAxisMov(
                         static_cast<uint8_t>(i), 
                         ums2_to_mms2_f(m_motionParams[i].deceleration)
                     );
+                    // 记录错误但继续停止其他轴
+                    handleMCC6Error(result, QString("停止轴%1").arg(i));
                 }
-                // 记录错误但继续停止其他轴
-                handleMCC6Error(result, QString("停止轴%1").arg(i));
             }
         }
         
         // 更新所有轴状态
-        for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
-            if (m_axisStates[i].motionState == MotionState::Moving) {
-                m_axisStates[i].motionState = MotionState::Stopped;
-                emitMotionStateChanged(static_cast<AxisIndex>(i), MotionState::Stopped);
+        if (immediate) {
+            // 急停后统一置为 Stopped（随后 emergencyStop() 会设置为 Error 并广播）
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                if (m_axisStates[i].motionState != MotionState::Idle) {
+                    m_axisStates[i].motionState = MotionState::Stopped;
+                    emitMotionStateChanged(static_cast<AxisIndex>(i), MotionState::Stopped);
+                }
+            }
+        } else {
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                if (m_axisStates[i].motionState == MotionState::Moving ||
+                    m_axisStates[i].motionState == MotionState::Homing) {
+                    m_axisStates[i].motionState = MotionState::Stopped;
+                    emitMotionStateChanged(static_cast<AxisIndex>(i), MotionState::Stopped);
+                }
             }
         }
         
