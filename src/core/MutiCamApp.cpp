@@ -5724,14 +5724,14 @@ void MutiCamApp::onMoveToXClicked()
         return;
     }
     
-    double targetX = ui->spinBoxTargetX->value();  // spinBox中的值是mm单位
-    statusBar()->showMessage(QString("正在移动X轴到位置 %1 mm...").arg(targetX), 3000);
+    double targetX = ui->spinBoxTargetX->value();  // 输入为μm
+    statusBar()->showMessage(QString("正在移动X轴到位置 %1 μm...").arg(targetX), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX * AxisControl::Constants::MM_TO_UM)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
-            m_logManager->log(QString("X轴开始移动到绝对位置：%1 mm").arg(targetX), LogLevel::INFO);
+            m_logManager->log(QString("X轴开始移动到绝对位置：%1 μm").arg(targetX), LogLevel::INFO);
         }
         qDebug() << "X轴开始移动到绝对位置：" << targetX;
     } else {
@@ -5758,14 +5758,14 @@ void MutiCamApp::onMoveToYClicked()
         return;
     }
     
-    double targetY = ui->spinBoxTargetY->value();  // spinBox中的值是mm单位
-    statusBar()->showMessage(QString("正在移动Y轴到位置 %1 mm...").arg(targetY), 3000);
+    double targetY = ui->spinBoxTargetY->value();  // 输入为μm
+    statusBar()->showMessage(QString("正在移动Y轴到位置 %1 μm...").arg(targetY), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY * AxisControl::Constants::MM_TO_UM)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
-            m_logManager->log(QString("Y轴开始移动到绝对位置：%1 mm").arg(targetY), LogLevel::INFO);
+            m_logManager->log(QString("Y轴开始移动到绝对位置：%1 μm").arg(targetY), LogLevel::INFO);
         }
         qDebug() << "Y轴开始移动到绝对位置：" << targetY;
     } else {
@@ -5792,14 +5792,14 @@ void MutiCamApp::onMoveToZClicked()
         return;
     }
     
-    double targetZ = ui->spinBoxTargetZ->value();  // spinBox中的值是mm单位
-    statusBar()->showMessage(QString("正在移动Z轴到位置 %1 mm...").arg(targetZ), 3000);
+    double targetZ = ui->spinBoxTargetZ->value();  // 输入为μm
+    statusBar()->showMessage(QString("正在移动Z轴到位置 %1 μm...").arg(targetZ), 3000);
     
-    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ * AxisControl::Constants::MM_TO_UM)) {
+    if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
         
         if (m_logManager) {
-            m_logManager->log(QString("Z轴开始移动到绝对位置：%1 mm").arg(targetZ), LogLevel::INFO);
+            m_logManager->log(QString("Z轴开始移动到绝对位置：%1 μm").arg(targetZ), LogLevel::INFO);
         }
         qDebug() << "Z轴开始移动到绝对位置：" << targetZ;
     } else {
@@ -5833,9 +5833,9 @@ void MutiCamApp::onMoveToXYZClicked()
     statusBar()->showMessage(QString("正在移动XYZ轴到位置 (%1, %2, %3) mm...").arg(targetX).arg(targetY).arg(targetZ), 5000);
     
     // 同时移动三个轴
-    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX * AxisControl::Constants::MM_TO_UM);
-    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY * AxisControl::Constants::MM_TO_UM);
-    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ * AxisControl::Constants::MM_TO_UM);
+    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
+    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
+    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
     
     // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
     // 由 onAxisPositionChanged 回调平滑更新UI
