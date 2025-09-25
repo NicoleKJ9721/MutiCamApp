@@ -63,6 +63,21 @@ AxisController::AxisController(QObject *parent)
     // 设置运动超时定时器
     m_motionTimeoutTimer->setSingleShot(true);
     connect(m_motionTimeoutTimer, &QTimer::timeout, [this]() {
+        // 二次确认：若已无任何轴处于运动状态，则视为过期定时器，避免误报
+        bool anyMoving = false;
+        {
+            QMutexLocker locker(&m_mutex);
+            for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+                if (m_axisStates[i].motionState == MotionState::Moving) {
+                    anyMoving = true;
+                    break;
+                }
+            }
+        }
+        if (!anyMoving) {
+            qDebug() << "运动超时定时器触发但未检测到运动，视为过期计时器，已忽略";
+            return;
+        }
         setError(AxisError::MotionTimeout, "运动超时，已自动停止所有轴");
         stopAllAxes(true); // 急停
     });
@@ -1461,49 +1476,43 @@ void AxisController::updateAxisStatus()
                 }
             }
             
-            // 查询运动状态
+            // 查询运动状态（先更新状态，再做完成判断）
             int running[1] = {0};
             result = m_controller->MoCtrCard_IsAxisRunning(static_cast<uint8_t>(i), running);
             if (result == 1) { // funResOk = 0x01
+                MotionState prevState = m_axisStates[i].motionState;
                 MotionState newState = (running[0] != 0) ? MotionState::Moving : MotionState::Idle;
+                bool finishedHoming = (prevState == MotionState::Homing && newState == MotionState::Idle);
                 
-                // 检查是否完成回零
-                if (m_axisStates[i].motionState == MotionState::Homing && newState == MotionState::Idle) {
-                    // 寻零完成，设置已回零标志
-                    m_axisStates[i].isHomed = true;
-                    const_cast<AxisController*>(this)->emit homeCompleted(static_cast<AxisIndex>(i), true);
-                }
-                
-                // 检查运动是否完成
-                if (m_axisStates[i].motionState == MotionState::Moving && newState == MotionState::Idle) {
-                    const_cast<AxisController*>(this)->emit motionCompleted(static_cast<AxisIndex>(i), m_axisStates[i].currentPosition);
-                    
-                    // 停止运动超时定时器（如果没有其他轴在运动）
-                    bool anyMoving = false;
-                    for (int j = 0; j < Constants::MAX_AXIS_COUNT; ++j) {
-                        if (m_axisStates[j].motionState == MotionState::Moving) {
-                            anyMoving = true;
-                            break;
-                        }
-                    }
-                    if (!anyMoving) {
-                        // 跨线程安全停止UI线程中的超时定时器
-                        QMetaObject::invokeMethod(m_motionTimeoutTimer, "stop", Qt::QueuedConnection);
-                    }
-                }
-                
-                if (m_axisStates[i].motionState != newState) {
+                if (prevState != newState) {
                     m_axisStates[i].motionState = newState;
                     emitMotionStateChanged(static_cast<AxisIndex>(i), newState);
                     anyStatusChanged = true;
                 }
+                
+                if (finishedHoming) {
+                    m_axisStates[i].isHomed = true;
+                    const_cast<AxisController*>(this)->emit homeCompleted(static_cast<AxisIndex>(i), true);
+                }
+                if (prevState == MotionState::Moving && newState == MotionState::Idle) {
+                    const_cast<AxisController*>(this)->emit motionCompleted(static_cast<AxisIndex>(i), m_axisStates[i].currentPosition);
+                }
             }
-            
-            // 暂时不查询限位状态（MCC6DLL中没有对应函数）
-            // 如果需要限位状态，可以通过参数查询接口获取
             
             // 更新时间戳
             m_axisStates[i].lastUpdateTime = QDateTime::currentMSecsSinceEpoch();
+        }
+        
+        // 统一判断当前是否仍有轴在运动，若没有则停止超时定时器
+        bool anyMovingNow = false;
+        for (int k = 0; k < Constants::MAX_AXIS_COUNT; ++k) {
+            if (m_axisStates[k].motionState == MotionState::Moving) {
+                anyMovingNow = true;
+                break;
+            }
+        }
+        if (!anyMovingNow) {
+            QMetaObject::invokeMethod(m_motionTimeoutTimer, "stop", Qt::QueuedConnection);
         }
         
         if (anyStatusChanged) {
