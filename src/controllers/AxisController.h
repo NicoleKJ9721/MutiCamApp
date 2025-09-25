@@ -331,6 +331,14 @@ public:
     bool setAxisEnabled(AxisIndex axis, bool enabled);
 
     /**
+     * @brief 设置手柄/摇杆功能使能（针对指定轴）
+     * @param axis 轴编号
+     * @param enabled 使能状态（true 使能；false 关闭）
+     * @return 成功返回true，失败返回false
+     */
+    bool setJoystickEnabled(AxisIndex axis, bool enabled);
+
+    /**
      * @brief 设置位置为零点
      * @param axis 轴编号
      * @return 成功返回true，失败返回false

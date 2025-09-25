@@ -157,11 +157,21 @@ void MutiCamApp::syncAxisEnableStateFromUI()
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::X_AXIS, x)) {
         qWarning() << "同步X轴使能失败:" << m_axisController->getLastErrorString();
     }
+    // 同步X轴手柄/摇杆功能使能
+    if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::X_AXIS, x)) {
+        qWarning() << "同步X轴手柄使能失败:" << m_axisController->getLastErrorString();
+    }
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Y_AXIS, y)) {
         qWarning() << "同步Y轴使能失败:" << m_axisController->getLastErrorString();
     }
+    if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Y_AXIS, y)) {
+        qWarning() << "同步Y轴手柄使能失败:" << m_axisController->getLastErrorString();
+    }
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Z_AXIS, z)) {
         qWarning() << "同步Z轴使能失败:" << m_axisController->getLastErrorString();
+    }
+    if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Z_AXIS, z)) {
+        qWarning() << "同步Z轴手柄使能失败:" << m_axisController->getLastErrorString();
     }
 }
 
@@ -6098,6 +6108,12 @@ void MutiCamApp::onEnableXChanged(bool enabled)
             m_logManager->log(QString("X轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
         }
         qDebug() << "X轴使能状态设置成功：" << enabled;
+        // 同步手柄/摇杆功能使能
+        if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::X_AXIS, enabled)) {
+            qWarning() << "X轴手柄功能同步失败:" << m_axisController->getLastErrorString();
+        } else {
+            qDebug() << "X轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
+        }
     } else {
         QString errorMsg = QString("X轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
         if (m_logManager) {
@@ -6134,6 +6150,12 @@ void MutiCamApp::onEnableYChanged(bool enabled)
             m_logManager->log(QString("Y轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
         }
         qDebug() << "Y轴使能状态设置成功：" << enabled;
+        // 同步手柄/摇杆功能使能
+        if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Y_AXIS, enabled)) {
+            qWarning() << "Y轴手柄功能同步失败:" << m_axisController->getLastErrorString();
+        } else {
+            qDebug() << "Y轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
+        }
     } else {
         QString errorMsg = QString("Y轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
         if (m_logManager) {
@@ -6169,6 +6191,12 @@ void MutiCamApp::onEnableZChanged(bool enabled)
             m_logManager->log(QString("Z轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
         }
         qDebug() << "Z轴使能状态设置成功：" << enabled;
+        // 同步手柄/摇杆功能使能
+        if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Z_AXIS, enabled)) {
+            qWarning() << "Z轴手柄功能同步失败:" << m_axisController->getLastErrorString();
+        } else {
+            qDebug() << "Z轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
+        }
     } else {
         QString errorMsg = QString("Z轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
         if (m_logManager) {

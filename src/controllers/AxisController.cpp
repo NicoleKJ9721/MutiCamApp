@@ -1223,6 +1223,43 @@ bool AxisController::setAxisEnabled(AxisIndex axis, bool enabled)
     }
 }
 
+bool AxisController::setJoystickEnabled(AxisIndex axis, bool enabled)
+{
+    QMutexLocker locker(&m_mutex);
+    
+    if (!isConnected()) {
+        setError(AxisError::DeviceNotConnected, "设备未连接", axis);
+        return false;
+    }
+    
+    if (!isValidAxis(axis)) {
+        setError(AxisError::InvalidAxis, "无效的轴编号", axis);
+        return false;
+    }
+    
+    int axisIndex = axisToMCC6Index(axis);
+    
+    try {
+        int result = m_controller->MoCtrCard_SetJoyStickEnable(
+            static_cast<uint8_t>(axisIndex),
+            static_cast<uint8_t>(enabled ? 1 : 0)
+        );
+        if (!handleMCC6Error(result, QString("%1手柄功能%2").arg(axisToString(axis)).arg(enabled ? "启用" : "禁用"))) {
+            return false;
+        }
+        
+        qDebug() << QString("%1手柄功能%2").arg(axisToString(axis)).arg(enabled ? "启用" : "禁用");
+        return true;
+        
+    } catch (const std::exception& e) {
+        setError(AxisError::HardwareError, QString("设置手柄功能异常：%1").arg(e.what()), axis);
+        return false;
+    } catch (...) {
+        setError(AxisError::UnknownError, "设置手柄功能时发生未知异常", axis);
+        return false;
+    }
+}
+
 bool AxisController::setPositionZero(AxisIndex axis)
 {
     QMutexLocker locker(&m_mutex);
