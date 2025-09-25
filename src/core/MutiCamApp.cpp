@@ -113,6 +113,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     m_stageConnectWatcher = new QFutureWatcher<bool>(this);
     connect(m_stageConnectWatcher, &QFutureWatcher<bool>::finished,
             this, &MutiCamApp::onStageConnectFinished);
+
+    // 启动时整体禁用运动控件，待连接成功后再按轴启用
+    setMotionControlsEnabled(false);
 }
 // 统一启用/禁用运动相关控件（点动、绝对定位、回零等）
 void MutiCamApp::setMotionControlsEnabled(bool enabled)
@@ -138,6 +141,28 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
     ui->spinBoxTargetX->setEnabled(enabled);
     ui->spinBoxTargetY->setEnabled(enabled);
     ui->spinBoxTargetZ->setEnabled(enabled);
+}
+
+// 根据UI复选框同步轴使能到控制器（仅在已连接时调用）
+void MutiCamApp::syncAxisEnableStateFromUI()
+{
+    if (!m_axisController || !m_axisController->isConnected()) {
+        return;
+    }
+    const bool x = ui->checkBoxEnableX->isChecked();
+    const bool y = ui->checkBoxEnableY->isChecked();
+    const bool z = ui->checkBoxEnableZ->isChecked();
+
+    // 分别下发，失败仅记录日志不弹窗
+    if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::X_AXIS, x)) {
+        qWarning() << "同步X轴使能失败:" << m_axisController->getLastErrorString();
+    }
+    if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Y_AXIS, y)) {
+        qWarning() << "同步Y轴使能失败:" << m_axisController->getLastErrorString();
+    }
+    if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Z_AXIS, z)) {
+        qWarning() << "同步Z轴使能失败:" << m_axisController->getLastErrorString();
+    }
 }
 
 // 根据每轴使能状态更新控件可用性
@@ -5769,7 +5794,9 @@ void MutiCamApp::onStageConnectFinished()
         }
         qDebug() << "轴控制设备连接成功";
 
-        // 连接成功后按轴更新可用性
+        // 连接成功：先同步复选框到控制器，使能状态一致，再按轴更新控件
+        syncAxisEnableStateFromUI();
+        setMotionControlsEnabled(true);
         updatePerAxisControlEnabled();
     } else {
         ui->btnConnect->setEnabled(true);
@@ -5816,6 +5843,8 @@ void MutiCamApp::onStageDisconnectClicked()
             // 断开成功
             ui->btnConnect->setEnabled(true);
             ui->btnDisconnect->setEnabled(false);
+            // 断开后整体禁用运动控件
+            setMotionControlsEnabled(false);
             ui->labelStageConnection->setText("未连接");
             ui->labelStageConnection->setStyleSheet("color: gray; font-weight: bold;");
             
