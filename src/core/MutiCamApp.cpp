@@ -4606,10 +4606,9 @@ void MutiCamApp::onStageStopClicked()
         if (m_logManager) {
             m_logManager->log("用户触发急停操作", LogLevel::ERROR_LEVEL);
         }
+
         
         // 显示急停确认对话框
-        QMessageBox::warning(this, "急停确认", 
-                           "急停已触发！\n所有轴运动已立即停止。\n如需恢复，请重新连接设备或重置控制器。");
     } else {
         QMessageBox::information(this, "提示", "轴控制系统未初始化");
     }
@@ -5468,6 +5467,11 @@ void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
 
 void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString)
 {
+    // Avoid duplicate emergency stop dialog
+    if (error == AxisError::EmergencyStop) {
+        return;
+    }
+
     QString axisName = axis == AxisIndex::INVALID_AXIS ? "系统" : axisToString(axis);
     QString errorMsg = QString("%1错误：%2").arg(axisName).arg(errorString);
     
