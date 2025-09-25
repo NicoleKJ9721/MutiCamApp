@@ -1554,12 +1554,15 @@ void AxisController::controlStatusTimer(bool start, int interval)
         return;
     }
     const int bounded = qBound(10, interval, 10000);
-    QMetaObject::invokeMethod(m_statusTimer, "setInterval", Qt::QueuedConnection, Q_ARG(int, bounded));
-    if (start) {
-        QMetaObject::invokeMethod(m_statusTimer, "start", Qt::QueuedConnection);
-    } else {
-        QMetaObject::invokeMethod(m_statusTimer, "stop", Qt::QueuedConnection);
-    }
+    QTimer* const statusTimer = m_statusTimer;
+    QMetaObject::invokeMethod(statusTimer, [statusTimer, bounded, start]() {
+        statusTimer->setInterval(bounded);
+        if (start) {
+            statusTimer->start();
+        } else {
+            statusTimer->stop();
+        }
+    }, Qt::QueuedConnection);
 }
 
 int AxisController::computeAdaptiveInterval() const

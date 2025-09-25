@@ -5540,7 +5540,12 @@ void MutiCamApp::onAxisEmergencyStopTriggered()
 {
     QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止";
     
-    QMessageBox::critical(this, "急停警告", emergencyMsg);
+    QTimer::singleShot(0, this, [this, emergencyMsg]() {
+        QMessageBox* box = new QMessageBox(QMessageBox::Critical, "急停警告", emergencyMsg, QMessageBox::Ok, this);
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        box->open();
+    });
+    addAlertMessage(emergencyMsg, "error");
     
     if (m_logManager) {
         m_logManager->log(emergencyMsg, LogLevel::ERROR_LEVEL);
