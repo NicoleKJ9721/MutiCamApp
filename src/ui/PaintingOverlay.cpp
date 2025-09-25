@@ -7926,12 +7926,6 @@ void PaintingOverlay::clearHalconModelCache(const QString& logContext)
     } catch (const std::exception& e) {
         QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
         qWarning() << QString("%1时发生异常:").arg(context) << e.what();
-    } catch (const std::bad_alloc& e) {
-        QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
-        qWarning() << QString("PaintingOverlay::clearHalconModelCache - %1时发生内存分配异常").arg(context);
-    } catch (const std::runtime_error& e) {
-        QString context = logContext.isEmpty() ? "清理缓存" : QString("清理缓存(%1)").arg(logContext);
-        qWarning() << QString("PaintingOverlay::clearHalconModelCache - %1时发生运行时异常: %2").arg(context).arg(e.what());
     } catch (...) {
         // 记录未知异常的详细信息，避免程序崩溃
         if (!logContext.isEmpty() && logContext != "析构") {
@@ -7939,8 +7933,8 @@ void PaintingOverlay::clearHalconModelCache(const QString& logContext)
             // 尝试获取当前异常类型信息
             try {
                 std::rethrow_exception(std::current_exception());
-            } catch (const std::exception& e) {
-                qWarning() << QString("重新捕获的异常信息: %1").arg(e.what());
+            } catch (const std::exception& ex) {
+                qWarning() << QString("重新捕获的异常信息: %1").arg(ex.what());
             } catch (...) {
                 qWarning() << "无法获取具体异常类型信息";
             }
