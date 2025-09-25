@@ -79,6 +79,7 @@ public:
         bool isEnabled = false;          ///< 轴是否使能
         AxisError lastError = AxisError::NoError;     ///< 最后错误
         qint64 lastUpdateTime = 0;       ///< 最后更新时间
+        qint64 lastRunningTimeMs = 0;    ///< 最近一次检测到“运行中”的时间戳(ms)
     };
 
     /**
@@ -530,6 +531,7 @@ private:
     std::atomic<bool> m_statusMonitorEnabled;   ///< 状态监控使能
     int m_statusUpdateInterval;                 ///< 状态更新间隔
     QThread* m_statusThread;                    ///< 状态监控线程
+    qint64 m_lastBusyTime = 0;                  ///< 最近一次检测到“忙”(Moving/Homing)的时间戳(ms)
     
     // 错误管理
     AxisError m_lastError;                      ///< 最后错误

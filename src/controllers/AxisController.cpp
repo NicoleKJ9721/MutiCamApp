@@ -55,7 +55,7 @@ AxisController::AxisController(QObject *parent)
     m_statusThread->start();
     m_statusTimer = new QTimer(nullptr);
     m_statusTimer->setSingleShot(false);
-    m_statusTimer->setTimerType(Qt::CoarseTimer);
+    m_statusTimer->setTimerType(Qt::PreciseTimer);
     m_statusTimer->moveToThread(m_statusThread);
     // 使用DirectConnection使槽在定时器所属线程中执行，避免阻塞UI线程
     connect(m_statusTimer, &QTimer::timeout, this, &AxisController::performStatusPoll, Qt::DirectConnection);
@@ -82,22 +82,7 @@ AxisController::AxisController(QObject *parent)
         stopAllAxes(true); // 急停
     });
     
-    // 运动相关信号联动自适应轮询频率（在UI线程排队执行）
-    connect(this, &AxisController::motionStateChanged, this, [this](AxisIndex, MotionState){
-        if (m_statusMonitorEnabled) {
-            setStatusMonitorEnabled(true, computeAdaptiveInterval());
-        }
-    }, Qt::QueuedConnection);
-    connect(this, &AxisController::motionCompleted, this, [this](AxisIndex, double){
-        if (m_statusMonitorEnabled) {
-            setStatusMonitorEnabled(true, computeAdaptiveInterval());
-        }
-    }, Qt::QueuedConnection);
-    connect(this, &AxisController::homeCompleted, this, [this](AxisIndex, bool){
-        if (m_statusMonitorEnabled) {
-            setStatusMonitorEnabled(true, computeAdaptiveInterval());
-        }
-    }, Qt::QueuedConnection);
+    // 移除 UI 线程联动，保留在工作线程内自适应调整，避免频繁重启定时器
     
     qDebug() << "AxisController initialized";
 }
@@ -1332,8 +1317,12 @@ AxisError AxisController::getAxisLastError(AxisIndex axis) const
 
 void AxisController::setStatusMonitorEnabled(bool enabled, int interval)
 {
+    const int bounded = qBound(10, interval, 10000);
+    if (m_statusMonitorEnabled == enabled && m_statusUpdateInterval == bounded) {
+        return;
+    }
     m_statusMonitorEnabled = enabled;
-    m_statusUpdateInterval = qBound(10, interval, 10000); // 限制在10ms-10s之间
+    m_statusUpdateInterval = bounded;
     
     if (m_statusTimer) {
         if (enabled && isConnected()) {
@@ -1487,71 +1476,84 @@ void AxisController::updateAxisStatus()
     
     try {
         bool anyStatusChanged = false;
-        
+        bool anyMovingNow = false;
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+
+        // 统一遍历所有轴，并基于“运行位或位置变化”作为运动证据
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
-            // 查询命令位置
+            const double prevCmdPos = m_axisStates[i].currentPosition;
+            const double prevActPos = m_axisStates[i].actualPosition;
+
             float position[1] = {0.0f};
             int result = m_controller->MoCtrCard_GetAxisPos(static_cast<uint8_t>(i), position);
-            if (result == 1) { // funResOk = 0x01
-                double newPos = mm_to_um(static_cast<double>(position[0])); // mm -> µm
-                if (qAbs(m_axisStates[i].currentPosition - newPos) > Constants::POSITION_TOLERANCE) {
+            if (result == 1) {
+                const double newPos = mm_to_um(static_cast<double>(position[0]));
+                if (qAbs(prevCmdPos - newPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].currentPosition = newPos;
                     emitPositionChanged(static_cast<AxisIndex>(i), newPos);
                     anyStatusChanged = true;
                 }
             }
-            
-            // 查询实际位置（光栅尺读数）
+
             float actualPosition[1] = {0.0f};
             result = m_controller->MoCtrCard_GetAxisActualPos(static_cast<uint8_t>(i), actualPosition);
-            if (result == 1) { // funResOk = 0x01
-                double newActualPos = mm_to_um(static_cast<double>(actualPosition[0])); // mm -> µm
-                if (qAbs(m_axisStates[i].actualPosition - newActualPos) > Constants::POSITION_TOLERANCE) {
+            if (result == 1) {
+                const double newActualPos = mm_to_um(static_cast<double>(actualPosition[0]));
+                if (qAbs(prevActPos - newActualPos) > Constants::POSITION_TOLERANCE) {
                     m_axisStates[i].actualPosition = newActualPos;
                     emitActualPositionChanged(static_cast<AxisIndex>(i), newActualPos);
                     anyStatusChanged = true;
                 }
             }
-            
-            // 查询运动状态（先更新状态，再做完成判断）
+
             int running[1] = {0};
             result = m_controller->MoCtrCard_IsAxisRunning(static_cast<uint8_t>(i), running);
-            if (result == 1) { // funResOk = 0x01
-                MotionState prevState = m_axisStates[i].motionState;
-                MotionState newState = (running[0] != 0) ? MotionState::Moving : MotionState::Idle;
-                bool finishedHoming = (prevState == MotionState::Homing && newState == MotionState::Idle);
-                
-                if (prevState != newState) {
-                    m_axisStates[i].motionState = newState;
-                    emitMotionStateChanged(static_cast<AxisIndex>(i), newState);
-                    anyStatusChanged = true;
-                }
-                
-                if (finishedHoming) {
-                    m_axisStates[i].isHomed = true;
-                    const_cast<AxisController*>(this)->emit homeCompleted(static_cast<AxisIndex>(i), true);
-                }
-                if (prevState == MotionState::Moving && newState == MotionState::Idle) {
-                    const_cast<AxisController*>(this)->emit motionCompleted(static_cast<AxisIndex>(i), m_axisStates[i].currentPosition);
-                }
+            bool isRunning = false;
+            if (result == 1) {
+                isRunning = (running[0] != 0);
             }
-            
-            // 更新时间戳
-            m_axisStates[i].lastUpdateTime = QDateTime::currentMSecsSinceEpoch();
-        }
-        
-        // 统一判断当前是否仍有轴在运动，若没有则停止超时定时器
-        bool anyMovingNow = false;
-        for (int k = 0; k < Constants::MAX_AXIS_COUNT; ++k) {
-            if (m_axisStates[k].motionState == MotionState::Moving) {
+
+            const bool posChanged = (qAbs(m_axisStates[i].currentPosition - prevCmdPos) > Constants::POSITION_TOLERANCE) ||
+                                    (qAbs(m_axisStates[i].actualPosition - prevActPos) > Constants::POSITION_TOLERANCE);
+
+            if (isRunning || posChanged) {
+                m_axisStates[i].lastRunningTimeMs = now; // 把“运动证据”统一写入
                 anyMovingNow = true;
-                break;
             }
+
+            MotionState prevState = m_axisStates[i].motionState;
+            MotionState newState = prevState;
+            const qint64 sinceEvidence = now - m_axisStates[i].lastRunningTimeMs;
+            const int stopHysteresisMs = 600; // 更长的停止迟滞，避免误判
+
+            if (prevState == MotionState::Homing) {
+                newState = (sinceEvidence < stopHysteresisMs) ? MotionState::Homing : MotionState::Idle;
+            } else {
+                newState = (sinceEvidence < stopHysteresisMs) ? MotionState::Moving : MotionState::Idle;
+            }
+
+            const bool finishedHoming = (prevState == MotionState::Homing && newState == MotionState::Idle);
+            if (prevState != newState) {
+                m_axisStates[i].motionState = newState;
+                emitMotionStateChanged(static_cast<AxisIndex>(i), newState);
+                anyStatusChanged = true;
+            }
+            if (finishedHoming) {
+                m_axisStates[i].isHomed = true;
+                const_cast<AxisController*>(this)->emit homeCompleted(static_cast<AxisIndex>(i), true);
+            }
+            if (prevState == MotionState::Moving && newState == MotionState::Idle) {
+                const_cast<AxisController*>(this)->emit motionCompleted(static_cast<AxisIndex>(i), m_axisStates[i].currentPosition);
+            }
+
+            m_axisStates[i].lastUpdateTime = now;
         }
-        if (!anyMovingNow) {
+
+        if (anyMovingNow) {
+            m_lastBusyTime = now;
+        } else {
             QMetaObject::invokeMethod(m_motionTimeoutTimer, "stop", Qt::QueuedConnection);
         }
-        
         if (anyStatusChanged) {
             emit systemStatusUpdated();
         }
@@ -1567,6 +1569,20 @@ void AxisController::performStatusPoll()
 {
     // 在工作线程执行实际采集
     updateAxisStatus();
+    // 在工作线程内根据当前负载自适应调整定时器间隔，避免通过信号往返引起的抖动
+    if (m_statusMonitorEnabled) {
+        const int newInterval = computeAdaptiveInterval();
+        if (newInterval != m_statusUpdateInterval) {
+            m_statusUpdateInterval = newInterval;
+            // 在定时器所在线程内修改，保证线程安全
+            if (m_statusTimer) {
+                QTimer* const t = m_statusTimer;
+                QMetaObject::invokeMethod(t, [t, newInterval]() {
+                    if (t->interval() != newInterval) t->setInterval(newInterval);
+                }, Qt::QueuedConnection);
+            }
+        }
+    }
 }
 
 void AxisController::controlStatusTimer(bool start, int interval)
@@ -1577,11 +1593,14 @@ void AxisController::controlStatusTimer(bool start, int interval)
     const int bounded = qBound(10, interval, 10000);
     QTimer* const statusTimer = m_statusTimer;
     QMetaObject::invokeMethod(statusTimer, [statusTimer, bounded, start]() {
-        statusTimer->setInterval(bounded);
+        const bool active = statusTimer->isActive();
+        if (statusTimer->interval() != bounded) {
+            statusTimer->setInterval(bounded);
+        }
         if (start) {
-            statusTimer->start();
+            if (!active) statusTimer->start();
         } else {
-            statusTimer->stop();
+            if (active) statusTimer->stop();
         }
     }, Qt::QueuedConnection);
 }
@@ -1595,7 +1614,14 @@ int AxisController::computeAdaptiveInterval() const
             busy = true; break;
         }
     }
-    return busy ? 150 : 700; // 运动/回零：150ms；空闲：700ms
+    if (busy) {
+        return 150; // 忙时更快轮询
+    }
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (now - m_lastBusyTime < 1500) {
+        return 300; // 停止后短期保持较快刷新
+    }
+    return 700; // 空闲：降频
 }
 
 void AxisController::handleMotionCompleted(int axis)
@@ -1616,9 +1642,9 @@ bool AxisController::initialize()
 void AxisController::cleanup()
 {
     try {
-        // 停止定时器
+        // 停止定时器（在其所属线程内停止，避免跨线程问题）
         if (m_statusTimer) {
-            m_statusTimer->stop();
+            QMetaObject::invokeMethod(m_statusTimer, "stop", Qt::BlockingQueuedConnection);
         }
         
         if (m_motionTimeoutTimer) {
