@@ -114,6 +114,32 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     connect(m_stageConnectWatcher, &QFutureWatcher<bool>::finished,
             this, &MutiCamApp::onStageConnectFinished);
 }
+// 统一启用/禁用运动相关控件（点动、绝对定位、回零等）
+void MutiCamApp::setMotionControlsEnabled(bool enabled)
+{
+    // 点动按钮
+    ui->btnMoveXLeft->setEnabled(enabled);
+    ui->btnMoveXRight->setEnabled(enabled);
+    ui->btnMoveYUp->setEnabled(enabled);
+    ui->btnMoveYDown->setEnabled(enabled);
+    ui->btnMoveZUp->setEnabled(enabled);
+    ui->btnMoveZDown->setEnabled(enabled);
+
+    // 绝对定位
+    ui->btnMoveToX->setEnabled(enabled);
+    ui->btnMoveToY->setEnabled(enabled);
+    ui->btnMoveToZ->setEnabled(enabled);
+    ui->btnMoveToXYZ->setEnabled(enabled);
+
+    // 回零
+    ui->btnStageHome->setEnabled(enabled);
+
+    // 目标位置输入框也一起禁用，避免误操作
+    ui->spinBoxTargetX->setEnabled(enabled);
+    ui->spinBoxTargetY->setEnabled(enabled);
+    ui->spinBoxTargetZ->setEnabled(enabled);
+}
+
 
 MutiCamApp::~MutiCamApp()
 {
@@ -4376,6 +4402,11 @@ void MutiCamApp::onRefreshStatusClicked()
 // 载物台控制槽函数实现
 void MutiCamApp::onMoveXLeftClicked()
 {
+    if (m_isEmergencyStopActive) {
+        // 急停态下直接忽略，避免弹窗干扰
+        qWarning() << "急停状态下忽略X-点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "X轴负方向移动，步长：" << stepSize << "μm";
 
@@ -4399,12 +4430,17 @@ void MutiCamApp::onMoveXLeftClicked()
             }
         }
     } else {
+        // 连接缺失提示仍保留
         QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
     }
 }
 
 void MutiCamApp::onMoveXRightClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略X+点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "X轴正方向移动，步长：" << stepSize << "μm";
 
@@ -4434,6 +4470,10 @@ void MutiCamApp::onMoveXRightClicked()
 
 void MutiCamApp::onMoveYUpClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Y+点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Y轴正方向移动，步长：" << stepSize << "μm";
 
@@ -4463,6 +4503,10 @@ void MutiCamApp::onMoveYUpClicked()
 
 void MutiCamApp::onMoveYDownClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Y-点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Y轴负方向移动，步长：" << stepSize << "μm";
 
@@ -4492,6 +4536,10 @@ void MutiCamApp::onMoveYDownClicked()
 
 void MutiCamApp::onMoveZUpClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Z+点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Z轴正方向移动，步长：" << stepSize << "μm";
 
@@ -4521,6 +4569,10 @@ void MutiCamApp::onMoveZUpClicked()
 
 void MutiCamApp::onMoveZDownClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Z-点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Z轴负方向移动，步长：" << stepSize << "μm";
 
@@ -4550,6 +4602,10 @@ void MutiCamApp::onMoveZDownClicked()
 
 void MutiCamApp::onStageHomeClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略回零";
+        return;
+    }
     qDebug() << "载物台回到原点";
 
     // 重置当前位置
@@ -4722,6 +4778,15 @@ void MutiCamApp::connectAxisControllerSignals()
             this, &MutiCamApp::onAxisHomeCompleted);
     connect(m_axisController.get(), &AxisController::emergencyStopTriggered,
             this, &MutiCamApp::onAxisEmergencyStopTriggered);
+    // 复位后清除急停，恢复控件
+    connect(m_axisController.get(), &AxisController::emergencyResetCleared, this, [this]() {
+        m_isEmergencyStopActive = false;
+        setMotionControlsEnabled(true);
+        statusBar()->showMessage("已清除急停，允许恢复运动操作", 3000);
+        if (m_logManager) {
+            m_logManager->log("控制器复位：已清除急停状态", LogLevel::INFO);
+        }
+    });
     
     qDebug() << "轴控制器信号连接完成";
 }
@@ -5365,9 +5430,18 @@ void MutiCamApp::onAxisDeviceDisconnected()
 
 void MutiCamApp::onAxisConnectionStateChanged(bool connected)
 {
-    // 更新UI状态，如果有连接按钮的话
+    // 更新UI状态
     QString stateMsg = connected ? "轴控制系统已连接" : "轴控制系统已断开";
-    
+    statusBar()->showMessage(stateMsg, 3000);
+
+    // 根据连接状态切换运动控件可用性
+    if (connected) {
+        // 如果此前处于急停，则保持禁用；否则允许
+        setMotionControlsEnabled(!m_isEmergencyStopActive);
+    } else {
+        setMotionControlsEnabled(false);
+    }
+
     if (m_logManager) {
         m_logManager->log(stateMsg, LogLevel::INFO);
     }
@@ -5539,6 +5613,9 @@ void MutiCamApp::onAxisHomeCompleted(AxisIndex axis, bool success)
 void MutiCamApp::onAxisEmergencyStopTriggered()
 {
     QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止";
+    // 标记UI层急停状态并禁用所有运动相关控件
+    m_isEmergencyStopActive = true;
+    setMotionControlsEnabled(false);
     
     QTimer::singleShot(0, this, [this, emergencyMsg]() {
         QMessageBox* box = new QMessageBox(QMessageBox::Critical, "急停警告", emergencyMsg, QMessageBox::Ok, this);
@@ -5712,6 +5789,10 @@ void MutiCamApp::onStageDisconnectClicked()
 
 void MutiCamApp::onMoveToXClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略X绝对定位";
+        return;
+    }
     qDebug() << "X轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
@@ -5746,6 +5827,10 @@ void MutiCamApp::onMoveToXClicked()
 
 void MutiCamApp::onMoveToYClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Y绝对定位";
+        return;
+    }
     qDebug() << "Y轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
@@ -5780,6 +5865,10 @@ void MutiCamApp::onMoveToYClicked()
 
 void MutiCamApp::onMoveToZClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Z绝对定位";
+        return;
+    }
     qDebug() << "Z轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
@@ -5814,6 +5903,10 @@ void MutiCamApp::onMoveToZClicked()
 
 void MutiCamApp::onMoveToXYZClicked()
 {
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略XYZ绝对定位";
+        return;
+    }
     qDebug() << "XYZ轴同时绝对位置移动按钮点击";
     
     if (!m_axisController) {

@@ -1437,6 +1437,8 @@ bool AxisController::resetController()
         // 清除错误状态
         clearError();
         
+        // 发出清除急停信号
+        emit emergencyResetCleared();
         qDebug() << "控制器重置完成";
         return true;
         

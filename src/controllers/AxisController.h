@@ -480,6 +480,12 @@ signals:
     void emergencyStopTriggered();
 
     /**
+     * @brief 清除急停状态（复位）信号
+     * 说明：当控制器完成复位操作后发出，用于通知UI层恢复控件可用
+     */
+    void emergencyResetCleared();
+
+    /**
      * @brief 系统状态更新信号
      */
     void systemStatusUpdated();

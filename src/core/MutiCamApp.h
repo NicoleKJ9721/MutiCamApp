@@ -848,6 +848,10 @@ private:
      void loadCapturePreset();
      void resetCapturePreset();
      void applyCapturePreset();
+    // 急停与控件管理
+    bool m_isEmergencyStopActive = false;              ///< 急停是否激活（UI层防护）
+    void setMotionControlsEnabled(bool enabled);       ///< 统一启用/禁用运动相关控件
+
 
 
 };
