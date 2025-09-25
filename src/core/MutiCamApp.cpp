@@ -1243,6 +1243,16 @@ void MutiCamApp::onTabChanged(int index)
     }
 
     qDebug() << "Tab changed to index:" << index;
+
+    // 仅在“XYZ载物台控制”选项卡激活时启用轴状态监控
+    if (m_axisController) {
+        int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
+        if (index == stageTabIndex && m_axisController->isConnected()) {
+            m_axisController->setStatusMonitorEnabled(true, 700);
+        } else {
+            m_axisController->setStatusMonitorEnabled(false);
+        }
+    }
 }
 
 void MutiCamApp::onTabChangedForMatching(int index)
@@ -5639,9 +5649,11 @@ void MutiCamApp::onStageConnectFinished()
         ui->labelStageConnection->setText("已连接");
         ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
         statusBar()->showMessage("轴控制设备连接成功", 3000);
-        // 启动轴状态监控（低频启动，避免UI抖动；自适应逻辑会在运动时提升）
+        // 仅在“XYZ载物台控制”选项卡激活时启动监控
         if (m_axisController) {
-            m_axisController->setStatusMonitorEnabled(true, 700);
+            const int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
+            const bool isStageTabActive = (ui->tabWidget->currentIndex() == stageTabIndex);
+            m_axisController->setStatusMonitorEnabled(isStageTabActive, 700);
         }
         if (m_logManager) {
             m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);
@@ -5685,6 +5697,10 @@ void MutiCamApp::onStageDisconnectClicked()
         statusBar()->showMessage("正在断开轴控制设备...", 3000);
         
         if (m_axisController->disconnectDevice()) {
+            // 断开后确保关闭监控
+            if (m_axisController) {
+                m_axisController->setStatusMonitorEnabled(false);
+            }
             // 断开成功
             ui->btnConnect->setEnabled(true);
             ui->btnDisconnect->setEnabled(false);
