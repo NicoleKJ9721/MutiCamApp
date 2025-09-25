@@ -248,6 +248,9 @@ private slots:
     // 运动模式切换槽函数
     void onMotionModeChanged(int mode);    // 运动模式改变（0=点动，1=连续）
 
+    // 根据每轴使能状态更新控件可用性
+    void updatePerAxisControlEnabled();
+
     /**
      * @brief 轨迹记录控制槽函数
      */

@@ -401,6 +401,10 @@ bool AxisController::moveAbsolute(AxisIndex axis, double position, double speed)
     }
     
     int axisIndex = axisToMCC6Index(axis);
+    if (!m_axisStates[axisIndex].isEnabled) {
+        setError(AxisError::InvalidParameter, "轴未使能，无法执行绝对运动", axis);
+        return false;
+    }
     double moveSpeed = (speed > 0) ? speed : m_motionParams[axisIndex].maxSpeed;
     
     try {
@@ -686,6 +690,10 @@ bool AxisController::goHome(AxisIndex axis)
     }
     
     int axisIndex = axisToMCC6Index(axis);
+    if (!m_axisStates[axisIndex].isEnabled) {
+        setError(AxisError::InvalidParameter, "轴未使能，无法回零", axis);
+        return false;
+    }
     
     try {
         // 检查轴状态
@@ -748,8 +756,11 @@ bool AxisController::goHomeAll()
             }
         }
         
-        // 执行所有轴回零（依次启动每个轴的回零）
+        // 执行所有轴回零（仅对已使能的轴依次启动回零）
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+            if (!m_axisStates[i].isEnabled) {
+                continue; // 未使能轴跳过
+            }
             int result = m_controller->MoCtrCard_SeekZero(
                 static_cast<uint8_t>(i), 
                 ums_to_mms_f(m_motionParams[i].maxSpeed * 0.3), // 使用30%的最大速度回零，单位 mm/s
@@ -758,7 +769,9 @@ bool AxisController::goHomeAll()
             if (!handleMCC6Error(result, QString("轴%1回零").arg(i))) {
                 // 如果有轴失败，取消所有已启动的回零
                 for (int j = 0; j < i; ++j) {
-                    m_controller->MoCtrCard_CancelSeekZero(static_cast<uint8_t>(j));
+                    if (m_axisStates[j].isEnabled) {
+                        m_controller->MoCtrCard_CancelSeekZero(static_cast<uint8_t>(j));
+                    }
                 }
                 return false;
             }
@@ -766,10 +779,12 @@ bool AxisController::goHomeAll()
         
         // 更新所有轴状态
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+            if (!m_axisStates[i].isEnabled) {
+                continue; // 未使能轴不改变其状态
+            }
             m_axisStates[i].motionState = MotionState::Homing;
             m_axisStates[i].isHomed = false;
             m_axisStates[i].lastError = AxisError::NoError;
-            
             emitMotionStateChanged(static_cast<AxisIndex>(i), MotionState::Homing);
         }
         
@@ -816,6 +831,10 @@ bool AxisController::startJogging(AxisIndex axis, int direction, double speed)
     }
     
     int axisIndex = axisToMCC6Index(axis);
+    if (!m_axisStates[axisIndex].isEnabled) {
+        setError(AxisError::InvalidParameter, "轴未使能，无法点动", axis);
+        return false;
+    }
     
     try {
         // 检查轴状态

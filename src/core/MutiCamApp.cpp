@@ -140,6 +140,34 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
     ui->spinBoxTargetZ->setEnabled(enabled);
 }
 
+// 根据每轴使能状态更新控件可用性
+void MutiCamApp::updatePerAxisControlEnabled()
+{
+    if (!m_axisController || !m_axisController->isConnected()) {
+        // 未连接场景交由 setMotionControlsEnabled 统一禁用
+        return;
+    }
+
+    const bool xEnabled = m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS);
+    const bool yEnabled = m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS);
+    const bool zEnabled = m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS);
+
+    // 点动按钮按轴控制
+    ui->btnMoveXLeft->setEnabled(xEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveXRight->setEnabled(xEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveYUp->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveYDown->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveZUp->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveZDown->setEnabled(zEnabled && !m_isEmergencyStopActive);
+
+    // 绝对定位按钮按轴控制
+    ui->btnMoveToX->setEnabled(xEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveToY->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMoveToZ->setEnabled(zEnabled && !m_isEmergencyStopActive);
+
+    // XYZ 联合移动仅在全部轴均可用时启用
+    ui->btnMoveToXYZ->setEnabled(xEnabled && yEnabled && zEnabled && !m_isEmergencyStopActive);
+}
 
 MutiCamApp::~MutiCamApp()
 {
@@ -4407,6 +4435,10 @@ void MutiCamApp::onMoveXLeftClicked()
         qWarning() << "急停状态下忽略X-点动";
         return;
     }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+        qWarning() << "X轴未使能，忽略X-点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "X轴负方向移动，步长：" << stepSize << "μm";
 
@@ -4439,6 +4471,10 @@ void MutiCamApp::onMoveXRightClicked()
 {
     if (m_isEmergencyStopActive) {
         qWarning() << "急停状态下忽略X+点动";
+        return;
+    }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+        qWarning() << "X轴未使能，忽略X+点动";
         return;
     }
     double stepSize = getCurrentStepSize();
@@ -4474,6 +4510,10 @@ void MutiCamApp::onMoveYUpClicked()
         qWarning() << "急停状态下忽略Y+点动";
         return;
     }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+        qWarning() << "Y轴未使能，忽略Y+点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Y轴正方向移动，步长：" << stepSize << "μm";
 
@@ -4505,6 +4545,10 @@ void MutiCamApp::onMoveYDownClicked()
 {
     if (m_isEmergencyStopActive) {
         qWarning() << "急停状态下忽略Y-点动";
+        return;
+    }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+        qWarning() << "Y轴未使能，忽略Y-点动";
         return;
     }
     double stepSize = getCurrentStepSize();
@@ -4540,6 +4584,10 @@ void MutiCamApp::onMoveZUpClicked()
         qWarning() << "急停状态下忽略Z+点动";
         return;
     }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+        qWarning() << "Z轴未使能，忽略Z+点动";
+        return;
+    }
     double stepSize = getCurrentStepSize();
     qDebug() << "Z轴正方向移动，步长：" << stepSize << "μm";
 
@@ -4571,6 +4619,10 @@ void MutiCamApp::onMoveZDownClicked()
 {
     if (m_isEmergencyStopActive) {
         qWarning() << "急停状态下忽略Z-点动";
+        return;
+    }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+        qWarning() << "Z轴未使能，忽略Z-点动";
         return;
     }
     double stepSize = getCurrentStepSize();
@@ -4782,6 +4834,7 @@ void MutiCamApp::connectAxisControllerSignals()
     connect(m_axisController.get(), &AxisController::emergencyResetCleared, this, [this]() {
         m_isEmergencyStopActive = false;
         setMotionControlsEnabled(true);
+        updatePerAxisControlEnabled();
         statusBar()->showMessage("已清除急停，允许恢复运动操作", 3000);
         if (m_logManager) {
             m_logManager->log("控制器复位：已清除急停状态", LogLevel::INFO);
@@ -5715,6 +5768,9 @@ void MutiCamApp::onStageConnectFinished()
             m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);
         }
         qDebug() << "轴控制设备连接成功";
+
+        // 连接成功后按轴更新可用性
+        updatePerAxisControlEnabled();
     } else {
         ui->btnConnect->setEnabled(true);
         ui->btnDisconnect->setEnabled(false);
@@ -5793,6 +5849,10 @@ void MutiCamApp::onMoveToXClicked()
         qWarning() << "急停状态下忽略X绝对定位";
         return;
     }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+        qWarning() << "X轴未使能，忽略X绝对定位";
+        return;
+    }
     qDebug() << "X轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
@@ -5831,6 +5891,10 @@ void MutiCamApp::onMoveToYClicked()
         qWarning() << "急停状态下忽略Y绝对定位";
         return;
     }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+        qWarning() << "Y轴未使能，忽略Y绝对定位";
+        return;
+    }
     qDebug() << "Y轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
@@ -5867,6 +5931,10 @@ void MutiCamApp::onMoveToZClicked()
 {
     if (m_isEmergencyStopActive) {
         qWarning() << "急停状态下忽略Z绝对定位";
+        return;
+    }
+    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+        qWarning() << "Z轴未使能，忽略Z绝对定位";
         return;
     }
     qDebug() << "Z轴绝对位置移动按钮点击";
@@ -5925,10 +5993,15 @@ void MutiCamApp::onMoveToXYZClicked()
     
     statusBar()->showMessage(QString("正在移动XYZ轴到位置 (%1, %2, %3) mm...").arg(targetX).arg(targetY).arg(targetZ), 5000);
     
-    // 同时移动三个轴
-    bool xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
-    bool ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
-    bool zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
+    // 仅对已使能轴下发移动命令
+    bool xCan = m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS);
+    bool yCan = m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS);
+    bool zCan = m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS);
+
+    bool xSuccess = true, ySuccess = true, zSuccess = true;
+    if (xCan) xSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX);
+    if (yCan) ySuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, targetY);
+    if (zCan) zSuccess = m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ);
     
     // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
     // 由 onAxisPositionChanged 回调平滑更新UI
@@ -5939,7 +6012,7 @@ void MutiCamApp::onMoveToXYZClicked()
         }
         qDebug() << "XYZ轴开始同时移动到绝对位置：" << targetX << targetY << targetZ;
     } else {
-        QString errorMsg = QString("XYZ轴同时移动失败：%1").arg(m_axisController->getLastErrorString());
+        QString errorMsg = QString("XYZ轴移动部分失败或未全部使能：%1").arg(m_axisController->getLastErrorString());
         QMessageBox::warning(this, "移动失败", errorMsg);
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
@@ -6016,6 +6089,9 @@ void MutiCamApp::onEnableXChanged(bool enabled)
         ui->checkBoxEnableX->setChecked(!enabled);
         ui->checkBoxEnableX->blockSignals(false);
     }
+
+    // 每次使能变更后更新按轴控件可用性
+    updatePerAxisControlEnabled();
 }
 
 void MutiCamApp::onEnableYChanged(bool enabled)
@@ -6049,6 +6125,8 @@ void MutiCamApp::onEnableYChanged(bool enabled)
         ui->checkBoxEnableY->setChecked(!enabled);
         ui->checkBoxEnableY->blockSignals(false);
     }
+
+    updatePerAxisControlEnabled();
 }
 
 void MutiCamApp::onEnableZChanged(bool enabled)
@@ -6082,6 +6160,8 @@ void MutiCamApp::onEnableZChanged(bool enabled)
         ui->checkBoxEnableZ->setChecked(!enabled);
         ui->checkBoxEnableZ->blockSignals(false);
     }
+
+    updatePerAxisControlEnabled();
 }
 
 // ==================== 速度和加速度设置槽函数实现 ====================
