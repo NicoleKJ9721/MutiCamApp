@@ -1574,11 +1574,11 @@ void AxisController::updateAxisStatus()
                 isRunning = (running[0] != 0);
             }
 
-            const bool posChanged = (qAbs(m_axisStates[i].currentPosition - prevCmdPos) > Constants::POSITION_TOLERANCE) ||
-                                    (qAbs(m_axisStates[i].actualPosition - prevActPos) > Constants::POSITION_TOLERANCE);
+            // 只使用命令位置变化判断运动状态，避免光栅尺震动导致的误判
+            const bool cmdPosChanged = (qAbs(m_axisStates[i].currentPosition - prevCmdPos) > Constants::POSITION_TOLERANCE);
 
-            if (isRunning || posChanged) {
-                m_axisStates[i].lastRunningTimeMs = now; // 把“运动证据”统一写入
+            if (isRunning || cmdPosChanged) {
+                m_axisStates[i].lastRunningTimeMs = now; // 把"运动证据"统一写入
                 anyMovingNow = true;
             }
 
