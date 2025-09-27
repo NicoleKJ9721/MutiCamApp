@@ -4930,6 +4930,8 @@ void MutiCamApp::connectAxisControllerSignals()
             this, &MutiCamApp::onAxisHomeCompleted);
     connect(m_axisController.get(), &AxisController::emergencyStopTriggered,
             this, &MutiCamApp::onAxisEmergencyStopTriggered);
+    connect(m_axisController.get(), &AxisController::emergencyStopCleared,
+            this, &MutiCamApp::onAxisEmergencyStopCleared);
     // 复位后清除急停，恢复控件
     connect(m_axisController.get(), &AxisController::emergencyResetCleared, this, [this]() {
         m_isEmergencyStopActive = false;
@@ -5787,7 +5789,7 @@ void MutiCamApp::onAxisHomeCompleted(AxisIndex axis, bool success)
 
 void MutiCamApp::onAxisEmergencyStopTriggered()
 {
-    QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止";
+    QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止，等待载物台静止...";
     // 标记UI层急停状态并禁用所有运动相关控件
     m_isEmergencyStopActive = true;
     setMotionControlsEnabled(false);
@@ -5804,6 +5806,25 @@ void MutiCamApp::onAxisEmergencyStopTriggered()
     }
     
     qCritical() << emergencyMsg;
+}
+
+void MutiCamApp::onAxisEmergencyStopCleared()
+{
+    QString clearMsg = "载物台已静止，急停状态已自动清除！可以正常操作";
+    // 清除UI层急停状态并恢复所有运动相关控件
+    m_isEmergencyStopActive = false;
+    setMotionControlsEnabled(true);
+    updatePerAxisControlEnabled();
+    
+    // 显示清除消息
+    statusBar()->showMessage(clearMsg, 5000);
+    addAlertMessage(clearMsg, "success");
+    
+    if (m_logManager) {
+        m_logManager->log(clearMsg, LogLevel::INFO);
+    }
+    
+    qInfo() << clearMsg;
 }
 
 // ==================== 载物台连接控制槽函数实现 ====================

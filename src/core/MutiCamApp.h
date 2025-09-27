@@ -851,6 +851,7 @@ private:
     void onAxisLimitTriggered(AxisIndex axis, LimitState limitState);
     void onAxisHomeCompleted(AxisIndex axis, bool success);
     void onAxisEmergencyStopTriggered();
+    void onAxisEmergencyStopCleared();
 
     // 参数预设相关方法
      void initializeCapturePresets();

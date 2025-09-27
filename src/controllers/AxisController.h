@@ -504,6 +504,12 @@ signals:
     void emergencyStopTriggered();
 
     /**
+     * @brief 急停状态清除信号
+     * 说明：当载物台静止后自动清除急停状态时发出
+     */
+    void emergencyStopCleared();
+
+    /**
      * @brief 清除急停状态（复位）信号
      * 说明：当控制器完成复位操作后发出，用于通知UI层恢复控件可用
      */
@@ -562,8 +568,10 @@ private:
     mutable QMutex m_errorMutex;                ///< 错误信息互斥锁
     
     // 运动控制
-    std::atomic<bool> m_emergencyStopActive;    ///< 急停状态
+    std::atomic<bool> m_emergencyStopActive;    ///< 急停状态（已弃用，保留兼容性）
+    std::atomic<bool> m_emergencyStopTriggered; ///< 急停触发状态（临时）
     QTimer* m_motionTimeoutTimer;               ///< 运动超时定时器
+    QTimer* m_emergencyStopTimer;               ///< 急停静止检测定时器
 
     // ==================== 私有成员函数 ====================
     
@@ -670,6 +678,17 @@ private:
      * @brief 在工作线程执行一次状态采集
      */
     void performStatusPoll();
+
+    /**
+     * @brief 检查所有轴是否静止
+     * @return 所有轴都静止返回true，否则返回false
+     */
+    bool isStopped() const;
+
+    /**
+     * @brief 急停静止检测定时器回调
+     */
+    void checkEmergencyStopClear();
 };
 
 #endif // AXISCONTROLLER_H

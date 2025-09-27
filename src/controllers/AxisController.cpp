@@ -36,7 +36,9 @@ AxisController::AxisController(QObject *parent)
     , m_statusUpdateInterval(Constants::STATUS_UPDATE_INTERVAL)
     , m_lastError(AxisError::NoError)
     , m_emergencyStopActive(false)
+    , m_emergencyStopTriggered(false)
     , m_motionTimeoutTimer(new QTimer(this))
+    , m_emergencyStopTimer(new QTimer(this))
     , m_statusThread(new QThread(this))
 {
     // 初始化设备信息
@@ -81,6 +83,11 @@ AxisController::AxisController(QObject *parent)
         setError(AxisError::MotionTimeout, "运动超时，已自动停止所有轴");
         stopAllAxes(true); // 急停
     });
+    
+    // 设置急停静止检测定时器
+    m_emergencyStopTimer->setSingleShot(false);
+    m_emergencyStopTimer->setInterval(100); // 每100ms检查一次
+    connect(m_emergencyStopTimer, &QTimer::timeout, this, &AxisController::checkEmergencyStopClear);
     
     // 移除 UI 线程联动，保留在工作线程内自适应调整，避免频繁重启定时器
     
@@ -305,8 +312,8 @@ bool AxisController::moveRelative(AxisIndex axis, double distance, double speed)
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法运动", axis);
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止", axis);
         return false;
     }
     
@@ -380,8 +387,8 @@ bool AxisController::moveAbsolute(AxisIndex axis, double position, double speed)
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法运动", axis);
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止", axis);
         return false;
     }
     
@@ -457,8 +464,8 @@ bool AxisController::moveMultiAxis(const std::vector<AxisIndex>& axes,
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法运动");
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止");
         return false;
     }
     
@@ -669,8 +676,8 @@ bool AxisController::goHome(AxisIndex axis)
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法回零", axis);
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止", axis);
         return false;
     }
     
@@ -726,8 +733,8 @@ bool AxisController::goHomeAll()
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法回零");
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止");
         return false;
     }
     
@@ -810,8 +817,8 @@ bool AxisController::startJogging(AxisIndex axis, int direction, double speed)
         return false;
     }
     
-    if (m_emergencyStopActive) {
-        setError(AxisError::EmergencyStop, "急停状态下无法点动", axis);
+    if (m_emergencyStopTriggered && !isStopped()) {
+        setError(AxisError::EmergencyStop, "急停中，等待载物台静止", axis);
         return false;
     }
     
@@ -1445,7 +1452,8 @@ bool AxisController::initializeAllAxes()
 
 void AxisController::emergencyStop()
 {
-    m_emergencyStopActive = true;
+    // 设置急停触发状态（临时）
+    m_emergencyStopTriggered = true;
     
     if (isConnected()) {
         stopAllAxes(true); // 急停所有轴
@@ -1462,7 +1470,10 @@ void AxisController::emergencyStop()
     setError(AxisError::EmergencyStop, "急停已触发");
     emit emergencyStopTriggered();
     
-    qDebug() << "急停已触发";
+    // 启动静止检测定时器
+    m_emergencyStopTimer->start();
+    
+    qDebug() << "急停已触发，开始检测载物台静止状态";
 }
 
 bool AxisController::resetController()
@@ -1484,6 +1495,8 @@ bool AxisController::resetController()
         
         // 清除急停状态
         m_emergencyStopActive = false;
+        m_emergencyStopTriggered = false;
+        m_emergencyStopTimer->stop();
         
         // 重新初始化所有轴
         if (!initializeAllAxes()) {
@@ -1504,6 +1517,56 @@ bool AxisController::resetController()
     } catch (...) {
         setError(AxisError::UnknownError, "重置控制器时发生未知异常");
         return false;
+    }
+}
+
+bool AxisController::isStopped() const
+{
+    QMutexLocker locker(&m_mutex);
+    
+    // 检查所有轴是否都处于静止状态
+    for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+        // 如果轴使能且不在静止状态，则认为未停止
+        if (m_axisStates[i].isEnabled && 
+            m_axisStates[i].motionState != MotionState::Idle && 
+            m_axisStates[i].motionState != MotionState::Error) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+void AxisController::checkEmergencyStopClear()
+{
+    // 如果急停未触发，直接返回
+    if (!m_emergencyStopTriggered) {
+        m_emergencyStopTimer->stop();
+        return;
+    }
+    
+    // 检查是否静止
+    if (isStopped()) {
+        // 载物台已静止，清除急停状态
+        m_emergencyStopTriggered = false;
+        m_emergencyStopTimer->stop();
+        
+        // 清除错误状态
+        clearError();
+        
+        // 恢复轴状态为Idle
+        for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
+            if (m_axisStates[i].isEnabled) {
+                m_axisStates[i].motionState = MotionState::Idle;
+                m_axisStates[i].lastError = AxisError::NoError;
+                emitMotionStateChanged(static_cast<AxisIndex>(i), MotionState::Idle);
+            }
+        }
+        
+        // 发出急停清除信号
+        emit emergencyStopCleared();
+        
+        qDebug() << "载物台已静止，急停状态已自动清除";
     }
 }
 
