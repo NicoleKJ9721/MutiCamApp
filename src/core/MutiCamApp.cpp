@@ -5900,8 +5900,21 @@ void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
 
 void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString)
 {
-    // Avoid duplicate emergency stop dialog
+    // 避免重复的急停对话框
     if (error == AxisError::EmergencyStop) {
+        return;
+    }
+    
+    // 避免重复的连接错误对话框 - 连接错误已经在UI层处理了
+    if (error == AxisError::ConnectionFailed || 
+        error == AxisError::InitializationFailed ||
+        (error == AxisError::CommunicationError && errorString.contains("连接设备"))) {
+        // 只记录日志，不显示弹窗
+        if (m_logManager) {
+            QString axisName = axis == AxisIndex::INVALID_AXIS ? "系统" : axisToString(axis);
+            QString errorMsg = QString("%1错误：%2").arg(axisName).arg(errorString);
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
         return;
     }
 
