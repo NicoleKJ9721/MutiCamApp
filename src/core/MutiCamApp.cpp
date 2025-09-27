@@ -84,6 +84,13 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     // 初始化轴控制系统
     initializeAxisController();
 
+    // 初始化连续移动状态
+    for (auto& state : m_continuousMotionStates) {
+        state.isMoving = false;
+        state.direction = 0;
+        state.speed = 0.0;
+    }
+
     // 初始化拍照参数预设
     initializeCapturePresets();
 
@@ -120,6 +127,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 启动时整体禁用运动控件，待连接成功后再按轴启用
     setMotionControlsEnabled(false);
+    
+    // 初始化按钮文本
+    updateMotionButtonTexts();
 }
 // 统一启用/禁用运动相关控件（点动、绝对定位、回零等）
 void MutiCamApp::setMotionControlsEnabled(bool enabled)
@@ -4551,223 +4561,325 @@ void MutiCamApp::onMoveXLeftClicked()
 {
     if (m_isEmergencyStopActive) {
         // 急停态下直接忽略，避免弹窗干扰
-        qWarning() << "急停状态下忽略X-点动";
+        qWarning() << "急停状态下忽略X-移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-        qWarning() << "X轴未使能，忽略X-点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "X轴负方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+            qWarning() << "X轴未使能，忽略X-点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "X轴负方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(-stepSize, 0, 0);
+        // 更新当前位置
+        updateCurrentPosition(-stepSize, 0, 0);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("x-", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("x-", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台X轴负向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台X轴负向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            // 连接缺失提示仍保留
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        // 连接缺失提示仍保留
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::X_AXIS) && m_continuousMotionStates[0].direction == -1) {
+            // 当前正在X负向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::X_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::X_AXIS)) {
+                stopContinuousMotion(AxisIndex::X_AXIS);
+            }
+            // 开始X负向连续移动
+            startContinuousMotion(AxisIndex::X_AXIS, -1);
+        }
     }
 }
 
 void MutiCamApp::onMoveXRightClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略X+点动";
+        qWarning() << "急停状态下忽略X+移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-        qWarning() << "X轴未使能，忽略X+点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "X轴正方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+            qWarning() << "X轴未使能，忽略X+点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "X轴正方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(stepSize, 0, 0);
+        // 更新当前位置
+        updateCurrentPosition(stepSize, 0, 0);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("x+", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("x+", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台X轴正向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台X轴正向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::X_AXIS) && m_continuousMotionStates[0].direction == 1) {
+            // 当前正在X正向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::X_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::X_AXIS)) {
+                stopContinuousMotion(AxisIndex::X_AXIS);
+            }
+            // 开始X正向连续移动
+            startContinuousMotion(AxisIndex::X_AXIS, 1);
+        }
     }
 }
 
 void MutiCamApp::onMoveYUpClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Y+点动";
+        qWarning() << "急停状态下忽略Y+移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
-        qWarning() << "Y轴未使能，忽略Y+点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "Y轴正方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+            qWarning() << "Y轴未使能，忽略Y+点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "Y轴正方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(0, stepSize, 0);
+        // 更新当前位置
+        updateCurrentPosition(0, stepSize, 0);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("y+", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("y+", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台Y轴正向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台Y轴正向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::Y_AXIS) && m_continuousMotionStates[1].direction == 1) {
+            // 当前正在Y正向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::Y_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::Y_AXIS)) {
+                stopContinuousMotion(AxisIndex::Y_AXIS);
+            }
+            // 开始Y正向连续移动
+            startContinuousMotion(AxisIndex::Y_AXIS, 1);
+        }
     }
 }
 
 void MutiCamApp::onMoveYDownClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Y-点动";
+        qWarning() << "急停状态下忽略Y-移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
-        qWarning() << "Y轴未使能，忽略Y-点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "Y轴负方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+            qWarning() << "Y轴未使能，忽略Y-点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "Y轴负方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(0, -stepSize, 0);
+        // 更新当前位置
+        updateCurrentPosition(0, -stepSize, 0);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("y-", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("y-", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台Y轴负向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台Y轴负向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::Y_AXIS) && m_continuousMotionStates[1].direction == -1) {
+            // 当前正在Y负向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::Y_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::Y_AXIS)) {
+                stopContinuousMotion(AxisIndex::Y_AXIS);
+            }
+            // 开始Y负向连续移动
+            startContinuousMotion(AxisIndex::Y_AXIS, -1);
+        }
     }
 }
 
 void MutiCamApp::onMoveZUpClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z+点动";
+        qWarning() << "急停状态下忽略Z+移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-        qWarning() << "Z轴未使能，忽略Z+点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "Z轴正方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+            qWarning() << "Z轴未使能，忽略Z+点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "Z轴正方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(0, 0, stepSize);
+        // 更新当前位置
+        updateCurrentPosition(0, 0, stepSize);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("z+", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("z+", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台Z轴正向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台Z轴正向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::Z_AXIS) && m_continuousMotionStates[2].direction == 1) {
+            // 当前正在Z正向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::Z_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::Z_AXIS)) {
+                stopContinuousMotion(AxisIndex::Z_AXIS);
+            }
+            // 开始Z正向连续移动
+            startContinuousMotion(AxisIndex::Z_AXIS, 1);
+        }
     }
 }
 
 void MutiCamApp::onMoveZDownClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z-点动";
+        qWarning() << "急停状态下忽略Z-移动";
         return;
     }
-    if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-        qWarning() << "Z轴未使能，忽略Z-点动";
-        return;
-    }
-    double stepSize = getCurrentStepSize();
-    qDebug() << "Z轴负方向移动，步长：" << stepSize << "μm";
+    
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：移动固定步长
+        if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+            qWarning() << "Z轴未使能，忽略Z-点动";
+            return;
+        }
+        double stepSize = getCurrentStepSize();
+        qDebug() << "Z轴负方向点动，步长：" << stepSize << "μm";
 
-    // 更新当前位置
-    updateCurrentPosition(0, 0, -stepSize);
+        // 更新当前位置
+        updateCurrentPosition(0, 0, -stepSize);
 
-    // 记录轨迹
-    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
-        m_trajectoryRecorder->recordMovement("z-", stepSize, m_currentX, m_currentY, m_currentZ);
-    }
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            m_trajectoryRecorder->recordMovement("z-", stepSize, m_currentX, m_currentY, m_currentZ);
+        }
 
-    // 实际的载物台Z轴负向移动
-    if (m_axisController && m_axisController->isConnected()) {
-        if (m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
-            // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
-        } else {
-            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
-            if (m_logManager) {
-                QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-                m_logManager->log(errorMsg, LogLevel::WARNING);
+        // 实际的载物台Z轴负向移动
+        if (m_axisController && m_axisController->isConnected()) {
+            if (m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
+                // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
+            } else {
+                // 错误已通过 errorOccurred 信号处理，避免重复弹窗
+                if (m_logManager) {
+                    QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    m_logManager->log(errorMsg, LogLevel::WARNING);
+                }
             }
+        } else {
+            QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
         }
     } else {
-        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        // 连续模式：开始/停止连续移动
+        if (isContinuousMoving(AxisIndex::Z_AXIS) && m_continuousMotionStates[2].direction == -1) {
+            // 当前正在Z负向连续移动，点击停止
+            stopContinuousMotion(AxisIndex::Z_AXIS);
+        } else {
+            // 停止其他方向的连续移动（如果有）
+            if (isContinuousMoving(AxisIndex::Z_AXIS)) {
+                stopContinuousMotion(AxisIndex::Z_AXIS);
+            }
+            // 开始Z负向连续移动
+            startContinuousMotion(AxisIndex::Z_AXIS, -1);
+        }
     }
 }
 
@@ -4864,6 +4976,9 @@ void MutiCamApp::onStageHomeClicked()
 void MutiCamApp::onStageStopClicked()
 {
     qDebug() << "载物台紧急停止";
+
+    // 停止所有连续移动
+    stopAllContinuousMotion();
 
     // 记录轨迹
     if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
@@ -6020,6 +6135,9 @@ void MutiCamApp::onStageDisconnectClicked()
     if (ret == QMessageBox::Yes) {
         statusBar()->showMessage("正在断开轴控制设备...", 3000);
         
+        // 停止所有连续移动
+        stopAllContinuousMotion();
+        
         if (m_axisController->disconnectDevice()) {
             // 断开后确保关闭监控
             if (m_axisController) {
@@ -6516,6 +6634,9 @@ void MutiCamApp::onMotionModeChanged(int mode)
 {
     qDebug() << "运动模式改变：" << (mode == 0 ? "点动模式" : "连续模式");
     
+    // 更新当前运动模式
+    m_currentMotionMode = static_cast<MotionMode>(mode);
+    
     QString modeText = (mode == 0) ? "点动模式" : "连续模式";
     
     if (m_logManager) {
@@ -6526,12 +6647,20 @@ void MutiCamApp::onMotionModeChanged(int mode)
     
     // 根据模式调整UI行为
     if (mode == 0) {
-        // 点动模式：需要修改方向按钮为按下开始移动，松开停止移动
-        // 这里可以添加特殊的点动模式处理逻辑
-        qDebug() << "切换到点动模式，方向按钮将支持按压式移动";
+        // 点动模式：点击按钮移动固定步长
+        qDebug() << "切换到点动模式，点击按钮将移动固定步长";
+        
+        // 停止所有连续移动
+        stopAllContinuousMotion();
+        
+        // 更新按钮文本为方向指示
+        updateMotionButtonTexts();
     } else {
-        // 连续模式：点击按钮执行固定距离移动
-        qDebug() << "切换到连续模式，方向按钮将执行固定步长移动";
+        // 连续模式：点击按钮开始/停止持续移动
+        qDebug() << "切换到连续模式，点击按钮将开始/停止持续移动";
+        
+        // 更新按钮文本为开始/停止指示
+        updateMotionButtonTexts();
     }
 }
 
@@ -6688,4 +6817,138 @@ void MutiCamApp::onPhysicalButtonPortSelectionChanged()
         qDebug() << "物理按键串口已更新为:" << selectedPort;
         statusBar()->showMessage(QString("物理按键串口: %1").arg(selectedPort), 2000);
     }
+}
+
+// ==================== 连续移动辅助函数实现 ====================
+
+void MutiCamApp::stopAllContinuousMotion()
+{
+    qDebug() << "停止所有连续移动";
+    
+    for (int i = 0; i < 3; ++i) {
+        if (m_continuousMotionStates[i].isMoving) {
+            AxisIndex axis = static_cast<AxisIndex>(i);
+            stopContinuousMotion(axis);
+        }
+    }
+}
+
+void MutiCamApp::updateMotionButtonTexts()
+{
+    if (m_currentMotionMode == MotionMode::Jog) {
+        // 点动模式：显示方向
+        ui->btnMoveXLeft->setText("X-");
+        ui->btnMoveXRight->setText("X+");
+        ui->btnMoveYUp->setText("Y+");
+        ui->btnMoveYDown->setText("Y-");
+        ui->btnMoveZUp->setText("Z+");
+        ui->btnMoveZDown->setText("Z-");
+    } else {
+        // 连续模式：根据当前状态显示开始/停止
+        ui->btnMoveXLeft->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == -1 ? "停止X-" : "X-");
+        ui->btnMoveXRight->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == 1 ? "停止X+" : "X+");
+        ui->btnMoveYUp->setText(m_continuousMotionStates[1].isMoving && m_continuousMotionStates[1].direction == 1 ? "停止Y+" : "Y+");
+        ui->btnMoveYDown->setText(m_continuousMotionStates[1].isMoving && m_continuousMotionStates[1].direction == -1 ? "停止Y-" : "Y-");
+        ui->btnMoveZUp->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == 1 ? "停止Z+" : "Z+");
+        ui->btnMoveZDown->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == -1 ? "停止Z-" : "Z-");
+    }
+}
+
+void MutiCamApp::startContinuousMotion(AxisIndex axis, int direction)
+{
+    if (!m_axisController || !m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        return;
+    }
+    
+    if (!m_axisController->isAxisEnabled(axis)) {
+        QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
+                          (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+        qWarning() << axisName << "轴未使能，忽略连续移动";
+        return;
+    }
+    
+    int axisIndex = static_cast<int>(axis);
+    if (axisIndex < 0 || axisIndex >= 3) return;
+    
+    // 获取当前速度设置
+    double speed = ui->spinBoxSpeed->value();
+    
+    qDebug() << "开始连续移动 - 轴:" << axisIndex << "方向:" << direction << "速度:" << speed;
+    
+    // 使用AxisController的点动功能实现连续移动
+    if (m_axisController->startJogging(axis, direction, speed)) {
+        m_continuousMotionStates[axisIndex].isMoving = true;
+        m_continuousMotionStates[axisIndex].direction = direction;
+        m_continuousMotionStates[axisIndex].speed = speed;
+        
+        // 更新按钮文本
+        updateMotionButtonTexts();
+        
+        // 记录轨迹
+        if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+            QString axisName = (axis == AxisIndex::X_AXIS) ? "x" : 
+                              (axis == AxisIndex::Y_AXIS) ? "y" : "z";
+            QString directionStr = (direction > 0) ? "+" : "-";
+            m_trajectoryRecorder->recordMovement(axisName + directionStr + "_start", 0, m_currentX, m_currentY, m_currentZ);
+        }
+        
+        if (m_logManager) {
+            QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
+                              (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+            QString directionStr = (direction > 0) ? "正向" : "负向";
+            m_logManager->log(QString("%1轴开始%2连续移动，速度：%3 μm/s").arg(axisName).arg(directionStr).arg(speed), LogLevel::INFO);
+        }
+    } else {
+        if (m_logManager) {
+            QString errorMsg = QString("连续移动启动失败：%1").arg(m_axisController->getLastErrorString());
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
+    }
+}
+
+void MutiCamApp::stopContinuousMotion(AxisIndex axis)
+{
+    int axisIndex = static_cast<int>(axis);
+    if (axisIndex < 0 || axisIndex >= 3) return;
+    
+    if (!m_continuousMotionStates[axisIndex].isMoving) {
+        return; // 已经停止了
+    }
+    
+    qDebug() << "停止连续移动 - 轴:" << axisIndex;
+    
+    // 使用AxisController停止点动
+    if (m_axisController && m_axisController->isConnected()) {
+        m_axisController->stopJogging(axis);
+    }
+    
+    // 更新状态
+    m_continuousMotionStates[axisIndex].isMoving = false;
+    m_continuousMotionStates[axisIndex].direction = 0;
+    m_continuousMotionStates[axisIndex].speed = 0.0;
+    
+    // 更新按钮文本
+    updateMotionButtonTexts();
+    
+    // 记录轨迹
+    if (m_trajectoryRecorder && m_trajectoryRecorder->isRecording()) {
+        QString axisName = (axis == AxisIndex::X_AXIS) ? "x" : 
+                          (axis == AxisIndex::Y_AXIS) ? "y" : "z";
+        m_trajectoryRecorder->recordMovement(axisName + "_stop", 0, m_currentX, m_currentY, m_currentZ);
+    }
+    
+    if (m_logManager) {
+        QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
+                          (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+        m_logManager->log(QString("%1轴停止连续移动").arg(axisName), LogLevel::INFO);
+    }
+}
+
+bool MutiCamApp::isContinuousMoving(AxisIndex axis) const
+{
+    int axisIndex = static_cast<int>(axis);
+    if (axisIndex < 0 || axisIndex >= 3) return false;
+    
+    return m_continuousMotionStates[axisIndex].isMoving;
 }

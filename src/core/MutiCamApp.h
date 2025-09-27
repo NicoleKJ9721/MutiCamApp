@@ -867,6 +867,28 @@ private:
     void setMotionControlsEnabled(bool enabled);       ///< 统一启用/禁用运动相关控件
     void syncAxisEnableStateFromUI();                  ///< 根据UI复选框同步轴使能到控制器
 
+    // 连续移动状态管理
+    enum class MotionMode {
+        Jog = 0,        ///< 点动模式（当前实现）
+        Continuous = 1  ///< 连续模式
+    };
+    MotionMode m_currentMotionMode = MotionMode::Jog;  ///< 当前运动模式
+    
+    // 连续移动状态跟踪
+    struct ContinuousMotionState {
+        bool isMoving = false;      ///< 是否正在连续移动
+        int direction = 0;          ///< 移动方向（1=正向，-1=负向，0=停止）
+        double speed = 0.0;         ///< 移动速度
+    };
+    std::array<ContinuousMotionState, 3> m_continuousMotionStates; ///< X,Y,Z轴连续移动状态
+    
+    // 连续移动辅助函数
+    void stopAllContinuousMotion();                    ///< 停止所有连续移动
+    void updateMotionButtonTexts();                    ///< 更新移动按钮文本
+    void startContinuousMotion(AxisIndex axis, int direction); ///< 开始连续移动
+    void stopContinuousMotion(AxisIndex axis);         ///< 停止指定轴的连续移动
+    bool isContinuousMoving(AxisIndex axis) const;     ///< 检查指定轴是否在连续移动
+
 
 
 };
