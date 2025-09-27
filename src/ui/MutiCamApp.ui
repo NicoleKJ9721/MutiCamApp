@@ -3895,6 +3895,24 @@ QPushButton:pressed {
                </item>
                <item row="0" column="1">
                 <widget class="QLabel" name="labelEnableHeader">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="styleSheet">
                   <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
                  </property>
@@ -3960,6 +3978,24 @@ QPushButton:pressed {
                </item>
                <item row="1" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableX">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="styleSheet">
                   <string>padding: 8px; border: 1px solid #ddd;</string>
                  </property>
@@ -4025,6 +4061,24 @@ QPushButton:pressed {
                </item>
                <item row="2" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableY">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="styleSheet">
                   <string>padding: 8px; border: 1px solid #ddd;</string>
                  </property>
@@ -4090,6 +4144,24 @@ QPushButton:pressed {
                </item>
                <item row="3" column="1">
                 <widget class="QCheckBox" name="checkBoxEnableZ">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>80</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="styleSheet">
                   <string>padding: 8px; border: 1px solid #ddd;</string>
                  </property>
