@@ -94,6 +94,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     // 连接信号和槽
     connectSignalsAndSlots();
+    
+    // 初始化最大值约束控件
+    initializeMaxValueConstraints();
 
     // 初始化相机状态监控
     initializeCameraStatusMonitoring();
@@ -486,6 +489,12 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onSpeedChanged);
     connect(ui->spinBoxAccel, QOverload<int>::of(&QSpinBox::valueChanged),
             this, &MutiCamApp::onAccelChanged);
+    
+    // 连接最大速度和最大加速度限制设置
+    connect(ui->spinBoxMaxSpeed, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MutiCamApp::onMaxSpeedChanged);
+    connect(ui->spinBoxMaxAccel, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &MutiCamApp::onMaxAccelChanged);
 
     // 连接运动模式切换
     connect(ui->comboBoxMotionMode, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -4182,6 +4191,32 @@ void MutiCamApp::connectButtonSignals()
     qDebug() << "已连接" << m_buttonMappings.size() << "个按钮信号";
 }
 
+void MutiCamApp::initializeMaxValueConstraints()
+{
+    qDebug() << "初始化最大值约束控件...";
+    
+    // 设置最大速度和最大加速度控件的初始值为系统常量
+    if (ui->spinBoxMaxSpeed) {
+        ui->spinBoxMaxSpeed->setValue(static_cast<int>(AxisControl::Constants::MAX_SPEED));
+        // 初始化时设置当前速度控件的最大值
+        if (ui->spinBoxSpeed) {
+            ui->spinBoxSpeed->setMaximum(static_cast<int>(AxisControl::Constants::MAX_SPEED));
+        }
+    }
+    
+    if (ui->spinBoxMaxAccel) {
+        ui->spinBoxMaxAccel->setValue(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
+        // 初始化时设置当前加速度控件的最大值
+        if (ui->spinBoxAccel) {
+            ui->spinBoxAccel->setMaximum(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
+        }
+    }
+    
+    qDebug() << "最大值约束控件初始化完成";
+    qDebug() << "最大速度限制:" << AxisControl::Constants::MAX_SPEED << "μm/s";
+    qDebug() << "最大加速度限制:" << AxisControl::Constants::MAX_ACCELERATION << "μm/s²";
+}
+
 // ==================== 相机状态监控实现 ====================
 
 void MutiCamApp::initializeCameraStatusMonitoring()
@@ -6397,6 +6432,50 @@ void MutiCamApp::onAccelChanged(int accel)
         }
         qWarning() << errorMsg;
     }
+}
+
+void MutiCamApp::onMaxSpeedChanged(int maxSpeed)
+{
+    qDebug() << "最大速度限制改变：" << maxSpeed;
+    
+    // 更新当前速度控件的最大值
+    if (ui->spinBoxSpeed) {
+        ui->spinBoxSpeed->setMaximum(maxSpeed);
+        
+        // 如果当前速度超过新的最大值，自动调整
+        if (ui->spinBoxSpeed->value() > maxSpeed) {
+            ui->spinBoxSpeed->setValue(maxSpeed);
+            qDebug() << "当前速度超过新限制，自动调整为：" << maxSpeed;
+        }
+    }
+    
+    if (m_logManager) {
+        m_logManager->log(QString("最大速度限制设置为：%1 μm/s").arg(maxSpeed), LogLevel::INFO);
+    }
+    
+    statusBar()->showMessage(QString("最大速度限制已设置为：%1 μm/s").arg(maxSpeed), 2000);
+}
+
+void MutiCamApp::onMaxAccelChanged(int maxAccel)
+{
+    qDebug() << "最大加速度限制改变：" << maxAccel;
+    
+    // 更新当前加速度控件的最大值
+    if (ui->spinBoxAccel) {
+        ui->spinBoxAccel->setMaximum(maxAccel);
+        
+        // 如果当前加速度超过新的最大值，自动调整
+        if (ui->spinBoxAccel->value() > maxAccel) {
+            ui->spinBoxAccel->setValue(maxAccel);
+            qDebug() << "当前加速度超过新限制，自动调整为：" << maxAccel;
+        }
+    }
+    
+    if (m_logManager) {
+        m_logManager->log(QString("最大加速度限制设置为：%1 μm/s²").arg(maxAccel), LogLevel::INFO);
+    }
+    
+    statusBar()->showMessage(QString("最大加速度限制已设置为：%1 μm/s²").arg(maxAccel), 2000);
 }
 
 // ==================== 运动模式切换槽函数实现 ====================

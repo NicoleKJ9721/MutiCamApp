@@ -244,6 +244,8 @@ private slots:
     // 速度和加速度设置槽函数
     void onSpeedChanged(int speed);        // 速度改变
     void onAccelChanged(int accel);        // 加速度改变
+    void onMaxSpeedChanged(int maxSpeed);  // 最大速度限制改变  
+    void onMaxAccelChanged(int maxAccel);  // 最大加速度限制改变
     
     // 运动模式切换槽函数
     void onMotionModeChanged(int mode);    // 运动模式改变（0=点动，1=连续）
@@ -378,6 +380,7 @@ private:
     std::vector<ButtonMapping> m_buttonMappings;
     void initializeButtonMappings();
     void connectButtonSignals();
+    void initializeMaxValueConstraints();  // 初始化最大值约束控件
 
     // 相机管理器
     std::unique_ptr<MutiCam::Camera::CameraManager> m_cameraManager;
