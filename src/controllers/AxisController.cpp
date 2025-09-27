@@ -1052,18 +1052,18 @@ bool AxisController::setAxisParams(AxisIndex axis, const MotionParams& params)
             // 注意：具体的参数索引需要根据MCC6DLL手册确定
             int result;
             
-            // 设置最大速度（假设参数索引0为速度）
+            // 设置最大速度（参数索引1为高速度）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                0, // 速度参数索引（单位 mm/s）
+                1, // 高速度参数索引（单位 mm/s）
                 ums_to_mms_f(params.maxSpeed)
             );
             handleMCC6Error(result, QString("设置%1最大速度").arg(axisToString(axis)));
             
-            // 设置加速度（假设参数索引1为加速度）
+            // 设置加速度（参数索引4为加速度）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                1, // 加速度参数索引（单位 mm/s²）
+                4, // 加速度参数索引（单位 mm/s²）
                 ums2_to_mms2_f(params.acceleration)
             );
             handleMCC6Error(result, QString("设置%1加速度").arg(axisToString(axis)));
@@ -1123,7 +1123,7 @@ bool AxisController::setAxisSpeed(AxisIndex axis, double speed)
         if (isConnected()) {
             int result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                0, // 速度参数索引（单位 mm/s）
+                1, // 高速度参数索引（单位 mm/s）
                 ums_to_mms_f(speed)
             );
             if (!handleMCC6Error(result, QString("设置%1速度").arg(axisToString(axis)))) {
@@ -1168,7 +1168,7 @@ bool AxisController::setAxisAcceleration(AxisIndex axis, double acceleration)
         if (isConnected()) {
             int result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(axisIndex), 
-                1, // 加速度参数索引（单位 mm/s²）
+                4, // 加速度参数索引（单位 mm/s²）
                 ums2_to_mms2_f(acceleration)
             );
             if (!handleMCC6Error(result, QString("设置%1加速度").arg(axisToString(axis)))) {
@@ -1390,7 +1390,7 @@ bool AxisController::initializeAllAxes()
             // 设置默认速度（单位 mm/s）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(i), 
-                0, // 速度参数索引
+                1, // 高速度参数索引
                 ums_to_mms_f(m_motionParams[i].maxSpeed)
             );
             handleMCC6Error(result, QString("设置%1默认速度").arg(axisToString(static_cast<AxisIndex>(i))));
@@ -1398,7 +1398,7 @@ bool AxisController::initializeAllAxes()
             // 设置默认加速度（单位 mm/s²）
             result = m_controller->MoCtrCard_SendPara(
                 static_cast<uint8_t>(i), 
-                1, // 加速度参数索引
+                4, // 加速度参数索引
                 ums2_to_mms2_f(m_motionParams[i].acceleration)
             );
             handleMCC6Error(result, QString("设置%1默认加速度").arg(axisToString(static_cast<AxisIndex>(i))));

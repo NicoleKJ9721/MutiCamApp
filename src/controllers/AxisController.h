@@ -53,7 +53,6 @@ public:
         double maxSpeed = 3000.0;          ///< 最大速度 (μm/s)
         double acceleration = 3000.0;      ///< 加速度 (μm/s²)
         double deceleration = 3000.0;      ///< 减速度 (μm/s²)
-        int subdivision = Constants::DEFAULT_SUBDIVISION;  ///< 细分数
         double stepSize = 1.0;          ///< 基础步长 (μm)
         double softLimitPos = Constants::MAX_POSITION;     ///< 正向软限位
         double softLimitNeg = Constants::MIN_POSITION;     ///< 负向软限位
@@ -61,7 +60,6 @@ public:
         bool isValid() const {
             return maxSpeed >= Constants::MIN_SPEED && maxSpeed <= Constants::MAX_SPEED &&
                    acceleration >= Constants::MIN_ACCELERATION && acceleration <= Constants::MAX_ACCELERATION &&
-                   subdivision >= Constants::MIN_SUBDIVISION && subdivision <= Constants::MAX_SUBDIVISION &&
                    softLimitPos > softLimitNeg;
         }
     };

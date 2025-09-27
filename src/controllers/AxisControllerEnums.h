@@ -94,9 +94,9 @@ namespace Constants {
     constexpr int MAX_AXIS_INDEX = 2;
     
     // 运动参数限制
-    constexpr double MIN_SPEED = 1;     ///< 最小速度 (μm/s) 
+    constexpr double MIN_SPEED = 0.1;     ///< 最小速度 (μm/s) 
     constexpr double MAX_SPEED = 7000;   ///< 最大速度 (μm/s)
-    constexpr double MIN_ACCELERATION = 1.0;     ///< 最小加速度 (mm/s²)
+    constexpr double MIN_ACCELERATION = 0.1;     ///< 最小加速度 (mm/s²)
     constexpr double MAX_ACCELERATION = 7000;   ///< 最大加速度 (mm/s²)
     
     // 位置限制  
@@ -109,11 +109,7 @@ namespace Constants {
     constexpr int CONNECTION_TIMEOUT = 3000;     ///< 连接超时 (ms)
     constexpr int MOTION_TIMEOUT = 30000;        ///< 运动超时 (ms)
     constexpr int STATUS_UPDATE_INTERVAL = 100;  ///< 状态更新间隔 (ms)
-    
-    // 细分设置
-    constexpr int MIN_SUBDIVISION = 1;           ///< 最小细分数
-    constexpr int MAX_SUBDIVISION = 256;         ///< 最大细分数
-    constexpr int DEFAULT_SUBDIVISION = 16;      ///< 默认细分数
+
     
     // 单位转换
     constexpr double UM_TO_MM = 0.001;          ///< 微米到毫米转换
