@@ -10,7 +10,7 @@
 namespace {
     inline float um_to_mm_f(double um) { return static_cast<float>(um * AxisControl::Constants::UM_TO_MM); }
     inline float ums_to_mms_f(double um_per_s) { return static_cast<float>(um_per_s * AxisControl::Constants::UM_TO_MM); }
-    inline float ums2_to_mms2_f(double um_per_s2) { return static_cast<float>(um_per_s2 * AxisControl::Constants::UM_TO_MM); }
+    inline float ums2_to_mms2_f(double um_per_s2) { return static_cast<float>(um_per_s2 * AxisControl::Constants::UM_TO_MM / 2000.0); }
     inline double mm_to_um(double mm) { return mm * AxisControl::Constants::MM_TO_UM; }
 }
 
