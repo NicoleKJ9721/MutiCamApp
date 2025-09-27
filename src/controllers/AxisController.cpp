@@ -1068,23 +1068,16 @@ bool AxisController::setAxisParams(AxisIndex axis, const MotionParams& params)
             );
             handleMCC6Error(result, QString("设置%1加速度").arg(axisToString(axis)));
             
-            // 设置细分（假设参数索引2为细分）
-            result = m_controller->MoCtrCard_SendPara(
-                static_cast<uint8_t>(axisIndex), 
-                2, // 细分参数索引
-                static_cast<uint32_t>(params.subdivision)
-            );
-            handleMCC6Error(result, QString("设置%1细分").arg(axisToString(axis)));
+            // 细分设置已移除 - 无API接口支持
         }
         
         // 更新本地参数
         m_motionParams[axisIndex] = params;
         
-        qDebug() << QString("%1参数已更新：速度=%2, 加速度=%3, 细分=%4")
+        qDebug() << QString("%1参数已更新：速度=%2, 加速度=%3")
                     .arg(axisToString(axis))
                     .arg(params.maxSpeed)
-                    .arg(params.acceleration)
-                    .arg(params.subdivision);
+                    .arg(params.acceleration);
         
         return true;
         
@@ -1216,19 +1209,10 @@ bool AxisController::setAxisEnabled(AxisIndex axis, bool enabled)
     int axisIndex = axisToMCC6Index(axis);
     
     try {
-        // 使用参数设置接口设置轴使能状态（假设参数索引3为使能）
-        int result = m_controller->MoCtrCard_SendPara(
-            static_cast<uint8_t>(axisIndex), 
-            3, // 使能参数索引
-            static_cast<int8_t>(enabled ? 1 : 0)
-        );
-        if (!handleMCC6Error(result, QString("%1%2使能").arg(axisToString(axis)).arg(enabled ? "启用" : "禁用"))) {
-            return false;
-        }
-        
+        // 使能设置已通过软件和摇杆完成，此处仅更新状态
         m_axisStates[axisIndex].isEnabled = enabled;
         
-        qDebug() << QString("%1%2使能").arg(axisToString(axis)).arg(enabled ? "启用" : "禁用");
+        qDebug() << QString("%1%2使能（软件状态更新）").arg(axisToString(axis)).arg(enabled ? "启用" : "禁用");
         
         return true;
         
@@ -1419,23 +1403,9 @@ bool AxisController::initializeAllAxes()
             );
             handleMCC6Error(result, QString("设置%1默认加速度").arg(axisToString(static_cast<AxisIndex>(i))));
             
-            // 设置默认细分
-            result = m_controller->MoCtrCard_SendPara(
-                static_cast<uint8_t>(i), 
-                2, // 细分参数索引
-                static_cast<uint32_t>(m_motionParams[i].subdivision)
-            );
-            handleMCC6Error(result, QString("设置%1默认细分").arg(axisToString(static_cast<AxisIndex>(i))));
-            
-            // 启用轴
-            result = m_controller->MoCtrCard_SendPara(
-                static_cast<uint8_t>(i), 
-                3, // 使能参数索引
-                static_cast<int8_t>(1)
-            );
-            if (handleMCC6Error(result, QString("启用%1").arg(axisToString(static_cast<AxisIndex>(i))))) {
-                m_axisStates[i].isEnabled = true;
-            }
+            // 细分和使能设置已移除 - 细分无API接口，使能通过软件和摇杆完成
+            // 默认设置轴为启用状态（软件状态）
+            m_axisStates[i].isEnabled = true;
         }
         
         qDebug() << "所有轴初始化完成";
