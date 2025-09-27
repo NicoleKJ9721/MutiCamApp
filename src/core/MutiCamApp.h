@@ -365,6 +365,12 @@ protected:
      */
     void resizeEvent(QResizeEvent *event) override;
 
+    /**
+     * @brief 窗口关闭事件处理
+     * @param event 关闭事件
+     */
+    void closeEvent(QCloseEvent *event) override;
+
 private:
     Ui_MutiCamApp* ui;
 

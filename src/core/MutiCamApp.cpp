@@ -11,6 +11,7 @@
 #include <QMouseEvent>
 #include <QEvent>
 #include <QResizeEvent>
+#include <QCloseEvent>
 #include <QCursor>
 #include <QStackedLayout>
 #include <QDir>
@@ -267,6 +268,35 @@ MutiCamApp::~MutiCamApp()
     if (m_frontZoomPanWidget2) {
         delete m_frontZoomPanWidget2;
         m_frontZoomPanWidget2 = nullptr;
+    }
+
+    // 清理轴控制系统 - 必须在串口控制器之前清理
+    if (m_axisController) {
+        qDebug() << "Cleaning up axis controller...";
+        // 断开连接，停止所有线程和定时器
+        m_axisController->disconnectDevice();
+        // 重置智能指针，触发析构函数
+        m_axisController.reset();
+        qDebug() << "Axis controller cleaned up";
+    }
+
+    // 清理轨迹记录器
+    if (m_trajectoryRecorder) {
+        qDebug() << "Cleaning up trajectory recorder...";
+        // 停止记录，清理定时器和线程
+        m_trajectoryRecorder->stopRecording();
+        // 重置智能指针，触发析构函数
+        m_trajectoryRecorder.reset();
+        qDebug() << "Trajectory recorder cleaned up";
+    }
+
+    // 清理日志管理器
+    if (m_logManager) {
+        qDebug() << "Cleaning up log manager...";
+        // 刷新并关闭所有日志文件，停止写入线程
+        delete m_logManager;
+        m_logManager = nullptr;
+        qDebug() << "Log manager cleaned up";
     }
 
     // 清理设置管理器
@@ -3652,6 +3682,33 @@ void MutiCamApp::resizeEvent(QResizeEvent *event)
     m_isUpdatingUISize = false;
 
     qDebug() << "窗口大小改变：" << newSize.width() << "x" << newSize.height();
+}
+
+void MutiCamApp::closeEvent(QCloseEvent *event)
+{
+    qDebug() << "Close event received, starting cleanup...";
+    
+    // 确保停止测量
+    if (m_isMeasuring) {
+        onStopMeasureClicked();
+    }
+    
+    // 确保所有异步操作完成
+    if (m_saveWatcher && m_saveWatcher->isRunning()) {
+        qDebug() << "Waiting for save operations to complete...";
+        m_saveWatcher->waitForFinished();
+    }
+    
+    if (m_stageConnectWatcher && m_stageConnectWatcher->isRunning()) {
+        qDebug() << "Waiting for stage connection operations to complete...";
+        m_stageConnectWatcher->waitForFinished();
+    }
+    
+    // 强制处理所有待处理的事件
+    QApplication::processEvents();
+    
+    qDebug() << "Close event cleanup completed, accepting close";
+    event->accept();
 }
 
 void MutiCamApp::onUISizeChanged()
