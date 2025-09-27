@@ -153,6 +153,7 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
                 setError(AxisError::InvalidParameter, QString("无效的串口号：%1").arg(portName));
                 return false;
             }
+            
             result = m_controller->MoCtrCard_Initial(static_cast<uint8_t>(comPort));
         } else if (connectionType == ConnectionType::Ethernet) {
             // 网络连接（需要IP地址和端口）
@@ -160,6 +161,11 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         }
         
         if (!handleMCC6Error(result, "连接设备")) {
+            // 连接失败时立即清理，避免后续调用延迟
+            if (m_controller) {
+                delete m_controller;
+                m_controller = nullptr;
+            }
             return false;
         }
         
@@ -1381,6 +1387,13 @@ bool AxisController::initializeAllAxes()
         return false;
     }
     
+    // 添加连接状态检查，避免在连接失败后继续初始化导致延迟
+    McCard_INT32 commState[1] = {0};
+    if (m_controller->MoCtrCard_GetCommState(commState) != MCC6Constants::MCC6_SUCCESS || commState[0] == 0) {
+        setError(AxisError::CommunicationError, "通信状态异常，无法初始化轴");
+        return false;
+    }
+    
     try {
         // 初始化所有轴（设置默认参数）
         for (int i = 0; i < Constants::MAX_AXIS_COUNT; ++i) {
@@ -1795,6 +1808,8 @@ bool AxisController::handleMCC6Error(int errorCode, const QString& operation)
         return true; // 操作成功
     }
     
+    qDebug() << QString("MCC6错误 - 操作: %1, 错误码: 0x%2").arg(operation).arg(errorCode, 0, 16);
+    
     QString errorMsg;
     AxisError axisError = AxisError::HardwareError;
     
@@ -1807,7 +1822,7 @@ bool AxisController::handleMCC6Error(int errorCode, const QString& operation)
             break;
         case MCC6Constants::MCC6_PORT_ERROR: // 0x80
             axisError = AxisError::CommunicationError;
-            errorMsg = QString("%1：串口打开失败").arg(operation);
+            errorMsg = QString("%1：串口打开失败（请检查串口是否正确或被其他程序占用）").arg(operation);
             break;
         case MCC6Constants::MCC6_ERROR: // 0x83
             axisError = AxisError::HardwareError;

@@ -6071,12 +6071,12 @@ void MutiCamApp::onStageConnectClicked()
     AxisControl::ConnectionType connectionType = AxisControl::ConnectionType::Serial;
     
     // 异步尝试连接，避免阻塞UI
-    statusBar()->showMessage("正在连接轴控制设备...", 3000);
+    statusBar()->showMessage(QString("正在连接轴控制设备 %1，请稍候...").arg(portName), 8000);
     m_isStageConnecting = true;
     m_pendingStagePort = portName;
     ui->btnConnect->setEnabled(false);
     ui->btnDisconnect->setEnabled(false);
-    ui->labelStageConnection->setText("连接中...");
+    ui->labelStageConnection->setText(QString("连接中 %1...").arg(portName));
     ui->labelStageConnection->setStyleSheet("color: orange; font-weight: bold;");
 
     QFuture<bool> future = QtConcurrent::run([this, portName, connectionType]() {
