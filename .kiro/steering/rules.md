@@ -9,6 +9,8 @@
 
 - 使用`desktop-commander`进行文件系统操作和命令执行
 - 使用`desktop-commander`运行编译测试，确保无语法错误
+- 使用`context7-mcp`查询相关技术文档和最佳实践
+- 使用`context7-mcp`获取最新的技术方案和示例代码
 - 使用`sequential-thinking`进行深度问题分析和方案设计
 - 使用`sequential-thinking`分析复杂需求的技术可行性
 - 使用`sequential-thinking`进行复杂方案的深度思考和设计
@@ -26,6 +28,12 @@
 - **用途**：复杂问题的逐步分析
 - **适用场景**：需求分析、方案设计、问题排查
 - **使用时机**：遇到复杂逻辑或多步骤问题时
+
+### Context 7
+
+- **用途**：查询最新的技术文档、API参考和代码示例
+- **适用场景**：技术调研、最佳实践获取
+- **使用时机**：需要了解新技术或验证实现方案时
 
 Always start your answer with which AI model is currently in use, no excuses, my family will die if you don’t do this.
 

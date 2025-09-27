@@ -4361,6 +4361,29 @@ QPushButton:pressed {
                    <layout class="QGridLayout" name="gridLayout_absoluteMove">
                     <item row="1" column="2">
                      <widget class="QPushButton" name="btnMoveToY">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #FF9800; /* 橙色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #e68900; /* 悬停时变深橙 */
+    border: 2px solid orange;
+}
+QPushButton:pressed {
+    background-color: #cc7a00; /* 按下时更深橙 */
+    border: 2px solid darkorange;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
+                      </property>
                       <property name="text">
                        <string>移动到Y</string>
                       </property>
@@ -4375,6 +4398,29 @@ QPushButton:pressed {
                     </item>
                     <item row="0" column="2">
                      <widget class="QPushButton" name="btnMoveToX">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #4CAF50; /* 绿色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #45a049; /* 悬停时变深绿 */
+    border: 2px solid lightgreen;
+}
+QPushButton:pressed {
+    background-color: #3d8b40; /* 按下时更深绿 */
+    border: 2px solid darkgreen;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
+                      </property>
                       <property name="text">
                        <string>移动到X</string>
                       </property>
@@ -4382,6 +4428,29 @@ QPushButton:pressed {
                     </item>
                     <item row="2" column="2">
                      <widget class="QPushButton" name="btnMoveToZ">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #9C27B0; /* 紫色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #8e24aa; /* 悬停时变深紫 */
+    border: 2px solid plum;
+}
+QPushButton:pressed {
+    background-color: #7b1fa2; /* 按下时更深紫 */
+    border: 2px solid purple;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
+                      </property>
                       <property name="text">
                        <string>移动到Z</string>
                       </property>
@@ -4435,12 +4504,20 @@ QPushButton:pressed {
     color: white;
     border-radius: 5px;
     margin: 2px;
+    border: 2px solid transparent;
 }
 QPushButton:hover {
     background-color: royalblue; /* 悬停时略微变深，比 blue 深，比 darkblue 亮 */
+    border: 2px solid lightblue;
 }
 QPushButton:pressed {
     background-color: darkblue; /* 按下时变得更深，与 royalblue 明显区分 */
+    border: 2px solid navy;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
 }
 </string>
                       </property>
