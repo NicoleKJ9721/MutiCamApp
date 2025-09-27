@@ -4482,9 +4482,9 @@ void MutiCamApp::onMoveXLeftClicked()
         if (m_axisController->moveRelative(AxisIndex::X_AXIS, -stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
@@ -4520,9 +4520,9 @@ void MutiCamApp::onMoveXRightClicked()
         if (m_axisController->moveRelative(AxisIndex::X_AXIS, stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
@@ -4557,9 +4557,9 @@ void MutiCamApp::onMoveYUpClicked()
         if (m_axisController->moveRelative(AxisIndex::Y_AXIS, stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("Y轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
@@ -4594,9 +4594,9 @@ void MutiCamApp::onMoveYDownClicked()
         if (m_axisController->moveRelative(AxisIndex::Y_AXIS, -stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("Y轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
@@ -4631,9 +4631,9 @@ void MutiCamApp::onMoveZUpClicked()
         if (m_axisController->moveRelative(AxisIndex::Z_AXIS, stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
@@ -4668,9 +4668,9 @@ void MutiCamApp::onMoveZDownClicked()
         if (m_axisController->moveRelative(AxisIndex::Z_AXIS, -stepSize)) {
             // 由轴控制器轮询回调 onAxisPositionChanged 平滑更新UI
         } else {
-            QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
-            QMessageBox::warning(this, "移动错误", errorMsg);
+            // 错误已通过 errorOccurred 信号处理，避免重复弹窗
             if (m_logManager) {
+                QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
                 m_logManager->log(errorMsg, LogLevel::WARNING);
             }
         }
