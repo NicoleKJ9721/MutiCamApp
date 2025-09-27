@@ -4696,25 +4696,39 @@ void MutiCamApp::onStageHomeClicked()
         m_trajectoryRecorder->recordPoint(m_currentX, m_currentY, m_currentZ, "home");
     }
 
-    // 实际的载物台回零功能
+    // 实际的载物台回零功能 - 修改为回到坐标零点
     if (m_axisController && m_axisController->isConnected()) {
         // 询问用户是否要执行回零操作
         int ret = QMessageBox::question(this, "确认回零", 
-                                       "是否确定要执行所有轴回零操作？\n注意：此操作可能需要较长时间。",
+                                       "是否确定要回到坐标零点(0,0,0)？\n注意：此操作将移动所有轴到零点位置。",
                                        QMessageBox::Yes | QMessageBox::No,
                                        QMessageBox::No);
         
         if (ret == QMessageBox::Yes) {
-            if (!m_axisController->goHomeAll()) {
-                QString errorMsg = QString("回零操作失败：%1").arg(m_axisController->getLastErrorString());
+            // 移动到坐标零点而不是机械零点
+            bool success = true;
+            
+            // 依次移动各轴到零点位置
+            if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, 0.0)) {
+                success = false;
+            }
+            if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, 0.0)) {
+                success = false;
+            }
+            if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, 0.0)) {
+                success = false;
+            }
+            
+            if (!success) {
+                QString errorMsg = QString("回到坐标零点失败：%1").arg(m_axisController->getLastErrorString());
                 QMessageBox::warning(this, "回零错误", errorMsg);
                 if (m_logManager) {
                     m_logManager->log(errorMsg, LogLevel::WARNING);
                 }
             } else {
-                statusBar()->showMessage("正在执行回零操作...", 10000);
+                statusBar()->showMessage("正在回到坐标零点...", 10000);
                 if (m_logManager) {
-                    m_logManager->log("开始执行所有轴回零操作", LogLevel::INFO);
+                    m_logManager->log("开始回到坐标零点(0,0,0)", LogLevel::INFO);
                 }
             }
         }
