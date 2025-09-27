@@ -4790,7 +4790,33 @@ void MutiCamApp::onStageHomeClicked()
 
     // 实际的载物台回零功能 - 修改为回到坐标零点
     if (m_axisController && m_axisController->isConnected()) {
-        // 询问用户是否要执行回零操作
+        // 首先检查轴使能状态
+        QStringList disabledAxes;
+        if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+            disabledAxes << "X轴";
+        }
+        if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+            disabledAxes << "Y轴";
+        }
+        if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+            disabledAxes << "Z轴";
+        }
+        
+        // 如果有轴未使能，显示统一警告
+        if (!disabledAxes.isEmpty()) {
+            QString message = QString("无法执行回零操作，以下轴未使能：\n\n%1\n\n请先在“轴状态与控制”区域中勾选相应轴的使能复选框，然后再试。")
+                                    .arg(disabledAxes.join("、"));
+            
+            QMessageBox::warning(this, "轴未使能", message);
+            
+            if (m_logManager) {
+                m_logManager->log(QString("回零操作被阻止：%1未使能").arg(disabledAxes.join("、")), LogLevel::WARNING);
+            }
+            
+            return; // 直接返回，不执行回零操作
+        }
+        
+        // 所有轴都已使能，询问用户是否要执行回零操作
         int ret = QMessageBox::question(this, "确认回零", 
                                        "是否确定要回到坐标零点(0,0,0)？\n注意：此操作将移动所有轴到零点位置。",
                                        QMessageBox::Yes | QMessageBox::No,
@@ -4799,20 +4825,26 @@ void MutiCamApp::onStageHomeClicked()
         if (ret == QMessageBox::Yes) {
             // 移动到坐标零点而不是机械零点
             bool success = true;
+            QStringList failedAxes;
             
-            // 依次移动各轴到零点位置
+            // 依次移动各轴到零点位置，收集错误信息
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, 0.0)) {
                 success = false;
+                failedAxes << "X轴";
             }
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, 0.0)) {
                 success = false;
+                failedAxes << "Y轴";
             }
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, 0.0)) {
                 success = false;
+                failedAxes << "Z轴";
             }
             
             if (!success) {
-                QString errorMsg = QString("回到坐标零点失败：%1").arg(m_axisController->getLastErrorString());
+                QString errorMsg = QString("回到坐标零点失败：\n\n失败的轴：%1\n\n错误详情：%2")
+                                  .arg(failedAxes.join("、"))
+                                  .arg(m_axisController->getLastErrorString());
                 QMessageBox::warning(this, "回零错误", errorMsg);
                 if (m_logManager) {
                     m_logManager->log(errorMsg, LogLevel::WARNING);
