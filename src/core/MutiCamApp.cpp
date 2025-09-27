@@ -4914,6 +4914,8 @@ void MutiCamApp::connectAxisControllerSignals()
             this, &MutiCamApp::onAxisPositionChanged);
     connect(m_axisController.get(), &AxisController::actualPositionChanged,
             this, &MutiCamApp::onAxisActualPositionChanged);
+    connect(m_axisController.get(), &AxisController::speedChanged,
+            this, &MutiCamApp::onAxisSpeedChanged);
     connect(m_axisController.get(), &AxisController::motionStateChanged,
             this, &MutiCamApp::onAxisMotionStateChanged);
     connect(m_axisController.get(), &AxisController::motionCompleted,
@@ -5639,6 +5641,28 @@ void MutiCamApp::onAxisActualPositionChanged(AxisIndex axis, double actualPositi
             m_currentZ = actualPosition;  // 内部状态使用实际位置
             // 更新到实际光栅尺读数位置显示（右侧列）
             ui->labelGratingZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            break;
+        default:
+            break;
+    }
+}
+
+void MutiCamApp::onAxisSpeedChanged(AxisIndex axis, double speed)
+{
+    // 更新速度显示（从MoCtrCard_GetAxisSpd获取）
+    // speed是μm/s单位，直接显示
+    switch (axis) {
+        case AxisIndex::X_AXIS:
+            // 更新X轴速度显示
+            ui->labelXSpeedValue->setText(QString("%1 μm/s").arg(speed, 0, 'f', 1));
+            break;
+        case AxisIndex::Y_AXIS:
+            // 更新Y轴速度显示
+            ui->labelYSpeedValue->setText(QString("%1 μm/s").arg(speed, 0, 'f', 1));
+            break;
+        case AxisIndex::Z_AXIS:
+            // 更新Z轴速度显示
+            ui->labelZSpeedValue->setText(QString("%1 μm/s").arg(speed, 0, 'f', 1));
             break;
         default:
             break;

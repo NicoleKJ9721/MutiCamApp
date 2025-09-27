@@ -844,6 +844,7 @@ private:
     void onAxisConnectionStateChanged(bool connected);
     void onAxisPositionChanged(AxisIndex axis, double position);
     void onAxisActualPositionChanged(AxisIndex axis, double actualPosition);
+    void onAxisSpeedChanged(AxisIndex axis, double speed);
     void onAxisMotionStateChanged(AxisIndex axis, MotionState state);
     void onAxisMotionCompleted(AxisIndex axis, double finalPosition);
     void onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString);

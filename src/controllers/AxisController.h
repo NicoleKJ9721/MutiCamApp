@@ -73,6 +73,7 @@ public:
         double currentPosition = 0.0;    ///< 当前命令位置 (μm)
         double actualPosition = 0.0;     ///< 当前实际位置/光栅尺读数 (μm)
         double targetPosition = 0.0;     ///< 目标位置 (μm)  
+        double currentSpeed = 0.0;       ///< 当前运动速度 (μm/s)
         MotionState motionState = MotionState::Idle;  ///< 运动状态
         bool isHomed = false;            ///< 是否已回零
         LimitState limitState = LimitState::None;     ///< 限位状态
@@ -241,6 +242,13 @@ public:
      * @return 目标位置 (μm)，错误时返回0
      */
     double getTargetPosition(AxisIndex axis) const;
+
+    /**
+     * @brief 获取当前运动速度
+     * @param axis 轴编号
+     * @return 当前运动速度 (μm/s)，错误时返回0
+     */
+    double getCurrentSpeed(AxisIndex axis) const;
 
     /**
      * @brief 检查轴是否正在运动
@@ -440,6 +448,13 @@ signals:
     void actualPositionChanged(AxisIndex axis, double actualPosition);
 
     /**
+     * @brief 速度改变信号
+     * @param axis 轴编号
+     * @param speed 当前运动速度 (μm/s)
+     */
+    void speedChanged(AxisIndex axis, double speed);
+
+    /**
      * @brief 运动状态改变信号
      * @param axis 轴编号
      * @param state 运动状态
@@ -615,6 +630,13 @@ private:
      * @param newActualPosition 新实际位置
      */
     void emitActualPositionChanged(AxisIndex axis, double newActualPosition);
+
+    /**
+     * @brief 发射速度改变信号
+     * @param axis 轴编号
+     * @param newSpeed 新速度
+     */
+    void emitSpeedChanged(AxisIndex axis, double newSpeed);
 
     /**
      * @brief 发射运动状态改变信号

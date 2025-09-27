@@ -936,6 +936,17 @@ double AxisController::getTargetPosition(AxisIndex axis) const
     return m_axisStates[axisToMCC6Index(axis)].targetPosition;
 }
 
+double AxisController::getCurrentSpeed(AxisIndex axis) const
+{
+    QMutexLocker locker(&m_mutex);
+    
+    if (!isValidAxis(axis)) {
+        return 0.0;
+    }
+    
+    return m_axisStates[axisToMCC6Index(axis)].currentSpeed;
+}
+
 bool AxisController::isAxisMoving(AxisIndex axis) const
 {
     QMutexLocker locker(&m_mutex);
@@ -1543,6 +1554,19 @@ void AxisController::updateAxisStatus()
                 }
             }
 
+            // 查询轴速度
+            const double prevSpeed = m_axisStates[i].currentSpeed;
+            float speed[1] = {0.0f};
+            result = m_controller->MoCtrCard_GetAxisSpd(static_cast<uint8_t>(i), speed);
+            if (result == 1) {
+                const double newSpeed = mm_to_um(static_cast<double>(speed[0])); // 转换为μm/s
+                if (qAbs(prevSpeed - newSpeed) > 0.1) { // 速度变化阈值0.1μm/s
+                    m_axisStates[i].currentSpeed = newSpeed;
+                    emitSpeedChanged(static_cast<AxisIndex>(i), newSpeed);
+                    anyStatusChanged = true;
+                }
+            }
+
             int running[1] = {0};
             result = m_controller->MoCtrCard_IsAxisRunning(static_cast<uint8_t>(i), running);
             bool isRunning = false;
@@ -1864,6 +1888,11 @@ void AxisController::emitPositionChanged(AxisIndex axis, double newPosition)
 void AxisController::emitActualPositionChanged(AxisIndex axis, double newActualPosition)
 {
     emit actualPositionChanged(axis, newActualPosition);
+}
+
+void AxisController::emitSpeedChanged(AxisIndex axis, double newSpeed)
+{
+    emit speedChanged(axis, newSpeed);
 }
 
 void AxisController::emitMotionStateChanged(AxisIndex axis, MotionState newState)

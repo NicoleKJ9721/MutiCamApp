@@ -3946,6 +3946,19 @@ QPushButton:pressed {
                  </property>
                 </widget>
                </item>
+               <item row="0" column="4">
+                <widget class="QLabel" name="labelSpeedHeader">
+                 <property name="styleSheet">
+                  <string>background-color: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid #ccc;</string>
+                 </property>
+                 <property name="text">
+                  <string>当前速度</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
                <item row="1" column="0">
                 <widget class="QLabel" name="labelXAxis">
                  <property name="styleSheet">
@@ -3992,6 +4005,19 @@ QPushButton:pressed {
                  </property>
                  <property name="text">
                   <string>0.0000 μm</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4">
+                <widget class="QLabel" name="labelXSpeedValue">
+                 <property name="styleSheet">
+                  <string>color: #009900; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.0 μm/s</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -4050,6 +4076,19 @@ QPushButton:pressed {
                  </property>
                 </widget>
                </item>
+               <item row="2" column="4">
+                <widget class="QLabel" name="labelYSpeedValue">
+                 <property name="styleSheet">
+                  <string>color: #009900; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.0 μm/s</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
                <item row="3" column="0">
                 <widget class="QLabel" name="labelZAxis">
                  <property name="styleSheet">
@@ -4096,6 +4135,19 @@ QPushButton:pressed {
                  </property>
                  <property name="text">
                   <string>0.0000 μm</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="4">
+                <widget class="QLabel" name="labelZSpeedValue">
+                 <property name="styleSheet">
+                  <string>color: #009900; font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.0 μm/s</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
