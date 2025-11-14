@@ -24,6 +24,7 @@ namespace MCC6Constants {
     constexpr int MCC6_ERROR = 0x83;        ///< MCC6错误返回值 (funResErr)
     constexpr int MCC6_AXIS_ERROR = 0x02;   ///< 轴序号错误 (funResErrAxisId)
     constexpr int MCC6_PORT_ERROR = 0x80;   ///< 串口打开失败 (funResOpenPortErr)
+    constexpr int MCC6_CALLBACK_ERROR = 0x82; ///< 串口回调失败（通常为控制器未上电）
 }
 
 /**

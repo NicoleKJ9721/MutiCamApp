@@ -1406,7 +1406,9 @@ bool AxisController::initializeAllAxes()
                 1, // 高速度参数索引
                 ums_to_mms_f(m_motionParams[i].maxSpeed)
             );
-            handleMCC6Error(result, QString("设置%1默认速度").arg(axisToString(static_cast<AxisIndex>(i))));
+            if (!handleMCC6Error(result, QString("设置%1默认速度").arg(axisToString(static_cast<AxisIndex>(i))))) {
+                return false;
+            }
             
             // 设置默认加速度（单位 mm/s²）
             result = m_controller->MoCtrCard_SendPara(
@@ -1414,7 +1416,9 @@ bool AxisController::initializeAllAxes()
                 4, // 加速度参数索引
                 ums2_to_mms2_f(m_motionParams[i].acceleration)
             );
-            handleMCC6Error(result, QString("设置%1默认加速度").arg(axisToString(static_cast<AxisIndex>(i))));
+            if (!handleMCC6Error(result, QString("设置%1默认加速度").arg(axisToString(static_cast<AxisIndex>(i))))) {
+                return false;
+            }
             
             // 细分和使能设置已移除 - 细分无API接口，使能通过软件和摇杆完成
             // 默认设置轴为启用状态（软件状态）
@@ -1823,6 +1827,10 @@ bool AxisController::handleMCC6Error(int errorCode, const QString& operation)
         case MCC6Constants::MCC6_PORT_ERROR: // 0x80
             axisError = AxisError::CommunicationError;
             errorMsg = QString("%1：串口打开失败（请检查串口是否正确或被其他程序占用）").arg(operation);
+            break;
+        case MCC6Constants::MCC6_CALLBACK_ERROR: // 0x82
+            axisError = AxisError::CommunicationError;
+            errorMsg = QString("%1：控制器无响应（可能未上电或通信异常）").arg(operation);
             break;
         case MCC6Constants::MCC6_ERROR: // 0x83
             axisError = AxisError::HardwareError;
