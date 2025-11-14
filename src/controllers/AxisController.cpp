@@ -171,7 +171,12 @@ bool AxisController::connectDevice(const QString& portName, int baudRate, Connec
         
         // 初始化所有轴
         if (!initializeAllAxes()) {
-            disconnectDevice();
+            // 初始化失败时立刻清理控制器实例，避免死锁和残留状态
+            delete m_controller;
+            m_controller = nullptr;
+            m_deviceInfo.isConnected = false;
+            m_connectionActive = false;
+            m_isInitialized = false;
             return false;
         }
         
