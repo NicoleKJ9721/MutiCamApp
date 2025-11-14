@@ -150,6 +150,7 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
 
     // 回零
     ui->btnStageHome->setEnabled(enabled);
+    ui->btnStageStop->setEnabled(enabled);
 
     // 目标位置输入框也一起禁用，避免误操作
     ui->spinBoxTargetX->setEnabled(enabled);
