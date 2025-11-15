@@ -4205,21 +4205,28 @@ void MutiCamApp::connectButtonSignals()
 void MutiCamApp::initializeMaxValueConstraints()
 {
     qDebug() << "初始化最大值约束控件...";
-    
-    // 设置最大速度和最大加速度控件的初始值为系统常量
+
+    const double configuredMaxSpeed = (m_settingsManager ?
+        m_settingsManager->getCurrentSettings().stageMaxSpeedLimit :
+        AxisControl::Constants::MAX_SPEED);
+    const double configuredMaxAccel = (m_settingsManager ?
+        m_settingsManager->getCurrentSettings().stageMaxAccelerationLimit :
+        AxisControl::Constants::MAX_ACCELERATION);
+
+    // 设置最大速度和最大加速度控件的初始值，并同步当前控件的最大范围
     if (ui->spinBoxMaxSpeed) {
-        ui->spinBoxMaxSpeed->setValue(static_cast<int>(AxisControl::Constants::MAX_SPEED));
-        // 初始化时设置当前速度控件的最大值
+        ui->spinBoxMaxSpeed->setValue(static_cast<int>(configuredMaxSpeed));
+        ui->spinBoxMaxSpeed->setMaximum(static_cast<int>(AxisControl::Constants::MAX_SPEED));
         if (ui->spinBoxSpeed) {
-            ui->spinBoxSpeed->setMaximum(static_cast<int>(AxisControl::Constants::MAX_SPEED));
+            ui->spinBoxSpeed->setMaximum(ui->spinBoxMaxSpeed->value());
         }
     }
     
     if (ui->spinBoxMaxAccel) {
-        ui->spinBoxMaxAccel->setValue(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
-        // 初始化时设置当前加速度控件的最大值
+        ui->spinBoxMaxAccel->setValue(static_cast<int>(configuredMaxAccel));
+        ui->spinBoxMaxAccel->setMaximum(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
         if (ui->spinBoxAccel) {
-            ui->spinBoxAccel->setMaximum(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
+            ui->spinBoxAccel->setMaximum(ui->spinBoxMaxAccel->value());
         }
     }
     
@@ -5065,6 +5072,9 @@ void MutiCamApp::initializeAxisController()
         
         // 连接轴控制器信号
         connectAxisControllerSignals();
+
+        // 应用配置中的运动参数到控制器
+        applyMotionSettingsToController();
         
         qDebug() << "轴控制系统初始化完成";
         
@@ -5127,6 +5137,37 @@ void MutiCamApp::connectAxisControllerSignals()
     });
     
     qDebug() << "轴控制器信号连接完成";
+}
+
+void MutiCamApp::applyMotionSettingsToController()
+{
+    if (!m_axisController || !m_settingsManager) {
+        return;
+    }
+
+    const auto& settings = m_settingsManager->getCurrentSettings();
+    AxisController::MotionParams params;
+    params.maxSpeed = settings.stageDefaultSpeed;
+    params.acceleration = settings.stageDefaultAcceleration;
+    params.deceleration = settings.stageDefaultDeceleration;
+    params.stepSize = settings.stageStepSize;
+    params.softLimitPos = settings.stageSoftLimitPos;
+    params.softLimitNeg = settings.stageSoftLimitNeg;
+
+    const AxisControl::AxisIndex axes[] = {
+        AxisControl::AxisIndex::X_AXIS,
+        AxisControl::AxisIndex::Y_AXIS,
+        AxisControl::AxisIndex::Z_AXIS
+    };
+
+    for (auto axis : axes) {
+        if (!m_axisController->setAxisParams(axis, params)) {
+            qWarning() << "加载运动参数到" << AxisControl::axisToString(axis)
+                       << "失败:" << m_axisController->getLastErrorString();
+        }
+    }
+
+    qDebug() << "已从配置文件加载载物台运动参数";
 }
 
 void MutiCamApp::updateCurrentPosition(double deltaX, double deltaY, double deltaZ)
@@ -6536,32 +6577,37 @@ void MutiCamApp::onSpeedChanged(int speed)
     
     if (!m_axisController) {
         qWarning() << "轴控制系统未初始化";
-        return;
-    }
-    
-    if (!m_axisController->isConnected()) {
-        qDebug() << "轴控制系统未连接，跳过速度设置";
-        return;
-    }
-    
-    // 为所有轴设置相同的速度
-    bool xSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::X_AXIS, static_cast<double>(speed));
-    bool ySuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(speed));
-    bool zSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(speed));
-    
-    if (xSuccess && ySuccess && zSuccess) {
-        if (m_logManager) {
-            m_logManager->log(QString("所有轴速度设置为：%1 μm/s").arg(speed), LogLevel::INFO);
+    } else if (m_axisController->isConnected()) {
+        // 为所有轴设置相同的速度
+        bool xSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::X_AXIS, static_cast<double>(speed));
+        bool ySuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(speed));
+        bool zSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(speed));
+        
+        if (xSuccess && ySuccess && zSuccess) {
+            if (m_logManager) {
+                m_logManager->log(QString("所有轴速度设置为：%1 μm/s").arg(speed), LogLevel::INFO);
+            }
+            qDebug() << "所有轴速度设置成功：" << speed;
+            statusBar()->showMessage(QString("速度已设置为：%1 μm/s").arg(speed), 2000);
+        } else {
+            QString errorMsg = QString("速度设置失败：%1").arg(m_axisController->getLastErrorString());
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+            qWarning() << errorMsg;
         }
-        qDebug() << "所有轴速度设置成功：" << speed;
-        statusBar()->showMessage(QString("速度已设置为：%1 μm/s").arg(speed), 2000);
     } else {
-        QString errorMsg = QString("速度设置失败：%1").arg(m_axisController->getLastErrorString());
-        if (m_logManager) {
-            m_logManager->log(errorMsg, LogLevel::WARNING);
-        }
-        qWarning() << errorMsg;
+        qDebug() << "轴控制系统未连接，仅更新默认速度配置";
     }
+    
+    if (m_settingsManager) {
+        auto settings = m_settingsManager->getCurrentSettings();
+        if (!qFuzzyCompare(settings.stageDefaultSpeed + 1.0, static_cast<double>(speed) + 1.0)) {
+            settings.stageDefaultSpeed = speed;
+            m_settingsManager->updateSettings(settings);
+        }
+    }
+    applyMotionSettingsToController();
 }
 
 void MutiCamApp::onAccelChanged(int accel)
@@ -6570,32 +6616,38 @@ void MutiCamApp::onAccelChanged(int accel)
     
     if (!m_axisController) {
         qWarning() << "轴控制系统未初始化";
-        return;
-    }
-    
-    if (!m_axisController->isConnected()) {
-        qDebug() << "轴控制系统未连接，跳过加速度设置";
-        return;
-    }
-    
-    // 为所有轴设置相同的加速度
-    bool xSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::X_AXIS, static_cast<double>(accel));
-    bool ySuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(accel));
-    bool zSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(accel));
-    
-    if (xSuccess && ySuccess && zSuccess) {
-        if (m_logManager) {
-            m_logManager->log(QString("所有轴加速度设置为：%1").arg(accel), LogLevel::INFO);
+    } else if (m_axisController->isConnected()) {
+        // 为所有轴设置相同的加速度
+        bool xSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::X_AXIS, static_cast<double>(accel));
+        bool ySuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(accel));
+        bool zSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(accel));
+        
+        if (xSuccess && ySuccess && zSuccess) {
+            if (m_logManager) {
+                m_logManager->log(QString("所有轴加速度设置为：%1").arg(accel), LogLevel::INFO);
+            }
+            qDebug() << "所有轴加速度设置成功：" << accel;
+            statusBar()->showMessage(QString("加速度已设置为：%1").arg(accel), 2000);
+        } else {
+            QString errorMsg = QString("加速度设置失败：%1").arg(m_axisController->getLastErrorString());
+            if (m_logManager) {
+                m_logManager->log(errorMsg, LogLevel::WARNING);
+            }
+            qWarning() << errorMsg;
         }
-        qDebug() << "所有轴加速度设置成功：" << accel;
-        statusBar()->showMessage(QString("加速度已设置为：%1").arg(accel), 2000);
     } else {
-        QString errorMsg = QString("加速度设置失败：%1").arg(m_axisController->getLastErrorString());
-        if (m_logManager) {
-            m_logManager->log(errorMsg, LogLevel::WARNING);
-        }
-        qWarning() << errorMsg;
+        qDebug() << "轴控制系统未连接，仅更新默认加速度配置";
     }
+    
+    if (m_settingsManager) {
+        auto settings = m_settingsManager->getCurrentSettings();
+        if (!qFuzzyCompare(settings.stageDefaultAcceleration + 1.0, static_cast<double>(accel) + 1.0)) {
+            settings.stageDefaultAcceleration = accel;
+            settings.stageDefaultDeceleration = accel;
+            m_settingsManager->updateSettings(settings);
+        }
+    }
+    applyMotionSettingsToController();
 }
 
 void MutiCamApp::onMaxSpeedChanged(int maxSpeed)
@@ -6618,6 +6670,14 @@ void MutiCamApp::onMaxSpeedChanged(int maxSpeed)
     }
     
     statusBar()->showMessage(QString("最大速度限制已设置为：%1 μm/s").arg(maxSpeed), 2000);
+
+    if (m_settingsManager) {
+        auto settings = m_settingsManager->getCurrentSettings();
+        if (!qFuzzyCompare(settings.stageMaxSpeedLimit + 1.0, static_cast<double>(maxSpeed) + 1.0)) {
+            settings.stageMaxSpeedLimit = maxSpeed;
+            m_settingsManager->updateSettings(settings);
+        }
+    }
 }
 
 void MutiCamApp::onMaxAccelChanged(int maxAccel)
@@ -6640,6 +6700,14 @@ void MutiCamApp::onMaxAccelChanged(int maxAccel)
     }
     
     statusBar()->showMessage(QString("最大加速度限制已设置为：%1 μm/s²").arg(maxAccel), 2000);
+
+    if (m_settingsManager) {
+        auto settings = m_settingsManager->getCurrentSettings();
+        if (!qFuzzyCompare(settings.stageMaxAccelerationLimit + 1.0, static_cast<double>(maxAccel) + 1.0)) {
+            settings.stageMaxAccelerationLimit = maxAccel;
+            m_settingsManager->updateSettings(settings);
+        }
+    }
 }
 
 // ==================== 运动模式切换槽函数实现 ====================

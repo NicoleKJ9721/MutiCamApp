@@ -4,9 +4,11 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QLineEdit>
+#include <QSpinBox>
 #include <QDebug>
 #include <QStandardPaths>
 #include <QCoreApplication>
+#include <algorithm>
 
 SettingsManager::SettingsManager(const QString& settingsFile, QObject *parent)
     : QObject(parent)
@@ -144,6 +146,16 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     // UI尺寸参数
     json["UIWidth"] = settings.uiWidth;
     json["UIHeight"] = settings.uiHeight;
+
+    // 载物台运动参数
+    json["StageDefaultSpeed"] = settings.stageDefaultSpeed;
+    json["StageDefaultAcceleration"] = settings.stageDefaultAcceleration;
+    json["StageDefaultDeceleration"] = settings.stageDefaultDeceleration;
+    json["StageStepSize"] = settings.stageStepSize;
+    json["StageSoftLimitPos"] = settings.stageSoftLimitPos;
+    json["StageSoftLimitNeg"] = settings.stageSoftLimitNeg;
+    json["StageMaxSpeedLimit"] = settings.stageMaxSpeedLimit;
+    json["StageMaxAccelerationLimit"] = settings.stageMaxAccelerationLimit;
     
     // 串口配置参数
     json["StageControllerPort"] = settings.stageControllerPort;
@@ -213,6 +225,16 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     settings.physicalButtonBaudRate = json.value("PhysicalButtonBaudRate").toInt(m_defaultSettings.physicalButtonBaudRate);
     settings.autoDetectSerialPorts = json.value("AutoDetectSerialPorts").toBool(m_defaultSettings.autoDetectSerialPorts);
 
+    // 载物台运动参数
+    settings.stageDefaultSpeed = json.value("StageDefaultSpeed").toDouble(m_defaultSettings.stageDefaultSpeed);
+    settings.stageDefaultAcceleration = json.value("StageDefaultAcceleration").toDouble(m_defaultSettings.stageDefaultAcceleration);
+    settings.stageDefaultDeceleration = json.value("StageDefaultDeceleration").toDouble(m_defaultSettings.stageDefaultDeceleration);
+    settings.stageStepSize = json.value("StageStepSize").toDouble(m_defaultSettings.stageStepSize);
+    settings.stageSoftLimitPos = json.value("StageSoftLimitPos").toDouble(m_defaultSettings.stageSoftLimitPos);
+    settings.stageSoftLimitNeg = json.value("StageSoftLimitNeg").toDouble(m_defaultSettings.stageSoftLimitNeg);
+    settings.stageMaxSpeedLimit = json.value("StageMaxSpeedLimit").toDouble(m_defaultSettings.stageMaxSpeedLimit);
+    settings.stageMaxAccelerationLimit = json.value("StageMaxAccelerationLimit").toDouble(m_defaultSettings.stageMaxAccelerationLimit);
+
     // 标定参数
     if (json.contains("VerticalCalibration")) {
         QJsonObject verticalCalib = json.value("VerticalCalibration").toObject();
@@ -274,6 +296,36 @@ SettingsManager::Settings SettingsManager::validateSettings(const Settings& sett
     // 验证UI尺寸
     validatedSettings.uiWidth = qBound(1100, settings.uiWidth, 4000);
     validatedSettings.uiHeight = qBound(700, settings.uiHeight, 3000);
+
+    // 验证载物台运动参数
+    auto clampDouble = [](double value, double minValue, double maxValue) {
+        return std::clamp(value, minValue, maxValue);
+    };
+    validatedSettings.stageDefaultSpeed = clampDouble(settings.stageDefaultSpeed,
+                                                     AxisControl::Constants::MIN_SPEED,
+                                                     AxisControl::Constants::MAX_SPEED);
+    validatedSettings.stageDefaultAcceleration = clampDouble(settings.stageDefaultAcceleration,
+                                                            AxisControl::Constants::MIN_ACCELERATION,
+                                                            AxisControl::Constants::MAX_ACCELERATION);
+    validatedSettings.stageDefaultDeceleration = clampDouble(settings.stageDefaultDeceleration,
+                                                            AxisControl::Constants::MIN_ACCELERATION,
+                                                            AxisControl::Constants::MAX_ACCELERATION);
+    validatedSettings.stageStepSize = clampDouble(settings.stageStepSize, 0.01, 10000.0);
+    validatedSettings.stageSoftLimitPos = clampDouble(settings.stageSoftLimitPos,
+                                                      AxisControl::Constants::MIN_POSITION,
+                                                      AxisControl::Constants::MAX_POSITION);
+    validatedSettings.stageSoftLimitNeg = clampDouble(settings.stageSoftLimitNeg,
+                                                      AxisControl::Constants::MIN_POSITION,
+                                                      AxisControl::Constants::MAX_POSITION);
+    if (validatedSettings.stageSoftLimitNeg > validatedSettings.stageSoftLimitPos) {
+        std::swap(validatedSettings.stageSoftLimitNeg, validatedSettings.stageSoftLimitPos);
+    }
+    validatedSettings.stageMaxSpeedLimit = clampDouble(settings.stageMaxSpeedLimit,
+                                                       AxisControl::Constants::MIN_SPEED,
+                                                       AxisControl::Constants::MAX_SPEED);
+    validatedSettings.stageMaxAccelerationLimit = clampDouble(settings.stageMaxAccelerationLimit,
+                                                              AxisControl::Constants::MIN_ACCELERATION,
+                                                              AxisControl::Constants::MAX_ACCELERATION);
     
     return validatedSettings;
 }
@@ -366,6 +418,29 @@ bool SettingsManager::loadSettingsToUI(QObject* ui)
         if (ledUIWidth) ledUIWidth->setText(QString::number(m_currentSettings.uiWidth));
         if (ledUIHeight) ledUIHeight->setText(QString::number(m_currentSettings.uiHeight));
 
+        // 加载运动参数
+        QSpinBox* spinSpeed = ui->findChild<QSpinBox*>("spinBoxSpeed");
+        QSpinBox* spinAccel = ui->findChild<QSpinBox*>("spinBoxAccel");
+        QSpinBox* spinMaxSpeed = ui->findChild<QSpinBox*>("spinBoxMaxSpeed");
+        QSpinBox* spinMaxAccel = ui->findChild<QSpinBox*>("spinBoxMaxAccel");
+
+        if (spinSpeed) spinSpeed->setValue(static_cast<int>(m_currentSettings.stageDefaultSpeed));
+        if (spinAccel) spinAccel->setValue(static_cast<int>(m_currentSettings.stageDefaultAcceleration));
+        if (spinMaxSpeed) {
+            spinMaxSpeed->setValue(static_cast<int>(m_currentSettings.stageMaxSpeedLimit));
+            spinMaxSpeed->setMaximum(static_cast<int>(AxisControl::Constants::MAX_SPEED));
+        }
+        if (spinMaxAccel) {
+            spinMaxAccel->setValue(static_cast<int>(m_currentSettings.stageMaxAccelerationLimit));
+            spinMaxAccel->setMaximum(static_cast<int>(AxisControl::Constants::MAX_ACCELERATION));
+        }
+        if (spinSpeed && spinMaxSpeed) {
+            spinSpeed->setMaximum(spinMaxSpeed->value());
+        }
+        if (spinAccel && spinMaxAccel) {
+            spinAccel->setMaximum(spinMaxAccel->value());
+        }
+
         qDebug() << "设置已加载到UI";
         emit settingsLoaded(true);
         return true;
@@ -385,7 +460,7 @@ bool SettingsManager::saveSettingsFromUI(QObject* ui)
     }
 
     try {
-        Settings newSettings;
+        Settings newSettings = m_currentSettings;
 
         // 获取相机参数
         QLineEdit* ledVerCamSN = ui->findChild<QLineEdit*>("ledVerCamSN");
@@ -424,6 +499,20 @@ bool SettingsManager::saveSettingsFromUI(QObject* ui)
 
         if (ledUIWidth) newSettings.uiWidth = ledUIWidth->text().toInt();
         if (ledUIHeight) newSettings.uiHeight = ledUIHeight->text().toInt();
+
+        // 获取运动参数
+        QSpinBox* spinSpeed = ui->findChild<QSpinBox*>("spinBoxSpeed");
+        QSpinBox* spinAccel = ui->findChild<QSpinBox*>("spinBoxAccel");
+        QSpinBox* spinMaxSpeed = ui->findChild<QSpinBox*>("spinBoxMaxSpeed");
+        QSpinBox* spinMaxAccel = ui->findChild<QSpinBox*>("spinBoxMaxAccel");
+
+        if (spinSpeed) newSettings.stageDefaultSpeed = spinSpeed->value();
+        if (spinAccel) {
+            newSettings.stageDefaultAcceleration = spinAccel->value();
+            newSettings.stageDefaultDeceleration = spinAccel->value();
+        }
+        if (spinMaxSpeed) newSettings.stageMaxSpeedLimit = spinMaxSpeed->value();
+        if (spinMaxAccel) newSettings.stageMaxAccelerationLimit = spinMaxAccel->value();
 
         // 验证并保存设置
         m_currentSettings = validateSettings(newSettings);

@@ -670,7 +670,8 @@ private:
      /**
       * @brief 初始化设置管理器
       */
-     void initializeSettingsManager();
+    void initializeSettingsManager();
+    void applyMotionSettingsToController();
 
      /**
       * @brief 初始化日志管理器

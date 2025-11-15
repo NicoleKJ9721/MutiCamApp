@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QTimer>
+#include "../controllers/AxisControllerEnums.h"
 
 /**
  * @brief 设置管理器类
@@ -45,6 +46,16 @@ public:
         // 拍照参数预设
         QString captureFormat;
         QString imageQuality;
+
+        // 载物台运动参数
+        double stageDefaultSpeed;
+        double stageDefaultAcceleration;
+        double stageDefaultDeceleration;
+        double stageStepSize;
+        double stageSoftLimitPos;
+        double stageSoftLimitNeg;
+        double stageMaxSpeedLimit;
+        double stageMaxAccelerationLimit;
 
         // 像素标定参数（每个视图独立）
         struct CalibrationData {
@@ -103,6 +114,16 @@ public:
             // 拍照参数预设默认值
             captureFormat("PNG"),
             imageQuality("无损最高质量"),
+
+            // 载物台运动参数默认值
+            stageDefaultSpeed(3000.0),
+            stageDefaultAcceleration(3000.0),
+            stageDefaultDeceleration(3000.0),
+            stageStepSize(1.0),
+            stageSoftLimitPos(AxisControl::Constants::MAX_POSITION),
+            stageSoftLimitNeg(AxisControl::Constants::MIN_POSITION),
+            stageMaxSpeedLimit(AxisControl::Constants::MAX_SPEED),
+            stageMaxAccelerationLimit(AxisControl::Constants::MAX_ACCELERATION),
             
             // 串口配置默认值
             stageControllerPort("COM1"),
