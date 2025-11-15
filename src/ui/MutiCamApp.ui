@@ -4231,6 +4231,11 @@ QPushButton:pressed {
                 <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
                  <item>
                   <widget class="QLabel" name="labelStepSize">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>移动步长:</string>
                    </property>
@@ -4238,6 +4243,11 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioStep01">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>0.1μm</string>
                    </property>
@@ -4248,6 +4258,11 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioStep1">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>1μm</string>
                    </property>
@@ -4255,6 +4270,11 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioStep10">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>10μm</string>
                    </property>
@@ -4262,6 +4282,11 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioStep100">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>100μm</string>
                    </property>
@@ -4269,25 +4294,40 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QRadioButton" name="radioStep1000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>1000μm</string>
                    </property>
                   </widget>
                  </item>
-                <item>
-                 <widget class="QRadioButton" name="radioStep2000">
-                  <property name="text">
-                   <string>2000μm</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="radioStep5000">
-                  <property name="text">
-                   <string>5000μm</string>
-                  </property>
-                 </widget>
-                </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep2000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>2000μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep5000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>5000μm</string>
+                   </property>
+                  </widget>
+                 </item>
                  <item>
                   <spacer name="horizontalSpacer_stepSize">
                    <property name="orientation">

@@ -60,6 +60,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_isUpdatingUISize(false)
     , m_stageConnectWatcher(nullptr)
     , m_isStageConnecting(false)
+    , m_motionControlsEnabled(false)
 {
     ui->setupUi(this);
 
@@ -134,6 +135,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 // 统一启用/禁用运动相关控件（点动、绝对定位、回零等）
 void MutiCamApp::setMotionControlsEnabled(bool enabled)
 {
+    m_motionControlsEnabled = enabled;
+
     // 点动按钮
     ui->btnMoveXLeft->setEnabled(enabled);
     ui->btnMoveXRight->setEnabled(enabled);
@@ -156,6 +159,28 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
     ui->spinBoxTargetX->setEnabled(enabled);
     ui->spinBoxTargetY->setEnabled(enabled);
     ui->spinBoxTargetZ->setEnabled(enabled);
+
+    // 步长选择控件只在点动模式下启用
+    setStepControlsEnabled(enabled && m_currentMotionMode == MotionMode::Jog);
+}
+
+void MutiCamApp::setStepControlsEnabled(bool enabled)
+{
+    const QString disabledStyle = "color: #999999;";
+    auto updateWidget = [enabled, &disabledStyle](QWidget* widget) {
+        if (!widget) return;
+        widget->setEnabled(enabled);
+        widget->setStyleSheet(enabled ? QString() : disabledStyle);
+    };
+
+    updateWidget(ui->labelStepSize);
+    updateWidget(ui->radioStep01);
+    updateWidget(ui->radioStep1);
+    updateWidget(ui->radioStep10);
+    updateWidget(ui->radioStep100);
+    updateWidget(ui->radioStep1000);
+    updateWidget(ui->radioStep2000);
+    updateWidget(ui->radioStep5000);
 }
 
 // 根据UI复选框同步轴使能到控制器（仅在已连接时调用）
@@ -6744,6 +6769,8 @@ void MutiCamApp::onMotionModeChanged(int mode)
         // 更新按钮文本为开始/停止指示
         updateMotionButtonTexts();
     }
+
+    setStepControlsEnabled(m_motionControlsEnabled && m_currentMotionMode == MotionMode::Jog);
 }
 
 void MutiCamApp::initializeSerialPortDetector()

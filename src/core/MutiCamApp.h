@@ -809,6 +809,7 @@ private:
     std::unique_ptr<AxisController> m_axisController;
     QFutureWatcher<bool>* m_stageConnectWatcher;   ///< 载物台连接异步监视器
     bool m_isStageConnecting;                      ///< 是否正在连接载物台
+    bool m_motionControlsEnabled = false;          ///< 运动控件当前可用状态
     QString m_pendingStagePort;                    ///< 正在尝试连接的端口名
     
     // 串口检测器
@@ -866,6 +867,7 @@ private:
     // 急停与控件管理
     bool m_isEmergencyStopActive = false;              ///< 急停是否激活（UI层防护）
     void setMotionControlsEnabled(bool enabled);       ///< 统一启用/禁用运动相关控件
+    void setStepControlsEnabled(bool enabled);         ///< 启用/禁用移动步长选择控件
     void syncAxisEnableStateFromUI();                  ///< 根据UI复选框同步轴使能到控制器
 
     // 连续移动状态管理
