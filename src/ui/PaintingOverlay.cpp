@@ -2208,12 +2208,25 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
     for (int index : m_selectedCircles) {
         if (index >= 0 && index < m_circles.size()) {
             const CircleObject& circle = m_circles[index];
-            if (!circle.isVisible || circle.points.size() < 3) continue;
+            if (!circle.isVisible) continue;
 
-            // 计算圆心和半径
+            // 兼容两种圆的表示方式：
+            // 1) 手动画圆：通过三个点计算圆心和半径
+            // 2) 自动检测圆：直接使用 center + radius
             QPointF center;
-            double radius;
-            if (calculateCircleFromThreePoints(circle.points, center, radius)) {
+            double radius = 0.0;
+            bool hasCircle = false;
+
+            if (circle.isCompleted && circle.radius > 0) {
+                center = circle.center;
+                radius = circle.radius;
+                hasCircle = true;
+            } else if (circle.points.size() >= 3 &&
+                       calculateCircleFromThreePoints(circle.points, center, radius)) {
+                hasCircle = true;
+            }
+
+            if (hasCircle) {
                 // 绘制稍大的圆环作为外描边
                 double highlightRadius = radius + qMax(2.0, 3.0 / ctx.scale);
                 painter.drawEllipse(center, highlightRadius, highlightRadius);
@@ -3664,16 +3677,30 @@ int PaintingOverlay::hitTestCircle(const QPointF& testPos, double tolerance) con
 {
     for (int i = 0; i < m_circles.size(); ++i) {
         const CircleObject& circle = m_circles[i];
-        if (!circle.isVisible || circle.points.size() < 3) continue;
-        
+        if (!circle.isVisible) continue;
+
+        // 同时支持：
+        // 1) 手动画圆（通过三点计算）
+        // 2) 自动检测圆（直接使用 center + radius）
         QPointF center;
-        double radius;
-        if (!calculateCircleFromThreePoints(circle.points, center, radius)) {
+        double radius = 0.0;
+        bool hasCircle = false;
+
+        if (circle.isCompleted && circle.radius > 0) {
+            center = circle.center;
+            radius = circle.radius;
+            hasCircle = true;
+        } else if (circle.points.size() >= 3 &&
+                   calculateCircleFromThreePoints(circle.points, center, radius)) {
+            hasCircle = true;
+        }
+
+        if (!hasCircle) {
             continue;
         }
-        
+
         double distance = sqrt(pow(testPos.x() - center.x(), 2) + pow(testPos.y() - center.y(), 2));
-        // 修改逻辑：只有在圆周附近才能选中
+        // 只有在圆周附近才能选中
         if (abs(distance - radius) <= tolerance) {
             return i;
         }
