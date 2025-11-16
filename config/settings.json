@@ -1,6 +1,6 @@
 {
     "AutoDetectSerialPorts": true,
-    "CannyCircleHigh": 200,
+    "CannyCircleHigh": 150,
     "CannyCircleLow": 100,
     "CannyLineHigh": 150,
     "CannyLineLow": 50,

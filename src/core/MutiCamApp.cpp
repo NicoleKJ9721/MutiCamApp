@@ -3035,8 +3035,8 @@ ShapeDetector::CircleDetectionParams MutiCamApp::getCircleDetectionParams() cons
     if (ok && param1 > 0 && param1 <= 500) {
         params.param1 = param1;
     } else {
-        qDebug() << "无效的圆形检测Param1，使用默认值200";
-        params.param1 = 200.0;
+        qDebug() << "无效的圆形检测Param1，使用默认值120";
+        params.param1 = 150.0;
     }
 
     double param2 = ui->ledCircleDetParam2->text().toDouble(&ok);
@@ -3097,7 +3097,7 @@ void MutiCamApp::initializeDetectionParameters()
     ui->ledLineDetMaxGap->setText("10");        // 最大线段间隙
 
     // 设置圆形检测默认参数
-    ui->ledCannyCircleHigh->setText("200");     // 圆形检测Canny高阈值
+    ui->ledCannyCircleHigh->setText("150");     // 圆形检测Canny高阈值
     ui->ledCircleDetParam2->setText("50");      // 圆形检测累加器阈值
 
     qDebug() << "自动检测参数默认值已设置";

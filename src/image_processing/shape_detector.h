@@ -62,10 +62,10 @@ public:
     struct CircleDetectionParams {
         double dp = 1.0;                // 累加器分辨率倍数
         double minDist = 50.0;          // 圆心间最小距离
-        double param1 = 200.0;          // Canny高阈值
+        double param1 = 150.0;          // Canny高阈值
         double param2 = 50.0;           // 累加器阈值
         int minRadius = 10;             // 最小半径
-        int maxRadius = 200;            // 最大半径
+        int maxRadius = 1000;           // 最大半径
         
         CircleDetectionParams() = default;
         CircleDetectionParams(double d, double minD, double p1, double p2, int minR, int maxR)
