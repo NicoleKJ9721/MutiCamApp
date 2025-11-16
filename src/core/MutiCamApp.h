@@ -20,6 +20,7 @@
 #include <QMap>
 #include <memory>
 #include <vector>
+#include <array>
 #include <chrono>
 #include <algorithm>
 #include <QCache>
@@ -868,6 +869,7 @@ private:
     bool m_isEmergencyStopActive = false;              ///< 急停是否激活（UI层防护）
     void setMotionControlsEnabled(bool enabled);       ///< 统一启用/禁用运动相关控件
     void setStepControlsEnabled(bool enabled);         ///< 启用/禁用移动步长选择控件
+    void updateStageMovingStatusLabel();               ///< 根据轴状态更新载物台总状态
     void syncAxisEnableStateFromUI();                  ///< 根据UI复选框同步轴使能到控制器
 
     // 连续移动状态管理
@@ -884,6 +886,7 @@ private:
         double speed = 0.0;         ///< 移动速度
     };
     std::array<ContinuousMotionState, 3> m_continuousMotionStates; ///< X,Y,Z轴连续移动状态
+    std::array<MotionState, AxisControl::Constants::MAX_AXIS_COUNT> m_axisMotionStates; ///< 最近一次各轴运动状态
     
     // 连续移动辅助函数
     void stopAllContinuousMotion();                    ///< 停止所有连续移动

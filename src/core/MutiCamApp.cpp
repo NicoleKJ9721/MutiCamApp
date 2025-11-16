@@ -91,6 +91,8 @@ MutiCamApp::MutiCamApp(QWidget* parent)
         state.direction = 0;
         state.speed = 0.0;
     }
+    m_axisMotionStates.fill(MotionState::Idle);
+    updateStageMovingStatusLabel();
 
     // 初始化拍照参数预设
     initializeCapturePresets();
@@ -169,8 +171,15 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
     const QString disabledStyle = "color: #999999;";
     auto updateWidget = [enabled, &disabledStyle](QWidget* widget) {
         if (!widget) return;
+        if (!widget->property("originalStyleSheet").isValid()) {
+            widget->setProperty("originalStyleSheet", widget->styleSheet());
+        }
         widget->setEnabled(enabled);
-        widget->setStyleSheet(enabled ? QString() : disabledStyle);
+        if (enabled) {
+            widget->setStyleSheet(widget->property("originalStyleSheet").toString());
+        } else {
+            widget->setStyleSheet(disabledStyle);
+        }
     };
 
     updateWidget(ui->labelStepSize);
@@ -181,6 +190,29 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
     updateWidget(ui->radioStep1000);
     updateWidget(ui->radioStep2000);
     updateWidget(ui->radioStep5000);
+}
+
+void MutiCamApp::updateStageMovingStatusLabel()
+{
+    if (!ui->labelStageMovingStatus) {
+        return;
+    }
+
+    const bool anyMoving = std::any_of(
+        m_axisMotionStates.begin(),
+        m_axisMotionStates.end(),
+        [](MotionState state) {
+            return state == MotionState::Moving || state == MotionState::Homing;
+        }
+    );
+
+    if (anyMoving) {
+        ui->labelStageMovingStatus->setText("运动中");
+        ui->labelStageMovingStatus->setStyleSheet("color: red; font-weight: bold;");
+    } else {
+        ui->labelStageMovingStatus->setText("静止");
+        ui->labelStageMovingStatus->setStyleSheet("color: blue; font-weight: bold;");
+    }
 }
 
 // 根据UI复选框同步轴使能到控制器（仅在已连接时调用）
@@ -5945,8 +5977,11 @@ void MutiCamApp::onAxisMotionStateChanged(AxisIndex axis, MotionState state)
     
     QString stateMsg = QString("%1状态：%2").arg(axisName).arg(stateName);
     
-    // 如果有状态标签，更新UI显示
-    // ui->labelAxisStatus->setText(stateMsg);
+    const int axisIndex = static_cast<int>(axis);
+    if (axisIndex >= 0 && axisIndex < static_cast<int>(m_axisMotionStates.size())) {
+        m_axisMotionStates[axisIndex] = state;
+        updateStageMovingStatusLabel();
+    }
     
     qDebug() << stateMsg;
 }
