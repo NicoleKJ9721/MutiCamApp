@@ -204,6 +204,7 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
 
     updateWidget(ui->labelStepSize);
     updateWidget(ui->radioStep01);
+    updateWidget(ui->radioStep025);
     updateWidget(ui->radioStep1);
     updateWidget(ui->radioStep10);
     updateWidget(ui->radioStep100);
@@ -5092,6 +5093,8 @@ double MutiCamApp::getCurrentStepSize() const
 {
     if (ui->radioStep01->isChecked()) {
         return 0.1;
+    } else if (ui->radioStep025->isChecked()) {
+        return 0.25;
     } else if (ui->radioStep1->isChecked()) {
         return 1.0;
     } else if (ui->radioStep10->isChecked()) {

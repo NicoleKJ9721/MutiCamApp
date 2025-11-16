@@ -4275,8 +4275,17 @@ QPushButton:pressed {
                    <property name="text">
                     <string>0.1μm</string>
                    </property>
-                   <property name="checked">
-                    <bool>true</bool>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep025">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>0.25μm</string>
                    </property>
                   </widget>
                  </item>
@@ -4289,6 +4298,9 @@ QPushButton:pressed {
                    </property>
                    <property name="text">
                     <string>1μm</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
