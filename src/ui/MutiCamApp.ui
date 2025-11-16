@@ -1089,7 +1089,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingVertical">
+             <widget class="QPushButton" name="btnStartMatchingVertical">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1098,6 +1098,19 @@ QPushButton:pressed {
                </property>
                <property name="text">
                 <string>开始匹配</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopMatchingVertical">
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>停止匹配</string>
                </property>
               </widget>
              </item>
@@ -1531,7 +1544,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingLeft">
+             <widget class="QPushButton" name="btnStartMatchingLeft">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1540,6 +1553,19 @@ QPushButton:pressed {
                </property>
                <property name="text">
                 <string>开始匹配</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopMatchingLeft">
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>停止匹配</string>
                </property>
               </widget>
              </item>
@@ -1973,7 +1999,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btnStartMatchingFront">
+             <widget class="QPushButton" name="btnStartMatchingFront">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1982,6 +2008,19 @@ QPushButton:pressed {
                </property>
                <property name="text">
                 <string>开始匹配</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnStopMatchingFront">
+               <property name="maximumSize">
+                <size>
+                 <width>80</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>停止匹配</string>
                </property>
               </widget>
              </item>

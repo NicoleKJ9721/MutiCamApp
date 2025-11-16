@@ -171,6 +171,9 @@ private slots:
     void onStartMatchingVerticalClicked();
     void onStartMatchingLeftClicked();
     void onStartMatchingFrontClicked();
+    void onStopMatchingVerticalClicked();
+    void onStopMatchingLeftClicked();
+    void onStopMatchingFrontClicked();
 
     /**
      * @brief ROI相关槽函数

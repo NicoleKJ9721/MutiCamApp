@@ -128,7 +128,7 @@ add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 add_executable(${PROJECT_NAME}
-    # WIN32 # 发布版本时启用此选项以隐藏控制台窗口，提供更好的用户体验
+    WIN32 # 发布版本时启用此选项以隐藏控制台窗口，提供更好的用户体验
            # 开发调试时注释此行，以便查看std::cout等控制台输出
            # 注意：启用WIN32后，程序将以窗口模式运行，不显示控制台
     ${srcs} 

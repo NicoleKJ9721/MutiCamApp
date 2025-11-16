@@ -2109,6 +2109,42 @@ void MutiCamApp::onStartMatchingFrontClicked()
     }
 }
 
+void MutiCamApp::onStopMatchingVerticalClicked()
+{
+    qDebug() << "垂直视图停止匹配按钮被点击";
+
+    if (m_verticalPaintingOverlay2) {
+        m_verticalPaintingOverlay2->stopTemplateMatching();
+        QMessageBox::information(this, "提示", "已停止垂直视图的模板匹配");
+    } else {
+        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
+    }
+}
+
+void MutiCamApp::onStopMatchingLeftClicked()
+{
+    qDebug() << "左侧视图停止匹配按钮被点击";
+
+    if (m_leftPaintingOverlay2) {
+        m_leftPaintingOverlay2->stopTemplateMatching();
+        QMessageBox::information(this, "提示", "已停止左侧视图的模板匹配");
+    } else {
+        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
+    }
+}
+
+void MutiCamApp::onStopMatchingFrontClicked()
+{
+    qDebug() << "对向视图停止匹配按钮被点击";
+
+    if (m_frontPaintingOverlay2) {
+        m_frontPaintingOverlay2->stopTemplateMatching();
+        QMessageBox::information(this, "提示", "已停止对向视图的模板匹配");
+    } else {
+        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
+    }
+}
+
 void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal angle)
 {
     qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
@@ -4251,6 +4287,15 @@ void MutiCamApp::initializeButtonMappings()
         "matching", "left");
     m_buttonMappings.emplace_back(ui->btnStartMatchingFront,
         [this]() { onStartMatchingFrontClicked(); },
+        "matching", "front");
+    m_buttonMappings.emplace_back(ui->btnStopMatchingVertical,
+        [this]() { onStopMatchingVerticalClicked(); },
+        "matching", "vertical");
+    m_buttonMappings.emplace_back(ui->btnStopMatchingLeft,
+        [this]() { onStopMatchingLeftClicked(); },
+        "matching", "left");
+    m_buttonMappings.emplace_back(ui->btnStopMatchingFront,
+        [this]() { onStopMatchingFrontClicked(); },
         "matching", "front");
 
     // 像素标定按钮
