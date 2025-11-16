@@ -6,10 +6,11 @@ CalibrationDialog::CalibrationDialog(QWidget *parent)
     , m_singlePointRadio(nullptr)
     , m_multiPointRadio(nullptr)
     , m_checkerboardRadio(nullptr)
+    , m_circleRadio(nullptr)
     , m_methodButtonGroup(nullptr)
     , m_okButton(nullptr)
     , m_cancelButton(nullptr)
-    , m_selectedMethod(SinglePoint)
+    , m_selectedMethod(Circle)
 {
     initializeUI();
 }
@@ -23,7 +24,8 @@ void CalibrationDialog::initializeUI()
 {
     setWindowTitle("选择标定方式");
     setModal(true);
-    setFixedSize(400, 300);
+    // 增大固定尺寸，以容纳更多说明文本（包括圆标定）
+    setFixedSize(420, 380);
     
     // 创建主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -53,8 +55,10 @@ void CalibrationDialog::initializeUI()
     connect(m_okButton, &QPushButton::clicked, this, &CalibrationDialog::onOkClicked);
     connect(m_cancelButton, &QPushButton::clicked, this, &CalibrationDialog::onCancelClicked);
     
-    // 默认选择单点标定
-    m_singlePointRadio->setChecked(true);
+    // 默认选择圆标定
+    if (m_circleRadio) {
+        m_circleRadio->setChecked(true);
+    }
 }
 
 QGroupBox* CalibrationDialog::createMethodGroup()
@@ -83,8 +87,18 @@ QGroupBox* CalibrationDialog::createMethodGroup()
     QLabel* checkerboardDesc = new QLabel("  适用于自动标定，需要标准棋盘格图案", this);
     checkerboardDesc->setStyleSheet("color: #666; font-size: 10px;");
     m_methodButtonGroup->addButton(m_checkerboardRadio, static_cast<int>(Checkerboard));
+
+    // 圆标定选项
+    m_circleRadio = new QRadioButton("圆标定", this);
+    QLabel* circleDesc = new QLabel("  适用于使用已知直径的标准圆，通过 ROI 自动检测圆进行标定", this);
+    circleDesc->setStyleSheet("color: #666; font-size: 10px;");
+    m_methodButtonGroup->addButton(m_circleRadio, static_cast<int>(Circle));
     
-    // 添加到布局
+    // 添加到布局（圆标定放在第一个）
+    layout->addWidget(m_circleRadio);
+    layout->addWidget(circleDesc);
+    layout->addSpacing(5);
+
     layout->addWidget(m_singlePointRadio);
     layout->addWidget(singlePointDesc);
     layout->addSpacing(5);

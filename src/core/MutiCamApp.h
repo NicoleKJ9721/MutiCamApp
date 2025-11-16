@@ -187,6 +187,7 @@ private slots:
     void startSinglePointCalibration(PaintingOverlay* overlay); // 启动单点标定
     void startMultiPointCalibration(PaintingOverlay* overlay);  // 启动多点标定
     void startCheckerboardCalibration(PaintingOverlay* overlay); // 启动棋盘格标定
+    void startCircleCalibration(PaintingOverlay* overlay);      // 启动圆标定
     void loadCalibrationSettings(); // 加载标定设置
     void saveCalibrationSettings(); // 保存标定设置
     void syncCalibrationParameters(const QString& viewName); // 同步标定参数

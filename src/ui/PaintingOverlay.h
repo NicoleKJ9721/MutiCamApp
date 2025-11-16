@@ -352,6 +352,7 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void startCalibration();           // 启动单点标定
     void startMultiPointCalibration(); // 启动多点标定
     void startCheckerboardCalibration(int cornersX, int cornersY, double squareSize, const QString& unit); // 启动棋盘格标定
+    void startCircleCalibration();     // 启动圆标定（基于自动检测圆）
     void resetCalibration();
 
     DrawingState getDrawingState() const;
@@ -618,6 +619,7 @@ private:
     bool m_isCalibrated;       // 是否已标定
     bool m_isCalibrationMode;  // 是否处于标定模式
     bool m_isMultiPointCalibrationMode; // 是否处于多点标定模式
+    bool m_isCircleCalibrationMode;     // 是否处于圆标定模式
 
     // 多点标定数据结构
     struct CalibrationPoint {
@@ -783,6 +785,7 @@ private:
     void updateAllMeasurementLabels();
     void performCalibrationWithLineSegment(int lineSegmentIndex);
     void performMultiPointCalibrationWithLineSegment(int lineSegmentIndex);
+    void performCircleCalibration(double pixelRadius);
     void showMultiPointCalibrationDialog();
     double calculateMultiPointPixelScale() const;
     bool detectCheckerboardCorners(int cornersX, int cornersY, std::vector<cv::Point2f>& corners, QString& diagnostic);

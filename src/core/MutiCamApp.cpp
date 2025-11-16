@@ -3346,6 +3346,9 @@ void MutiCamApp::startPixelCalibration()
             case CalibrationDialog::Checkerboard:
                 startCheckerboardCalibration(activeOverlay);
                 break;
+            case CalibrationDialog::Circle:
+                startCircleCalibration(activeOverlay);
+                break;
         }
     }
 }
@@ -3384,6 +3387,9 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
             case CalibrationDialog::Checkerboard:
                 startCheckerboardCalibration(targetOverlay);
                 break;
+            case CalibrationDialog::Circle:
+                startCircleCalibration(targetOverlay);
+                break;
         }
     }
 }
@@ -3419,6 +3425,39 @@ void MutiCamApp::startSinglePointCalibration(PaintingOverlay* overlay)
     statusBar()->showMessage(QString("视图 %1 进入单点标定模式，请绘制一条已知长度的线段").arg(viewName), 10000);
 
     qDebug() << QString("启动视图 %1 的单点标定").arg(viewName);
+}
+
+void MutiCamApp::startCircleCalibration(PaintingOverlay* overlay)
+{
+    if (!overlay) {
+        return;
+    }
+
+    QString viewName = overlay->getViewName();
+
+    // 检查是否已经标定
+    if (overlay->isCalibrated()) {
+        int ret = QMessageBox::question(this, "圆标定",
+                                       QString("视图 %1 已经完成标定。\n"
+                                              "当前比例: %2 %3/pixel\n\n"
+                                              "是否要重新标定？")
+                                       .arg(viewName)
+                                       .arg(overlay->getPixelScale(), 0, 'f', 6)
+                                       .arg(overlay->getUnit()),
+                                       QMessageBox::Yes | QMessageBox::No,
+                                       QMessageBox::No);
+        if (ret != QMessageBox::Yes) {
+            return;
+        }
+    }
+
+    // 启动圆标定模式
+    overlay->startCircleCalibration();
+
+    // 更新状态栏提示
+    statusBar()->showMessage(QString("视图 %1 进入圆标定模式，请框选包含已知直径圆形的ROI").arg(viewName), 10000);
+
+    qDebug() << QString("启动视图 %1 的圆标定").arg(viewName);
 }
 
 void MutiCamApp::startMultiPointCalibration(PaintingOverlay* overlay)

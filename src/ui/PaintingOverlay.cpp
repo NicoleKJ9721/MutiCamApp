@@ -135,6 +135,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_isCalibrated(false)      // 默认未标定
     , m_isCalibrationMode(false) // 默认非标定模式
     , m_isMultiPointCalibrationMode(false) // 默认非多点标定模式
+    , m_isCircleCalibrationMode(false)    // 默认非圆标定模式
     , m_edgeDetector(nullptr)
     , m_shapeDetector(nullptr)
     , m_gridSpacing(0)              // 默认不显示网格
@@ -5667,6 +5668,11 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     qDebug() << QString("检测统计 - 候选圆形: %1, 最佳圆形中心: (%2,%3), 耗时: %4ms")
                 .arg(detectedCircles.size()).arg(bestCircle.center.x()).arg(bestCircle.center.y()).arg(elapsedMs);
     update();
+
+    // 如果处于圆标定模式，使用检测到的圆进行标定
+    if (m_isCircleCalibrationMode) {
+        performCircleCalibration(bestCircle.radius);
+    }
 }
 
 // 模板方法实现：按索引删除容器中的元素
@@ -5810,6 +5816,7 @@ void PaintingOverlay::startCalibration()
 {
     m_isCalibrationMode = true;
     m_isMultiPointCalibrationMode = false;
+    m_isCircleCalibrationMode = false;
     startDrawing(DrawingTool::LineSegment);
 
     QString message = QString("视图 %1 进入单点标定模式，请绘制一条已知长度的线段").arg(m_viewName);
@@ -5820,6 +5827,8 @@ void PaintingOverlay::startCalibration()
 void PaintingOverlay::startMultiPointCalibration()
 {
     m_isMultiPointCalibrationMode = true;
+    m_isCalibrationMode = false;
+    m_isCircleCalibrationMode = false;
     m_calibrationPoints.clear();
     m_multiPointCalibrationUnit.clear(); // 清空之前的单位设置
     startDrawing(DrawingTool::LineSegment);
@@ -5896,6 +5905,20 @@ void PaintingOverlay::startCheckerboardCalibration(int cornersX, int cornersY, d
     }
 }
 
+void PaintingOverlay::startCircleCalibration()
+{
+    m_isCircleCalibrationMode = true;
+    m_isCalibrationMode = false;
+    m_isMultiPointCalibrationMode = false;
+
+    // 使用 ROI 圆检测工具
+    startDrawing(DrawingTool::ROI_CircleDetect);
+
+    QString message = QString("视图 %1 进入圆标定模式，请框选包含已知直径圆形的ROI，松开鼠标后自动检测圆形").arg(m_viewName);
+    emit measurementCompleted(m_viewName, message);
+    qDebug() << message;
+}
+
 void PaintingOverlay::resetCalibration()
 {
     m_pixelScale = 1.0;
@@ -5903,6 +5926,7 @@ void PaintingOverlay::resetCalibration()
     m_isCalibrated = false;
     m_isCalibrationMode = false;
     m_isMultiPointCalibrationMode = false;
+    m_isCircleCalibrationMode = false;
     m_calibrationPoints.clear();
 
     qDebug() << QString("视图 %1 标定已重置").arg(m_viewName);
@@ -6130,6 +6154,91 @@ void PaintingOverlay::performMultiPointCalibrationWithLineSegment(int lineSegmen
         emit measurementCompleted(m_viewName, message);
         qDebug() << message;
     }
+}
+
+void PaintingOverlay::performCircleCalibration(double pixelRadius)
+{
+    if (pixelRadius <= 0.0) {
+        qDebug() << "圆标定失败：像素半径无效";
+        QString message = QString("视图 %1 圆标定失败：检测到的圆半径无效").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        return;
+    }
+
+    double pixelDiameter = 2.0 * pixelRadius;
+
+    // 首先让用户选择单位
+    QStringList units = {"微米", "毫米", "厘米"};
+    bool unitOk;
+    QString selectedUnit = QInputDialog::getItem(this,
+                                                QString("圆标定 - %1").arg(m_viewName),
+                                                "请选择测量单位:",
+                                                units,
+                                                0,
+                                                false,
+                                                &unitOk);
+    if (unitOk) {
+        // 转换中文单位为代码（目前保持中文，方便显示）
+        int index = units.indexOf(selectedUnit);
+        if (index >= 0) {
+            selectedUnit = units[index];
+        }
+    }
+
+    if (!unitOk) {
+        // 用户取消
+        m_isCircleCalibrationMode = false;
+        QString message = QString("视图 %1 圆标定已取消").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        qDebug() << message;
+        return;
+    }
+
+    // 使用QInputDialog获取实际直径
+    bool ok;
+    QString inputText = QString("检测到的圆像素半径: %1 像素\n像素直径: %2 像素\n请输入实际直径(%3):")
+                       .arg(pixelRadius, 0, 'f', 2)
+                       .arg(pixelDiameter, 0, 'f', 2)
+                       .arg(selectedUnit);
+
+    double realDiameter = QInputDialog::getDouble(this,
+                                                 QString("圆标定 - %1").arg(m_viewName),
+                                                 inputText,
+                                                 100.0,    // 默认值
+                                                 0.001,    // 最小值
+                                                 999999.0, // 最大值
+                                                 3,        // 小数位数
+                                                 &ok);
+
+    if (ok && realDiameter > 0.0) {
+        // 计算像素比例：实际直径 / 像素直径
+        double scale = realDiameter / pixelDiameter;
+
+        // 直接使用用户选择的单位
+        setPixelScale(scale, selectedUnit);
+
+        QString chineseUnit = selectedUnit;
+        if (chineseUnit == "μm") chineseUnit = "微米";
+        else if (chineseUnit == "mm") chineseUnit = "毫米";
+        else if (chineseUnit == "cm") chineseUnit = "厘米";
+
+        QString result = QString("圆标定完成: %1 %2/像素\n像素半径: %3 像素, 像素直径: %4 像素, 实际直径: %5 %6")
+                        .arg(scale, 0, 'f', 6).arg(chineseUnit)
+                        .arg(pixelRadius, 0, 'f', 2)
+                        .arg(pixelDiameter, 0, 'f', 2)
+                        .arg(realDiameter, 0, 'f', 2).arg(chineseUnit);
+        emit measurementCompleted(m_viewName, result);
+
+        qDebug() << QString("视图 %1 圆标定完成: %2").arg(m_viewName).arg(result);
+    } else {
+        QString message = QString("视图 %1 圆标定已取消").arg(m_viewName);
+        emit measurementCompleted(m_viewName, message);
+        qDebug() << message;
+    }
+
+    // 无论成功或取消，都结束圆标定模式并恢复选择模式
+    m_isCircleCalibrationMode = false;
+    stopDrawing();
 }
 
 void PaintingOverlay::showMultiPointCalibrationDialog()

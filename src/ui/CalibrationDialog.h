@@ -29,7 +29,8 @@ public:
     enum CalibrationMethod {
         SinglePoint,    // 单点标定
         MultiPoint,     // 多点标定
-        Checkerboard    // 棋盘格标定
+        Checkerboard,   // 棋盘格标定
+        Circle          // 圆标定（基于检测圆）
     };
 
     /**
@@ -77,6 +78,7 @@ private:
     QRadioButton* m_singlePointRadio;    // 单点标定选项
     QRadioButton* m_multiPointRadio;     // 多点标定选项
     QRadioButton* m_checkerboardRadio;   // 棋盘格标定选项
+    QRadioButton* m_circleRadio;         // 圆标定选项
     QButtonGroup* m_methodButtonGroup;   // 方式按钮组
     
     QPushButton* m_okButton;             // 确定按钮
