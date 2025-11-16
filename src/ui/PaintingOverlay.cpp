@@ -17,6 +17,7 @@
 #include <exception>
 #include <stdexcept>
 #include <QCoreApplication>
+#include <QStringList>
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QFileInfo>
@@ -37,6 +38,24 @@ using namespace HalconCpp;
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+namespace {
+QString resolveRuntimePath(const QString& relativePath)
+{
+    const QString appDir = QCoreApplication::applicationDirPath();
+    QStringList candidates = {
+        QDir(appDir).filePath(relativePath),
+        QDir(appDir).filePath("../" + relativePath),
+        QDir(appDir).filePath("../../" + relativePath)
+    };
+    for (const QString& candidate : candidates) {
+        if (QFile::exists(candidate)) {
+            return candidate;
+        }
+    }
+    return candidates.front();
+}
+}
 
 PaintingOverlay::PaintingOverlay(QWidget *parent)
     : QWidget(parent)
@@ -769,7 +788,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     
     // 添加删除选项
     QAction *deleteAction = contextMenu.addAction("删除");
-    deleteAction->setIcon(QIcon("../icon/delete.svg"));
+    deleteAction->setIcon(QIcon(resolveRuntimePath("icon/delete.svg")));
     
     // 检查是否选中了恰好两个点，如果是则添加"点与点"选项
     QAction *pointToPointAction = nullptr;
@@ -6551,7 +6570,8 @@ void PaintingOverlay::drawROIHandles(QPainter& painter, const ROIObject& roi, co
 
     // 绘制SVG旋转图标（延迟加载，只创建一次）
     if (!m_rotationIconRenderer) {
-    m_rotationIconRenderer = new QSvgRenderer(QString("../../icon/rotation.svg"));
+        const QString rotationIconPath = resolveRuntimePath("icon/rotation.svg");
+        m_rotationIconRenderer = new QSvgRenderer(rotationIconPath);
         // 如果加载失败，创建一个空的渲染器避免重复尝试
         if (!m_rotationIconRenderer->isValid()) {
             delete m_rotationIconRenderer;

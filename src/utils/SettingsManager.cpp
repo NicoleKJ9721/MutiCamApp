@@ -8,11 +8,33 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QCoreApplication>
+#include <QStringList>
 #include <algorithm>
+
+namespace {
+QString resolveSettingsFilePath(const QString& providedPath)
+{
+    if (!providedPath.isEmpty()) {
+        return providedPath;
+    }
+    const QString appDir = QCoreApplication::applicationDirPath();
+    QStringList candidates = {
+        QDir(appDir).filePath("config/settings.json"),
+        QDir(appDir).filePath("../config/settings.json"),
+        QDir(appDir).filePath("../../config/settings.json")
+    };
+    for (const QString& candidate : candidates) {
+        if (QFile::exists(candidate)) {
+            return candidate;
+        }
+    }
+    return candidates.front();
+}
+}
 
 SettingsManager::SettingsManager(const QString& settingsFile, QObject *parent)
     : QObject(parent)
-    , m_settingsFile(settingsFile)
+    , m_settingsFile(resolveSettingsFilePath(settingsFile))
     , m_defaultSettings()  // 使用默认构造函数初始化
     , m_saveTimer(nullptr)
     , m_pendingUI(nullptr)

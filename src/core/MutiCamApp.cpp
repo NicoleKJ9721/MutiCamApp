@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QPixmap>
 #include <QApplication>
+#include <QCoreApplication>
 #include <QMouseEvent>
 #include <QEvent>
 #include <QResizeEvent>
@@ -17,6 +18,7 @@
 #include <QDir>
 #include <QDateTime>
 #include <QFile>
+#include <QStringList>
 #include <exception>
 #include <stdexcept>
 #include <QFileInfo>
@@ -24,6 +26,24 @@
 #define _USE_MATH_DEFINES
 #include "../ui/TemplateCreationDialog.h"
 #include "../config/TemplateMatchingConfig.h"
+
+namespace {
+QString resolveRuntimePath(const QString& relativePath)
+{
+    const QString appDir = QCoreApplication::applicationDirPath();
+    QStringList candidates = {
+        QDir(appDir).filePath(relativePath),
+        QDir(appDir).filePath("../" + relativePath),
+        QDir(appDir).filePath("../../" + relativePath)
+    };
+    for (const QString& candidate : candidates) {
+        if (QFile::exists(candidate)) {
+            return candidate;
+        }
+    }
+    return candidates.front();
+}
+}
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -3619,7 +3639,8 @@ void MutiCamApp::syncCalibrationParameters(const QString& viewName)
 void MutiCamApp::initializeSettingsManager()
 {
     // 创建设置管理器
-    m_settingsManager = new SettingsManager("../config/settings.json", this);
+    const QString settingsPath = resolveRuntimePath("config/settings.json");
+    m_settingsManager = new SettingsManager(settingsPath, this);
 
     // 连接设置管理器信号
     connect(m_settingsManager, &SettingsManager::settingsLoaded,

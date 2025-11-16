@@ -138,7 +138,7 @@ public:
      * @param settingsFile 设置文件路径
      * @param parent 父对象
      */
-    explicit SettingsManager(const QString& settingsFile = "../config/settings.json", 
+    explicit SettingsManager(const QString& settingsFile = QString(), 
                            QObject *parent = nullptr);
 
     /**
