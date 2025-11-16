@@ -243,10 +243,10 @@ private slots:
     void onEnableZChanged(bool enabled);   // Z轴使能状态改变
     
     // 速度和加速度设置槽函数
-    void onSpeedChanged(int speed);        // 速度改变
-    void onAccelChanged(int accel);        // 加速度改变
-    void onMaxSpeedChanged(int maxSpeed);  // 最大速度限制改变  
-    void onMaxAccelChanged(int maxAccel);  // 最大加速度限制改变
+    void onSpeedChanged(double speed);        // 速度改变
+    void onAccelChanged(double accel);        // 加速度改变
+    void onMaxSpeedChanged(double maxSpeed);  // 最大速度限制改变
+    void onMaxAccelChanged(double maxAccel);  // 最大加速度限制改变
     
     // 运动模式切换槽函数
     void onMotionModeChanged(int mode);    // 运动模式改变（0=点动，1=连续）

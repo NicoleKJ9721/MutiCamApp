@@ -3770,15 +3770,21 @@ QPushButton:pressed {
                   </widget>
                  </item>
                  <item row="1" column="1">
-                  <widget class="QSpinBox" name="spinBoxSpeed">
-                   <property name="minimum">
+                  <widget class="QDoubleSpinBox" name="spinBoxSpeed">
+                   <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>0.10000000000000001</double>
+                   </property>
                    <property name="maximum">
-                    <number>7000</number>
+                    <double>6000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.10000000000000001</double>
                    </property>
                    <property name="value">
-                    <number>3000</number>
+                    <double>3000</double>
                    </property>
                   </widget>
                  </item>
@@ -3790,15 +3796,21 @@ QPushButton:pressed {
                   </widget>
                  </item>
                  <item row="1" column="3">
-                  <widget class="QSpinBox" name="spinBoxMaxAccel">
-                   <property name="minimum">
+                  <widget class="QDoubleSpinBox" name="spinBoxMaxAccel">
+                   <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>0.10000000000000001</double>
+                   </property>
                    <property name="maximum">
-                    <number>7000</number>
+                    <double>7000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.10000000000000001</double>
                    </property>
                    <property name="value">
-                    <number>3000</number>
+                    <double>3000</double>
                    </property>
                   </widget>
                  </item>
@@ -3831,15 +3843,21 @@ QPushButton:pressed {
                   </widget>
                  </item>
                  <item row="0" column="3">
-                  <widget class="QSpinBox" name="spinBoxAccel">
-                   <property name="minimum">
+                  <widget class="QDoubleSpinBox" name="spinBoxAccel">
+                   <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>0.10000000000000001</double>
+                   </property>
                    <property name="maximum">
-                    <number>7000</number>
+                    <double>7000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.10000000000000001</double>
                    </property>
                    <property name="value">
-                    <number>3000</number>
+                    <double>3000</double>
                    </property>
                   </widget>
                  </item>
@@ -3851,15 +3869,21 @@ QPushButton:pressed {
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QSpinBox" name="spinBoxMaxSpeed">
-                   <property name="minimum">
+                  <widget class="QDoubleSpinBox" name="spinBoxMaxSpeed">
+                   <property name="decimals">
                     <number>1</number>
                    </property>
+                   <property name="minimum">
+                    <double>0.10000000000000001</double>
+                   </property>
                    <property name="maximum">
-                    <number>7000</number>
+                    <double>6000</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>0.10000000000000001</double>
                    </property>
                    <property name="value">
-                    <number>3000</number>
+                    <double>3000</double>
                    </property>
                   </widget>
                  </item>

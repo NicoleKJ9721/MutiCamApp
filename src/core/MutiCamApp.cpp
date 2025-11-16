@@ -553,15 +553,15 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onEnableZChanged);
 
     // 连接速度和加速度设置
-    connect(ui->spinBoxSpeed, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(ui->spinBoxSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, &MutiCamApp::onSpeedChanged);
-    connect(ui->spinBoxAccel, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(ui->spinBoxAccel, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, &MutiCamApp::onAccelChanged);
     
     // 连接最大速度和最大加速度限制设置
-    connect(ui->spinBoxMaxSpeed, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(ui->spinBoxMaxSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, &MutiCamApp::onMaxSpeedChanged);
-    connect(ui->spinBoxMaxAccel, QOverload<int>::of(&QSpinBox::valueChanged),
+    connect(ui->spinBoxMaxAccel, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
             this, &MutiCamApp::onMaxAccelChanged);
 
     // 连接运动模式切换
@@ -6631,7 +6631,7 @@ void MutiCamApp::onEnableZChanged(bool enabled)
 
 // ==================== 速度和加速度设置槽函数实现 ====================
 
-void MutiCamApp::onSpeedChanged(int speed)
+void MutiCamApp::onSpeedChanged(double speed)
 {
     qDebug() << "速度设置改变：" << speed;
     
@@ -6639,9 +6639,9 @@ void MutiCamApp::onSpeedChanged(int speed)
         qWarning() << "轴控制系统未初始化";
     } else if (m_axisController->isConnected()) {
         // 为所有轴设置相同的速度
-        bool xSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::X_AXIS, static_cast<double>(speed));
-        bool ySuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(speed));
-        bool zSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(speed));
+        bool xSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::X_AXIS, speed);
+        bool ySuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Y_AXIS, speed);
+        bool zSuccess = m_axisController->setAxisSpeed(AxisControl::AxisIndex::Z_AXIS, speed);
         
         if (xSuccess && ySuccess && zSuccess) {
             if (m_logManager) {
@@ -6662,7 +6662,7 @@ void MutiCamApp::onSpeedChanged(int speed)
     
     if (m_settingsManager) {
         auto settings = m_settingsManager->getCurrentSettings();
-        if (!qFuzzyCompare(settings.stageDefaultSpeed + 1.0, static_cast<double>(speed) + 1.0)) {
+        if (!qFuzzyCompare(settings.stageDefaultSpeed + 1.0, speed + 1.0)) {
             settings.stageDefaultSpeed = speed;
             m_settingsManager->updateSettings(settings);
         }
@@ -6670,7 +6670,7 @@ void MutiCamApp::onSpeedChanged(int speed)
     applyMotionSettingsToController();
 }
 
-void MutiCamApp::onAccelChanged(int accel)
+void MutiCamApp::onAccelChanged(double accel)
 {
     qDebug() << "加速度设置改变：" << accel;
     
@@ -6678,9 +6678,9 @@ void MutiCamApp::onAccelChanged(int accel)
         qWarning() << "轴控制系统未初始化";
     } else if (m_axisController->isConnected()) {
         // 为所有轴设置相同的加速度
-        bool xSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::X_AXIS, static_cast<double>(accel));
-        bool ySuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Y_AXIS, static_cast<double>(accel));
-        bool zSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Z_AXIS, static_cast<double>(accel));
+        bool xSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::X_AXIS, accel);
+        bool ySuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Y_AXIS, accel);
+        bool zSuccess = m_axisController->setAxisAcceleration(AxisControl::AxisIndex::Z_AXIS, accel);
         
         if (xSuccess && ySuccess && zSuccess) {
             if (m_logManager) {
@@ -6701,7 +6701,7 @@ void MutiCamApp::onAccelChanged(int accel)
     
     if (m_settingsManager) {
         auto settings = m_settingsManager->getCurrentSettings();
-        if (!qFuzzyCompare(settings.stageDefaultAcceleration + 1.0, static_cast<double>(accel) + 1.0)) {
+        if (!qFuzzyCompare(settings.stageDefaultAcceleration + 1.0, accel + 1.0)) {
             settings.stageDefaultAcceleration = accel;
             settings.stageDefaultDeceleration = accel;
             m_settingsManager->updateSettings(settings);
@@ -6710,7 +6710,7 @@ void MutiCamApp::onAccelChanged(int accel)
     applyMotionSettingsToController();
 }
 
-void MutiCamApp::onMaxSpeedChanged(int maxSpeed)
+void MutiCamApp::onMaxSpeedChanged(double maxSpeed)
 {
     qDebug() << "最大速度限制改变：" << maxSpeed;
     
@@ -6733,14 +6733,14 @@ void MutiCamApp::onMaxSpeedChanged(int maxSpeed)
 
     if (m_settingsManager) {
         auto settings = m_settingsManager->getCurrentSettings();
-        if (!qFuzzyCompare(settings.stageMaxSpeedLimit + 1.0, static_cast<double>(maxSpeed) + 1.0)) {
+        if (!qFuzzyCompare(settings.stageMaxSpeedLimit + 1.0, maxSpeed + 1.0)) {
             settings.stageMaxSpeedLimit = maxSpeed;
             m_settingsManager->updateSettings(settings);
         }
     }
 }
 
-void MutiCamApp::onMaxAccelChanged(int maxAccel)
+void MutiCamApp::onMaxAccelChanged(double maxAccel)
 {
     qDebug() << "最大加速度限制改变：" << maxAccel;
     
@@ -6763,7 +6763,7 @@ void MutiCamApp::onMaxAccelChanged(int maxAccel)
 
     if (m_settingsManager) {
         auto settings = m_settingsManager->getCurrentSettings();
-        if (!qFuzzyCompare(settings.stageMaxAccelerationLimit + 1.0, static_cast<double>(maxAccel) + 1.0)) {
+        if (!qFuzzyCompare(settings.stageMaxAccelerationLimit + 1.0, maxAccel + 1.0)) {
             settings.stageMaxAccelerationLimit = maxAccel;
             m_settingsManager->updateSettings(settings);
         }
