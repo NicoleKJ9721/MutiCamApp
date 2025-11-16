@@ -24,6 +24,7 @@
 #include <QDateTime>
 #include <QHash>
 #include <memory>
+#include <QPolygonF>
 
 // 解决Windows SDK和OpenCV的符号冲突
 #ifdef _WIN32
@@ -56,6 +57,7 @@ struct TemplateInfo {
     QDateTime createdTime;           // 创建时间
     bool isSelected;                 // 是否被选中用于匹配
     QString halconModelPath;         // Halcon形状模板文件路径（.shm）
+    QVector<QPolygonF> modelContours; // Halcon形状模型的轮廓（模板坐标系下）
 
     TemplateInfo() : originalAngle(0.0), isSelected(false) {}
 };

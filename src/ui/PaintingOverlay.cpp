@@ -55,6 +55,53 @@ QString resolveRuntimePath(const QString& relativePath)
     }
     return candidates.front();
 }
+
+// 从 Halcon 形状模型中提取轮廓，并转换为 Qt 多边形列表（模板坐标系下，x=col,y=row）
+static QVector<QPolygonF> extractContoursFromHalconModel(const HalconCpp::HTuple& modelId)
+{
+    QVector<QPolygonF> contours;
+
+    try {
+        HalconCpp::HObject hoContours;
+        HalconCpp::GetShapeModelContours(&hoContours, modelId, 1);
+
+        HalconCpp::HTuple hvNum;
+        HalconCpp::CountObj(hoContours, &hvNum);
+        const Hlong numContours = hvNum.TupleLength() > 0 ? hvNum[0].I() : 0;
+
+        for (Hlong i = 1; i <= numContours; ++i) {
+            HalconCpp::HObject hoSingle;
+            HalconCpp::SelectObj(hoContours, &hoSingle, i);
+
+            HalconCpp::HTuple hvRow, hvCol;
+            HalconCpp::GetContourXld(hoSingle, &hvRow, &hvCol);
+
+            const Hlong length = hvRow.TupleLength();
+            if (length <= 0) {
+                continue;
+            }
+
+            QPolygonF poly;
+            poly.reserve(static_cast<int>(length));
+
+            for (Hlong j = 0; j < length; ++j) {
+                const double row = static_cast<double>(hvRow[j]);
+                const double col = static_cast<double>(hvCol[j]);
+                poly.append(QPointF(col, row)); // Qt: x=col, y=row
+            }
+
+            if (!poly.isEmpty()) {
+                contours.append(poly);
+            }
+        }
+    } catch (const HalconCpp::HException& e) {
+        qWarning() << "从Halcon模型提取轮廓失败:" << e.ErrorMessage().TextA();
+    } catch (const std::exception& e) {
+        qWarning() << "从Halcon模型提取轮廓时发生异常:" << e.what();
+    }
+
+    return contours;
+}
 }
 
 PaintingOverlay::PaintingOverlay(QWidget *parent)
@@ -7485,7 +7532,8 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
         // 预加载选中模板的 Halcon 模型
         QTime preloadStartTime = QTime::currentTime();
         int preloadCount = 0;
-        for (const TemplateInfo& t : m_loadedTemplates) {
+        for (int idx = 0; idx < m_loadedTemplates.size(); ++idx) {
+            TemplateInfo& t = m_loadedTemplates[idx];
             if (!t.isSelected) continue;
             QString key = !t.halconModelPath.isEmpty() ? t.halconModelPath
                            : (!t.imagePath.isEmpty() ? t.imagePath : t.name);
@@ -7533,8 +7581,17 @@ bool PaintingOverlay::startTemplateMatching(const QVector<TemplateInfo>& selecte
             }
 
             if (ok) {
+                // 缓存 Halcon 模型句柄
                 m_halconModelCache.insert(key, std::make_shared<HalconCpp::HTuple>(modelId));
                 preloadCount++;
+
+                // 仅在还未提取过轮廓时，从模型中提取轮廓并缓存到模板信息
+                if (t.modelContours.isEmpty()) {
+                    t.modelContours = extractContoursFromHalconModel(modelId);
+                    if (!t.modelContours.isEmpty()) {
+                        qDebug() << "模板" << t.name << "已缓存" << t.modelContours.size() << "条模型轮廓";
+                    }
+                }
             }
         }
         qDebug() << "预加载 Halcon 模型" << preloadCount << "个，耗时:" << preloadStartTime.msecsTo(QTime::currentTime()) << "ms";
@@ -7850,6 +7907,31 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     painter.drawRect(QRectF(-matchRect.width() * 0.5, -matchRect.height() * 0.5,
                             matchRect.width(), matchRect.height()));
     painter.restore();
+
+    // 绘制模板轮廓（使用 Halcon 模型轮廓，按匹配的角度和缩放变换）
+    // 为避免在绘制阶段做额外的 Halcon 调用，这里只使用已缓存的点集，并由 QPainter 做几何变换
+    const TemplateInfo* matchedTemplate = nullptr;
+    for (const TemplateInfo& t : m_loadedTemplates) {
+        if (t.name == match.templateName) {
+            matchedTemplate = &t;
+            break;
+        }
+    }
+
+    if (matchedTemplate && !matchedTemplate->modelContours.isEmpty()) {
+        painter.save();
+        painter.translate(matchCenter);
+        painter.rotate(-match.angle * 180.0 / M_PI);
+        painter.scale(match.scale, match.scale);
+
+        for (const QPolygonF& poly : matchedTemplate->modelContours) {
+            if (!poly.isEmpty()) {
+                painter.drawPolyline(poly);
+            }
+        }
+
+        painter.restore();
+    }
 
     // 绘制中心点
     painter.setBrush(QBrush(matchColor));
