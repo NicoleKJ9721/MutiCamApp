@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QMetaObject>
 #include <chrono>
+#include <cstring>
 
 namespace MutiCam {
 namespace Camera {
@@ -289,6 +290,28 @@ std::string HikvisionCamera::getLastError() const {
 cv::Mat HikvisionCamera::getLatestFrame() {
     QMutexLocker locker(&m_frameMutex);
     return m_latestFrame.clone();
+}
+
+double HikvisionCamera::getCurrentFrameRate() const {
+    QMutexLocker locker(&m_mutex);
+
+    if (m_state == CameraState::Disconnected || m_hCamera == nullptr) {
+        return 0.0;
+    }
+
+    MVCC_FLOATVALUE frameRateValue{};
+
+    // 优先使用ResultingFrameRate获取真实输出帧率，失败则回退到旧接口
+    int nRet = MV_CC_GetFloatValue(m_hCamera, "ResultingFrameRate", &frameRateValue);
+    if (MV_OK != nRet) {
+        nRet = MV_CC_GetFrameRate(m_hCamera, &frameRateValue);
+        if (MV_OK != nRet) {
+            qDebug() << "Failed to query frame rate, error code:" << nRet;
+            return 0.0;
+        }
+    }
+
+    return static_cast<double>(frameRateValue.fCurValue);
 }
 
 std::vector<std::string> HikvisionCamera::enumerateDevices() {

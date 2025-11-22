@@ -126,6 +126,13 @@ public:
      */
     QString getCameraStats(const std::string& cameraId) const;
 
+    /**
+     * @brief 获取相机当前帧率（来自SDK）
+     * @param cameraId 相机ID
+     * @return 当前帧率，获取失败返回0
+     */
+    double getCurrentFrameRate(const std::string& cameraId) const;
+
 signals:
     /**
      * @brief 相机添加信号

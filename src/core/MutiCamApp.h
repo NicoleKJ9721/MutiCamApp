@@ -401,23 +401,6 @@ private:
     // 相机状态监控
     QTimer* m_statusUpdateTimer;                     ///< 状态更新定时器
 
-    // 帧率计算
-    struct FrameRateData {
-        std::chrono::steady_clock::time_point lastCalculateTime;  // 上次计算时间
-        std::vector<std::chrono::steady_clock::time_point> frameTimes;  // 帧时间戳队列
-        double currentFPS;                                        // 当前帧率
-        bool hasFirstFrame;                                       // 是否已收到第一帧
-        static constexpr int WINDOW_SECONDS = 5;                  // 时间窗口：5秒
-
-        FrameRateData() : currentFPS(0.0), hasFirstFrame(false) {
-            lastCalculateTime = std::chrono::steady_clock::now();
-            frameTimes.reserve(300);  // 预分配空间，假设最大60fps*5秒
-        }
-    };
-
-    QMutex m_frameRateMutex;                         ///< 帧率数据保护锁
-    QMap<QString, FrameRateData> m_frameRateData;    ///< 各相机帧率数据
-
     // 报警系统
     struct AlertMessage {
         QString message;
@@ -450,12 +433,6 @@ private:
      * @param cameraId 相机ID
      */
     void updateSingleCameraStatus(const QString& cameraId);
-
-    /**
-     * @brief 计算并更新帧率
-     * @param cameraId 相机ID
-     */
-    void updateFrameRate(const QString& cameraId);
 
     /**
      * @brief 添加报警消息

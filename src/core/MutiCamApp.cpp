@@ -896,9 +896,6 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     if (frame.empty()) return;
 
-    // 更新帧率计算
-    updateFrameRate(cameraId);
-
     // 存储当前帧供自动检测使用 (性能优化：使用直接赋值代替clone()以减少内存复制)
     if (cameraId == "vertical") {
         m_currentFrameVertical = frame;        // 优化：避免60MB内存复制
@@ -4407,13 +4404,8 @@ void MutiCamApp::initializeCameraStatusMonitoring()
     connect(m_statusUpdateTimer, &QTimer::timeout,
             this, &MutiCamApp::updateCameraStatusDisplay);
 
-    // 每1秒更新一次状态显示（配合新的帧率计算算法）
+    // 每1秒更新一次状态显示
     m_statusUpdateTimer->start(1000);
-
-    // 初始化帧率数据
-    m_frameRateData["vertical"] = FrameRateData();
-    m_frameRateData["left"] = FrameRateData();
-    m_frameRateData["front"] = FrameRateData();
 
     // 初始化UI显示
     updateCameraOverview();
@@ -4528,18 +4520,12 @@ void MutiCamApp::updateSingleCameraStatus(const QString& cameraId)
                 }
             }
 
-            // 获取帧率
-            QMutexLocker locker(&m_frameRateMutex);
-            if (m_frameRateData.contains(cameraId)) {
-                const auto& frameData = m_frameRateData[cameraId];
-                if (!frameData.hasFirstFrame) {
-                    fpsText = "等待帧数据...";
-                } else if (frameData.currentFPS == 0.0) {
-                    fpsText = "计算中...";
-                } else {
-                    fpsText = QString::number(frameData.currentFPS, 'f', 1) + " fps";
-                }
+            // 获取真实帧率（直接由海康SDK返回）
+            double fps = 0.0;
+            if (m_cameraManager) {
+                fps = m_cameraManager->getCurrentFrameRate(cameraId.toStdString());
             }
+            fpsText = fps > 0.0 ? QString::number(fps, 'f', 1) + " fps" : "帧率获取中...";
 
         } else if (stats.contains("State: Connected")) {
             statusText = "已连接";
@@ -4566,69 +4552,6 @@ void MutiCamApp::updateSingleCameraStatus(const QString& cameraId)
         resolutionLabel->setStyleSheet("");
         exposureLabel->setStyleSheet("");
         gainLabel->setStyleSheet("");
-    }
-}
-
-void MutiCamApp::updateFrameRate(const QString& cameraId)
-{
-    QMutexLocker locker(&m_frameRateMutex);
-
-    if (!m_frameRateData.contains(cameraId)) {
-        m_frameRateData[cameraId] = FrameRateData();
-    }
-
-    auto& data = m_frameRateData[cameraId];
-    auto currentTime = std::chrono::steady_clock::now();
-
-    // 记录当前帧时间戳
-    data.frameTimes.push_back(currentTime);
-
-    // 记录第一帧
-    if (!data.hasFirstFrame) {
-        data.lastCalculateTime = currentTime;
-        data.hasFirstFrame = true;
-        data.currentFPS = 0.0;  // 第一帧时帧率为0
-
-        // 立即触发一次状态更新，显示相机已开始接收帧
-        QMetaObject::invokeMethod(this, [this, cameraId]() {
-            updateSingleCameraStatus(cameraId);
-        }, Qt::QueuedConnection);
-
-        return;
-    }
-
-    // 移除超过时间窗口的旧帧时间戳
-    auto windowStart = currentTime - std::chrono::seconds(FrameRateData::WINDOW_SECONDS);
-    data.frameTimes.erase(
-        std::remove_if(data.frameTimes.begin(), data.frameTimes.end(),
-                      [windowStart](const auto& frameTime) {
-                          return frameTime < windowStart;
-                      }),
-        data.frameTimes.end()
-    );
-
-    // 检查是否需要计算帧率（每1秒计算一次）
-    auto timeSinceLastCalculate = std::chrono::duration_cast<std::chrono::milliseconds>(
-        currentTime - data.lastCalculateTime).count();
-
-    if (timeSinceLastCalculate >= 1000) {  // 1秒 = 1000毫秒
-        // 计算时间窗口内的帧率
-        if (data.frameTimes.size() >= 2) {
-            auto windowDuration = std::chrono::duration_cast<std::chrono::milliseconds>(
-                data.frameTimes.back() - data.frameTimes.front()).count();
-
-            if (windowDuration > 0) {
-                // 帧率 = (帧数-1) * 1000 / 时间间隔(ms)
-                // 减1是因为N个时间点之间有N-1个间隔
-                data.currentFPS = ((data.frameTimes.size() - 1) * 1000.0) / windowDuration;
-            }
-        } else if (data.frameTimes.size() == 1) {
-            // 只有一帧时，帧率为0
-            data.currentFPS = 0.0;
-        }
-
-        // 更新计算时间
-        data.lastCalculateTime = currentTime;
     }
 }
 

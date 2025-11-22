@@ -36,6 +36,7 @@ public:
     std::string getLastError() const override;
     
     cv::Mat getLatestFrame() override;
+    double getCurrentFrameRate() const override;
     
     // 海康特有功能
     static std::vector<std::string> enumerateDevices();

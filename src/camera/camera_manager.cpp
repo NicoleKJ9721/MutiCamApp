@@ -328,6 +328,22 @@ QString CameraManager::getCameraStats(const std::string& cameraId) const {
     return stats;
 }
 
+double CameraManager::getCurrentFrameRate(const std::string& cameraId) const {
+    QMutexLocker locker(&m_managerMutex);
+
+    auto cameraIt = m_cameras.find(cameraId);
+    if (cameraIt == m_cameras.end() || !cameraIt->second) {
+        return 0.0;
+    }
+
+    // 只有在采集中才返回帧率
+    if (cameraIt->second->getState() != CameraState::Streaming) {
+        return 0.0;
+    }
+
+    return cameraIt->second->getCurrentFrameRate();
+}
+
 void CameraManager::connectCameraThreadSignals(const std::string& cameraId, 
                                               std::shared_ptr<CameraThread> cameraThread) {
     if (!cameraThread) {

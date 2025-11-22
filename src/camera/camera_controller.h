@@ -60,6 +60,7 @@ public:
     virtual CameraParams getParams() const = 0;
     virtual CameraState getState() const = 0;
     virtual std::string getLastError() const = 0;
+    virtual double getCurrentFrameRate() const = 0;
     
     // 图像获取接口
     virtual cv::Mat getLatestFrame() = 0;
