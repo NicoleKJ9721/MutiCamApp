@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QContextMenuEvent>
+#include <QKeyEvent>
 #include <QVector>
 #include <QStack>
 #include <QSet>
@@ -516,6 +517,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     // 自动检测相关方法

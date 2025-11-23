@@ -970,7 +970,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     } else if (selectedAction == pointToPointAction) {
         createLineFromSelectedPoints();
     } else if (selectedAction == pointToLineAction) {
-        performComplexMeasurement("点与线距离");
+        performComplexMeasurement("点到线距离");
     } else if (selectedAction == pointToCircleAction) {
         performComplexMeasurement("点与圆距离");
     } else if (selectedAction == pointToFineCircleAction) {
@@ -984,19 +984,40 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     } else if (selectedAction == lineAngleAction) {
         performComplexMeasurement("线段夹角");
     } else if (selectedAction == twoLinesAngleAction) {
-        performComplexMeasurement("两线夹角");
+        performComplexMeasurement("直线夹角");
     } else if (selectedAction == pointToBisectorAction) {
-        performComplexMeasurement("点与角平分线距离");
+        performComplexMeasurement("点到平分线距离");
     } else if (selectedAction == pointToBisectorLineSegmentAction) {
-        performComplexMeasurement("点与角平分线距离LineSegment");
+        performComplexMeasurement("点到平分线距离LineSegment");
     } else if (selectedAction == pointToLineSegmentAction) {
-        performComplexMeasurement("点与线段距离");
+        performComplexMeasurement("点到线段距离");
     } else if (selectedAction == lineSegmentToCircleAction) {
         performComplexMeasurement("线段与圆关系");
     } else if (selectedAction == lineSegmentToFineCircleAction) {
         performComplexMeasurement("线段与精细圆关系");
     }
 }
+
+void PaintingOverlay::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape) {
+        if (m_roiCreationMode) {
+            cancelROICreation();
+        }
+        if (m_isDrawingMode || m_hasCurrentLine || m_hasCurrentCircle ||
+            m_hasCurrentParallel || m_hasCurrentTwoLines || m_hasCurrentROI ||
+            m_hasCurrentROIDetection) {
+            stopDrawing();
+        }
+        event->accept();
+        return;
+    }
+
+    QWidget::keyPressEvent(event);
+}
+
+
+
 
 void PaintingOverlay::handlePointDrawingClick(const QPointF& pos)
 {
