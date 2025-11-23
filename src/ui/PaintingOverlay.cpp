@@ -936,12 +936,20 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
         lineSegmentToCircleAction = contextMenu.addAction("线段与圆关系");
     }
 
-    // 线段与精细圆关系分析
+    // 线段与精细圆关系（仅支持一条线段与一个精细圆的组合）
     QAction *lineSegmentToFineCircleAction = nullptr;
     if (m_selectedLineSegments.size() == 1 && m_selectedFineCircles.size() == 1 &&
         m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
         m_selectedCircles.isEmpty()) {
         lineSegmentToFineCircleAction = contextMenu.addAction("线段与精细圆关系");
+    }
+
+    // 圆心与圆心距离（圆与圆测量）
+    QAction *circleToCircleAction = nullptr;
+    if (m_selectedCircles.size() == 2 &&
+        m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
+        m_selectedFineCircles.isEmpty() && m_selectedLineSegments.isEmpty()) {
+        circleToCircleAction = contextMenu.addAction("圆与圆距离");
     }
 
     // 两条直线夹角测量（支持直线、平行线中线的各种组合）
@@ -968,9 +976,11 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     } else if (selectedAction == pointToFineCircleAction) {
         performComplexMeasurement("点与精细圆距离");
     } else if (selectedAction == lineToCircleAction) {
-        performComplexMeasurement("线与圆关系");
+        performComplexMeasurement("直线与圆关系");
     } else if (selectedAction == lineToFineCircleAction) {
-        performComplexMeasurement("线与精细圆关系");
+        performComplexMeasurement("直线与精细圆关系");
+    } else if (selectedAction == circleToCircleAction) {
+        performComplexMeasurement("圆与圆距离");
     } else if (selectedAction == lineAngleAction) {
         performComplexMeasurement("线段夹角");
     } else if (selectedAction == twoLinesAngleAction) {
@@ -3998,6 +4008,71 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         emit drawingDataChanged(m_viewName);
                         update();
                     }
+                }
+            }
+        }
+    } else if (measurementType == "圆与圆距离") {
+        if (m_selectedCircles.size() == 2 &&
+            m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
+            m_selectedFineCircles.isEmpty() && m_selectedLineSegments.isEmpty()) {
+
+            auto resolveCircle = [&](const CircleObject& circle, QPointF& center, double& radius) -> bool {
+                if (circle.isCompleted && circle.radius > 0) {
+                    center = circle.center;
+                    radius = circle.radius;
+                    return true;
+                }
+                if (circle.points.size() >= 3) {
+                    return calculateCircleFromThreePoints(circle.points, center, radius);
+                }
+                return false;
+            };
+
+            auto it = m_selectedCircles.begin();
+            int firstIndex = *it;
+            ++it;
+            int secondIndex = *it;
+
+            if (firstIndex >= 0 && firstIndex < m_circles.size() &&
+                secondIndex >= 0 && secondIndex < m_circles.size()) {
+
+                const CircleObject& c1 = m_circles[firstIndex];
+                const CircleObject& c2 = m_circles[secondIndex];
+
+                QPointF center1, center2;
+                double radius1 = 0.0, radius2 = 0.0;
+
+                if (resolveCircle(c1, center1, radius1) && resolveCircle(c2, center2, radius2)) {
+                    double dx = center2.x() - center1.x();
+                    double dy = center2.y() - center1.y();
+                    double centerDistance = std::sqrt(dx * dx + dy * dy);
+
+                    // 绘制连线并标注
+                    LineSegmentObject segment;
+                    segment.points.append(center1);
+                    segment.points.append(center2);
+                    segment.isCompleted = true;
+                    segment.color = Qt::red;
+                    segment.thickness = 2.0;
+                    segment.isDashed = true;
+                    segment.isVisible = true;
+                    segment.length = centerDistance;
+                    segment.label = QString("圆心距: %1").arg(formatDistance(centerDistance));
+
+                    m_lineSegments.append(segment);
+
+                    DrawingAction action;
+                    action.type = DrawingAction::AddLineSegment;
+                    action.source = DrawingAction::ManualDrawing;
+                    action.index = m_lineSegments.size() - 1;
+                    commitDrawingAction(action);
+
+                    QString result = QString("圆与圆圆心距离: %1").arg(formatDistance(centerDistance));
+                    emit measurementCompleted(m_viewName, result);
+
+                    clearSelection();
+                    emit drawingDataChanged(m_viewName);
+                    update();
                 }
             }
         }
