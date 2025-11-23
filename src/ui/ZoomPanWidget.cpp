@@ -15,8 +15,8 @@ ZoomPanWidget::ZoomPanWidget(QWidget *parent)
     , m_videoWidget(nullptr)
     , m_paintingOverlay(nullptr)
     , m_zoomFactor(1.0)
-    , m_minZoomFactor(0.1)
-    , m_maxZoomFactor(5.0)
+    , m_minZoomFactor(1.0)
+    , m_maxZoomFactor(10.0)
     , m_zoomStep(0.1)
     , m_lastZoomCenter(0, 0)
     , m_panOffsetX(0.0)
@@ -110,6 +110,12 @@ void ZoomPanWidget::setZoomFactor(double factor)
     double newFactor = qBound(m_minZoomFactor, factor, m_maxZoomFactor);
     if (qAbs(newFactor - m_zoomFactor) > 0.001) {
         m_zoomFactor = newFactor;
+
+        // 回到 1.0 缩放时同步居中
+        if (qAbs(m_zoomFactor - 1.0) < 0.001) {
+            m_panOffsetX = 0.0;
+            m_panOffsetY = 0.0;
+        }
         
         // 重新计算最大平移偏移
         calculateMaxPanOffset();
@@ -150,7 +156,7 @@ void ZoomPanWidget::resetView()
 
 void ZoomPanWidget::setZoomRange(double minZoom, double maxZoom)
 {
-    m_minZoomFactor = qMax(0.01, minZoom);
+    m_minZoomFactor = qMax(1.0, minZoom);
     m_maxZoomFactor = qMax(m_minZoomFactor, maxZoom);
 
     // 确保当前缩放因子在范围内
@@ -440,10 +446,8 @@ void ZoomPanWidget::resizeEvent(QResizeEvent* event)
         m_paintingOverlay->setGeometry(rect());
     }
 
-    // 重新计算最大平移偏移
+    // 重新计算最大平移偏移并约束
     calculateMaxPanOffset();
-
-    // 约束平移偏移
     constrainPanOffset();
 
     // 更新变换
@@ -576,6 +580,18 @@ void ZoomPanWidget::performZoom(double newZoomFactor, const QPoint& zoomCenter)
 
     // 重新计算最大平移偏移
     calculateMaxPanOffset();
+
+    // 缩放回 1.0 时直接居中并退出
+    if (qAbs(m_zoomFactor - 1.0) < 0.001) {
+        m_panOffsetX = 0.0;
+        m_panOffsetY = 0.0;
+        constrainPanOffset();
+        updateVideoWidgetTransform();
+        updatePaintingOverlayTransform();
+        emit viewTransformChanged(m_zoomFactor, getPanOffset());
+        return;
+    }
+
 
     // 计算缩放后的图像坐标（应该保持不变）
     QPointF imageCoordAfter = windowToImageCoordinates(zoomCenter);
