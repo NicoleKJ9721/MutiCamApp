@@ -81,8 +81,6 @@ set(srcs
     src/ui/TemplateSelectionDialog.h
     src/ui/CalibrationDialog.cpp
     src/ui/CalibrationDialog.h
-    src/ui/CheckerboardCalibrationDialog.cpp
-    src/ui/CheckerboardCalibrationDialog.h
     src/ui/MutiCamApp.ui
     
     # 工具类文件

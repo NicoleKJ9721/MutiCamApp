@@ -1026,7 +1026,7 @@ void MutiCamApp::onMeasurementResult(const QString& viewName, const QString& res
         // 长文本或错误信息使用弹窗显示
         QString title = "测量结果";
         if (result.contains("检测失败")) {
-            title = "棋盘格检测失败";
+            title = "检测失败";
         } else if (result.contains("标定失败")) {
             title = "标定失败";
         } else if (result.contains("标定完成")) {
@@ -1037,7 +1037,7 @@ void MutiCamApp::onMeasurementResult(const QString& viewName, const QString& res
 
         // 状态栏显示简短信息
         if (result.contains("检测失败")) {
-            statusBar()->showMessage(QString("视图 %1: 棋盘格检测失败").arg(viewName), 5000);
+            statusBar()->showMessage(QString("视图 %1: 检测失败").arg(viewName), 5000);
         } else if (result.contains("标定失败")) {
             statusBar()->showMessage(QString("视图 %1: 标定失败").arg(viewName), 5000);
         } else {
@@ -3376,9 +3376,6 @@ void MutiCamApp::startPixelCalibration()
             case CalibrationDialog::MultiPoint:
                 startMultiPointCalibration(activeOverlay);
                 break;
-            case CalibrationDialog::Checkerboard:
-                startCheckerboardCalibration(activeOverlay);
-                break;
             case CalibrationDialog::Circle:
                 startCircleCalibration(activeOverlay);
                 break;
@@ -3416,9 +3413,6 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
                 break;
             case CalibrationDialog::MultiPoint:
                 startMultiPointCalibration(targetOverlay);
-                break;
-            case CalibrationDialog::Checkerboard:
-                startCheckerboardCalibration(targetOverlay);
                 break;
             case CalibrationDialog::Circle:
                 startCircleCalibration(targetOverlay);
@@ -3526,47 +3520,6 @@ void MutiCamApp::startMultiPointCalibration(PaintingOverlay* overlay)
     qDebug() << QString("启动视图 %1 的多点标定").arg(viewName);
 }
 
-void MutiCamApp::startCheckerboardCalibration(PaintingOverlay* overlay)
-{
-    if (!overlay) {
-        return;
-    }
-
-    QString viewName = overlay->getViewName();
-
-    // 检查是否已经标定
-    if (overlay->isCalibrated()) {
-        int ret = QMessageBox::question(this, "棋盘格标定",
-                                       QString("视图 %1 已经完成标定。\n"
-                                              "当前比例: %2 %3/pixel\n\n"
-                                              "是否要重新标定？")
-                                       .arg(viewName)
-                                       .arg(overlay->getPixelScale(), 0, 'f', 6)
-                                       .arg(overlay->getUnit()),
-                                       QMessageBox::Yes | QMessageBox::No,
-                                       QMessageBox::No);
-        if (ret != QMessageBox::Yes) {
-            return;
-        }
-    }
-
-    // 弹出棋盘格参数输入对话框
-    CheckerboardCalibrationDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        CheckerboardCalibrationDialog::CheckerboardParams params = dialog.getParams();
-
-        // 启动棋盘格标定
-        overlay->startCheckerboardCalibration(params.cornersX, params.cornersY,
-                                             params.squareSize, params.unit);
-
-        // 更新状态栏提示
-        statusBar()->showMessage(QString("视图 %1 正在进行棋盘格检测...").arg(viewName), 5000);
-
-        qDebug() << QString("启动视图 %1 的棋盘格标定: %2x%3, 方格尺寸 %4 %5")
-                    .arg(viewName).arg(params.cornersX).arg(params.cornersY)
-                    .arg(params.squareSize).arg(params.unit);
-    }
-}
 
 void MutiCamApp::loadCalibrationSettings()
 {

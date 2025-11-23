@@ -16,7 +16,7 @@
  * 提供三种标定方式供用户选择：
  * 1. 单点标定 - 快速标定，精度一般
  * 2. 多点标定 - 高精度测量，需要多个已知距离
- * 3. 棋盘格标定 - 自动标定，需要标准棋盘格图案
+ * 3. 圆标定   - 基于自动检测圆形的标定方式
  */
 class CalibrationDialog : public QDialog
 {
@@ -29,7 +29,6 @@ public:
     enum CalibrationMethod {
         SinglePoint,    // 单点标定
         MultiPoint,     // 多点标定
-        Checkerboard,   // 棋盘格标定
         Circle          // 圆标定（基于检测圆）
     };
 
@@ -77,7 +76,6 @@ private:
 private:
     QRadioButton* m_singlePointRadio;    // 单点标定选项
     QRadioButton* m_multiPointRadio;     // 多点标定选项
-    QRadioButton* m_checkerboardRadio;   // 棋盘格标定选项
     QRadioButton* m_circleRadio;         // 圆标定选项
     QButtonGroup* m_methodButtonGroup;   // 方式按钮组
     

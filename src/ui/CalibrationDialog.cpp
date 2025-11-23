@@ -5,7 +5,6 @@ CalibrationDialog::CalibrationDialog(QWidget *parent)
     : QDialog(parent)
     , m_singlePointRadio(nullptr)
     , m_multiPointRadio(nullptr)
-    , m_checkerboardRadio(nullptr)
     , m_circleRadio(nullptr)
     , m_methodButtonGroup(nullptr)
     , m_okButton(nullptr)
@@ -82,19 +81,13 @@ QGroupBox* CalibrationDialog::createMethodGroup()
     multiPointDesc->setStyleSheet("color: #666; font-size: 10px;");
     m_methodButtonGroup->addButton(m_multiPointRadio, static_cast<int>(MultiPoint));
     
-    // 棋盘格标定选项
-    m_checkerboardRadio = new QRadioButton("棋盘格标定", this);
-    QLabel* checkerboardDesc = new QLabel("  适用于自动标定，需要标准棋盘格图案", this);
-    checkerboardDesc->setStyleSheet("color: #666; font-size: 10px;");
-    m_methodButtonGroup->addButton(m_checkerboardRadio, static_cast<int>(Checkerboard));
-
     // 圆标定选项
     m_circleRadio = new QRadioButton("圆标定", this);
-    QLabel* circleDesc = new QLabel("  适用于使用已知直径的标准圆，通过 ROI 自动检测圆进行标定", this);
+    QLabel* circleDesc = new QLabel("  适用于使用已知半径的标准圆，通过 ROI 自动检测圆进行标定", this);
     circleDesc->setStyleSheet("color: #666; font-size: 10px;");
     m_methodButtonGroup->addButton(m_circleRadio, static_cast<int>(Circle));
     
-    // 添加到布局（圆标定放在第一个）
+    // 添加到布局（圆标定放在第一项）
     layout->addWidget(m_circleRadio);
     layout->addWidget(circleDesc);
     layout->addSpacing(5);
@@ -106,9 +99,6 @@ QGroupBox* CalibrationDialog::createMethodGroup()
     layout->addWidget(m_multiPointRadio);
     layout->addWidget(multiPointDesc);
     layout->addSpacing(5);
-    
-    layout->addWidget(m_checkerboardRadio);
-    layout->addWidget(checkerboardDesc);
     
     return groupBox;
 }
