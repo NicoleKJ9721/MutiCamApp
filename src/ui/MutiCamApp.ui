@@ -589,21 +589,30 @@
                        <property name="contextMenuPolicy">
                         <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
                        </property>
-                       <property name="styleSheet">
+                        <property name="styleSheet">
                         <string notr="true">QPushButton {
-    background-color: green;
-    color: white;
-    border-radius: 5px;
+    background-color: #14723A;      /* 默认更深绿 */
+    color: #FFFFFF;
+    border: 1px solid #0F5C2F;
+    border-radius: 6px;
     margin: 2px;
+    padding: 6px 12px;
 }
 QPushButton:hover {
-    background-color: forestgreen; /* 比 green 稍深，但比 darkgreen 亮 */
+    background-color: #0F5C2F;      /* 悬停明显变暗 */
+    border-color: #0B4724;
 }
 QPushButton:pressed {
-    background-color: darkgreen; /* 保持最深，与 hover 区分开 */
+    background-color: #0B4724;      /* 按下最暗 */
+    border-color: #07321A;
+}
+QPushButton:disabled {
+    background-color: #93B39F;      /* 禁用更灰更淡 */
+    border-color: #7A9886;
+    color: #EEF3EF;
 }
 </string>
-                       </property>
+                        </property>
                        <property name="text">
                         <string>开始测量</string>
                        </property>
@@ -629,21 +638,30 @@ QPushButton:pressed {
                          <bold>true</bold>
                         </font>
                        </property>
-                       <property name="styleSheet">
+                        <property name="styleSheet">
                         <string notr="true">QPushButton {
-    background-color: red;
-    color: white;
-    border-radius: 5px;
+    background-color: #C63B3B;      /* 默认更深红 */
+    color: #FFFFFF;
+    border: 1px solid #A02E2E;
+    border-radius: 6px;
     margin: 2px;
+    padding: 6px 12px;
 }
 QPushButton:hover {
-    background-color: crimson; /* 悬停时略微变暗，比 red 深，比 darkred 浅 */
+    background-color: #A02E2E;      /* 悬停更暗 */
+    border-color: #7B2222;
 }
 QPushButton:pressed {
-    background-color: darkred; /* 按下时变得更暗，与 crimson 明显区分 */
+    background-color: #7B2222;      /* 按下最暗 */
+    border-color: #571818;
+}
+QPushButton:disabled {
+    background-color: #D6A6A6;      /* 禁用更灰更淡 */
+    border-color: #C08C8C;
+    color: #FFF8F8;
 }
 </string>
-                       </property>
+                        </property>
                        <property name="text">
                         <string>停止测量</string>
                        </property>
