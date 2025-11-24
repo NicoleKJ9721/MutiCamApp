@@ -3195,6 +3195,11 @@ cv::Mat MutiCamApp::renderVisualizedImage(const cv::Mat& originalFrame, Painting
         // 创建一个QImage用于绘制
         qDebug() << "开始创建QImage，通道数：" << visualFrame.channels();
         QImage qimg;
+        if (visualFrame.channels() == 1) {
+            qDebug() << "原始图像为灰度，将灰度扩展为三通道以保留彩色叠加";
+            cv::cvtColor(visualFrame, visualFrame, cv::COLOR_GRAY2BGR);
+        }
+
         if (visualFrame.channels() == 3) {
             qDebug() << "处理3通道图像（BGR转RGB）";
             // BGR转RGB
