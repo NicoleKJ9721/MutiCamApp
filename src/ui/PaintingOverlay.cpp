@@ -1378,9 +1378,8 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     QPointF extendedStart, extendedEnd;
     calculateExtendedLine(start, end, extendedStart, extendedEnd);
     
-    // 使用预创建的画笔或根据需要创建特定颜色的画笔
-    int desiredThickness = qMax(2, static_cast<int>(line.thickness * 2.0 * ctx.scale));
-
+    // 使用图元自身的厚度作为屏幕像素宽度
+    int desiredThickness = qMax(1, line.thickness);
     QPen linePen = createPen(line.color, desiredThickness, ctx.scale);
     linePen.setCapStyle(Qt::RoundCap);
 
@@ -2055,8 +2054,8 @@ void PaintingOverlay::drawSingleLineSegmentAngle(QPainter& painter, const LineSe
     QPointF line2Start = angleObj.points[2];
     QPointF line2End = angleObj.points[3];
 
-    // 设置线段样式（红色，与Python版本一致）
-    QPen linePen(angleObj.color, angleObj.thickness * ctx.scale);
+    // 设置线段样式（厚度按图元自身的 thickness 解释为屏幕像素）
+    QPen linePen = createPen(angleObj.color, angleObj.thickness, ctx.scale);
     painter.setPen(linePen);
     painter.drawLine(line1Start, line1End);
     painter.drawLine(line2Start, line2End);
@@ -3180,7 +3179,7 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         LineSegmentObject newLineSegment;
         newLineSegment.points = m_currentPoints;
         newLineSegment.color = Qt::red;
-        newLineSegment.thickness = 1.0;
+        newLineSegment.thickness = 2.0;
         newLineSegment.isDashed = false;
         newLineSegment.isCompleted = true;
         newLineSegment.showLength = true;
@@ -3249,8 +3248,8 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     const QPointF& start = lineSegment.points[0];
     const QPointF& end = lineSegment.points[1];
     
-    // 创建线段画笔
-    int desiredThickness = qMax(2, static_cast<int>(lineSegment.thickness * 2.0 * ctx.scale));
+    // 创建线段画笔（厚度按图元自身的 thickness 解释为屏幕像素）
+    int desiredThickness = qMax(1, static_cast<int>(lineSegment.thickness));
     QPen linePen = createPen(lineSegment.color, desiredThickness, ctx.scale);
     linePen.setCapStyle(Qt::RoundCap);
     
@@ -5215,7 +5214,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         m_currentROIDetection.detectionType = m_currentDrawingTool;
         m_currentROIDetection.label = QString("ROI_%1").arg(m_rois.size() + 1);
         m_currentROIDetection.color = Qt::red;        // 使用红色更明显
-        m_currentROIDetection.thickness = 3;          // 更粗的线条
+        m_currentROIDetection.thickness = 2;          // 统一线宽为2像素
         m_hasCurrentROIDetection = true;
 
         qDebug() << "开始绘制ROI，起点：" << pos;
@@ -5613,7 +5612,7 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     detectedLineObj.points.append(QPointF(bestLine.end.x(), bestLine.end.y()));
     detectedLineObj.isCompleted = true;
     detectedLineObj.color = Qt::magenta; // 紫色表示自动检测结果
-    detectedLineObj.thickness = 3;
+    detectedLineObj.thickness = 2;
     QString lengthStr = formatDistance(bestLine.length);
     QString startCoordStr = formatCoordinate(QPointF(bestLine.start.x(), bestLine.start.y()));
     QString endCoordStr = formatCoordinate(QPointF(bestLine.end.x(), bestLine.end.y()));
@@ -5731,7 +5730,7 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     detectedCircleObj.points.append(QPointF(bestCircle.center.x() + bestCircle.radius, bestCircle.center.y()));
     detectedCircleObj.isCompleted = true;
     detectedCircleObj.color = Qt::magenta; // 紫色表示自动检测结果
-    detectedCircleObj.thickness = 3;
+    detectedCircleObj.thickness = 2;
     detectedCircleObj.center = QPointF(bestCircle.center.x(), bestCircle.center.y());
     detectedCircleObj.radius = bestCircle.radius;
 
@@ -7007,7 +7006,7 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     // 绘制确认按钮（绿色√）
     QRectF confirmRect(confirmButtonPos, QSizeF(buttonSize, buttonSize));
     painter.save();
-    painter.setPen(QPen(Qt::darkGreen, 2));
+    painter.setPen(createPen(Qt::darkGreen, 2, ctx.scale));
     
     // 根据悬浮状态选择确认按钮颜色（悬浮时变亮）
     QColor confirmBgColor = m_isHoveringConfirmButton ? QColor(180, 255, 180, 240) : QColor(144, 238, 144, 200);
@@ -7016,8 +7015,7 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
 
     // 绘制√符号（根据按钮大小自适应）
     double symbolSize = buttonSize * 0.3; // 符号大小为按钮的30%
-    double lineWidth = qMax(2.0, buttonSize * 0.08); // 线宽自适应，最小2像素
-    painter.setPen(QPen(Qt::darkGreen, lineWidth));
+    painter.setPen(createPen(Qt::darkGreen, 2, ctx.scale));
     QPointF checkStart = confirmRect.center() + QPointF(-symbolSize, 0);
     QPointF checkMid = confirmRect.center() + QPointF(-symbolSize * 0.25, symbolSize * 0.75);
     QPointF checkEnd = confirmRect.center() + QPointF(symbolSize, -symbolSize * 0.75);
@@ -7028,7 +7026,7 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
     // 绘制取消按钮（红色×）
     QRectF cancelRect(cancelButtonPos, QSizeF(buttonSize, buttonSize));
     painter.save();
-    painter.setPen(QPen(Qt::darkRed, 2));
+    painter.setPen(createPen(Qt::darkRed, 2, ctx.scale));
     
     // 根据悬浮状态选择取消按钮颜色（悬浮时变亮）
     QColor cancelBgColor = m_isHoveringCancelButton ? QColor(255, 220, 220, 240) : QColor(255, 182, 193, 200);
@@ -7037,8 +7035,7 @@ void PaintingOverlay::drawROIButtons(QPainter& painter, const DrawingContext& ct
 
     // 绘制×符号（根据按钮大小自适应）
     double crossSymbolSize = buttonSize * 0.3; // 符号大小为按钮的30%
-    double crossLineWidth = qMax(2.0, buttonSize * 0.08); // 线宽自适应，最小2像素
-    painter.setPen(QPen(Qt::darkRed, crossLineWidth));
+    painter.setPen(createPen(Qt::darkRed, 2, ctx.scale));
     QPointF crossTopLeft = cancelRect.center() + QPointF(-crossSymbolSize, -crossSymbolSize);
     QPointF crossBottomRight = cancelRect.center() + QPointF(crossSymbolSize, crossSymbolSize);
     QPointF crossTopRight = cancelRect.center() + QPointF(crossSymbolSize, -crossSymbolSize);
