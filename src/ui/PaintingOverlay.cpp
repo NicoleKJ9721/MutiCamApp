@@ -2548,8 +2548,12 @@ void PaintingOverlay::drawSingleObjectByAction(QPainter& painter, const DrawingA
 
 QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bool dashed) const
 {
+    Q_UNUSED(scale);
+
     QPen pen(color);
-    pen.setWidth(qMax(1, static_cast<int>(width / scale)));
+    // 使用 cosmetic 模式，使线宽始终以屏幕像素为单位，不随缩放变化
+    pen.setWidth(qMax(1, width));
+    pen.setCosmetic(true);
     if (dashed) {
         pen.setStyle(Qt::DashLine);
     }
