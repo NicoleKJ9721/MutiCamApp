@@ -1482,7 +1482,7 @@ void MutiCamApp::onTabChangedForMatching(int index)
         m_frontPaintingOverlay2->stopTemplateMatching();
     }
 
-    qDebug() << "已停止所有视图的模板匹配，当前选项卡索引:" << index;
+    // qDebug() << "已停止所有视图的模板匹配，当前选项卡索引:" << index;
 }
 
 void MutiCamApp::onViewDoubleClicked(const QString& viewName)
@@ -1490,24 +1490,15 @@ void MutiCamApp::onViewDoubleClicked(const QString& viewName)
     // 根据视图名称跳转到对应的选项卡
     if (viewName == "Vertical") {
         ui->tabWidget->setCurrentIndex(1); // 垂直视图选项卡
-        qDebug() << "双击垂直视图，跳转到选项卡1";
+        // qDebug() << "双击垂直视图，跳转到选项卡1";
     } else if (viewName == "Left") {
         ui->tabWidget->setCurrentIndex(2); // 左侧视图选项卡
-        qDebug() << "双击左侧视图，跳转到选项卡2";
+        // qDebug() << "双击左侧视图，跳转到选项卡2";
     } else if (viewName == "Front") {
         ui->tabWidget->setCurrentIndex(3); // 对向视图选项卡
-        qDebug() << "双击对向视图，跳转到选项卡3";
+        // qDebug() << "双击对向视图，跳转到选项卡3";
     }
 }
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// renderDrawingsOnFrame方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawParallelLinesOnImage方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawTwoLinesOnImage方法已迁移到VideoDisplayWidget
 
 // ZoomPanWidget 相关函数实现
 void MutiCamApp::initializeZoomPanWidgets()

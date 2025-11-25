@@ -76,8 +76,6 @@ private:
     // 私有方法
     void setupUI();
     void setupValidation();
-    void loadDefaultValues();
-    void saveCurrentValuesAsDefaults();
     void setInputError(QWidget* widget, bool hasError);
     
     // 配置相关私有方法

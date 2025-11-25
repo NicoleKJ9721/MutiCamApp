@@ -1295,8 +1295,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
     
 
     // 预计算常量（匹配Python版本）
-    const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
-    const double innerRadius = 12 * heightScale;
+    const double innerRadius = 2.0 / m_scaleFactor;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     
     for (int i = 0; i < m_points.size(); ++i) {
@@ -1325,8 +1324,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
 void PaintingOverlay::drawSinglePoint(QPainter& painter, const QPointF& point, int index, const DrawingContext& ctx) const
 {
     // 预计算常量（匹配Python版本）
-    const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
-    const double innerRadius = 12 * heightScale;
+    const double innerRadius = 2.0 / m_scaleFactor;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
 
     // 绘制点（绿色实心圆）- 使用预创建的画刷
@@ -1396,8 +1394,8 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     }
     
     // Draw user-clicked original endpoints (match Python style)
-    // 绘制起始点标记（动态缩放的小圆点）
-    double pointRadius = qMax(2.0, 3.0 * ctx.scale);
+    // 绘制起始点标记（固定屏幕像素的小圆点）
+    double pointRadius = 2.0 / m_scaleFactor;
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(line.color));
     painter.drawEllipse(start, pointRadius, pointRadius);
@@ -1513,9 +1511,8 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
         
-        // 动态计算圆心标记尺寸（与画点功能相同）
-        const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
-        const double centerMarkRadius = 12 * heightScale;
+        // 圆心标记半径固定为2个屏幕像素
+        const double centerMarkRadius = 2.0 / m_scaleFactor;
 
         // 绘制圆心 - 红色实心圆
         painter.setPen(Qt::NoPen);
@@ -1614,10 +1611,8 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
 
-        // 绘制圆心标记（使用红色，与简单圆保持一致）
-        // 动态计算圆心标记尺寸（与简单圆功能相同）
-        const double heightScale = (std::max)(1.0, (std::min)(ctx.scale, 4.0));
-        const double centerMarkRadius = 12 * heightScale;
+        // 绘制圆心标记（使用红色，与简单圆保持一致），半径固定为2个屏幕像素
+        const double centerMarkRadius = 2.0 / m_scaleFactor;
         painter.setPen(Qt::NoPen);
         painter.setBrush(ctx.redBrush);
         painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
@@ -1860,7 +1855,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     int bgBorderWidth = 1;
     double desiredThickness = twoLines.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
-    double intersectionRadius = qMax(16.0, 40.0 * ctx.scale);
+    double intersectionRadius = 2.0 / m_scaleFactor;
     int intersectionPenWidth = qMax(2, static_cast<int>(3.0 * ctx.scale));
     double bisectorLength = qMax(30.0, 50.0 * ctx.scale);
     int bisectorPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
@@ -2043,7 +2038,7 @@ void PaintingOverlay::drawSingleLineSegmentAngle(QPainter& painter, const LineSe
     painter.setFont(ctx.font);
 
     // 计算动态尺寸参数
-    double intersectionRadius = qMax(6.0, 8.0 * ctx.scale);  // 交点圆点半径
+    double intersectionRadius = 2.0 / m_scaleFactor;  // 交点圆点半径（固定为2个屏幕像素）
     double textOffset = qMax(8.0, 10.0 * ctx.scale);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);
     int bgBorderWidth = 1;
@@ -2132,7 +2127,7 @@ void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext
                     // 绘制起点
                     painter.setPen(Qt::NoPen);
                     painter.setBrush(QBrush(Qt::red));
-                    double pointRadius = 3.0 / ctx.scale;
+                    double pointRadius = 2.0 / m_scaleFactor;
                     painter.drawEllipse(m_currentPoints[0], pointRadius, pointRadius);
 
                     // 如果有有效的鼠标位置，绘制预览线
@@ -2394,7 +2389,7 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             if (angleObj.hasIntersection) {
                 painter.setPen(Qt::NoPen);
                 painter.setBrush(QBrush(Qt::yellow));  // 黄色高亮交点
-                double highlightRadius = 8.0;
+                double highlightRadius = 2.0 / m_scaleFactor;
                 painter.drawEllipse(angleObj.intersection, highlightRadius, highlightRadius);
             }
         }
@@ -3265,8 +3260,8 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     painter.setPen(linePen);
     painter.drawLine(start, end);
     
-    // 绘制端点标记
-    double pointRadius = qMax(2.0, 3.0 * ctx.scale);
+    // 绘制端点标记（固定屏幕像素的小圆点）
+    double pointRadius = 2.0 / m_scaleFactor;
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(lineSegment.color));
     painter.drawEllipse(start, pointRadius, pointRadius);

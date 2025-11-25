@@ -183,13 +183,6 @@ void TemplateCreationDialog::setupValidation() {
     // Halcon参数变更时不需要特别的验证逻辑，都是下拉框选择
 }
 
-void TemplateCreationDialog::loadDefaultValues() {
-    // 已弃用 - 现在使用loadConfigFromFile()
-}
-
-void TemplateCreationDialog::saveCurrentValuesAsDefaults() {
-    // 已弃用 - 现在使用saveConfigToFile()
-}
 
 void TemplateCreationDialog::accept() {
     // 保存当前参数到配置文件

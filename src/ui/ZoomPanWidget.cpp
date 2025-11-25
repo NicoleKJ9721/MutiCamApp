@@ -303,7 +303,7 @@ void ZoomPanWidget::keyPressEvent(QKeyEvent* event)
         if (m_paintingOverlay) {
             m_paintingOverlay->setCursor(Qt::OpenHandCursor);
         }
-        qDebug() << "ZoomPanWidget: 空格键按下，设置光标为OpenHandCursor";
+        // qDebug() << "ZoomPanWidget: 空格键按下，设置光标为OpenHandCursor";
         event->accept();
         return;
     }
@@ -359,7 +359,7 @@ void ZoomPanWidget::keyReleaseEvent(QKeyEvent* event)
                 m_paintingOverlay->setCursor(Qt::ArrowCursor);
             }
         }
-        qDebug() << "ZoomPanWidget: 空格键释放，m_spacePressed=" << m_spacePressed;
+        // qDebug() << "ZoomPanWidget: 空格键释放，m_spacePressed=" << m_spacePressed;
         event->accept();
         return;
     }
@@ -394,7 +394,7 @@ void ZoomPanWidget::mousePressEvent(QMouseEvent* event)
         if (m_paintingOverlay) {
             m_paintingOverlay->setCursor(Qt::ClosedHandCursor);
         }
-        qDebug() << "ZoomPanWidget: 开始平移，设置光标为ClosedHandCursor";
+        // qDebug() << "ZoomPanWidget: 开始平移，设置光标为ClosedHandCursor";
         event->accept();
     } else {
         // 转发鼠标事件
