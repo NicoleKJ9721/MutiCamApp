@@ -492,28 +492,6 @@ void MutiCamApp::initializeCameraSystem()
     }
 }
 
-// calculateLineIntersection 方法已迁移到 VideoDisplayWidget
-
-// extendLineToImageBounds 方法已迁移到 VideoDisplayWidget
-
-// {{ AURA-X: Delete - drawDashedLine 方法已迁移到 VideoDisplayWidget. }}
-
-// 计算字体大小
-// calculateFontScale 方法已迁移到 VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawSingleTwoLines方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - calculateExtendedLine 方法已迁移到 VideoDisplayWidget. }}
-
-// drawTextWithBackground 方法已迁移到 VideoDisplayWidget
-
-// calculateTextBackgroundSize 方法已迁移到 VideoDisplayWidget
-
-// {{ AURA-X: Delete - drawSingleParallel 方法已迁移到 VideoDisplayWidget. }}
-
-
-// calculateFontScale 重载方法已迁移到 VideoDisplayWidget
 
 void MutiCamApp::connectSignalsAndSlots()
 {
@@ -1147,11 +1125,6 @@ QPixmap MutiCamApp::matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio)
     }
 }
 
-// 绘图功能槽函数已被通用方法替代，通过按钮映射系统调用
-
-// setDrawingMode和exitDrawingMode方法已移除 - 现在直接通过按钮槽函数调用VideoDisplayWidget的startDrawing方法
-
-// drawPointsOnImage 方法已迁移到 VideoDisplayWidget
 
 void MutiCamApp::installMouseEventFilters()
 {
@@ -1186,15 +1159,8 @@ void MutiCamApp::installMouseEventFilters()
 
 bool MutiCamApp::eventFilter(QObject* obj, QEvent* event)
 {
-    // {{ AURA-X: Delete - 事件处理已迁移到VideoDisplayWidget. Approval: 寸止(ID:cleanup). }}
-    // 所有绘图相关的事件处理已完全迁移到VideoDisplayWidget
-    // 这里只保留基本的事件过滤功能
-    
     return QMainWindow::eventFilter(obj, event);
 }
-
-// {{ AURA-X: Delete - 残留的标签点击处理方法. Approval: 寸止(ID:cleanup). }}
-// handleLabelClick方法已删除，现在直接使用VideoDisplayWidget
 
 QString MutiCamApp::getViewName(QLabel* label)
 {
@@ -1219,10 +1185,6 @@ QString MutiCamApp::getViewName(ZoomPanWidget* widget)
     }
     return "";
 }
-
-// handleZoomPanWidgetClick方法已迁移到ZoomPanWidget中
-
-// handleZoomPanWidgetMouseMove方法已迁移到ZoomPanWidget中
 
 QPointF MutiCamApp::windowToImageCoordinates(ZoomPanWidget* widget, const QPoint& windowPos)
 {
@@ -1259,14 +1221,10 @@ void MutiCamApp::updateViewDisplay(const QString& viewName)
         return;
     }
     
-    // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-    // displayImageWithHardwareAcceleration方法已迁移到ZoomPanWidget
     // 使用ZoomPanWidget更新主界面视图
     updateZoomPanWidget(viewName, *currentFrame);
     
     // 强制更新选项卡视图，确保绘画数据持久显示
-    // {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-    // renderDrawingsOnFrame方法已迁移到VideoDisplayWidget
     cv::Mat renderedFrame = *currentFrame; // 直接使用原始帧
     
     // 将cv::Mat转换为QPixmap并设置到VideoDisplayWidget
@@ -1338,22 +1296,14 @@ QPointF MutiCamApp::windowToImageCoordinates(QLabel* label, const QPoint& window
     return QPointF(imageX, imageY);
 }
 
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// shouldUpdate方法已迁移到VideoDisplayWidget
 
 size_t MutiCamApp::calculatePointsHash(const QString& viewName)
 {
-    // {{ AURA-X: Delete - 绘图数据已迁移到VideoDisplayWidget. Approval: 寸止(ID:cleanup). }}
     // 绘图数据哈希计算已迁移到VideoDisplayWidget，这里返回固定值
     Q_UNUSED(viewName);
     return 0;
 }
 
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// getCachedFrame方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// cacheFrame方法已迁移到VideoDisplayWidget
 
 void MutiCamApp::invalidateCache(const QString& viewName)
 {
@@ -1369,59 +1319,6 @@ void MutiCamApp::invalidateCache(const QString& viewName)
         // 静默清理，避免频繁日志输出
     }
 }
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// hasDrawingData方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// displayFrameWithHighDPI方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// displayImageOnLabel方法已迁移到VideoDisplayWidget
-
-// 直线绘制槽函数已被通用方法替代
-
-// 直线绘制相关方法实现
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// handleLineDrawingClick方法已迁移到VideoDisplayWidget::handleLineDrawingClick
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawLinesOnImage方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawSingleLine、drawDashedLine、calculateLineAngle方法已迁移到VideoDisplayWidget
-
-// 圆形绘制槽函数已被通用方法替代
-
-// 平行线和两线测量槽函数已被通用方法替代
-
-// 线与线绘制相关方法实现
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// handleTwoLinesDrawingClick方法已迁移到VideoDisplayWidget::handleTwoLinesDrawingClick
-
-// 平行线绘制相关方法实现
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// handleParallelDrawingClick方法已迁移到VideoDisplayWidget::handleParallelDrawingClick
-
-// 圆形绘制相关方法实现
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// handleCircleDrawingClick方法已迁移到VideoDisplayWidget::handleCircleDrawingClick
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawCirclesOnImage、drawSingleCircle方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// calculateCircleFromThreePoints方法已迁移到VideoDisplayWidget
-
-// 精细圆绘制相关方法实现
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// handleFineCircleDrawingClick方法已迁移到VideoDisplayWidget::handleFineCircleDrawingClick
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// drawFineCirclesOnImage、drawSingleFineCircle方法已迁移到VideoDisplayWidget
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// calculateCircleFromFivePoints方法已迁移到VideoDisplayWidget
 
 void MutiCamApp::onTabChanged(int index)
 {
@@ -3126,11 +3023,6 @@ void MutiCamApp::initializeDetectionParameters()
 
     qDebug() << "自动检测参数默认值已设置";
 }
-
-// {{ AURA-X: Delete - 绘图功能已迁移到VideoDisplayWidget. Approval: 寸止(ID:migration_cleanup). }}
-// displayImageWithHardwareAcceleration方法已迁移到VideoDisplayWidget
-
-// 类型转换函数已移除，VideoDisplayWidget现在使用自己的数据类型
 
 QString MutiCamApp::createSaveDirectory(const QString& viewName)
 {

@@ -1406,8 +1406,8 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     // 格式化角度文本（包含度数符号）
     QString angleText = QString::asprintf("%.1f°", angle);
     
-    // 动态计算文本布局参数
-    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    // 动态计算文本布局参数（与缩放无关，只与基础字号相关）
+    double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
@@ -1441,7 +1441,7 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
     double pointOuterRadius = qMax(4.0, 8.0 * ctx.scale);
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
-    double textOffset = qMax(10.0, 15.0 * ctx.scale);
+    double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
@@ -1563,7 +1563,7 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
     // 计算动态尺寸参数
     double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
-    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     
@@ -1652,7 +1652,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
     double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
     double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
     int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
-    double textOffset = qMax(10.0, 15.0 * ctx.scale);
+    double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     double desiredThickness = parallel.thickness * 2.0 * ctx.scale;
@@ -1990,8 +1990,8 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         QString angleText = QString::asprintf("%.1f°", twoLines.angle);
         QString coordText = formatCoordinate(twoLines.intersection);
         
-        // 动态计算文本布局参数，直接使用期望的屏幕像素值
-        double textOffset = qMax(8.0, 10.0 * ctx.scale);
+        // 动态计算文本布局参数（与缩放无关，只与基础字号相关）
+        double textOffset = qMax(8.0, ctx.fontSize * 0.4);
         double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
         int bgBorderWidth = 1;
         
@@ -2039,7 +2039,7 @@ void PaintingOverlay::drawSingleLineSegmentAngle(QPainter& painter, const LineSe
 
     // 计算动态尺寸参数
     double intersectionRadius = 2.0 / m_scaleFactor;  // 交点圆点半径（固定为2个屏幕像素）
-    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);
     int bgBorderWidth = 1;
 
@@ -2558,30 +2558,30 @@ QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bo
 QFont PaintingOverlay::createFont(int targetScreenSize, double scale) const
 {
     QFont font;
-    // {{ AURA-X: Modify - 基于图像分辨率的字体大小，不受显示缩放影响. Approval: 寸止(ID:font_size_fix). }}
-    // 直接使用目标大小，不进行缩放补偿，因为字体大小已经基于图像分辨率计算
-    font.setPointSizeF(qMax(8.0, static_cast<double>(targetScreenSize)));
+    // 基于图像分辨率的目标字号，同时对当前缩放做 1/scale 补偿，
+    // 这样在视图放大/缩小时，屏幕上的文字高度基本保持不变。
+    double effectiveScale = (scale > 0.0) ? scale : 1.0;
+    double pointSize = qMax(6.0, static_cast<double>(targetScreenSize) / effectiveScale);
+    font.setPointSizeF(pointSize);
     font.setBold(true);
     return font;
 }
 
 double PaintingOverlay::calculateFontSize() const
 {
-    // {{ AURA-X: Modify - 基于图像分辨率计算字体大小，而不是显示缩放比例. Approval: 寸止(ID:font_size_fix). }}
-    if (m_imageSize.isEmpty()) {
-        return 8.0; // Default font size
+    // 按当前显示区域（控件高度）来适配字体大小，而不是按原始图像分辨率。
+    int widgetHeight = height();
+    if (widgetHeight <= 0) {
+        return 8.0; // 合理的默认字号（更小）
     }
 
-    // 基于图像实际分辨率计算字体大小，确保保存时文字大小合适
-    // 使用图像高度作为基准，2448x2048分辨率下字体大小约为30像素
-    double imageHeight = m_imageSize.height();
-    double baseFontSize = imageHeight / 66.67;  // 基础字体大小：图像高度的1.5%
+    // 以可见区域高度的约 1.9% 作为基础字号
+    // （在上一版基础上放大约 1.5 倍）：
+    // 400 像素高的视图下，大约是 7~8 像素。
+    double baseFontSize = (widgetHeight / 80.0) * 1.5;
 
-    // 限制字体大小范围，确保可读性
-    double fontSize = qMax(14.0, qMin(baseFontSize, 50.0));
-
-    qDebug() << "字体大小计算：图像尺寸" << m_imageSize << "，基础字体大小" << baseFontSize << "，最终字体大小" << fontSize;
-
+    // 限制字体大小范围，避免过小或过大
+    double fontSize = qBound(6.0, baseFontSize, 20.0);
     return fontSize;
 }
 
@@ -2595,23 +2595,22 @@ void PaintingOverlay::drawTextWithBackground(QPainter& painter,
                                             double borderWidth,
                                             const QPointF& offset) const
 {
-    // 1. 计算尺寸
     QFontMetrics fm(font);
     QRect textBoundingRect = fm.boundingRect(text);
 
-    // 2. 创建一个以(0,0)为左上角的、包含内边距的总内容框
+    // 创建一个以(0,0)为左上角的、包含内边距的总内容框
     QRectF contentRectWithPadding = QRectF(0, 0, textBoundingRect.width(), textBoundingRect.height())
                                      .adjusted(-padding, -padding, padding, padding);
 
-    // 3. 将内容框移动到最终位置
+    // 将内容框移动到最终位置（仍在当前世界坐标系下）
     contentRectWithPadding.moveTopLeft(anchorPoint + offset);
 
-    // 4. 绘制背景和边框
+    // 绘制背景和边框
     painter.setPen(createPen(textColor, borderWidth, m_scaleFactor)); // 使用文本颜色作为边框颜色
     painter.setBrush(QBrush(bgColor));
     painter.drawRect(contentRectWithPadding);
 
-    // 5. 在内容框内居中绘制文本
+    // 在内容框内居中绘制文本
     painter.setPen(createPen(textColor, 1, m_scaleFactor));
     painter.setFont(font);
     painter.drawText(contentRectWithPadding, Qt::AlignCenter, text);
@@ -2637,7 +2636,7 @@ void PaintingOverlay::drawTextInRect(QPainter& painter, const QRectF& rect, cons
     painter.setPen(createPen(textColor, borderWidth, m_scaleFactor)); // 使用文本颜色作为边框颜色
     painter.setBrush(QBrush(bgColor));
     painter.drawRect(rect);
-    
+
     // 在矩形内居中绘制文本
     painter.setPen(createPen(textColor, 1, m_scaleFactor));
     painter.setFont(font);
@@ -3279,8 +3278,8 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
             // 计算线段中点作为文本位置
             QPointF midPoint = (start + end) / 2.0;
             
-            // 动态计算文本布局参数
-            double textOffset = qMax(8.0, 10.0 * ctx.scale);
+            // 动态计算文本布局参数（与缩放无关）
+            double textOffset = qMax(8.0, ctx.fontSize * 0.4);
             double textPadding = qMax(4.0, ctx.fontSize * 0.5);
             int bgBorderWidth = 1;
             
@@ -3349,7 +3348,7 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     QPointF midPoint = (start + end) / 2.0;
 
     // 动态计算文本布局参数
-    double textOffset = qMax(8.0, 10.0 * ctx.scale);
+    double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
 
@@ -3476,6 +3475,11 @@ bool PaintingOverlay::needsDrawingContextUpdate() const
     
     // 检查控件尺寸是否变化
     if (m_lastContextWidgetSize != size()) {
+        return true;
+    }
+
+    // 缩放因子变化时也需要更新，以便字体大小按 1/scale 补偿
+    if (!qFuzzyCompare(m_cachedDrawingContext.scale, m_scaleFactor)) {
         return true;
     }
     

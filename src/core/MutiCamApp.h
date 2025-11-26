@@ -60,7 +60,6 @@ public:
     };
 
 public:
-    // 绘制数据结构已迁移到VideoDisplayWidget.h中
 
     MutiCamApp(QWidget *parent = nullptr);
     ~MutiCamApp();
@@ -446,9 +445,7 @@ private:
     
     // 测量状态
     bool m_isMeasuring;
-    
-    // 绘制功能已完全迁移到VideoDisplayWidget，不再需要绘制状态管理
-    
+
     // 当前帧存储
     cv::Mat m_currentFrameVertical;          ///< 垂直视图当前帧
     cv::Mat m_currentFrameLeft;              ///< 左视图当前帧
@@ -517,23 +514,12 @@ private:
      */
     void displayFrameWithHighDPI(QLabel* label, const cv::Mat& frame);
     
-    // 图像显示方法已迁移到 VideoDisplayWidget
-    // void displayImageOnLabel(QLabel* label, const cv::Mat& frame, const QString& viewName = QString());
-    
     /**
      * @brief 将OpenCV Mat转换为QPixmap
      * @param mat OpenCV图像
      * @return QPixmap图像
      */
     QPixmap matToQPixmap(const cv::Mat& mat, bool setDevicePixelRatio = true);
-    
-    // 绘制模式管理方法已移除，现在直接通过按钮槽函数调用VideoDisplayWidget的startDrawing方法
-    
-    // 所有绘图处理方法已迁移到 VideoDisplayWidget
-    
-    // 线与线按钮点击事件处理已被通用方法替代
-    
-    // 几何计算方法已迁移到 VideoDisplayWidget
     
     /**
      * @brief 安装鼠标事件过滤器
@@ -639,8 +625,6 @@ private:
       * @return 是否有绘制数据
       */
      bool hasDrawingData(const QString& viewName);
-     
-     // 文本绘制方法已迁移到 VideoDisplayWidget
      
      /**
       * @brief 初始化缩放平移显示控件
@@ -797,8 +781,6 @@ private:
 
      // UI尺寸双向绑定相关
      bool m_isUpdatingUISize;           ///< 正在更新UI尺寸标志，避免循环触发
-
-     // 硬件加速显示方法已迁移到VideoDisplayWidget
 
      // 物理按钮控制相关方法
      void initializeSerialController();

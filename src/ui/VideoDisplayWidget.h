@@ -17,7 +17,6 @@ class PaintingOverlay;
  * - 提供坐标转换辅助函数
  * - 与PaintingOverlay配合，烘焙静态绘图内容到背景缓存
  * 
- * 所有绘图逻辑已迁移到PaintingOverlay类中
  */
 
 class VideoDisplayWidget : public QLabel
