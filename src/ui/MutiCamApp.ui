@@ -4102,7 +4102,7 @@ QPushButton:disabled {
                   <string>使能</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -4185,7 +4185,7 @@ QPushButton:disabled {
                   <string>使能</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -4268,7 +4268,7 @@ QPushButton:disabled {
                   <string>使能</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
