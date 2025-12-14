@@ -4,6 +4,7 @@
 #include "../ui/ZoomPanWidget.h"
 #include "../controllers/AxisControllerEnums.h"
 #include "../utils/SerialPortDetector.h"
+#include "../ui/StageAssistedCalibrationDialog.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QPixmap>
@@ -779,6 +780,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingDataChanged,
@@ -793,6 +796,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_leftPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingDataChanged,
@@ -807,6 +812,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_frontPaintingOverlay, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingDataChanged,
@@ -821,6 +828,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
@@ -840,6 +849,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
@@ -859,6 +870,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onMeasurementResult);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::selectionChanged,
                 this, &MutiCamApp::onSelectionChanged);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::pointPicked,
+                this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
@@ -1036,9 +1049,11 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     if (frame.empty()) return;
 
     // 存储当前帧供自动检测使用 (性能优化：使用直接赋值代替clone()以减少内存复制)
+    quint64 frameSeq = 0;
     if (cameraId == "vertical") {
         m_currentFrameVertical = frame;        // 优化：避免60MB内存复制
         m_lastVerticalFrame = frame;           // 优化：避免60MB内存复制
+        frameSeq = ++m_frameSeqVertical;
 
         // 处理垂直视图的模板匹配
         if (m_verticalPaintingOverlay2) {
@@ -1047,6 +1062,7 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     } else if (cameraId == "left") {
         m_currentFrameLeft = frame;            // 优化：避免60MB内存复制
         m_lastLeftFrame = frame;               // 优化：避免60MB内存复制
+        frameSeq = ++m_frameSeqLeft;
 
         // 处理左侧视图的模板匹配
         if (m_leftPaintingOverlay2) {
@@ -1055,6 +1071,7 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     } else if (cameraId == "front") {
         m_currentFrameFront = frame;           // 优化：避免60MB内存复制
         m_lastFrontFrame = frame;              // 优化：避免60MB内存复制
+        frameSeq = ++m_frameSeqFront;
 
         // 处理对向视图的模板匹配
         if (m_frontPaintingOverlay2) {
@@ -1084,6 +1101,108 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         tabWidget->setVideoFrame(pixmap);
         // 同步选项卡视图的坐标变换
         syncOverlayTransforms(cameraId + "2");
+    }
+
+    // 载物台辅助标定：在运动完成后收到“下一帧”时执行跟踪并计算比例
+    if (m_stageCalib.active &&
+        m_stageCalib.awaitingAfterFrame &&
+        cameraId == m_stageCalib.cameraId &&
+        frameSeq > m_stageCalib.afterFrameSeqMin) {
+        m_stageCalib.awaitingAfterFrame = false;
+
+        if (!m_stageCalib.overlay) {
+            cancelStageAssistedCalibration("标定失败：视图未就绪");
+            return;
+        }
+
+        if (m_stageCalib.templateGray.empty()) {
+            cancelStageAssistedCalibration("标定失败：模板ROI为空");
+            return;
+        }
+
+        cv::Mat grayAfter;
+        if (frame.channels() == 1) {
+            grayAfter = frame;
+        } else {
+            cv::cvtColor(frame, grayAfter, cv::COLOR_BGR2GRAY);
+        }
+
+        const int tplW = m_stageCalib.templateGray.cols;
+        const int tplH = m_stageCalib.templateGray.rows;
+        if (grayAfter.cols < tplW || grayAfter.rows < tplH) {
+            cancelStageAssistedCalibration("标定失败：图像尺寸过小");
+            return;
+        }
+
+        const int searchRadius = std::max(50, m_stageCalib.searchRadiusPx);
+        int cx = static_cast<int>(std::lround(m_stageCalib.pointBefore.x()));
+        int cy = static_cast<int>(std::lround(m_stageCalib.pointBefore.y()));
+        cx = std::clamp(cx, 0, grayAfter.cols - 1);
+        cy = std::clamp(cy, 0, grayAfter.rows - 1);
+
+        int sx0 = std::max(0, cx - searchRadius);
+        int sy0 = std::max(0, cy - searchRadius);
+        int sx1 = std::min(grayAfter.cols, cx + searchRadius + 1);
+        int sy1 = std::min(grayAfter.rows, cy + searchRadius + 1);
+        int sw = sx1 - sx0;
+        int sh = sy1 - sy0;
+
+        // 确保搜索窗口至少能容纳模板
+        if (sw < tplW) {
+            sx0 = std::clamp(cx - tplW / 2, 0, grayAfter.cols - tplW);
+            sw = tplW;
+        }
+        if (sh < tplH) {
+            sy0 = std::clamp(cy - tplH / 2, 0, grayAfter.rows - tplH);
+            sh = tplH;
+        }
+
+        cv::Mat search = grayAfter(cv::Rect(sx0, sy0, sw, sh));
+        cv::Mat result;
+        cv::matchTemplate(search, m_stageCalib.templateGray, result, cv::TM_CCOEFF_NORMED);
+
+        double minVal = 0.0;
+        double maxVal = 0.0;
+        cv::Point minLoc, maxLoc;
+        cv::minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+
+        const double score = maxVal;
+        const QPointF matchedCenter(
+            sx0 + maxLoc.x + tplW / 2.0,
+            sy0 + maxLoc.y + tplH / 2.0
+        );
+        const double dx = m_stageCalib.pointBefore.x() - matchedCenter.x();
+        const double dy = m_stageCalib.pointBefore.y() - matchedCenter.y();
+        const double pixelDistance = std::sqrt(dx * dx + dy * dy);
+
+        // 更新一次末端实际位置（避免运动完成瞬间位置还未刷新）
+        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
+                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+        const double realDistance = std::abs(m_stageCalib.endActualUm - m_stageCalib.startActualUm);
+        const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
+
+        const double minScore = 0.60;
+        if (score < minScore || pixelDistance <= 0.5) {
+            m_stageCalib.awaitingSecondClick = true;
+            if (m_stageCalibProgressDialog) {
+                m_stageCalibProgressDialog->setLabelText("自动跟踪失败，请在移动后的画面再点击一次同一特征点…");
+                m_stageCalibProgressDialog->show();
+            }
+            statusBar()->showMessage("载物台辅助标定：自动跟踪失败，请再点一次同一特征点", 8000);
+            m_stageCalib.overlay->startPointPick("stage_assisted_calibration_after");
+            return;
+        }
+
+        const double scale = usedRealDistance / pixelDistance;
+        m_stageCalib.overlay->setPixelScale(scale, "μm");
+
+        const QString resultText = QString("像素标定完成（载物台辅助-自动跟踪）: %1 μm/像素\n像素位移: %2 像素, 载物台位移: %3 μm\n匹配置信度: %4")
+                                       .arg(scale, 0, 'f', 6)
+                                       .arg(pixelDistance, 0, 'f', 2)
+                                       .arg(usedRealDistance, 0, 'f', 2)
+                                       .arg(score, 0, 'f', 3);
+        onMeasurementResult(m_stageCalib.viewName, resultText);
+        cancelStageAssistedCalibration();
     }
 }
 
@@ -3430,6 +3549,9 @@ void MutiCamApp::startPixelCalibration()
             case CalibrationDialog::Circle:
                 startCircleCalibration(activeOverlay);
                 break;
+            case CalibrationDialog::StageAssisted:
+                startStageAssistedCalibration(activeOverlay);
+                break;
         }
     }
 }
@@ -3467,6 +3589,9 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
                 break;
             case CalibrationDialog::Circle:
                 startCircleCalibration(targetOverlay);
+                break;
+            case CalibrationDialog::StageAssisted:
+                startStageAssistedCalibration(targetOverlay);
                 break;
         }
     }
@@ -3571,6 +3696,217 @@ void MutiCamApp::startMultiPointCalibration(PaintingOverlay* overlay)
     qDebug() << QString("启动视图 %1 的多点标定").arg(viewName);
 }
 
+namespace {
+QString stageCalibCameraIdFromViewName(QString viewName)
+{
+    if (viewName.endsWith("2")) {
+        viewName.chop(1);
+    }
+    return viewName.toLower();
+}
+
+double norm2d(const QPointF& a, const QPointF& b)
+{
+    const double dx = a.x() - b.x();
+    const double dy = a.y() - b.y();
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+cv::Mat toGray(const cv::Mat& frame)
+{
+    if (frame.empty()) {
+        return cv::Mat();
+    }
+    if (frame.channels() == 1) {
+        return frame;
+    }
+    cv::Mat gray;
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    return gray;
+}
+}
+
+void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
+{
+    if (!overlay) {
+        return;
+    }
+
+    if (m_isEmergencyStopActive) {
+        QMessageBox::warning(this, "载物台辅助标定", "当前处于急停状态，无法标定。");
+        return;
+    }
+
+    if (!m_axisController || !m_axisController->isConnected()) {
+        QMessageBox::information(this, "载物台辅助标定", "轴控制系统未连接，请先连接载物台。");
+        return;
+    }
+
+    StageAssistedCalibrationDialog dialog(this);
+    dialog.setViewName(overlay->getViewName());
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+    const auto params = dialog.params();
+
+    if (!m_axisController->isAxisEnabled(params.axis)) {
+        QMessageBox::information(this, "载物台辅助标定", "所选轴未使能，无法标定。");
+        return;
+    }
+
+    // 若已有一次标定流程在进行，先取消
+    cancelStageAssistedCalibration();
+
+    m_stageCalib.active = true;
+    m_stageCalib.awaitingFirstClick = true;
+    m_stageCalib.awaitingSecondClick = false;
+    m_stageCalib.awaitingMotion = false;
+    m_stageCalib.awaitingAfterFrame = false;
+    m_stageCalib.overlay = overlay;
+    m_stageCalib.viewName = overlay->getViewName();
+    m_stageCalib.cameraId = stageCalibCameraIdFromViewName(m_stageCalib.viewName);
+    m_stageCalib.axis = params.axis;
+    m_stageCalib.direction = params.direction;
+    m_stageCalib.requestedDistanceUm = params.distanceUm;
+    m_stageCalib.roiSizePx = params.roiSizePx;
+    m_stageCalib.searchRadiusPx = params.searchRadiusPx;
+
+    if (!m_stageCalibProgressDialog) {
+        m_stageCalibProgressDialog = new QProgressDialog(this);
+        m_stageCalibProgressDialog->setWindowTitle("载物台辅助标定");
+        m_stageCalibProgressDialog->setCancelButtonText("取消");
+        m_stageCalibProgressDialog->setRange(0, 0);
+        m_stageCalibProgressDialog->setAutoClose(false);
+        m_stageCalibProgressDialog->setAutoReset(false);
+        m_stageCalibProgressDialog->setMinimumDuration(0);
+        m_stageCalibProgressDialog->setWindowModality(Qt::NonModal);
+        connect(m_stageCalibProgressDialog, &QProgressDialog::canceled, this, [this]() {
+            cancelStageAssistedCalibration("标定已取消");
+        });
+    }
+
+    m_stageCalibProgressDialog->setLabelText(QString("请在视图 %1 的画面中点击一个清晰特征点…").arg(m_stageCalib.viewName));
+    m_stageCalibProgressDialog->show();
+
+    statusBar()->showMessage(QString("载物台辅助标定：请在视图 %1 点击一个清晰特征点").arg(m_stageCalib.viewName), 8000);
+    overlay->startPointPick("stage_assisted_calibration_before");
+}
+
+void MutiCamApp::cancelStageAssistedCalibration(const QString& reason)
+{
+    if (!m_stageCalib.active) {
+        return;
+    }
+
+    if (m_stageCalib.overlay) {
+        m_stageCalib.overlay->cancelPointPick();
+    }
+
+    if (m_stageCalibProgressDialog) {
+        m_stageCalibProgressDialog->reset();
+        m_stageCalibProgressDialog->hide();
+    }
+
+    if (!reason.isEmpty()) {
+        statusBar()->showMessage(reason, 5000);
+    }
+
+    m_stageCalib = StageAssistedCalibrationSession{};
+}
+
+void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPointF& imagePos)
+{
+    if (!m_stageCalib.active) {
+        return;
+    }
+    if (viewName != m_stageCalib.viewName) {
+        return;
+    }
+    if (!m_stageCalib.overlay) {
+        cancelStageAssistedCalibration("标定失败：视图未就绪");
+        return;
+    }
+
+    // 二次点选：自动跟踪失败后的兜底
+    if (m_stageCalib.awaitingSecondClick) {
+        m_stageCalib.pointAfter = imagePos;
+        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
+                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+
+        const double pixelDistance = norm2d(m_stageCalib.pointBefore, m_stageCalib.pointAfter);
+        const double realDistance = std::abs(m_stageCalib.endActualUm - m_stageCalib.startActualUm);
+        const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
+
+        if (pixelDistance <= 0.5 || usedRealDistance <= 0.0) {
+            cancelStageAssistedCalibration("标定失败：点选位移过小");
+            return;
+        }
+
+        const double scale = usedRealDistance / pixelDistance;
+        m_stageCalib.overlay->setPixelScale(scale, "μm");
+
+        const QString result = QString("像素标定完成（载物台辅助-手动点选）: %1 μm/像素\n像素位移: %2 像素, 载物台位移: %3 μm")
+                                   .arg(scale, 0, 'f', 6)
+                                   .arg(pixelDistance, 0, 'f', 2)
+                                   .arg(usedRealDistance, 0, 'f', 2);
+        onMeasurementResult(viewName, result);
+        cancelStageAssistedCalibration();
+        return;
+    }
+
+    if (!m_stageCalib.awaitingFirstClick) {
+        return;
+    }
+    m_stageCalib.awaitingFirstClick = false;
+
+    // 记录点与起始位置
+    m_stageCalib.pointBefore = imagePos;
+    m_stageCalib.startActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
+                                 (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+
+    // 抽取模板ROI
+    const cv::Mat frameBefore = getCurrentFrame(viewName).clone();
+    if (frameBefore.empty()) {
+        cancelStageAssistedCalibration("标定失败：未获取到当前图像帧");
+        return;
+    }
+
+    cv::Mat grayBefore = toGray(frameBefore);
+    if (grayBefore.empty()) {
+        cancelStageAssistedCalibration("标定失败：图像帧无效");
+        return;
+    }
+
+    const int roiSize = std::max(20, m_stageCalib.roiSizePx);
+    if (grayBefore.cols < roiSize || grayBefore.rows < roiSize) {
+        cancelStageAssistedCalibration("标定失败：图像尺寸过小");
+        return;
+    }
+
+    const int half = roiSize / 2;
+    int cx = static_cast<int>(std::lround(imagePos.x()));
+    int cy = static_cast<int>(std::lround(imagePos.y()));
+    cx = std::clamp(cx, 0, grayBefore.cols - 1);
+    cy = std::clamp(cy, 0, grayBefore.rows - 1);
+
+    int x = std::clamp(cx - half, 0, grayBefore.cols - roiSize);
+    int y = std::clamp(cy - half, 0, grayBefore.rows - roiSize);
+    m_stageCalib.templateGray = grayBefore(cv::Rect(x, y, roiSize, roiSize)).clone();
+
+    m_stageCalibProgressDialog->setLabelText(QString("已选点，正在移动载物台（%1，%2%3 μm）…")
+                                                 .arg(axisToString(m_stageCalib.axis))
+                                                 .arg(m_stageCalib.direction > 0 ? "+" : "-")
+                                                 .arg(m_stageCalib.requestedDistanceUm, 0, 'f', 2));
+
+    // 发起移动
+    const double moveUm = m_stageCalib.direction * m_stageCalib.requestedDistanceUm;
+    if (!m_axisController->moveRelative(m_stageCalib.axis, moveUm)) {
+        cancelStageAssistedCalibration(QString("标定失败：载物台移动失败：%1").arg(m_axisController->getLastErrorString()));
+        return;
+    }
+    m_stageCalib.awaitingMotion = true;
+}
+
 
 void MutiCamApp::loadCalibrationSettings()
 {
@@ -3622,6 +3958,15 @@ void MutiCamApp::saveCalibrationSettings()
 
     SettingsManager::Settings settings = m_settingsManager->getCurrentSettings();
 
+    auto methodLabelFor = [this](const QString& viewKey) -> QString {
+        // viewKey: "Vertical" / "Left" / "Front"
+        if (m_stageCalib.active &&
+            (m_stageCalib.viewName == viewKey || m_stageCalib.viewName == viewKey + "2")) {
+            return "载物台辅助标定";
+        }
+        return "单点标定";
+    };
+
     // 保存垂直视图标定参数（检查主界面和选项卡界面）
     if (m_verticalPaintingOverlay->isCalibrated() || m_verticalPaintingOverlay2->isCalibrated()) {
         // 优先使用已标定的overlay的参数
@@ -3631,7 +3976,7 @@ void MutiCamApp::saveCalibrationSettings()
         settings.verticalCalibration.unit = calibratedOverlay->getUnit();
         settings.verticalCalibration.isCalibrated = true;
         settings.verticalCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-        settings.verticalCalibration.method = "单点标定";
+        settings.verticalCalibration.method = methodLabelFor("Vertical");
     }
 
     // 保存左侧视图标定参数（检查主界面和选项卡界面）
@@ -3643,7 +3988,7 @@ void MutiCamApp::saveCalibrationSettings()
         settings.leftCalibration.unit = calibratedOverlay->getUnit();
         settings.leftCalibration.isCalibrated = true;
         settings.leftCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-        settings.leftCalibration.method = "单点标定";
+        settings.leftCalibration.method = methodLabelFor("Left");
     }
 
     // 保存对向视图标定参数（检查主界面和选项卡界面）
@@ -3655,7 +4000,7 @@ void MutiCamApp::saveCalibrationSettings()
         settings.frontCalibration.unit = calibratedOverlay->getUnit();
         settings.frontCalibration.isCalibrated = true;
         settings.frontCalibration.calibrationTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-        settings.frontCalibration.method = "单点标定";
+        settings.frontCalibration.method = methodLabelFor("Front");
     }
 
     // 更新设置并保存
@@ -3669,6 +4014,15 @@ void MutiCamApp::syncCalibrationParameters(const QString& viewName)
 {
     // 获取发送信号的PaintingOverlay（标定完成的overlay）
     PaintingOverlay* sourceOverlay = qobject_cast<PaintingOverlay*>(sender());
+    if (!sourceOverlay) {
+        // 允许在非信号上下文中调用（例如载物台辅助标定直接触发保存/同步）
+        if (viewName == "Vertical") sourceOverlay = m_verticalPaintingOverlay;
+        else if (viewName == "Vertical2") sourceOverlay = m_verticalPaintingOverlay2;
+        else if (viewName == "Left") sourceOverlay = m_leftPaintingOverlay;
+        else if (viewName == "Left2") sourceOverlay = m_leftPaintingOverlay2;
+        else if (viewName == "Front") sourceOverlay = m_frontPaintingOverlay;
+        else if (viewName == "Front2") sourceOverlay = m_frontPaintingOverlay2;
+    }
     if (!sourceOverlay || !sourceOverlay->isCalibrated()) {
         return;
     }
@@ -6138,6 +6492,38 @@ void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
     }
     
     qDebug() << completedMsg;
+
+    // 载物台辅助标定：等待运动完成后抓取“下一帧”
+    if (m_stageCalib.active && m_stageCalib.awaitingMotion && axis == m_stageCalib.axis) {
+        m_stageCalib.awaitingMotion = false;
+        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
+                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+
+        quint64 currentSeq = 0;
+        if (m_stageCalib.cameraId == "vertical") currentSeq = m_frameSeqVertical;
+        else if (m_stageCalib.cameraId == "left") currentSeq = m_frameSeqLeft;
+        else if (m_stageCalib.cameraId == "front") currentSeq = m_frameSeqFront;
+
+        m_stageCalib.afterFrameSeqMin = currentSeq;
+        m_stageCalib.awaitingAfterFrame = true;
+
+        if (m_stageCalibProgressDialog) {
+            m_stageCalibProgressDialog->setLabelText("载物台已运动完成，等待相机更新下一帧…");
+            m_stageCalibProgressDialog->show();
+        }
+
+        const quint64 expectedMinSeq = m_stageCalib.afterFrameSeqMin;
+        const QString expectedCameraId = m_stageCalib.cameraId;
+        QTimer::singleShot(2500, this, [this, expectedMinSeq, expectedCameraId]() {
+            if (!m_stageCalib.active || !m_stageCalib.awaitingAfterFrame) {
+                return;
+            }
+            if (m_stageCalib.cameraId != expectedCameraId || m_stageCalib.afterFrameSeqMin != expectedMinSeq) {
+                return;
+            }
+            cancelStageAssistedCalibration("标定失败：等待相机更新超时");
+        });
+    }
 }
 
 void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QString& errorString)

@@ -37,8 +37,8 @@
     "StageSoftLimitNeg": -999999.9,
     "StageSoftLimitPos": 999999.9,
     "StageStepSize": 1,
-    "UIHeight": 783,
-    "UIWidth": 1365,
+    "UIHeight": 700,
+    "UIWidth": 1342,
     "VerCamSN": "K75651644",
     "VerticalCalibration": {
         "accuracy": 0,

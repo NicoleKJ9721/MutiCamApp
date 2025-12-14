@@ -542,6 +542,20 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         return;
     }
 
+    // 单次点选模式：优先拦截一次左键点击（用于载物台辅助标定等）
+    if (m_isPointPickMode) {
+        m_isPointPickMode = false;
+        m_pointPickPurpose.clear();
+        if (m_hasPointPickPrevCursor) {
+            setCursor(m_pointPickPrevCursor);
+            m_hasPointPickPrevCursor = false;
+        } else {
+            unsetCursor();
+        }
+        emit pointPicked(m_viewName, imagePos);
+        return;
+    }
+
     if (m_selectionEnabled && !m_roiCreationMode) {
         // 处理选择逻辑
         bool ctrlPressed = (event->modifiers() & Qt::ControlModifier) != 0;
@@ -595,6 +609,37 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         default:
             break;
     }
+}
+
+void PaintingOverlay::startPointPick(const QString& purpose)
+{
+    m_isPointPickMode = true;
+    m_pointPickPurpose = purpose;
+
+    m_pointPickPrevCursor = cursor();
+    m_hasPointPickPrevCursor = true;
+    setCursor(Qt::CrossCursor);
+}
+
+void PaintingOverlay::cancelPointPick()
+{
+    if (!m_isPointPickMode) {
+        return;
+    }
+
+    m_isPointPickMode = false;
+    m_pointPickPurpose.clear();
+    if (m_hasPointPickPrevCursor) {
+        setCursor(m_pointPickPrevCursor);
+        m_hasPointPickPrevCursor = false;
+    } else {
+        unsetCursor();
+    }
+}
+
+bool PaintingOverlay::isPointPicking() const
+{
+    return m_isPointPickMode;
 }
 
 void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)

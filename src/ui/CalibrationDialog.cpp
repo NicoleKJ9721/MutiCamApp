@@ -6,6 +6,7 @@ CalibrationDialog::CalibrationDialog(QWidget *parent)
     , m_singlePointRadio(nullptr)
     , m_multiPointRadio(nullptr)
     , m_circleRadio(nullptr)
+    , m_stageAssistedRadio(nullptr)
     , m_methodButtonGroup(nullptr)
     , m_okButton(nullptr)
     , m_cancelButton(nullptr)
@@ -24,7 +25,7 @@ void CalibrationDialog::initializeUI()
     setWindowTitle("选择标定方式");
     setModal(true);
     // 增大固定尺寸，以容纳更多说明文本（包括圆标定）
-    setFixedSize(420, 380);
+    setFixedSize(440, 440);
     
     // 创建主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -86,8 +87,19 @@ QGroupBox* CalibrationDialog::createMethodGroup()
     QLabel* circleDesc = new QLabel("  适用于使用已知半径的标准圆，通过 ROI 自动检测圆进行标定", this);
     circleDesc->setStyleSheet("color: #666; font-size: 10px;");
     m_methodButtonGroup->addButton(m_circleRadio, static_cast<int>(Circle));
+
+    // 载物台辅助标定选项
+    m_stageAssistedRadio = new QRadioButton("载物台辅助标定", this);
+    QLabel* stageAssistedDesc = new QLabel("  适用于操作员不清楚实际距离：点选一次特征点，载物台移动后自动计算 μm/像素", this);
+    stageAssistedDesc->setStyleSheet("color: #666; font-size: 10px;");
+    stageAssistedDesc->setWordWrap(true);
+    m_methodButtonGroup->addButton(m_stageAssistedRadio, static_cast<int>(StageAssisted));
     
-    // 添加到布局（圆标定放在第一项）
+    // 添加到布局
+    layout->addWidget(m_stageAssistedRadio);
+    layout->addWidget(stageAssistedDesc);
+    layout->addSpacing(5);
+
     layout->addWidget(m_circleRadio);
     layout->addWidget(circleDesc);
     layout->addSpacing(5);

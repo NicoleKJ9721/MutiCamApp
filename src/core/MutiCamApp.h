@@ -191,9 +191,12 @@ private slots:
     void startSinglePointCalibration(PaintingOverlay* overlay); // 启动单点标定
     void startMultiPointCalibration(PaintingOverlay* overlay);  // 启动多点标定
     void startCircleCalibration(PaintingOverlay* overlay);      // 启动圆标定
+    void startStageAssistedCalibration(PaintingOverlay* overlay); // 启动载物台辅助标定（点选特征点）
+    void cancelStageAssistedCalibration(const QString& reason = QString()); // 取消载物台辅助标定
     void loadCalibrationSettings(); // 加载标定设置
     void saveCalibrationSettings(); // 保存标定设置
     void syncCalibrationParameters(const QString& viewName); // 同步标定参数
+    void onStageAssistedPointPicked(const QString& viewName, const QPointF& imagePos); // 载物台辅助标定：点选回调
 
     /**
      * @brief 自动检测按钮点击事件处理
@@ -460,6 +463,40 @@ private:
     cv::Mat m_lastVerticalFrame;             ///< 垂直视图最新帧
     cv::Mat m_lastLeftFrame;                 ///< 左视图最新帧
     cv::Mat m_lastFrontFrame;                ///< 前视图最新帧
+
+    // 相机帧序号（用于等待“下一帧”）
+    quint64 m_frameSeqVertical = 0;
+    quint64 m_frameSeqLeft = 0;
+    quint64 m_frameSeqFront = 0;
+
+    // 载物台辅助标定状态
+    struct StageAssistedCalibrationSession {
+        bool active = false;
+        bool awaitingFirstClick = false;
+        bool awaitingSecondClick = false;
+        bool awaitingMotion = false;
+        bool awaitingAfterFrame = false;
+
+        QString viewName;          // overlay视图名（可能带2）
+        QString cameraId;          // vertical/left/front
+        PaintingOverlay* overlay = nullptr;
+
+        AxisIndex axis = AxisIndex::INVALID_AXIS;
+        int direction = 1;         // +1 / -1
+        double requestedDistanceUm = 1000.0;
+        int roiSizePx = 80;
+        int searchRadiusPx = 500;
+
+        QPointF pointBefore;
+        QPointF pointAfter;        // 手动二次点选时使用
+        double startActualUm = 0.0;
+        double endActualUm = 0.0;
+
+        quint64 afterFrameSeqMin = 0;
+        cv::Mat templateGray;
+    };
+    StageAssistedCalibrationSession m_stageCalib;
+    QProgressDialog* m_stageCalibProgressDialog = nullptr;
     
     // 性能优化：缓存机制
     struct CachedFrame {

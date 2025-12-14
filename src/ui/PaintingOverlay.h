@@ -19,6 +19,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QTime>
+#include <QCursor>
 #include <QDialog>
 #include <QListWidget>
 #include <QCheckBox>
@@ -355,6 +356,11 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void startCircleCalibration();     // 启动圆标定（基于自动检测圆）
     void resetCalibration();
 
+    // 单次点选（用于载物台辅助标定等场景）
+    void startPointPick(const QString& purpose = QString());
+    void cancelPointPick();
+    bool isPointPicking() const;
+
     DrawingState getDrawingState() const;
     void setDrawingState(const DrawingState& state);
 
@@ -503,6 +509,7 @@ signals:
     void drawingDataChanged(const QString& viewName); // 绘图数据变化信号
     void overlayActivated(PaintingOverlay* overlay); // overlay被激活信号
     void viewDoubleClicked(const QString& viewName); // 视图双击信号
+    void pointPicked(const QString& viewName, const QPointF& imagePos); // 单次点选完成信号（图像坐标）
 
     // ROI相关信号
     void roiCreated(const QString& viewName, const QRectF& rect, qreal angle); // ROI创建完成
@@ -621,6 +628,12 @@ private:
     bool m_isCalibrationMode;  // 是否处于标定模式
     bool m_isMultiPointCalibrationMode; // 是否处于多点标定模式
     bool m_isCircleCalibrationMode;     // 是否处于圆标定模式
+
+    // 单次点选模式（不影响绘制/选择模式，只拦截一次左键点击）
+    bool m_isPointPickMode = false;
+    QString m_pointPickPurpose;
+    QCursor m_pointPickPrevCursor;
+    bool m_hasPointPickPrevCursor = false;
 
     // 多点标定数据结构
     struct CalibrationPoint {
