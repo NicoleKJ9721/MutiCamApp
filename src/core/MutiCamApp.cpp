@@ -113,21 +113,32 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 
     populateStepCombo(ui->comboBoxStepSize);
     populateStepCombo(ui->comboBoxStepSizeMain);
+    populateStepCombo(ui->comboBoxStepSizeVertical);
+    populateStepCombo(ui->comboBoxStepSizeLeft);
+    populateStepCombo(ui->comboBoxStepSizeFront);
 
-    // 同步两处步长选择
-    if (ui->comboBoxStepSize && ui->comboBoxStepSizeMain) {
-        connect(ui->comboBoxStepSize, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int) {
-                    if (!ui->comboBoxStepSizeMain) return;
-                    const QSignalBlocker blocker(ui->comboBoxStepSizeMain);
-                    ui->comboBoxStepSizeMain->setCurrentIndex(ui->comboBoxStepSize->currentIndex());
-                });
-
-        connect(ui->comboBoxStepSizeMain, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [this](int) {
-                    if (!ui->comboBoxStepSize) return;
-                    const QSignalBlocker blocker(ui->comboBoxStepSize);
-                    ui->comboBoxStepSize->setCurrentIndex(ui->comboBoxStepSizeMain->currentIndex());
+    // 同步所有步长下拉框（主界面/XYZ载物台控制/三视图选项卡）
+    QVector<QComboBox*> stepCombos = {
+        ui->comboBoxStepSize,
+        ui->comboBoxStepSizeMain,
+        ui->comboBoxStepSizeVertical,
+        ui->comboBoxStepSizeLeft,
+        ui->comboBoxStepSizeFront,
+    };
+    stepCombos.erase(std::remove(stepCombos.begin(), stepCombos.end(), nullptr), stepCombos.end());
+    for (QComboBox* combo : stepCombos) {
+        connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [combo, stepCombos](int index) {
+                    for (QComboBox* other : stepCombos) {
+                        if (!other || other == combo) {
+                            continue;
+                        }
+                        if (other->currentIndex() == index) {
+                            continue;
+                        }
+                        const QSignalBlocker blocker(other);
+                        other->setCurrentIndex(index);
+                    }
                 });
     }
 
@@ -219,6 +230,24 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
     ui->btnMainMoveZDown->setEnabled(enabled);
     ui->btnMainZeroY->setEnabled(enabled);
     ui->btnMainZeroZ->setEnabled(enabled);
+    ui->btnStageMoveYUpVertical->setEnabled(enabled);
+    ui->btnStageMoveYDownVertical->setEnabled(enabled);
+    ui->btnStageMoveZUpVertical->setEnabled(enabled);
+    ui->btnStageMoveZDownVertical->setEnabled(enabled);
+    ui->btnStageZeroYVertical->setEnabled(enabled);
+    ui->btnStageZeroZVertical->setEnabled(enabled);
+    ui->btnStageMoveYUpLeft->setEnabled(enabled);
+    ui->btnStageMoveYDownLeft->setEnabled(enabled);
+    ui->btnStageMoveZUpLeft->setEnabled(enabled);
+    ui->btnStageMoveZDownLeft->setEnabled(enabled);
+    ui->btnStageZeroYLeft->setEnabled(enabled);
+    ui->btnStageZeroZLeft->setEnabled(enabled);
+    ui->btnStageMoveYUpFront->setEnabled(enabled);
+    ui->btnStageMoveYDownFront->setEnabled(enabled);
+    ui->btnStageMoveZUpFront->setEnabled(enabled);
+    ui->btnStageMoveZDownFront->setEnabled(enabled);
+    ui->btnStageZeroYFront->setEnabled(enabled);
+    ui->btnStageZeroZFront->setEnabled(enabled);
 
     // 绝对定位
     ui->btnMoveToX->setEnabled(enabled);
@@ -259,6 +288,12 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
     updateWidget(ui->comboBoxStepSize);
     updateWidget(ui->labelMainStepSize);
     updateWidget(ui->comboBoxStepSizeMain);
+    updateWidget(ui->labelStepSizeVertical);
+    updateWidget(ui->comboBoxStepSizeVertical);
+    updateWidget(ui->labelStepSizeLeft);
+    updateWidget(ui->comboBoxStepSizeLeft);
+    updateWidget(ui->labelStepSizeFront);
+    updateWidget(ui->comboBoxStepSizeFront);
 }
 
 void MutiCamApp::updateStageMovingStatusLabel()
@@ -341,6 +376,24 @@ void MutiCamApp::updatePerAxisControlEnabled()
     ui->btnMainMoveZDown->setEnabled(zEnabled && !m_isEmergencyStopActive);
     ui->btnMainZeroY->setEnabled(yEnabled && !m_isEmergencyStopActive);
     ui->btnMainZeroZ->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYUpVertical->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYDownVertical->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZUpVertical->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZDownVertical->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroYVertical->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroZVertical->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYUpLeft->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYDownLeft->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZUpLeft->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZDownLeft->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroYLeft->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroZLeft->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYUpFront->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveYDownFront->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZUpFront->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageMoveZDownFront->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroYFront->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroZFront->setEnabled(zEnabled && !m_isEmergencyStopActive);
 
     // 绝对定位按钮按轴控制
     ui->btnMoveToX->setEnabled(xEnabled && !m_isEmergencyStopActive);
@@ -591,6 +644,46 @@ void MutiCamApp::connectSignalsAndSlots()
     connect(ui->btnMainZeroY, &QPushButton::clicked,
             this, &MutiCamApp::onMainZeroYClicked);
     connect(ui->btnMainZeroZ, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroZClicked);
+
+    // 三视图选项卡：载物台(Y/Z)快捷控制
+    connect(ui->btnStageMoveYUpVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYUpClicked);
+    connect(ui->btnStageMoveYDownVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYDownClicked);
+    connect(ui->btnStageMoveZUpVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZUpClicked);
+    connect(ui->btnStageMoveZDownVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZDownClicked);
+    connect(ui->btnStageZeroYVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroYClicked);
+    connect(ui->btnStageZeroZVertical, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroZClicked);
+
+    connect(ui->btnStageMoveYUpLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYUpClicked);
+    connect(ui->btnStageMoveYDownLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYDownClicked);
+    connect(ui->btnStageMoveZUpLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZUpClicked);
+    connect(ui->btnStageMoveZDownLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZDownClicked);
+    connect(ui->btnStageZeroYLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroYClicked);
+    connect(ui->btnStageZeroZLeft, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroZClicked);
+
+    connect(ui->btnStageMoveYUpFront, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYUpClicked);
+    connect(ui->btnStageMoveYDownFront, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYDownClicked);
+    connect(ui->btnStageMoveZUpFront, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZUpClicked);
+    connect(ui->btnStageMoveZDownFront, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZDownClicked);
+    connect(ui->btnStageZeroYFront, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroYClicked);
+    connect(ui->btnStageZeroZFront, &QPushButton::clicked,
             this, &MutiCamApp::onMainZeroZClicked);
             
     // 连接载物台连接控制按钮
@@ -5918,6 +6011,15 @@ void MutiCamApp::onAxisActualPositionChanged(AxisIndex axis, double actualPositi
             if (ui->lineEditMainYPosition) {
                 ui->lineEditMainYPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
             }
+            if (ui->lineEditStageYPositionVertical) {
+                ui->lineEditStageYPositionVertical->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->lineEditStageYPositionLeft) {
+                ui->lineEditStageYPositionLeft->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->lineEditStageYPositionFront) {
+                ui->lineEditStageYPositionFront->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
             if (ui->labelMainYValue) {
                 ui->labelMainYValue->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
             }
@@ -5928,6 +6030,15 @@ void MutiCamApp::onAxisActualPositionChanged(AxisIndex axis, double actualPositi
             ui->labelGratingZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
             if (ui->lineEditMainZPosition) {
                 ui->lineEditMainZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->lineEditStageZPositionVertical) {
+                ui->lineEditStageZPositionVertical->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->lineEditStageZPositionLeft) {
+                ui->lineEditStageZPositionLeft->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->lineEditStageZPositionFront) {
+                ui->lineEditStageZPositionFront->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
             }
             if (ui->labelMainZValue) {
                 ui->labelMainZValue->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));

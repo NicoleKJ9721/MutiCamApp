@@ -263,97 +263,83 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_control">
              <item>
-              <widget class="QWidget" name="widgetStageYZInfoBar">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>28</height>
-                </size>
+              <layout class="QHBoxLayout" name="horizontalLayout_stageYZInfoBar">
+               <property name="spacing">
+                <number>10</number>
                </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>28</height>
-                </size>
+               <property name="leftMargin">
+                <number>6</number>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_stageYZInfoBar">
-                <property name="leftMargin">
-                 <number>6</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>6</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="labelMainYInfoTitle">
-                  <property name="text">
-                   <string>Y:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="labelMainYValue">
-                  <property name="styleSheet">
-                   <string>color: #ff6600; font-weight: bold;</string>
-                  </property>
-                  <property name="text">
-                   <string>0.0000 μm</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_stageYZInfoBar1">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>12</width>
-                    <height>10</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QLabel" name="labelMainZInfoTitle">
-                  <property name="text">
-                   <string>Z:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="labelMainZValue">
-                  <property name="styleSheet">
-                   <string>color: #ff6600; font-weight: bold;</string>
-                  </property>
-                  <property name="text">
-                   <string>0.0000 μm</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_stageYZInfoBar2">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>10</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </widget>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>6</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="labelMainYInfoTitle">
+                 <property name="text">
+                  <string>Y:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelMainYValue">
+                 <property name="styleSheet">
+                  <string>color: #ff6600; font-weight: bold;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.0000 μm</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_stageYZInfoBar1">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>12</width>
+                   <height>10</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelMainZInfoTitle">
+                 <property name="text">
+                  <string>Z:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelMainZValue">
+                 <property name="styleSheet">
+                  <string>color: #ff6600; font-weight: bold;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.0000 μm</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_stageYZInfoBar2">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>10</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
              </item>
              <item>
               <widget class="QTabWidget" name="tabWidgetControlPanel">
@@ -367,333 +353,333 @@
                 <layout class="QVBoxLayout" name="verticalLayout_controlTools">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_gridAndDetection">
-               <item>
-                <widget class="QGroupBox" name="groupBoxDrawTools">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                 <property name="title">
-                  <string>绘画</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignmentFlag::AlignCenter</set>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_drawTools">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_drawRow1">
-                    <item>
-                     <widget class="QPushButton" name="btnDrawPoint">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>点</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btnDrawStraight">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>直线</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btnDrawSimpleCircle">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>简单圆</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_drawRow2">
-                    <item>
-                     <widget class="QPushButton" name="btnDrawParallel">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>平行线</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btnDraw2Line">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>线与线</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btnDrawFineCircle">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>精细圆</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnCan1StepDraw">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>撤销上步绘画</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnClearDrawings">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>清空绘画</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnSaveImage">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>保存图像（原始+可视化）</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnPixelCalibration">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="toolTip">
-                     <string>启动像素标定模式，将像素单位转换为实际物理单位</string>
-                    </property>
-                    <property name="text">
-                     <string>像素标定</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBoxGrid">
-                 <property name="font">
-                  <font>
-                   <pointsize>9</pointsize>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                 <property name="title">
-                  <string>网格</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_gridControl">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_gridDensity">
-                    <item>
-                     <widget class="QLabel" name="labelGridDensity">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>网格密度</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="leGridDensity">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>60</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignmentFlag::AlignCenter</set>
-                      </property>
-                      <property name="placeholderText">
-                       <string>0</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="labelPixel">
-                      <property name="text">
-                       <string>像素</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="btnCancelGrids">
-                      <property name="font">
-                       <font>
-                        <pointsize>9</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>取消网格</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <widget class="QGroupBox" name="groupBoxAutoDetection">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="title">
-                     <string>自动测量</string>
-                    </property>
-                    <layout class="QHBoxLayout" name="horizontalLayout">
-                     <item>
-                      <widget class="QPushButton" name="btnCircleDet">
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>圆查找</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="btnLineDet">
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>直线查找</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="btnCan1StepDet">
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="text">
-                        <string>撤销上步</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QGroupBox" name="groupBoxMeasurement">
-                    <property name="font">
-                     <font>
-                      <pointsize>9</pointsize>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="title">
-                     <string>运行</string>
-                    </property>
-                    <layout class="QHBoxLayout" name="horizontalLayout_measureButtons">
-                     <item>
-                      <widget class="QPushButton" name="btnStartMeasure">
-                       <property name="enabled">
-                        <bool>true</bool>
-                       </property>
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                       <property name="contextMenuPolicy">
-                        <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
-                       </property>
-                        <property name="styleSheet">
-                        <string notr="true">QPushButton {
+                   <item>
+                    <widget class="QGroupBox" name="groupBoxDrawTools">
+                     <property name="font">
+                      <font>
+                       <pointsize>9</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="title">
+                      <string>绘画</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_drawTools">
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_drawRow1">
+                        <item>
+                         <widget class="QPushButton" name="btnDrawPoint">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>点</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btnDrawStraight">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>直线</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btnDrawSimpleCircle">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>简单圆</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_drawRow2">
+                        <item>
+                         <widget class="QPushButton" name="btnDrawParallel">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>平行线</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btnDraw2Line">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>线与线</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btnDrawFineCircle">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>精细圆</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnCan1StepDraw">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>撤销上步绘画</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnClearDrawings">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>清空绘画</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnSaveImage">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>保存图像（原始+可视化）</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="btnPixelCalibration">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="toolTip">
+                         <string>启动像素标定模式，将像素单位转换为实际物理单位</string>
+                        </property>
+                        <property name="text">
+                         <string>像素标定</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QGroupBox" name="groupBoxGrid">
+                     <property name="font">
+                      <font>
+                       <pointsize>9</pointsize>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="title">
+                      <string>网格</string>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_gridControl">
+                      <item>
+                       <layout class="QHBoxLayout" name="horizontalLayout_gridDensity">
+                        <item>
+                         <widget class="QLabel" name="labelGridDensity">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>网格密度</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLineEdit" name="leGridDensity">
+                          <property name="minimumSize">
+                           <size>
+                            <width>0</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>60</width>
+                            <height>16777215</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="alignment">
+                           <set>Qt::AlignmentFlag::AlignCenter</set>
+                          </property>
+                          <property name="placeholderText">
+                           <string>0</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="labelPixel">
+                          <property name="text">
+                           <string>像素</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="btnCancelGrids">
+                          <property name="font">
+                           <font>
+                            <pointsize>9</pointsize>
+                            <bold>true</bold>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>取消网格</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupBoxAutoDetection">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="title">
+                         <string>自动测量</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout">
+                         <item>
+                          <widget class="QPushButton" name="btnCircleDet">
+                           <property name="font">
+                            <font>
+                             <pointsize>9</pointsize>
+                             <bold>true</bold>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>圆查找</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="btnLineDet">
+                           <property name="font">
+                            <font>
+                             <pointsize>9</pointsize>
+                             <bold>true</bold>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>直线查找</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="btnCan1StepDet">
+                           <property name="font">
+                            <font>
+                             <pointsize>9</pointsize>
+                             <bold>true</bold>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>撤销上步</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupBoxMeasurement">
+                        <property name="font">
+                         <font>
+                          <pointsize>9</pointsize>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="title">
+                         <string>运行</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout_measureButtons">
+                         <item>
+                          <widget class="QPushButton" name="btnStartMeasure">
+                           <property name="enabled">
+                            <bool>true</bool>
+                           </property>
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>9</pointsize>
+                             <bold>true</bold>
+                            </font>
+                           </property>
+                           <property name="contextMenuPolicy">
+                            <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">QPushButton {
     background-color: #14723A;      /* 默认更深绿 */
     color: #FFFFFF;
     border: 1px solid #0F5C2F;
@@ -715,34 +701,34 @@ QPushButton:disabled {
     color: #EEF3EF;
 }
 </string>
-                        </property>
-                       <property name="text">
-                        <string>开始测量</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="btnStopMeasure">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>9</pointsize>
-                         <bold>true</bold>
-                        </font>
-                       </property>
-                        <property name="styleSheet">
-                        <string notr="true">QPushButton {
+                           </property>
+                           <property name="text">
+                            <string>开始测量</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="btnStopMeasure">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>9</pointsize>
+                             <bold>true</bold>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">QPushButton {
     background-color: #C63B3B;      /* 默认更深红 */
     color: #FFFFFF;
     border: 1px solid #A02E2E;
@@ -764,218 +750,213 @@ QPushButton:disabled {
     color: #FFF8F8;
 }
 </string>
-                        </property>
+                           </property>
+                           <property name="text">
+                            <string>停止测量</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+               <widget class="QWidget" name="tabControlStageYZ">
+                <attribute name="title">
+                 <string>载物台(Y/Z)</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_controlStageYZ">
+                 <item>
+                  <layout class="QGridLayout" name="gridLayout_stageYZMain">
+                   <property name="leftMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>6</number>
+                   </property>
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="labelMainStepSize">
+                     <property name="text">
+                      <string>步长:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1" colspan="3">
+                    <widget class="QComboBox" name="comboBoxStepSizeMain">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="labelMainY">
+                     <property name="text">
+                      <string>Y:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLineEdit" name="lineEditMainYPosition">
+                     <property name="styleSheet">
+                      <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                     </property>
+                     <property name="text">
+                      <string>0.0000 μm</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="2">
+                    <layout class="QHBoxLayout" name="horizontalLayout_4">
+                     <property name="spacing">
+                      <number>2</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="btnMainMoveYDown">
+                       <property name="minimumSize">
+                        <size>
+                         <width>60</width>
+                         <height>24</height>
+                        </size>
+                       </property>
                        <property name="text">
-                        <string>停止测量</string>
+                        <string>Y-</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnMainMoveYUp">
+                       <property name="minimumSize">
+                        <size>
+                         <width>60</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Y+</string>
                        </property>
                       </widget>
                      </item>
                     </layout>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-              </layout>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="tabControlStageYZ">
-            <attribute name="title">
-             <string>载物台(Y/Z)</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_controlStageYZ">
-             <item>
-              <widget class="QWidget" name="widgetStageYZMain">
-               <layout class="QGridLayout" name="gridLayout_stageYZMain">
-                <property name="leftMargin">
-                 <number>6</number>
-                </property>
-                <property name="topMargin">
-                 <number>6</number>
-                </property>
-                <property name="rightMargin">
-                 <number>6</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>6</number>
-                </property>
-                <property name="horizontalSpacing">
-                 <number>6</number>
-                </property>
-                <property name="verticalSpacing">
-                 <number>6</number>
-                </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="labelMainStepSize">
-                  <property name="text">
-                   <string>步长:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1" colspan="3">
-                 <widget class="QComboBox" name="comboBoxStepSizeMain">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="labelMainY">
-                  <property name="text">
-                   <string>Y:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="lineEditMainYPosition">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
-                  </property>
-                  <property name="styleSheet">
-                   <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
-                  </property>
-                  <property name="text">
-                   <string>0.0000 μm</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="2">
-                 <layout class="QVBoxLayout" name="verticalLayout_mainYMove">
-                  <property name="spacing">
-                   <number>2</number>
-                  </property>
-                  <item>
-                   <widget class="QPushButton" name="btnMainMoveYUp">
-                    <property name="minimumSize">
-                     <size>
-                      <width>60</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>Y+</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnMainMoveYDown">
-                    <property name="minimumSize">
-                     <size>
-                      <width>60</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>Y-</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="1" column="3">
-                 <widget class="QPushButton" name="btnMainZeroY">
-                  <property name="minimumSize">
-                   <size>
-                    <width>60</width>
-                    <height>50</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>清零</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="labelMainZ">
-                  <property name="text">
-                   <string>Z:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLineEdit" name="lineEditMainZPosition">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
-                  </property>
-                  <property name="styleSheet">
-                   <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
-                  </property>
-                  <property name="text">
-                   <string>0.0000 μm</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="2">
-                 <layout class="QVBoxLayout" name="verticalLayout_mainZMove">
-                  <property name="spacing">
-                   <number>2</number>
-                  </property>
-                  <item>
-                   <widget class="QPushButton" name="btnMainMoveZUp">
-                    <property name="minimumSize">
-                     <size>
-                      <width>60</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>Z+</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btnMainMoveZDown">
-                    <property name="minimumSize">
-                     <size>
-                      <width>60</width>
-                      <height>24</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>Z-</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="2" column="3">
-                 <widget class="QPushButton" name="btnMainZeroZ">
-                  <property name="minimumSize">
-                   <size>
-                    <width>60</width>
-                    <height>50</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>清零</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+                   </item>
+                   <item row="1" column="3">
+                    <widget class="QPushButton" name="btnMainZeroY">
+                     <property name="minimumSize">
+                      <size>
+                       <width>60</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>清零</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="labelMainZ">
+                     <property name="text">
+                      <string>Z:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLineEdit" name="lineEditMainZPosition">
+                     <property name="styleSheet">
+                      <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                     </property>
+                     <property name="text">
+                      <string>0.0000 μm</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="2">
+                    <layout class="QHBoxLayout" name="horizontalLayout_5">
+                     <property name="spacing">
+                      <number>2</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="btnMainMoveZDown">
+                       <property name="minimumSize">
+                        <size>
+                         <width>60</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Z-</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="btnMainMoveZUp">
+                       <property name="minimumSize">
+                        <size>
+                         <width>60</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Z+</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item row="2" column="3">
+                    <widget class="QPushButton" name="btnMainZeroZ">
+                     <property name="minimumSize">
+                      <size>
+                       <width>60</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>清零</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
               </widget>
              </item>
             </layout>
            </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="tabVertical">
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabVertical">
        <attribute name="title">
         <string>垂直视图</string>
        </attribute>
@@ -1400,7 +1381,7 @@ QPushButton:disabled {
               </widget>
              </item>
              <item>
-             <widget class="QPushButton" name="btnStartMatchingVertical">
+              <widget class="QPushButton" name="btnStartMatchingVertical">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1437,6 +1418,265 @@ QPushButton:disabled {
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBoxStageYZVertical">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="title">
+                <string/>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_stageYZVerticalCompact">
+                <property name="spacing">
+                 <number>4</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="labelStepSizeVertical">
+                  <property name="text">
+                   <string>步长:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboBoxStepSizeVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>140</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageYVertical">
+                  <property name="text">
+                   <string>Y:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageYPositionVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYUpVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYDownVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroYVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_stageYZVerticalSep">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>8</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageZVertical">
+                  <property name="text">
+                   <string>Z:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageZPositionVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZUpVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZDownVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroZVertical">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </item>
             </layout>
            </item>
@@ -1855,7 +2095,7 @@ QPushButton:disabled {
               </widget>
              </item>
              <item>
-             <widget class="QPushButton" name="btnStartMatchingLeft">
+              <widget class="QPushButton" name="btnStartMatchingLeft">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -1892,6 +2132,265 @@ QPushButton:disabled {
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBoxStageYZLeft">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="title">
+                <string/>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_stageYZLeftCompact">
+                <property name="spacing">
+                 <number>4</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="labelStepSizeLeft">
+                  <property name="text">
+                   <string>步长:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboBoxStepSizeLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>140</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageYLeft">
+                  <property name="text">
+                   <string>Y:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageYPositionLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYUpLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYDownLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroYLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_stageYZLeftSep">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>8</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageZLeft">
+                  <property name="text">
+                   <string>Z:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageZPositionLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZUpLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZDownLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroZLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </item>
             </layout>
            </item>
@@ -2310,7 +2809,7 @@ QPushButton:disabled {
               </widget>
              </item>
              <item>
-             <widget class="QPushButton" name="btnStartMatchingFront">
+              <widget class="QPushButton" name="btnStartMatchingFront">
                <property name="maximumSize">
                 <size>
                  <width>80</width>
@@ -2347,6 +2846,265 @@ QPushButton:disabled {
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="groupBoxStageYZFront">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="title">
+                <string/>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_stageYZFrontCompact">
+                <property name="spacing">
+                 <number>4</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="labelStepSizeFront">
+                  <property name="text">
+                   <string>步长:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboBoxStepSizeFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>140</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageYFront">
+                  <property name="text">
+                   <string>Y:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageYPositionFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYUpFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveYDownFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Y-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroYFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_stageYZFrontSep">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>8</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelStageZFront">
+                  <property name="text">
+                   <string>Z:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEditStageZPositionFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 2px 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZUpFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z+</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageMoveZDownFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Z-</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="btnStageZeroZFront">
+                  <property name="minimumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>44</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </item>
             </layout>
            </item>
@@ -3889,8 +4647,8 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>978</width>
-             <height>689</height>
+             <width>903</width>
+             <height>694</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_stageControlContent">
@@ -3983,8 +4741,8 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
-                    <property name="styleSheet">
-                     <string notr="true">QPushButton {
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton {
     background-color: #14723A;      /* 默认深绿 */
     color: #FFFFFF;
     border: 1px solid #0F5C2F;
@@ -4006,7 +4764,7 @@ QPushButton:disabled {
     color: #EEF3EF;
 }
 </string>
-                    </property>
+                     </property>
                      <property name="text">
                       <string>连接</string>
                      </property>
@@ -4023,8 +4781,8 @@ QPushButton:disabled {
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
-                    <property name="styleSheet">
-                     <string notr="true">QPushButton {
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton {
     background-color: #C63B3B;      /* 默认深红 */
     color: #FFFFFF;
     border: 1px solid #A02E2E;
@@ -4046,7 +4804,7 @@ QPushButton:disabled {
     color: #FFF8F8;
 }
 </string>
-                    </property>
+                     </property>
                      <property name="text">
                       <string>断开</string>
                      </property>
@@ -4143,16 +4901,16 @@ QPushButton:disabled {
                     <number>1</number>
                    </property>
                    <property name="minimum">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>6000</double>
+                    <double>6000.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="value">
-                    <double>3000</double>
+                    <double>3000.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4169,16 +4927,16 @@ QPushButton:disabled {
                     <number>1</number>
                    </property>
                    <property name="minimum">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>7000</double>
+                    <double>7000.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="value">
-                    <double>3000</double>
+                    <double>3000.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4216,16 +4974,16 @@ QPushButton:disabled {
                     <number>1</number>
                    </property>
                    <property name="minimum">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>7000</double>
+                    <double>7000.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="value">
-                    <double>3000</double>
+                    <double>3000.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4242,16 +5000,16 @@ QPushButton:disabled {
                     <number>1</number>
                    </property>
                    <property name="minimum">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="maximum">
-                    <double>6000</double>
+                    <double>6000.000000000000000</double>
                    </property>
                    <property name="singleStep">
-                    <double>0.10000000000000001</double>
+                    <double>0.100000000000000</double>
                    </property>
                    <property name="value">
-                    <double>3000</double>
+                    <double>3000.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -4631,20 +5389,20 @@ QPushButton:disabled {
                    <property name="text">
                     <string>移动步长:</string>
                    </property>
-                 </widget>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QComboBox" name="comboBoxStepSize">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
                    </property>
                   </widget>
                  </item>
@@ -5035,21 +5793,21 @@ QPushButton:disabled {
                  <item>
                   <layout class="QVBoxLayout" name="verticalLayout_2">
                    <item>
-                     <widget class="QPushButton" name="btnStageHome">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="minimumSize">
-                       <size>
-                        <width>100</width>
-                        <height>0</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton {
+                    <widget class="QPushButton" name="btnStageHome">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>100</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton {
     background-color: #14723A;      /* 默认深绿 */
     color: #FFFFFF;
     border: 1px solid #0F5C2F;
@@ -5071,11 +5829,11 @@ QPushButton:disabled {
     color: #EEF3EF;
 }
 </string>
-                      </property>
-                      <property name="text">
-                       <string>回到原点</string>
-                      </property>
-                     </widget>
+                     </property>
+                     <property name="text">
+                      <string>回到原点</string>
+                     </property>
+                    </widget>
                    </item>
                    <item>
                     <widget class="QPushButton" name="btnStageStop">
@@ -5091,7 +5849,7 @@ QPushButton:disabled {
                        <height>0</height>
                       </size>
                      </property>
-                      <property name="styleSheet">
+                     <property name="styleSheet">
                       <string notr="true">QPushButton {
     background-color: #C63B3B;      /* 默认深红 */
     color: #FFFFFF;
@@ -5114,7 +5872,7 @@ QPushButton:disabled {
     color: #FFF8F8;
 }
 </string>
-                      </property>
+                     </property>
                      <property name="text">
                       <string>紧急停止</string>
                      </property>
@@ -5149,7 +5907,7 @@ QPushButton:disabled {
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                  <property name="styleSheet">
+                   <property name="styleSheet">
                     <string notr="true">QPushButton {
     background-color: #14723A;      /* 默认深绿 */
     color: #FFFFFF;
@@ -5172,7 +5930,7 @@ QPushButton:disabled {
     color: #EEF3EF;
 }
 </string>
-                  </property>
+                   </property>
                    <property name="text">
                     <string>开始记录</string>
                    </property>
@@ -5189,7 +5947,7 @@ QPushButton:disabled {
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                  <property name="styleSheet">
+                   <property name="styleSheet">
                     <string notr="true">QPushButton {
     background-color: #C63B3B;      /* 默认深红 */
     color: #FFFFFF;
@@ -5212,7 +5970,7 @@ QPushButton:disabled {
     color: #FFF8F8;
 }
 </string>
-                  </property>
+                   </property>
                    <property name="text">
                     <string>停止记录</string>
                    </property>
