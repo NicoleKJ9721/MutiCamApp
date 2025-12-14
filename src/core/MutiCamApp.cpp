@@ -5854,6 +5854,27 @@ void MutiCamApp::onAxisMotionStateChanged(AxisIndex axis, MotionState state)
         m_axisMotionStates[axisIndex] = state;
         updateStageMovingStatusLabel();
     }
+
+    // 若此前因为 AxisBusy 弹出提示框：当对应轴（或全部轴）静止后自动关闭
+    if (m_axisBusyHintBox) {
+        const bool axisStopped = (state == MotionState::Idle || state == MotionState::Stopped || state == MotionState::Error);
+        if (m_axisBusyHintAxis != AxisIndex::INVALID_AXIS) {
+            if (axis == m_axisBusyHintAxis && axisStopped) {
+                m_axisBusyHintBox->close();
+            }
+        } else {
+            const bool anyMoving = std::any_of(
+                m_axisMotionStates.begin(),
+                m_axisMotionStates.end(),
+                [](MotionState s) {
+                    return s == MotionState::Moving || s == MotionState::Homing;
+                }
+            );
+            if (!anyMoving) {
+                m_axisBusyHintBox->close();
+            }
+        }
+    }
     
     qDebug() << stateMsg;
 }
@@ -5876,6 +5897,65 @@ void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QStr
 {
     // 避免重复的急停对话框
     if (error == AxisError::EmergencyStop) {
+        return;
+    }
+
+    // 轴忙：运动过程中再次点击运动导致的提示，改为非阻塞并自动关闭
+    if (error == AxisError::AxisBusy) {
+        const QString axisName = axis == AxisIndex::INVALID_AXIS ? QString() : axisToString(axis);
+        const QString busyMsg = axisName.isEmpty()
+            ? QString("载物台正在运动中，请等待静止后再操作。")
+            : QString("%1正在运动中，请等待静止后再操作。").arg(axisName);
+
+        // 轻量提示：状态栏 + 可选弹窗（自动关闭）
+        statusBar()->showMessage(busyMsg, 2000);
+
+        // 复用同一个提示框，避免连点生成多个窗口
+        if (!m_axisBusyHintBox) {
+            QMessageBox* box = new QMessageBox(QMessageBox::Information, "提示", busyMsg, QMessageBox::Ok, this);
+            box->setAttribute(Qt::WA_DeleteOnClose);
+            box->setWindowModality(Qt::NonModal);
+            box->setModal(false);
+            box->show();
+
+            connect(box, &QMessageBox::finished, this, [this](int) {
+                m_axisBusyHintBox = nullptr;
+                m_axisBusyHintAxis = AxisIndex::INVALID_AXIS;
+                if (m_axisBusyHintFallbackTimer) {
+                    m_axisBusyHintFallbackTimer->stop();
+                }
+            });
+
+            m_axisBusyHintBox = box;
+        } else {
+            m_axisBusyHintBox->setWindowTitle("提示");
+            m_axisBusyHintBox->setIcon(QMessageBox::Information);
+            m_axisBusyHintBox->setText(busyMsg);
+            m_axisBusyHintBox->raise();
+            m_axisBusyHintBox->activateWindow();
+        }
+
+        m_axisBusyHintAxis = axis;
+
+        // 兜底：如果未收到状态变化信号，最长保留一段时间后自动关闭
+        if (!m_axisBusyHintFallbackTimer) {
+            m_axisBusyHintFallbackTimer = new QTimer(this);
+            m_axisBusyHintFallbackTimer->setSingleShot(true);
+            connect(m_axisBusyHintFallbackTimer, &QTimer::timeout, this, [this]() {
+                if (m_axisBusyHintBox) {
+                    m_axisBusyHintBox->close();
+                }
+            });
+        }
+        m_axisBusyHintFallbackTimer->start(30000);
+
+        // 日志：AxisBusy 属于可预期的用户操作，降级为 INFO，避免刷屏为 WARNING
+        if (m_logManager) {
+            const QString axisLabel = axis == AxisIndex::INVALID_AXIS ? "系统" : axisToString(axis);
+            m_logManager->log(QString("%1提示：%2").arg(axisLabel).arg(errorString), LogLevel::INFO);
+        }
+
+        qInfo() << "Axis busy:" << busyMsg;
         return;
     }
     

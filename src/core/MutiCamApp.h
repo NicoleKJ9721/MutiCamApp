@@ -18,6 +18,7 @@
 #include <QMutex>
 #include <QDateTime>
 #include <QMap>
+#include <QPointer>
 #include <memory>
 #include <vector>
 #include <array>
@@ -39,6 +40,8 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+class QMessageBox;
 
 class MutiCamApp : public QMainWindow
 {
@@ -855,6 +858,11 @@ private:
     void startContinuousMotion(AxisIndex axis, int direction); ///< 开始连续移动
     void stopContinuousMotion(AxisIndex axis);         ///< 停止指定轴的连续移动
     bool isContinuousMoving(AxisIndex axis) const;     ///< 检查指定轴是否在连续移动
+
+    // 轴忙提示弹窗（非阻塞、可自动关闭）
+    QPointer<QMessageBox> m_axisBusyHintBox;
+    AxisIndex m_axisBusyHintAxis = AxisIndex::INVALID_AXIS;
+    QTimer* m_axisBusyHintFallbackTimer = nullptr;
 
 
 
