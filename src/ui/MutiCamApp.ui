@@ -263,7 +263,110 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_control">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_gridAndDetection">
+              <widget class="QWidget" name="widgetStageYZInfoBar">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>28</height>
+                </size>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_stageYZInfoBar">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="labelMainYInfoTitle">
+                  <property name="text">
+                   <string>Y:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelMainYValue">
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_stageYZInfoBar1">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>12</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelMainZInfoTitle">
+                  <property name="text">
+                   <string>Z:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelMainZValue">
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_stageYZInfoBar2">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTabWidget" name="tabWidgetControlPanel">
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
+               <widget class="QWidget" name="tabControlTools">
+                <attribute name="title">
+                 <string>工具</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="verticalLayout_controlTools">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_gridAndDetection">
                <item>
                 <widget class="QGroupBox" name="groupBoxDrawTools">
                  <property name="font">
@@ -677,12 +780,202 @@ QPushButton:disabled {
              </item>
             </layout>
            </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tabVertical">
+           <widget class="QWidget" name="tabControlStageYZ">
+            <attribute name="title">
+             <string>载物台(Y/Z)</string>
+            </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout_controlStageYZ">
+             <item>
+              <widget class="QWidget" name="widgetStageYZMain">
+               <layout class="QGridLayout" name="gridLayout_stageYZMain">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+                <property name="horizontalSpacing">
+                 <number>6</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>6</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="labelMainStepSize">
+                  <property name="text">
+                   <string>步长:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1" colspan="3">
+                 <widget class="QComboBox" name="comboBoxStepSizeMain">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="labelMainY">
+                  <property name="text">
+                   <string>Y:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEditMainYPosition">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <layout class="QVBoxLayout" name="verticalLayout_mainYMove">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QPushButton" name="btnMainMoveYUp">
+                    <property name="minimumSize">
+                     <size>
+                      <width>60</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Y+</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btnMainMoveYDown">
+                    <property name="minimumSize">
+                     <size>
+                      <width>60</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Y-</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="3">
+                 <widget class="QPushButton" name="btnMainZeroY">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>50</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="labelMainZ">
+                  <property name="text">
+                   <string>Z:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="lineEditMainZPosition">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                  <property name="styleSheet">
+                   <string>color: #ff6600; font-weight: bold; padding: 4px; border: 1px solid #ddd; background-color: #f8f8f8;</string>
+                  </property>
+                  <property name="text">
+                   <string>0.0000 μm</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <layout class="QVBoxLayout" name="verticalLayout_mainZMove">
+                  <property name="spacing">
+                   <number>2</number>
+                  </property>
+                  <item>
+                   <widget class="QPushButton" name="btnMainMoveZUp">
+                    <property name="minimumSize">
+                     <size>
+                      <width>60</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Z+</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btnMainMoveZDown">
+                    <property name="minimumSize">
+                     <size>
+                      <width>60</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string>Z-</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="2" column="3">
+                 <widget class="QPushButton" name="btnMainZeroZ">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>50</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>清零</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="tabVertical">
        <attribute name="title">
         <string>垂直视图</string>
        </attribute>
@@ -4338,104 +4631,20 @@ QPushButton:disabled {
                    <property name="text">
                     <string>移动步长:</string>
                    </property>
-                  </widget>
+                 </widget>
                  </item>
                  <item>
-                  <widget class="QRadioButton" name="radioStep01">
+                  <widget class="QComboBox" name="comboBoxStepSize">
                    <property name="font">
                     <font>
                      <bold>true</bold>
                     </font>
                    </property>
-                   <property name="text">
-                    <string>0.1μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep025">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>0.25μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep1">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>1μm</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep10">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>10μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep100">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>100μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep1000">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>1000μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep2000">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>2000μm</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="radioStep5000">
-                   <property name="font">
-                    <font>
-                     <bold>true</bold>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>5000μm</string>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
                   </widget>
                  </item>

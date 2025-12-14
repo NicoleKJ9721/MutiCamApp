@@ -18,6 +18,7 @@
 #include <QDir>
 #include <QDateTime>
 #include <QFile>
+#include <QSignalBlocker>
 #include <QStringList>
 #include <exception>
 #include <stdexcept>
@@ -83,6 +84,52 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_motionControlsEnabled(false)
 {
     ui->setupUi(this);
+
+    // 初始化步长下拉框（主界面 + XYZ载物台控制）
+    const struct StepItem {
+        const char* label;
+        double stepUm;
+    } stepItems[] = {
+        {"0.1 μm", 0.1},
+        {"0.25 μm", 0.25},
+        {"1 μm", 1.0},
+        {"10 μm", 10.0},
+        {"100 μm", 100.0},
+        {"1000 μm", 1000.0},
+        {"2000 μm", 2000.0},
+        {"5000 μm", 5000.0},
+    };
+
+    auto populateStepCombo = [&stepItems](QComboBox* combo) {
+        if (!combo) {
+            return;
+        }
+        combo->clear();
+        for (const auto& item : stepItems) {
+            combo->addItem(QString::fromUtf8(item.label), item.stepUm);
+        }
+        combo->setCurrentIndex(2);  // 默认 1 μm
+    };
+
+    populateStepCombo(ui->comboBoxStepSize);
+    populateStepCombo(ui->comboBoxStepSizeMain);
+
+    // 同步两处步长选择
+    if (ui->comboBoxStepSize && ui->comboBoxStepSizeMain) {
+        connect(ui->comboBoxStepSize, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int) {
+                    if (!ui->comboBoxStepSizeMain) return;
+                    const QSignalBlocker blocker(ui->comboBoxStepSizeMain);
+                    ui->comboBoxStepSizeMain->setCurrentIndex(ui->comboBoxStepSize->currentIndex());
+                });
+
+        connect(ui->comboBoxStepSizeMain, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, [this](int) {
+                    if (!ui->comboBoxStepSize) return;
+                    const QSignalBlocker blocker(ui->comboBoxStepSize);
+                    ui->comboBoxStepSize->setCurrentIndex(ui->comboBoxStepSizeMain->currentIndex());
+                });
+    }
 
     // 初始化缩放平移显示控件
     initializeZoomPanWidgets();
@@ -166,6 +213,12 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
     ui->btnMoveYDown->setEnabled(enabled);
     ui->btnMoveZUp->setEnabled(enabled);
     ui->btnMoveZDown->setEnabled(enabled);
+    ui->btnMainMoveYUp->setEnabled(enabled);
+    ui->btnMainMoveYDown->setEnabled(enabled);
+    ui->btnMainMoveZUp->setEnabled(enabled);
+    ui->btnMainMoveZDown->setEnabled(enabled);
+    ui->btnMainZeroY->setEnabled(enabled);
+    ui->btnMainZeroZ->setEnabled(enabled);
 
     // 绝对定位
     ui->btnMoveToX->setEnabled(enabled);
@@ -203,14 +256,9 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
     };
 
     updateWidget(ui->labelStepSize);
-    updateWidget(ui->radioStep01);
-    updateWidget(ui->radioStep025);
-    updateWidget(ui->radioStep1);
-    updateWidget(ui->radioStep10);
-    updateWidget(ui->radioStep100);
-    updateWidget(ui->radioStep1000);
-    updateWidget(ui->radioStep2000);
-    updateWidget(ui->radioStep5000);
+    updateWidget(ui->comboBoxStepSize);
+    updateWidget(ui->labelMainStepSize);
+    updateWidget(ui->comboBoxStepSizeMain);
 }
 
 void MutiCamApp::updateStageMovingStatusLabel()
@@ -287,6 +335,12 @@ void MutiCamApp::updatePerAxisControlEnabled()
     ui->btnMoveYDown->setEnabled(yEnabled && !m_isEmergencyStopActive);
     ui->btnMoveZUp->setEnabled(zEnabled && !m_isEmergencyStopActive);
     ui->btnMoveZDown->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnMainMoveYUp->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMainMoveYDown->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMainMoveZUp->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnMainMoveZDown->setEnabled(zEnabled && !m_isEmergencyStopActive);
+    ui->btnMainZeroY->setEnabled(yEnabled && !m_isEmergencyStopActive);
+    ui->btnMainZeroZ->setEnabled(zEnabled && !m_isEmergencyStopActive);
 
     // 绝对定位按钮按轴控制
     ui->btnMoveToX->setEnabled(xEnabled && !m_isEmergencyStopActive);
@@ -524,6 +578,20 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onStageHomeClicked);
     connect(ui->btnStageStop, &QPushButton::clicked,
             this, &MutiCamApp::onStageStopClicked);
+
+    // 主界面载物台(Y/Z)快捷控制
+    connect(ui->btnMainMoveYUp, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYUpClicked);
+    connect(ui->btnMainMoveYDown, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveYDownClicked);
+    connect(ui->btnMainMoveZUp, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZUpClicked);
+    connect(ui->btnMainMoveZDown, &QPushButton::clicked,
+            this, &MutiCamApp::onMoveZDownClicked);
+    connect(ui->btnMainZeroY, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroYClicked);
+    connect(ui->btnMainZeroZ, &QPushButton::clicked,
+            this, &MutiCamApp::onMainZeroZClicked);
             
     // 连接载物台连接控制按钮
     connect(ui->btnConnect, &QPushButton::clicked, 
@@ -1355,10 +1423,12 @@ void MutiCamApp::onTabChanged(int index)
 
     qDebug() << "Tab changed to index:" << index;
 
-    // 仅在“XYZ载物台控制”选项卡激活时启用轴状态监控
+    // 仅在“主界面 / XYZ载物台控制”选项卡激活时启用轴状态监控
     if (m_axisController) {
+        const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
         int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
-        if (index == stageTabIndex && m_axisController->isConnected()) {
+        const bool shouldMonitor = (index == stageTabIndex) || (mainTabIndex >= 0 && index == mainTabIndex);
+        if (shouldMonitor && m_axisController->isConnected()) {
             m_axisController->setStatusMonitorEnabled(true, 700);
         } else {
             m_axisController->setStatusMonitorEnabled(false);
@@ -4818,6 +4888,62 @@ void MutiCamApp::onMoveZDownClicked()
     }
 }
 
+void MutiCamApp::onMainZeroYClicked()
+{
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Y轴清零";
+        return;
+    }
+
+    if (!m_axisController || !m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        return;
+    }
+
+    if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+        statusBar()->showMessage("Y轴未使能，无法清零", 3000);
+        return;
+    }
+
+    if (m_axisController->setPositionZero(AxisIndex::Y_AXIS)) {
+        statusBar()->showMessage("Y轴位置已清零", 2000);
+        if (m_logManager) {
+            m_logManager->log("Y轴位置已清零", LogLevel::INFO);
+        }
+    } else if (m_logManager) {
+        m_logManager->log(QString("Y轴清零失败：%1").arg(m_axisController->getLastErrorString()),
+                          LogLevel::WARNING);
+    }
+}
+
+void MutiCamApp::onMainZeroZClicked()
+{
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略Z轴清零";
+        return;
+    }
+
+    if (!m_axisController || !m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接设备");
+        return;
+    }
+
+    if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+        statusBar()->showMessage("Z轴未使能，无法清零", 3000);
+        return;
+    }
+
+    if (m_axisController->setPositionZero(AxisIndex::Z_AXIS)) {
+        statusBar()->showMessage("Z轴位置已清零", 2000);
+        if (m_logManager) {
+            m_logManager->log("Z轴位置已清零", LogLevel::INFO);
+        }
+    } else if (m_logManager) {
+        m_logManager->log(QString("Z轴清零失败：%1").arg(m_axisController->getLastErrorString()),
+                          LogLevel::WARNING);
+    }
+}
+
 void MutiCamApp::onStageHomeClicked()
 {
     if (m_isEmergencyStopActive) {
@@ -4939,24 +5065,22 @@ void MutiCamApp::onStageStopClicked()
 
 double MutiCamApp::getCurrentStepSize() const
 {
-    if (ui->radioStep01->isChecked()) {
-        return 0.1;
-    } else if (ui->radioStep025->isChecked()) {
-        return 0.25;
-    } else if (ui->radioStep1->isChecked()) {
-        return 1.0;
-    } else if (ui->radioStep10->isChecked()) {
-        return 10.0;
-    } else if (ui->radioStep100->isChecked()) {
-        return 100.0;
-    } else if (ui->radioStep1000->isChecked()) {
-        return 1000.0;
-    } else if (ui->radioStep2000->isChecked()) {
-        return 2000.0;
-    } else if (ui->radioStep5000->isChecked()) {
-        return 5000.0;
+    bool ok = false;
+    if (ui->comboBoxStepSize) {
+        const double step = ui->comboBoxStepSize->currentData().toDouble(&ok);
+        if (ok) {
+            return step;
+        }
     }
-    return 0.1; // 默认步长
+
+    if (ui->comboBoxStepSizeMain) {
+        const double step = ui->comboBoxStepSizeMain->currentData().toDouble(&ok);
+        if (ok) {
+            return step;
+        }
+    }
+
+    return 1.0; // 默认步长
 }
 
 void MutiCamApp::initializeTrajectoryRecorder()
@@ -5791,11 +5915,23 @@ void MutiCamApp::onAxisActualPositionChanged(AxisIndex axis, double actualPositi
             m_currentY = actualPosition;  // 内部状态使用实际位置
             // 更新到实际光栅尺读数位置显示（右侧列）
             ui->labelGratingYPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            if (ui->lineEditMainYPosition) {
+                ui->lineEditMainYPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->labelMainYValue) {
+                ui->labelMainYValue->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
             break;
         case AxisIndex::Z_AXIS:
             m_currentZ = actualPosition;  // 内部状态使用实际位置
             // 更新到实际光栅尺读数位置显示（右侧列）
             ui->labelGratingZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            if (ui->lineEditMainZPosition) {
+                ui->lineEditMainZPosition->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
+            if (ui->labelMainZValue) {
+                ui->labelMainZValue->setText(QString("%1 μm").arg(actualPosition, 0, 'f', 4));
+            }
             break;
         default:
             break;
@@ -6150,11 +6286,13 @@ void MutiCamApp::onStageConnectFinished()
         ui->labelStageConnection->setText("已连接");
         ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
         statusBar()->showMessage("轴控制设备连接成功", 3000);
-        // 仅在“XYZ载物台控制”选项卡激活时启动监控
+        // 仅在“主界面 / XYZ载物台控制”选项卡激活时启动监控
         if (m_axisController) {
+            const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
             const int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
-            const bool isStageTabActive = (ui->tabWidget->currentIndex() == stageTabIndex);
-            m_axisController->setStatusMonitorEnabled(isStageTabActive, 700);
+            const int currentIndex = ui->tabWidget->currentIndex();
+            const bool shouldMonitor = (currentIndex == stageTabIndex) || (mainTabIndex >= 0 && currentIndex == mainTabIndex);
+            m_axisController->setStatusMonitorEnabled(shouldMonitor, 700);
         }
         if (m_logManager) {
             m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);
