@@ -38,6 +38,37 @@ public:
         int cannyCircleLow;
         int cannyCircleHigh;
         int circleDetParam2;
+
+        // 模板匹配参数（Halcon 形状模板）
+        struct TemplateCreationParams {
+            int numLevels = 5;
+            double angleStart = 0.0;
+            double angleExtent = 360.0;
+            double angleStep = 1.0;
+            double scaleMin = 0.8;
+            double scaleMax = 1.2;
+            double scaleStep = 0.01;
+            QString optimization = "none";
+            QString metric = "use_polarity";
+            QString contrast = "auto";
+            QString minContrast = "auto";
+        };
+
+        struct TemplateMatchingParams {
+            double angleStart = 0.0;
+            double angleExtent = 360.0;
+            double scaleMin = 0.9;
+            double scaleMax = 1.1;
+            double minScore = 0.5;
+            int numMatches = 1;
+            double maxOverlap = 0.5;
+            QString subPixel = "least_squares";
+            int numLevels = 0;
+            double greediness = 0.8;
+        };
+
+        TemplateCreationParams templateCreation;
+        TemplateMatchingParams templateMatching;
         
         // UI尺寸参数
         int uiWidth;

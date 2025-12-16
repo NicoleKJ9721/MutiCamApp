@@ -1366,20 +1366,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
-             <item>
-              <widget class="QPushButton" name="btnCreateTemplateVertical">
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>创建模版</string>
-               </property>
-              </widget>
-             </item>
+           <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingVertical">
                <property name="maximumSize">
@@ -2080,20 +2067,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
-             <item>
-              <widget class="QPushButton" name="btnCreateTemplateLeft">
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>创建模版</string>
-               </property>
-              </widget>
-             </item>
+           <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingLeft">
                <property name="maximumSize">
@@ -2794,20 +2768,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
-             <item>
-              <widget class="QPushButton" name="btnCreateTemplateFront">
-               <property name="maximumSize">
-                <size>
-                 <width>80</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>创建模版</string>
-               </property>
-              </widget>
-             </item>
+           <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingFront">
                <property name="maximumSize">

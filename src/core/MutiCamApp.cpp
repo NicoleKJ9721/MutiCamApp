@@ -1,6 +1,5 @@
 #include "MutiCamApp.h"
 #include "../ui/ui_MutiCamApp.h"
-#include "../ui/TemplateSelectionDialog.h"
 #include "../ui/ZoomPanWidget.h"
 #include "../controllers/AxisControllerEnums.h"
 #include "../utils/SerialPortDetector.h"
@@ -26,7 +25,6 @@
 #include <QFileInfo>
 #include <algorithm>
 #define _USE_MATH_DEFINES
-#include "../ui/TemplateCreationDialog.h"
 #include "../config/TemplateMatchingConfig.h"
 
 namespace {
@@ -2095,95 +2093,20 @@ void MutiCamApp::onSaveImageFrontClicked()
     saveImagesAsync(viewTypes);
 }
 
-// {{ AURA-X: Add - 模板匹配按钮槽函数实现. Approval: 寸止(ID:template_matching_buttons). }}
-void MutiCamApp::onCreateTemplateVerticalClicked()
-{
-    qDebug() << "垂直视图创建模板按钮被点击";
-
-    // 启动垂直视图的ROI创建（选项卡界面）
-    if (m_verticalPaintingOverlay2) {
-        m_verticalPaintingOverlay2->startROICreation();
-
-        // 切换到垂直视图选项卡
-        ui->tabWidget->setCurrentIndex(1); // 垂直视图选项卡
-    } else {
-        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
-    }
-}
-
-void MutiCamApp::onCreateTemplateLeftClicked()
-{
-    qDebug() << "左侧视图创建模板按钮被点击";
-
-    // 启动左侧视图的ROI创建（选项卡界面）
-    if (m_leftPaintingOverlay2) {
-        m_leftPaintingOverlay2->startROICreation();
-
-        // 切换到左侧视图选项卡
-        ui->tabWidget->setCurrentIndex(2); // 左侧视图选项卡
-    } else {
-        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
-    }
-}
-
-void MutiCamApp::onCreateTemplateFrontClicked()
-{
-    qDebug() << "对向视图创建模板按钮被点击";
-
-    // 启动对向视图的ROI创建（选项卡界面）
-    if (m_frontPaintingOverlay2) {
-        m_frontPaintingOverlay2->startROICreation();
-
-        // 切换到对向视图选项卡
-        ui->tabWidget->setCurrentIndex(3); // 对向视图选项卡
-    } else {
-        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
-    }
-}
-
 void MutiCamApp::onStartMatchingVerticalClicked()
 {
     qDebug() << "垂直视图开始匹配按钮被点击";
 
     if (!m_verticalPaintingOverlay2) {
-        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
+        statusBar()->showMessage("垂直视图绘图覆盖层未初始化", 3000);
         return;
     }
 
-    // 加载可用模板
-    QVector<TemplateInfo> availableTemplates = m_verticalPaintingOverlay2->loadTemplatesFromDirectory();
-
-    if (availableTemplates.isEmpty()) {
-        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
-        return;
-    }
-
-    // 显示模板选择对话框
-    TemplateSelectionDialog dialog(this);
-    dialog.setAvailableTemplates(availableTemplates);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
-
-        if (selectedTemplates.isEmpty()) {
-            QMessageBox::information(this, "提示", "未选择任何模板");
-            return;
-        }
-
-        // 获取对话框中的匹配参数并转换为Halcon参数
-        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
-        
-        // 启动模板匹配，传递用户设置的参数
-        if (m_verticalPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
-            QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
-
-            // 切换到垂直视图选项卡
-            ui->tabWidget->setCurrentIndex(1);
-        } else {
-            QMessageBox::warning(this, "错误", "启动模板匹配失败");
-        }
-    }
+    // 新流程：开始匹配 = 画ROI -> 自动创建模板 -> 自动开始匹配（无弹窗）
+    m_verticalPaintingOverlay2->stopTemplateMatching();
+    m_verticalPaintingOverlay2->startROICreation();
+    ui->tabWidget->setCurrentIndex(1);
+    statusBar()->showMessage("请在垂直视图画ROI并点击确认，完成后将自动创建模板并开始匹配", 5000);
 }
 
 void MutiCamApp::onStartMatchingLeftClicked()
@@ -2191,44 +2114,15 @@ void MutiCamApp::onStartMatchingLeftClicked()
     qDebug() << "左侧视图开始匹配按钮被点击";
 
     if (!m_leftPaintingOverlay2) {
-        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
+        statusBar()->showMessage("左侧视图绘图覆盖层未初始化", 3000);
         return;
     }
 
-    // 加载可用模板
-    QVector<TemplateInfo> availableTemplates = m_leftPaintingOverlay2->loadTemplatesFromDirectory();
-
-    if (availableTemplates.isEmpty()) {
-        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
-        return;
-    }
-
-    // 显示模板选择对话框
-    TemplateSelectionDialog dialog(this);
-    dialog.setAvailableTemplates(availableTemplates);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
-
-        if (selectedTemplates.isEmpty()) {
-            QMessageBox::information(this, "提示", "未选择任何模板");
-            return;
-        }
-
-        // 获取对话框中的匹配参数并转换为Halcon参数
-        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
-        
-        // 启动模板匹配，传递用户设置的参数
-        if (m_leftPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
-            QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
-
-            // 切换到左侧视图选项卡
-            ui->tabWidget->setCurrentIndex(2);
-        } else {
-            QMessageBox::warning(this, "错误", "启动模板匹配失败");
-        }
-    }
+    // 新流程：开始匹配 = 画ROI -> 自动创建模板 -> 自动开始匹配（无弹窗）
+    m_leftPaintingOverlay2->stopTemplateMatching();
+    m_leftPaintingOverlay2->startROICreation();
+    ui->tabWidget->setCurrentIndex(2);
+    statusBar()->showMessage("请在左侧视图画ROI并点击确认，完成后将自动创建模板并开始匹配", 5000);
 }
 
 void MutiCamApp::onStartMatchingFrontClicked()
@@ -2236,44 +2130,15 @@ void MutiCamApp::onStartMatchingFrontClicked()
     qDebug() << "对向视图开始匹配按钮被点击";
 
     if (!m_frontPaintingOverlay2) {
-        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
+        statusBar()->showMessage("对向视图绘图覆盖层未初始化", 3000);
         return;
     }
 
-    // 加载可用模板
-    QVector<TemplateInfo> availableTemplates = m_frontPaintingOverlay2->loadTemplatesFromDirectory();
-
-    if (availableTemplates.isEmpty()) {
-        QMessageBox::information(this, "提示", "未找到可用的模板文件。\n请先使用'创建模板'功能创建一些模板。");
-        return;
-    }
-
-    // 显示模板选择对话框
-    TemplateSelectionDialog dialog(this);
-    dialog.setAvailableTemplates(availableTemplates);
-
-    if (dialog.exec() == QDialog::Accepted) {
-        QVector<TemplateInfo> selectedTemplates = dialog.getSelectedTemplates();
-
-        if (selectedTemplates.isEmpty()) {
-            QMessageBox::information(this, "提示", "未选择任何模板");
-            return;
-        }
-
-        // 获取对话框中的匹配参数并转换为Halcon参数
-        TemplateMatchingConfig::TemplateMatchingParams halconParams = dialog.toHalconMatchingParams();
-        
-        // 启动模板匹配，传递用户设置的参数
-        if (m_frontPaintingOverlay2->startTemplateMatching(selectedTemplates, &halconParams)) {
-            QMessageBox::information(this, "成功",
-                QString("已启动模板匹配，共加载 %1 个模板").arg(selectedTemplates.size()));
-
-            // 切换到对向视图选项卡
-            ui->tabWidget->setCurrentIndex(3);
-        } else {
-            QMessageBox::warning(this, "错误", "启动模板匹配失败");
-        }
-    }
+    // 新流程：开始匹配 = 画ROI -> 自动创建模板 -> 自动开始匹配（无弹窗）
+    m_frontPaintingOverlay2->stopTemplateMatching();
+    m_frontPaintingOverlay2->startROICreation();
+    ui->tabWidget->setCurrentIndex(3);
+    statusBar()->showMessage("请在对向视图画ROI并点击确认，完成后将自动创建模板并开始匹配", 5000);
 }
 
 void MutiCamApp::onStopMatchingVerticalClicked()
@@ -2282,9 +2147,9 @@ void MutiCamApp::onStopMatchingVerticalClicked()
 
     if (m_verticalPaintingOverlay2) {
         m_verticalPaintingOverlay2->stopTemplateMatching();
-        QMessageBox::information(this, "提示", "已停止垂直视图的模板匹配");
+        statusBar()->showMessage("已停止垂直视图的模板匹配", 3000);
     } else {
-        QMessageBox::warning(this, "错误", "垂直视图绘图覆盖层未初始化");
+        statusBar()->showMessage("垂直视图绘图覆盖层未初始化", 3000);
     }
 }
 
@@ -2294,9 +2159,9 @@ void MutiCamApp::onStopMatchingLeftClicked()
 
     if (m_leftPaintingOverlay2) {
         m_leftPaintingOverlay2->stopTemplateMatching();
-        QMessageBox::information(this, "提示", "已停止左侧视图的模板匹配");
+        statusBar()->showMessage("已停止左侧视图的模板匹配", 3000);
     } else {
-        QMessageBox::warning(this, "错误", "左侧视图绘图覆盖层未初始化");
+        statusBar()->showMessage("左侧视图绘图覆盖层未初始化", 3000);
     }
 }
 
@@ -2306,9 +2171,9 @@ void MutiCamApp::onStopMatchingFrontClicked()
 
     if (m_frontPaintingOverlay2) {
         m_frontPaintingOverlay2->stopTemplateMatching();
-        QMessageBox::information(this, "提示", "已停止对向视图的模板匹配");
+        statusBar()->showMessage("已停止对向视图的模板匹配", 3000);
     } else {
-        QMessageBox::warning(this, "错误", "对向视图绘图覆盖层未初始化");
+        statusBar()->showMessage("对向视图绘图覆盖层未初始化", 3000);
     }
 }
 
@@ -2316,63 +2181,124 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
 {
     qDebug() << "ROI创建完成 - 视图:" << viewName << "区域:" << rect << "角度:" << angle;
 
-    // 显示模板创建对话框
-    TemplateCreationDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        QString templateName = dialog.getTemplateName();
-        QJsonObject creationConfig = dialog.getTemplateCreationConfig();
+    // 新流程：ROI确认后，直接创建模板并启动匹配（无弹窗），参数来自 settings.json
+    PaintingOverlay* overlay = nullptr;
+    cv::Mat currentImage;
+    QString viewKey;
+    int tabIndex = -1;
+    if (viewName.contains("Vertical")) {
+        overlay = m_verticalPaintingOverlay2;
+        currentImage = m_lastVerticalFrame;
+        viewKey = "Vertical";
+        tabIndex = 1;
+    } else if (viewName.contains("Left")) {
+        overlay = m_leftPaintingOverlay2;
+        currentImage = m_lastLeftFrame;
+        viewKey = "Left";
+        tabIndex = 2;
+    } else if (viewName.contains("Front")) {
+        overlay = m_frontPaintingOverlay2;
+        currentImage = m_lastFrontFrame;
+        viewKey = "Front";
+        tabIndex = 3;
+    }
 
-        // 获取对应的overlay和当前图像
-        PaintingOverlay* overlay = nullptr;
-        cv::Mat currentImage;
+    if (!overlay) {
+        statusBar()->showMessage("未知视图，无法创建模板/启动匹配", 5000);
+        qWarning() << "onROICreated: 未识别的viewName:" << viewName;
+        return;
+    }
 
-        if (viewName.contains("Vertical")) {
-            overlay = m_verticalPaintingOverlay2;
-            currentImage = m_lastVerticalFrame;
-        } else if (viewName.contains("Left")) {
-            overlay = m_leftPaintingOverlay2;
-            currentImage = m_lastLeftFrame;
-        } else if (viewName.contains("Front")) {
-            overlay = m_frontPaintingOverlay2;
-            currentImage = m_lastFrontFrame;
-        }
+    if (currentImage.empty()) {
+        statusBar()->showMessage("当前没有有效相机图像，无法创建模板；请确认相机正在采集", 5000);
+        qWarning() << "onROICreated: currentImage为空，viewName:" << viewName;
+        QTimer::singleShot(0, overlay, [overlay]() { overlay->startROICreation(); });
+        return;
+    }
 
-        if (overlay && !currentImage.empty()) {
-            // 设置ROI的模板名称
-            overlay->setCurrentROITemplateName(templateName);
+    SettingsManager::Settings settings;
+    if (m_settingsManager) {
+        settings = m_settingsManager->getCurrentSettings();
+    }
 
-            // 调用新的模板创建功能
-            bool success = overlay->createTemplateFromROI(currentImage, templateName);
+    TemplateMatchingConfig::TemplateCreationParams creationParams;
+    creationParams.numLevels = settings.templateCreation.numLevels;
+    creationParams.angleStart = settings.templateCreation.angleStart;
+    creationParams.angleExtent = settings.templateCreation.angleExtent;
+    creationParams.angleStep = settings.templateCreation.angleStep;
+    creationParams.scaleMin = settings.templateCreation.scaleMin;
+    creationParams.scaleMax = settings.templateCreation.scaleMax;
+    creationParams.scaleStep = settings.templateCreation.scaleStep;
+    creationParams.optimization = settings.templateCreation.optimization;
+    creationParams.metric = settings.templateCreation.metric;
+    creationParams.contrast = settings.templateCreation.contrast;
+    creationParams.minContrast = settings.templateCreation.minContrast;
 
-            if (success) {
-                overlay->finishROICreation();
-                QMessageBox::information(this, "成功",
-                    QString("模板 '%1' 创建成功！\n已保存到 templates 目录").arg(templateName));
-                qDebug() << "模板创建成功 - 视图:" << viewName << "模板名称:" << templateName;
-            } else {
-                QMessageBox::warning(this, "错误",
-                    QString("模板 '%1' 创建失败！\n请检查ROI区域和图像质量").arg(templateName));
-                qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
-                // 不完成ROI创建，让用户可以重新尝试
-            }
-        } else {
-            QMessageBox::warning(this, "错误", "无法获取当前图像，请确保相机正在运行");
-            qWarning() << "无法创建模板：overlay或图像为空";
-        }
+    TemplateMatchingConfig::TemplateMatchingParams matchingParams;
+    matchingParams.angleStart = settings.templateMatching.angleStart;
+    matchingParams.angleExtent = settings.templateMatching.angleExtent;
+    matchingParams.scaleMin = settings.templateMatching.scaleMin;
+    matchingParams.scaleMax = settings.templateMatching.scaleMax;
+    matchingParams.minScore = settings.templateMatching.minScore;
+    matchingParams.numMatches = settings.templateMatching.numMatches;
+    matchingParams.maxOverlap = settings.templateMatching.maxOverlap;
+    matchingParams.subPixel = settings.templateMatching.subPixel;
+    matchingParams.numLevels = settings.templateMatching.numLevels;
+    matchingParams.greediness = settings.templateMatching.greediness;
+
+    TemplateMatchingConfig* config = TemplateMatchingConfig::instance();
+    config->setTemplateCreationParams(creationParams);
+    config->setTemplateMatchingParams(matchingParams);
+
+    const QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz");
+    const QString templateName = QString("Auto_%1_%2").arg(viewKey, timestamp);
+    overlay->setCurrentROITemplateName(templateName);
+
+    const bool created = overlay->createTemplateFromROI(currentImage, templateName);
+    if (!created) {
+        statusBar()->showMessage(QString("模板创建失败：%1（请调整ROI后重试）").arg(templateName), 5000);
+        qWarning() << "模板创建失败 - 视图:" << viewName << "模板名称:" << templateName;
+        QTimer::singleShot(0, overlay, [overlay]() { overlay->startROICreation(); });
+        return;
+    }
+
+    overlay->finishROICreation();
+
+    // 载入刚创建的模板并启动匹配
+    const QString templatesDir = QCoreApplication::applicationDirPath() + "/templates";
+    const QString imagePath = QDir(templatesDir).filePath(templateName + ".png");
+    const QString metaPath = QDir(templatesDir).filePath(templateName + ".json");
+
+    TemplateInfo templateInfo;
+    if (QFile::exists(imagePath) && QFile::exists(metaPath)) {
+        templateInfo = overlay->loadSingleTemplate(imagePath, metaPath);
     } else {
-        // 用户取消，清除ROI
-        PaintingOverlay* overlay = nullptr;
-        if (viewName.contains("Vertical")) {
-            overlay = m_verticalPaintingOverlay2;
-        } else if (viewName.contains("Left")) {
-            overlay = m_leftPaintingOverlay2;
-        } else if (viewName.contains("Front")) {
-            overlay = m_frontPaintingOverlay2;
+        const QVector<TemplateInfo> allTemplates = overlay->loadTemplatesFromDirectory(templatesDir);
+        for (const TemplateInfo& t : allTemplates) {
+            if (t.name == templateName) {
+                templateInfo = t;
+                break;
+            }
         }
+    }
 
-        if (overlay) {
-            overlay->cancelROICreation();
-        }
+    if (templateInfo.name.isEmpty()) {
+        statusBar()->showMessage(QString("模板已创建但载入失败：%1").arg(templateName), 5000);
+        qWarning() << "模板创建后载入失败 - 视图:" << viewName << "模板名称:" << templateName;
+        return;
+    }
+
+    templateInfo.isSelected = true;
+    QVector<TemplateInfo> selectedTemplates;
+    selectedTemplates.append(templateInfo);
+
+    if (overlay->startTemplateMatching(selectedTemplates, &matchingParams)) {
+        ui->tabWidget->setCurrentIndex(tabIndex);
+        statusBar()->showMessage(QString("已开始模板匹配：%1").arg(templateName), 5000);
+        qDebug() << "模板创建并开始匹配 - 视图:" << viewName << "模板名称:" << templateName;
+    } else {
+        statusBar()->showMessage("启动模板匹配失败", 5000);
+        qWarning() << "启动模板匹配失败 - 视图:" << viewName << "模板名称:" << templateName;
     }
 }
 
@@ -2384,22 +2310,7 @@ void MutiCamApp::onROIFinished(const QString& viewName)
 void MutiCamApp::onROICancelled(const QString& viewName)
 {
     qDebug() << "ROI创建取消 - 视图:" << viewName;
-
-    // 获取对应的PaintingOverlay
-    PaintingOverlay* overlay = nullptr;
-    if (viewName == "Vertical2") {
-        overlay = m_verticalPaintingOverlay2;
-    } else if (viewName == "Left2") {
-        overlay = m_leftPaintingOverlay2;
-    } else if (viewName == "Front2") {
-        overlay = m_frontPaintingOverlay2;
-    }
-
-    if (overlay) {
-        // 取消ROI创建
-        overlay->cancelROICreation();
-        qDebug() << "已取消" << viewName << "视图的ROI创建";
-    }
+    statusBar()->showMessage("已取消ROI绘制", 3000);
 }
 
 void MutiCamApp::saveImages(const QString& viewType)
@@ -4627,15 +4538,6 @@ void MutiCamApp::initializeButtonMappings()
         "save", "front");
 
     // 模板匹配按钮
-    m_buttonMappings.emplace_back(ui->btnCreateTemplateVertical,
-        [this]() { onCreateTemplateVerticalClicked(); },
-        "template", "vertical");
-    m_buttonMappings.emplace_back(ui->btnCreateTemplateLeft,
-        [this]() { onCreateTemplateLeftClicked(); },
-        "template", "left");
-    m_buttonMappings.emplace_back(ui->btnCreateTemplateFront,
-        [this]() { onCreateTemplateFrontClicked(); },
-        "template", "front");
     m_buttonMappings.emplace_back(ui->btnStartMatchingVertical,
         [this]() { onStartMatchingVerticalClicked(); },
         "matching", "vertical");

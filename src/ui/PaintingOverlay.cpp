@@ -7997,8 +7997,7 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     painter.drawEllipse(matchCenter, centerSize, centerSize);
 
     // 绘制模板名称、置信度、角度和缩放信息
-    QString infoText = QString("%1\n置信度: %2%\n角度: %3°\n缩放: %4")
-                       .arg(match.templateName)
+    QString infoText = QString("匹配结果：\n置信度: %1%\n 角度: %2°\n 缩放: %3")
                        .arg(QString::number(match.confidence * 100, 'f', 1))
                        .arg(QString::number(match.angle * 180.0 / M_PI, 'f', 1))
                        .arg(QString::number(match.scale, 'f', 2));

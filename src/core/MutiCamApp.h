@@ -166,9 +166,6 @@ private slots:
     /**
      * @brief 模板匹配按钮点击事件处理
      */
-    void onCreateTemplateVerticalClicked();
-    void onCreateTemplateLeftClicked();
-    void onCreateTemplateFrontClicked();
     void onStartMatchingVerticalClicked();
     void onStartMatchingLeftClicked();
     void onStartMatchingFrontClicked();

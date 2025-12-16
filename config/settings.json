@@ -13,7 +13,7 @@
         "pixelScale": 1,
         "unit": "μm"
     },
-    "FrontCamSN": "Vir89843537",
+    "FrontCamSN": "Vir90530294",
     "LeftCalibration": {
         "accuracy": 0,
         "calibrationTime": "",
@@ -22,7 +22,7 @@
         "pixelScale": 1,
         "unit": "μm"
     },
-    "LeftCamSN": "Vir89842920",
+    "LeftCamSN": "Vir90528405",
     "LineDetMaxGap": 10,
     "LineDetMinLength": 50,
     "LineDetThreshold": 50,
@@ -37,9 +37,34 @@
     "StageSoftLimitNeg": -999999.9,
     "StageSoftLimitPos": 999999.9,
     "StageStepSize": 1,
-    "UIHeight": 700,
-    "UIWidth": 1342,
-    "VerCamSN": "K75651644",
+    "TemplateCreation": {
+        "angle_extent": 360,
+        "angle_start": 0,
+        "angle_step": 1,
+        "contrast": "auto",
+        "metric": "use_polarity",
+        "min_contrast": "auto",
+        "num_levels": 5,
+        "optimization": "none",
+        "scale_max": 1.2,
+        "scale_min": 0.8,
+        "scale_step": 0.01
+    },
+    "TemplateMatching": {
+        "angle_extent": 360,
+        "angle_start": 0,
+        "greediness": 0.8,
+        "max_overlap": 0.5,
+        "min_score": 0.5,
+        "num_levels": 0,
+        "num_matches": 1,
+        "scale_max": 1.1,
+        "scale_min": 0.9,
+        "sub_pixel": "least_squares"
+    },
+    "UIHeight": 890,
+    "UIWidth": 1536,
+    "VerCamSN": "Vir53522502",
     "VerticalCalibration": {
         "accuracy": 0,
         "calibrationTime": "",

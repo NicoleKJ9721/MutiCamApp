@@ -164,6 +164,34 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     json["CannyCircleLow"] = settings.cannyCircleLow;
     json["CannyCircleHigh"] = settings.cannyCircleHigh;
     json["CircleDetParam2"] = settings.circleDetParam2;
+
+    // 模板匹配参数（Halcon 形状模板）
+    QJsonObject templateCreation;
+    templateCreation["num_levels"] = settings.templateCreation.numLevels;
+    templateCreation["angle_start"] = settings.templateCreation.angleStart;
+    templateCreation["angle_extent"] = settings.templateCreation.angleExtent;
+    templateCreation["angle_step"] = settings.templateCreation.angleStep;
+    templateCreation["scale_min"] = settings.templateCreation.scaleMin;
+    templateCreation["scale_max"] = settings.templateCreation.scaleMax;
+    templateCreation["scale_step"] = settings.templateCreation.scaleStep;
+    templateCreation["optimization"] = settings.templateCreation.optimization;
+    templateCreation["metric"] = settings.templateCreation.metric;
+    templateCreation["contrast"] = settings.templateCreation.contrast;
+    templateCreation["min_contrast"] = settings.templateCreation.minContrast;
+    json["TemplateCreation"] = templateCreation;
+
+    QJsonObject templateMatching;
+    templateMatching["angle_start"] = settings.templateMatching.angleStart;
+    templateMatching["angle_extent"] = settings.templateMatching.angleExtent;
+    templateMatching["scale_min"] = settings.templateMatching.scaleMin;
+    templateMatching["scale_max"] = settings.templateMatching.scaleMax;
+    templateMatching["min_score"] = settings.templateMatching.minScore;
+    templateMatching["num_matches"] = settings.templateMatching.numMatches;
+    templateMatching["max_overlap"] = settings.templateMatching.maxOverlap;
+    templateMatching["sub_pixel"] = settings.templateMatching.subPixel;
+    templateMatching["num_levels"] = settings.templateMatching.numLevels;
+    templateMatching["greediness"] = settings.templateMatching.greediness;
+    json["TemplateMatching"] = templateMatching;
     
     // UI尺寸参数
     json["UIWidth"] = settings.uiWidth;
@@ -236,6 +264,36 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     settings.cannyCircleLow = json.value("CannyCircleLow").toInt(m_defaultSettings.cannyCircleLow);
     settings.cannyCircleHigh = json.value("CannyCircleHigh").toInt(m_defaultSettings.cannyCircleHigh);
     settings.circleDetParam2 = json.value("CircleDetParam2").toInt(m_defaultSettings.circleDetParam2);
+
+    // 模板匹配参数（Halcon 形状模板）
+    if (json.contains("TemplateCreation") && json.value("TemplateCreation").isObject()) {
+        const QJsonObject creation = json.value("TemplateCreation").toObject();
+        settings.templateCreation.numLevels = creation.value("num_levels").toInt(settings.templateCreation.numLevels);
+        settings.templateCreation.angleStart = creation.value("angle_start").toDouble(settings.templateCreation.angleStart);
+        settings.templateCreation.angleExtent = creation.value("angle_extent").toDouble(settings.templateCreation.angleExtent);
+        settings.templateCreation.angleStep = creation.value("angle_step").toDouble(settings.templateCreation.angleStep);
+        settings.templateCreation.scaleMin = creation.value("scale_min").toDouble(settings.templateCreation.scaleMin);
+        settings.templateCreation.scaleMax = creation.value("scale_max").toDouble(settings.templateCreation.scaleMax);
+        settings.templateCreation.scaleStep = creation.value("scale_step").toDouble(settings.templateCreation.scaleStep);
+        settings.templateCreation.optimization = creation.value("optimization").toString(settings.templateCreation.optimization);
+        settings.templateCreation.metric = creation.value("metric").toString(settings.templateCreation.metric);
+        settings.templateCreation.contrast = creation.value("contrast").toString(settings.templateCreation.contrast);
+        settings.templateCreation.minContrast = creation.value("min_contrast").toString(settings.templateCreation.minContrast);
+    }
+
+    if (json.contains("TemplateMatching") && json.value("TemplateMatching").isObject()) {
+        const QJsonObject matching = json.value("TemplateMatching").toObject();
+        settings.templateMatching.angleStart = matching.value("angle_start").toDouble(settings.templateMatching.angleStart);
+        settings.templateMatching.angleExtent = matching.value("angle_extent").toDouble(settings.templateMatching.angleExtent);
+        settings.templateMatching.scaleMin = matching.value("scale_min").toDouble(settings.templateMatching.scaleMin);
+        settings.templateMatching.scaleMax = matching.value("scale_max").toDouble(settings.templateMatching.scaleMax);
+        settings.templateMatching.minScore = matching.value("min_score").toDouble(settings.templateMatching.minScore);
+        settings.templateMatching.numMatches = matching.value("num_matches").toInt(settings.templateMatching.numMatches);
+        settings.templateMatching.maxOverlap = matching.value("max_overlap").toDouble(settings.templateMatching.maxOverlap);
+        settings.templateMatching.subPixel = matching.value("sub_pixel").toString(settings.templateMatching.subPixel);
+        settings.templateMatching.numLevels = matching.value("num_levels").toInt(settings.templateMatching.numLevels);
+        settings.templateMatching.greediness = matching.value("greediness").toDouble(settings.templateMatching.greediness);
+    }
     
     // UI尺寸参数
     settings.uiWidth = json.value("UIWidth").toInt(m_defaultSettings.uiWidth);
@@ -348,6 +406,29 @@ SettingsManager::Settings SettingsManager::validateSettings(const Settings& sett
     validatedSettings.stageMaxAccelerationLimit = clampDouble(settings.stageMaxAccelerationLimit,
                                                               AxisControl::Constants::MIN_ACCELERATION,
                                                               AxisControl::Constants::MAX_ACCELERATION);
+
+    // 验证模板创建/匹配参数
+    validatedSettings.templateCreation.numLevels = qBound(0, settings.templateCreation.numLevels, 20);
+    validatedSettings.templateCreation.angleExtent = clampDouble(settings.templateCreation.angleExtent, 0.0, 3600.0);
+    validatedSettings.templateCreation.angleStep = clampDouble(settings.templateCreation.angleStep, 0.001, 360.0);
+    validatedSettings.templateCreation.scaleMin = clampDouble(settings.templateCreation.scaleMin, 0.001, 1000.0);
+    validatedSettings.templateCreation.scaleMax = clampDouble(settings.templateCreation.scaleMax, 0.001, 1000.0);
+    if (validatedSettings.templateCreation.scaleMax < validatedSettings.templateCreation.scaleMin) {
+        std::swap(validatedSettings.templateCreation.scaleMin, validatedSettings.templateCreation.scaleMax);
+    }
+    validatedSettings.templateCreation.scaleStep = clampDouble(settings.templateCreation.scaleStep, 0.0001, 100.0);
+
+    validatedSettings.templateMatching.angleExtent = clampDouble(settings.templateMatching.angleExtent, 0.0, 3600.0);
+    validatedSettings.templateMatching.scaleMin = clampDouble(settings.templateMatching.scaleMin, 0.001, 1000.0);
+    validatedSettings.templateMatching.scaleMax = clampDouble(settings.templateMatching.scaleMax, 0.001, 1000.0);
+    if (validatedSettings.templateMatching.scaleMax < validatedSettings.templateMatching.scaleMin) {
+        std::swap(validatedSettings.templateMatching.scaleMin, validatedSettings.templateMatching.scaleMax);
+    }
+    validatedSettings.templateMatching.minScore = clampDouble(settings.templateMatching.minScore, 0.0, 1.0);
+    validatedSettings.templateMatching.numMatches = qBound(1, settings.templateMatching.numMatches, 1000);
+    validatedSettings.templateMatching.maxOverlap = clampDouble(settings.templateMatching.maxOverlap, 0.0, 1.0);
+    validatedSettings.templateMatching.numLevels = qBound(0, settings.templateMatching.numLevels, 20);
+    validatedSettings.templateMatching.greediness = clampDouble(settings.templateMatching.greediness, 0.0, 1.0);
     
     return validatedSettings;
 }
