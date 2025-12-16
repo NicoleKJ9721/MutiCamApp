@@ -62,6 +62,9 @@ static QVector<QPolygonF> extractContoursFromHalconModel(const HalconCpp::HTuple
     QVector<QPolygonF> contours;
 
     try {
+        // 只用于可视化：限制轮廓点数量，避免点过多导致绘制卡顿
+        static constexpr Hlong kMaxPointsPerContour = 2000;
+
         HalconCpp::HObject hoContours;
         HalconCpp::GetShapeModelContours(&hoContours, modelId, 1);
 
@@ -82,7 +85,10 @@ static QVector<QPolygonF> extractContoursFromHalconModel(const HalconCpp::HTuple
             }
 
             QPolygonF poly;
-            poly.reserve(static_cast<int>(length));
+            const Hlong step = (kMaxPointsPerContour > 0 && length > kMaxPointsPerContour)
+                                   ? ((length + kMaxPointsPerContour - 1) / kMaxPointsPerContour)
+                                   : 1;
+            poly.reserve(static_cast<int>(length / step + 1));
 
             for (Hlong j = 0; j < length; ++j) {
                 const double row = static_cast<double>(hvRow[j]);
