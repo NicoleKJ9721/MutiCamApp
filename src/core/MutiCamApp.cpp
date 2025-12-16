@@ -3697,6 +3697,8 @@ void MutiCamApp::startMultiPointCalibration(PaintingOverlay* overlay)
 }
 
 namespace {
+constexpr int kStageAssistedAfterFrameTimeoutMs = 3000;
+
 QString stageCalibCameraIdFromViewName(QString viewName)
 {
     if (viewName.endsWith("2")) {
@@ -6299,14 +6301,17 @@ void MutiCamApp::onAxisDeviceDisconnected()
 {
     QString disconnectedMsg = "轴控制设备已断开连接";
     statusBar()->showMessage(disconnectedMsg, 3000);
-    
+
+    if (m_stageCalib.active) {
+        cancelStageAssistedCalibration("标定失败：轴控制设备已断开连接");
+    }
+
     if (m_logManager) {
         m_logManager->log(disconnectedMsg, LogLevel::INFO);
     }
-    
+
     qDebug() << disconnectedMsg;
 }
-
 void MutiCamApp::onAxisConnectionStateChanged(bool connected)
 {
     // 更新UI状态
@@ -6319,6 +6324,9 @@ void MutiCamApp::onAxisConnectionStateChanged(bool connected)
         setMotionControlsEnabled(!m_isEmergencyStopActive);
     } else {
         setMotionControlsEnabled(false);
+        if (m_stageCalib.active) {
+            cancelStageAssistedCalibration("标定失败：轴控制系统已断开连接");
+        }
     }
 
     if (m_logManager) {
@@ -6514,7 +6522,7 @@ void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
 
         const quint64 expectedMinSeq = m_stageCalib.afterFrameSeqMin;
         const QString expectedCameraId = m_stageCalib.cameraId;
-        QTimer::singleShot(2500, this, [this, expectedMinSeq, expectedCameraId]() {
+        QTimer::singleShot(kStageAssistedAfterFrameTimeoutMs, this, [this, expectedMinSeq, expectedCameraId]() {
             if (!m_stageCalib.active || !m_stageCalib.awaitingAfterFrame) {
                 return;
             }
@@ -6530,6 +6538,9 @@ void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QStr
 {
     // 避免重复的急停对话框
     if (error == AxisError::EmergencyStop) {
+        if (m_stageCalib.active) {
+            cancelStageAssistedCalibration("急停触发：已取消载物台辅助标定");
+        }
         return;
     }
 
@@ -6591,9 +6602,14 @@ void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QStr
         qInfo() << "Axis busy:" << busyMsg;
         return;
     }
-    
+
+    if (m_stageCalib.active &&
+        (axis == AxisIndex::INVALID_AXIS || axis == m_stageCalib.axis)) {
+        cancelStageAssistedCalibration(QString("标定失败：载物台错误：%1").arg(errorString));
+    }
+
     // 避免重复的连接错误对话框 - 连接错误已经在UI层处理了
-    if (error == AxisError::ConnectionFailed || 
+    if (error == AxisError::ConnectionFailed ||
         error == AxisError::InitializationFailed ||
         (error == AxisError::CommunicationError && errorString.contains("连接设备"))) {
         // 只记录日志，不显示弹窗
@@ -6607,22 +6623,21 @@ void MutiCamApp::onAxisErrorOccurred(AxisIndex axis, AxisError error, const QStr
 
     QString axisName = axis == AxisIndex::INVALID_AXIS ? "系统" : axisToString(axis);
     QString errorMsg = QString("%1错误：%2").arg(axisName).arg(errorString);
-    
+
     // 显示错误消息
     QMessageBox::warning(this, "轴控制错误", errorMsg);
-    
+
     if (m_logManager) {
         m_logManager->log(errorMsg, LogLevel::WARNING);
     }
-    
+
     qWarning() << errorMsg;
 }
-
 void MutiCamApp::onAxisLimitTriggered(AxisIndex axis, LimitState limitState)
 {
     QString axisName = axisToString(axis);
     QString limitName;
-    
+
     switch (limitState) {
         case LimitState::Positive:
             limitName = "正限位";
@@ -6637,15 +6652,19 @@ void MutiCamApp::onAxisLimitTriggered(AxisIndex axis, LimitState limitState)
             limitName = "未知限位";
             break;
     }
-    
+
     QString limitMsg = QString("%1触发%2").arg(axisName).arg(limitName);
-    
+
+    if (m_stageCalib.active && axis == m_stageCalib.axis) {
+        cancelStageAssistedCalibration(QString("标定失败：%1").arg(limitMsg));
+    }
+
     QMessageBox::warning(this, "限位警告", limitMsg);
-    
+
     if (m_logManager) {
         m_logManager->log(limitMsg, LogLevel::WARNING);
     }
-    
+
     qWarning() << limitMsg;
 }
 
@@ -6672,21 +6691,26 @@ void MutiCamApp::onAxisHomeCompleted(AxisIndex axis, bool success)
 void MutiCamApp::onAxisEmergencyStopTriggered()
 {
     QString emergencyMsg = "轴控制系统急停已触发！所有运动已停止，等待载物台静止...";
+
+    if (m_stageCalib.active) {
+        cancelStageAssistedCalibration("急停触发：已取消载物台辅助标定");
+    }
+
     // 标记UI层急停状态并禁用所有运动相关控件
     m_isEmergencyStopActive = true;
     setMotionControlsEnabled(false);
-    
+
     QTimer::singleShot(0, this, [this, emergencyMsg]() {
         QMessageBox* box = new QMessageBox(QMessageBox::Critical, "急停警告", emergencyMsg, QMessageBox::Ok, this);
         box->setAttribute(Qt::WA_DeleteOnClose);
         box->open();
     });
     addAlertMessage(emergencyMsg, "error");
-    
+
     if (m_logManager) {
         m_logManager->log(emergencyMsg, LogLevel::ERROR_LEVEL);
     }
-    
+
     qCritical() << emergencyMsg;
 }
 
