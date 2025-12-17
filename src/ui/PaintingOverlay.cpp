@@ -1038,7 +1038,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     } else if (selectedAction == lineAngleAction) {
         performComplexMeasurement("线段夹角");
     } else if (selectedAction == twoLinesAngleAction) {
-        performComplexMeasurement("直线夹角");
+        performComplexMeasurement("两线夹角");
     } else if (selectedAction == twoLinesDistanceAction) {
         performComplexMeasurement("两线距离");
     } else if (selectedAction == pointToBisectorAction) {
@@ -3334,6 +3334,53 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
             
             // 计算线段中点作为文本位置
             QPointF midPoint = (start + end) / 2.0;
+
+            // --- Off-screen Display Logic Start ---
+            // 检查交点是否在屏幕范围内
+            QSize widgetSize = size();
+            if (!widgetSize.isEmpty()) {
+                QPointF widgetMid = imageToWidget(midPoint);
+                if (!(widgetMid.x() >= 0 && widgetMid.x() <= widgetSize.width() &&
+                      widgetMid.y() >= 0 && widgetMid.y() <= widgetSize.height())) {
+                    
+                    // 交点在屏幕外，计算角平分线在可视区域内的部分
+                    QPointF topLeft = widgetToImage(QPointF(0, 0));
+                    QPointF bottomRight = widgetToImage(QPointF(widgetSize.width(), widgetSize.height()));
+                    QRectF visibleRect(topLeft, bottomRight);
+                    visibleRect = visibleRect.normalized(); // 确保宽高为正
+
+                    QLineF bisectorLine(start, end);
+                    QList<QPointF> intersections;
+                    
+                    // 定义可视区域的四条边
+                    QLineF topEdge(visibleRect.topLeft(), visibleRect.topRight());
+                    QLineF bottomEdge(visibleRect.bottomLeft(), visibleRect.bottomRight());
+                    QLineF leftEdge(visibleRect.topLeft(), visibleRect.bottomLeft());
+                    QLineF rightEdge(visibleRect.topRight(), visibleRect.bottomRight());
+                    
+                    QPointF intersectionPoint;
+                    
+                    if (bisectorLine.intersects(topEdge, &intersectionPoint) == QLineF::BoundedIntersection)
+                        intersections.append(intersectionPoint);
+                    if (bisectorLine.intersects(bottomEdge, &intersectionPoint) == QLineF::BoundedIntersection)
+                        intersections.append(intersectionPoint);
+                    if (bisectorLine.intersects(leftEdge, &intersectionPoint) == QLineF::BoundedIntersection)
+                        intersections.append(intersectionPoint);
+                    if (bisectorLine.intersects(rightEdge, &intersectionPoint) == QLineF::BoundedIntersection)
+                        intersections.append(intersectionPoint);
+
+                    if (intersections.size() >= 2) {
+                        // 取可视线段的中点作为新的文本锚点
+                         // 简单的取前两个点求中点（直线与凸多边形通常只有两个交点）
+                        midPoint = (intersections.first() + intersections.last()) / 2.0;
+                    } else if (intersections.size() == 1) {
+                         // 极端情况（如端点在矩形内），取交点
+                         midPoint = intersections.first();
+                    }
+                    // 如果没有交点，说明线段完全在屏幕外（理论上对于bisector unlikely），保持原值
+                }
+            }
+            // --- Off-screen Display Logic End ---
             
             // 动态计算文本布局参数（与缩放无关）
             double textOffset = qMax(8.0, ctx.fontSize * 0.4);
