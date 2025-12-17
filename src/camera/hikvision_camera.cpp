@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QMetaObject>
 #include <chrono>
+#include <cctype>
 #include <cstring>
 
 namespace MutiCam {
@@ -248,14 +249,36 @@ bool HikvisionCamera::setPixelFormat(const std::string& format) {
         return false;
     }
     
+    auto normalizePixelFormat = [](const std::string& value) {
+        std::string normalized;
+        normalized.reserve(value.size());
+        for (unsigned char ch : value) {
+            if (ch == ' ' || ch == '_' || ch == '-') {
+                continue;
+            }
+            normalized.push_back(static_cast<char>(std::tolower(ch)));
+        }
+        return normalized;
+    };
+
     // 将字符串格式转换为枚举值
     unsigned int pixelFormatValue = 0;
-    if (format == "Mono8") {
+    const std::string normalizedFormat = normalizePixelFormat(format);
+
+    if (normalizedFormat == "mono8") {
         pixelFormatValue = PixelType_Gvsp_Mono8;
-    } else if (format == "RGB8") {
+    } else if (normalizedFormat == "rgb8") {
         pixelFormatValue = PixelType_Gvsp_RGB8_Packed;
-    } else if (format == "BGR8") {
+    } else if (normalizedFormat == "bgr8") {
         pixelFormatValue = PixelType_Gvsp_BGR8_Packed;
+    } else if (normalizedFormat == "bayergb8") {
+        pixelFormatValue = PixelType_Gvsp_BayerGB8;
+    } else if (normalizedFormat == "bayergr8") {
+        pixelFormatValue = PixelType_Gvsp_BayerGR8;
+    } else if (normalizedFormat == "bayerrg8") {
+        pixelFormatValue = PixelType_Gvsp_BayerRG8;
+    } else if (normalizedFormat == "bayerbg8") {
+        pixelFormatValue = PixelType_Gvsp_BayerBG8;
     } else {
         setError("Unsupported pixel format: " + format);
         return false;
@@ -611,9 +634,42 @@ void HikvisionCamera::processFrame(unsigned char* pData, MV_FRAME_OUT_INFO_EX* p
         // 根据像素格式处理图像数据
         if (pFrameInfo->enPixelType == PixelType_Gvsp_Mono8) {
             frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData).clone();
+        } else if (pFrameInfo->enPixelType == PixelType_Gvsp_BGR8_Packed) {
+            frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC3, pData).clone();
         } else if (pFrameInfo->enPixelType == PixelType_Gvsp_RGB8_Packed) {
             frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC3, pData).clone();
             cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
+        } else if (pFrameInfo->enPixelType == PixelType_Gvsp_BayerGB8 ||
+                   pFrameInfo->enPixelType == PixelType_Gvsp_BayerGR8 ||
+                   pFrameInfo->enPixelType == PixelType_Gvsp_BayerRG8 ||
+                   pFrameInfo->enPixelType == PixelType_Gvsp_BayerBG8) {
+            // Bayer原始数据需要做去马赛克/颜色转换，否则显示会是灰度
+            unsigned int nConvertSize = pFrameInfo->nWidth * pFrameInfo->nHeight * 3;
+            if (m_nConvertBufferSize < nConvertSize) {
+                if (m_pConvertBuffer) {
+                    delete[] m_pConvertBuffer;
+                }
+                m_pConvertBuffer = new unsigned char[nConvertSize];
+                m_nConvertBufferSize = nConvertSize;
+            }
+
+            MV_CC_PIXEL_CONVERT_PARAM stConvertParam = {0};
+            stConvertParam.nWidth = pFrameInfo->nWidth;
+            stConvertParam.nHeight = pFrameInfo->nHeight;
+            stConvertParam.pSrcData = pData;
+            stConvertParam.nSrcDataLen = pFrameInfo->nFrameLen;
+            stConvertParam.enSrcPixelType = pFrameInfo->enPixelType;
+            stConvertParam.enDstPixelType = PixelType_Gvsp_BGR8_Packed;
+            stConvertParam.pDstBuffer = m_pConvertBuffer;
+            stConvertParam.nDstBufferSize = m_nConvertBufferSize;
+
+            int nRet = MV_CC_ConvertPixelType(m_hCamera, &stConvertParam);
+            if (MV_OK == nRet) {
+                frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC3, m_pConvertBuffer).clone();
+            } else {
+                qDebug() << "Failed to convert Bayer to BGR, error code:" << nRet;
+                return;
+            }
         } else {
             // 对于其他格式，尝试转换为Mono8
             unsigned int nConvertSize = pFrameInfo->nWidth * pFrameInfo->nHeight;
