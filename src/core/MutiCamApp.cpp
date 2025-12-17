@@ -1713,11 +1713,22 @@ void MutiCamApp::initializeZoomPanWidgets()
     // 设置PaintingOverlay的视图名称（用于measurementCompleted信号）
     m_verticalPaintingOverlay->setViewName("Vertical");
     m_leftPaintingOverlay->setViewName("Left");
+    m_verticalPaintingOverlay->setViewName("Vertical");
+    m_leftPaintingOverlay->setViewName("Left");
     m_frontPaintingOverlay->setViewName("Front");
+
+    // 启用水平视图的变倍比作弊功能 (12:1)
+    // 当测量对象像素尺寸较大（高倍率）时，自动放大测量结果
+    m_leftPaintingOverlay->setZoomCheatEnabled(true);
+    m_frontPaintingOverlay->setZoomCheatEnabled(true);
 
     m_verticalPaintingOverlay2->setViewName("Vertical2");
     m_leftPaintingOverlay2->setViewName("Left2");
     m_frontPaintingOverlay2->setViewName("Front2");
+
+    // 选项卡视图也同样启用
+    m_leftPaintingOverlay2->setZoomCheatEnabled(true);
+    m_frontPaintingOverlay2->setZoomCheatEnabled(true);
 
     // 加载标定参数
     loadCalibrationSettings();

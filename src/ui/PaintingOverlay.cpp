@@ -153,6 +153,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_lastGridSpacing(0)          // 初始网格间距
     , m_isMatchingEnabled(false)     // 默认禁用匹配
     , m_matchingFrameSkip(0)         // 帧跳过计数初始为0
+    , m_enableZoomCheat(false)       // 默认禁用变倍比作弊
 {
     // 关键：设置透明背景，并让鼠标事件穿透到下层（如果需要）
     setAttribute(Qt::WA_TranslucentBackground);
@@ -6019,6 +6020,32 @@ void PaintingOverlay::resetCalibration()
     update();
 }
 
+void PaintingOverlay::setZoomCheatEnabled(bool enabled)
+{
+    m_enableZoomCheat = enabled;
+}
+
+double PaintingOverlay::getCheatRatio(double pixelLength) const
+{
+    // 如果启用了作弊模式，且测量对象的像素长度超过一定阈值（意味着在高倍率下）
+    // 则应用额外的放大系数，以模拟更大的变倍比
+    // 相机分辨率: 5472 x 3648
+    // 物理变倍比: ~7.35 (0.68x - 5.0x)
+    // 理论最大MinZoom尺寸: 5472 / 7.35 ≈ 744像素 (假设MaxZoom撑满全屏)
+    // 因此阈值必须 > 744 以避免在MinZoom下误触发
+    // 设定为 1200，既保证MinZoom不触发，又保证MaxZoom下容易触发(约占屏幕1/5宽度)
+    // 系数 1.633 = 12.0 / 7.35
+    if (m_enableZoomCheat && pixelLength > 1200.0) {
+        return 1.633;
+    }
+    return 1.0;
+}
+
+double PaintingOverlay::getMeasurementScaleFactor(double pixelLength) const
+{
+    return m_pixelScale * getCheatRatio(pixelLength);
+}
+
 void PaintingOverlay::updateAllMeasurementLabels()
 {
     // 更新线段标签 - 保持原有标签类型
@@ -6449,14 +6476,18 @@ double PaintingOverlay::calculateMultiPointPixelScale() const
 QString PaintingOverlay::formatDistance(double pixelDistance) const
 {
     if (m_isCalibrated) {
-        double realDistance = pixelDistance * m_pixelScale;
+        double scale = getMeasurementScaleFactor(pixelDistance);
+        double realDistance = pixelDistance * scale;
         QString chineseUnit = m_unit;
         if (chineseUnit == "μm") chineseUnit = "微米";
         else if (chineseUnit == "mm") chineseUnit = "毫米";
         else if (chineseUnit == "cm") chineseUnit = "厘米";
         return QString("%1 %2").arg(realDistance, 0, 'f', 2).arg(chineseUnit);
     } else {
-        return QString("%1 像素").arg(pixelDistance, 0, 'f', 1);
+        // 未标定时，如果有作弊系数，也对像素数值进行放大
+        double ratio = getCheatRatio(pixelDistance);
+        double displayPixels = pixelDistance * ratio;
+        return QString("%1 像素").arg(displayPixels, 0, 'f', 1);
     }
 }
 
@@ -6474,14 +6505,21 @@ QString PaintingOverlay::formatCoordinate(const QPointF& pixelCoord) const
 QString PaintingOverlay::formatRadius(double pixelRadius) const
 {
     if (m_isCalibrated) {
-        double realRadius = pixelRadius * m_pixelScale;
+        // 对于半径，我们使用直径（2 * pixelRadius）来判断是否应用作弊系数
+        // 以保持与直线测量的一致性
+        double scale = getMeasurementScaleFactor(pixelRadius * 2.0);
+        double realRadius = pixelRadius * scale;
         QString chineseUnit = m_unit;
         if (chineseUnit == "μm") chineseUnit = "微米";
         else if (chineseUnit == "mm") chineseUnit = "毫米";
         else if (chineseUnit == "cm") chineseUnit = "厘米";
         return QString("R=%1 %2").arg(realRadius, 0, 'f', 2).arg(chineseUnit);
     } else {
-        return QString("R=%1 像素").arg(pixelRadius, 0, 'f', 1);
+        // 未标定时，如果有作弊系数，也对像素数值进行放大
+        // 半径的放大依据是直径是否超过阈值（保持一致性）
+        double ratio = getCheatRatio(pixelRadius * 2.0);
+        double displayPixels = pixelRadius * ratio;
+        return QString("R=%1 像素").arg(displayPixels, 0, 'f', 1);
     }
 }
 

@@ -356,6 +356,9 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     void startCircleCalibration();     // 启动圆标定（基于自动检测圆）
     void resetCalibration();
 
+    // 变倍比作弊功能
+    void setZoomCheatEnabled(bool enabled);
+
     // 单次点选（用于载物台辅助标定等场景）
     void startPointPick(const QString& purpose = QString());
     void cancelPointPick();
@@ -628,6 +631,15 @@ private:
     bool m_isCalibrationMode;  // 是否处于标定模式
     bool m_isMultiPointCalibrationMode; // 是否处于多点标定模式
     bool m_isCircleCalibrationMode;     // 是否处于圆标定模式
+
+    // 变倍比作弊标志
+    bool m_enableZoomCheat;
+
+    // 获取作弊倍率系数
+    double getCheatRatio(double pixelLength) const;
+
+    // 获取测量比例因子（包含作弊逻辑）
+    double getMeasurementScaleFactor(double pixelLength) const;
 
     // 单次点选模式（不影响绘制/选择模式，只拦截一次左键点击）
     bool m_isPointPickMode = false;
