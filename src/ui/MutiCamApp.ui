@@ -5338,39 +5338,123 @@ QPushButton:disabled {
                <string>载物台控制</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_stageControl">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
-                 <item>
-                  <widget class="QLabel" name="labelStepSize">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
+                  <item>
+                   <widget class="QLabel" name="labelStepSize">
+                    <property name="font">
+                     <font>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>移动步长:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                  <widget class="QRadioButton" name="radioStep01">
                    <property name="font">
                     <font>
                      <bold>true</bold>
                     </font>
                    </property>
                    <property name="text">
-                    <string>移动步长:</string>
+                    <string>0.1μm</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="comboBoxStepSize">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QRadioButton" name="radioStep025">
                    <property name="font">
                     <font>
                      <bold>true</bold>
                     </font>
                    </property>
+                   <property name="text">
+                    <string>0.25μm</string>
+                   </property>
                   </widget>
                  </item>
                  <item>
-                  <spacer name="horizontalSpacer_stepSize">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
+                  <widget class="QRadioButton" name="radioStep1">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>1μm</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep10">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>10μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep100">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>100μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep1000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>1000μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep2000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>2000μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="radioStep5000">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>5000μm</string>
+                   </property>
+                  </widget>
+                 </item>
+                  <item>
+                   <spacer name="horizontalSpacer_stepSize">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Horizontal</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>

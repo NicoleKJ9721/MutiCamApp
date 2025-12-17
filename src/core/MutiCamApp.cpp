@@ -84,7 +84,7 @@ MutiCamApp::MutiCamApp(QWidget* parent)
 {
     ui->setupUi(this);
 
-    // 初始化步长下拉框（主界面 + XYZ载物台控制）
+    // 初始化步长下拉框（主界面 + 三视图选项卡）；载物台选项卡仍使用单选按钮
     const struct StepItem {
         const char* label;
         double stepUm;
@@ -110,36 +110,111 @@ MutiCamApp::MutiCamApp(QWidget* parent)
         combo->setCurrentIndex(2);  // 默认 1 μm
     };
 
-    populateStepCombo(ui->comboBoxStepSize);
     populateStepCombo(ui->comboBoxStepSizeMain);
     populateStepCombo(ui->comboBoxStepSizeVertical);
     populateStepCombo(ui->comboBoxStepSizeLeft);
     populateStepCombo(ui->comboBoxStepSizeFront);
 
-    // 同步所有步长下拉框（主界面/XYZ载物台控制/三视图选项卡）
+    // 同步所有步长选择控件（下拉框 + 载物台选项卡单选按钮）
     QVector<QComboBox*> stepCombos = {
-        ui->comboBoxStepSize,
         ui->comboBoxStepSizeMain,
         ui->comboBoxStepSizeVertical,
         ui->comboBoxStepSizeLeft,
         ui->comboBoxStepSizeFront,
     };
     stepCombos.erase(std::remove(stepCombos.begin(), stepCombos.end(), nullptr), stepCombos.end());
+
+    auto setStageStepRadioFromIndex = [this](int index) {
+        if (!ui->radioStep01 || !ui->radioStep025 || !ui->radioStep1 || !ui->radioStep10 ||
+            !ui->radioStep100 || !ui->radioStep1000 || !ui->radioStep2000 || !ui->radioStep5000) {
+            return;
+        }
+
+        const QVector<QRadioButton*> radios = {
+            ui->radioStep01,
+            ui->radioStep025,
+            ui->radioStep1,
+            ui->radioStep10,
+            ui->radioStep100,
+            ui->radioStep1000,
+            ui->radioStep2000,
+            ui->radioStep5000,
+        };
+
+        if (index < 0 || index >= radios.size()) {
+            index = 2;  // 默认 1 μm
+        }
+
+        const QSignalBlocker b0(ui->radioStep01);
+        const QSignalBlocker b1(ui->radioStep025);
+        const QSignalBlocker b2(ui->radioStep1);
+        const QSignalBlocker b3(ui->radioStep10);
+        const QSignalBlocker b4(ui->radioStep100);
+        const QSignalBlocker b5(ui->radioStep1000);
+        const QSignalBlocker b6(ui->radioStep2000);
+        const QSignalBlocker b7(ui->radioStep5000);
+        radios[index]->setChecked(true);
+    };
+
+    // 初始化载物台选项卡单选按钮状态为当前步长
+    if (!stepCombos.isEmpty()) {
+        setStageStepRadioFromIndex(stepCombos.front()->currentIndex());
+    }
+
+    auto syncCombosToIndex = [stepCombos](QComboBox* source, int index) {
+        for (QComboBox* other : stepCombos) {
+            if (!other || other == source) {
+                continue;
+            }
+            if (other->currentIndex() == index) {
+                continue;
+            }
+            const QSignalBlocker blocker(other);
+            other->setCurrentIndex(index);
+        }
+    };
+
     for (QComboBox* combo : stepCombos) {
         connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [combo, stepCombos](int index) {
-                    for (QComboBox* other : stepCombos) {
-                        if (!other || other == combo) {
-                            continue;
-                        }
-                        if (other->currentIndex() == index) {
-                            continue;
-                        }
-                        const QSignalBlocker blocker(other);
-                        other->setCurrentIndex(index);
-                    }
+                this, [combo, syncCombosToIndex, setStageStepRadioFromIndex](int index) {
+                    syncCombosToIndex(combo, index);
+                    setStageStepRadioFromIndex(index);
                 });
     }
+
+    auto syncCombosFromRadioIndex = [stepCombos](int index) {
+        for (QComboBox* combo : stepCombos) {
+            if (!combo) {
+                continue;
+            }
+            if (combo->currentIndex() == index) {
+                continue;
+            }
+            const QSignalBlocker blocker(combo);
+            combo->setCurrentIndex(index);
+        }
+    };
+
+    auto connectStepRadio = [this, syncCombosFromRadioIndex](QRadioButton* radio, int index) {
+        if (!radio) {
+            return;
+        }
+        connect(radio, &QRadioButton::toggled, this, [syncCombosFromRadioIndex, index](bool checked) {
+            if (!checked) {
+                return;
+            }
+            syncCombosFromRadioIndex(index);
+        });
+    };
+
+    connectStepRadio(ui->radioStep01, 0);
+    connectStepRadio(ui->radioStep025, 1);
+    connectStepRadio(ui->radioStep1, 2);
+    connectStepRadio(ui->radioStep10, 3);
+    connectStepRadio(ui->radioStep100, 4);
+    connectStepRadio(ui->radioStep1000, 5);
+    connectStepRadio(ui->radioStep2000, 6);
+    connectStepRadio(ui->radioStep5000, 7);
 
     // 初始化缩放平移显示控件
     initializeZoomPanWidgets();
@@ -284,7 +359,14 @@ void MutiCamApp::setStepControlsEnabled(bool enabled)
     };
 
     updateWidget(ui->labelStepSize);
-    updateWidget(ui->comboBoxStepSize);
+    updateWidget(ui->radioStep01);
+    updateWidget(ui->radioStep025);
+    updateWidget(ui->radioStep1);
+    updateWidget(ui->radioStep10);
+    updateWidget(ui->radioStep100);
+    updateWidget(ui->radioStep1000);
+    updateWidget(ui->radioStep2000);
+    updateWidget(ui->radioStep5000);
     updateWidget(ui->labelMainStepSize);
     updateWidget(ui->comboBoxStepSizeMain);
     updateWidget(ui->labelStepSizeVertical);
@@ -5427,18 +5509,57 @@ void MutiCamApp::onStageStopClicked()
 double MutiCamApp::getCurrentStepSize() const
 {
     bool ok = false;
-    if (ui->comboBoxStepSize) {
-        const double step = ui->comboBoxStepSize->currentData().toDouble(&ok);
-        if (ok) {
-            return step;
-        }
-    }
-
     if (ui->comboBoxStepSizeMain) {
         const double step = ui->comboBoxStepSizeMain->currentData().toDouble(&ok);
         if (ok) {
             return step;
         }
+    }
+
+    if (ui->comboBoxStepSizeVertical) {
+        const double step = ui->comboBoxStepSizeVertical->currentData().toDouble(&ok);
+        if (ok) {
+            return step;
+        }
+    }
+
+    if (ui->comboBoxStepSizeLeft) {
+        const double step = ui->comboBoxStepSizeLeft->currentData().toDouble(&ok);
+        if (ok) {
+            return step;
+        }
+    }
+
+    if (ui->comboBoxStepSizeFront) {
+        const double step = ui->comboBoxStepSizeFront->currentData().toDouble(&ok);
+        if (ok) {
+            return step;
+        }
+    }
+
+    if (ui->radioStep01 && ui->radioStep01->isChecked()) {
+        return 0.1;
+    }
+    if (ui->radioStep025 && ui->radioStep025->isChecked()) {
+        return 0.25;
+    }
+    if (ui->radioStep1 && ui->radioStep1->isChecked()) {
+        return 1.0;
+    }
+    if (ui->radioStep10 && ui->radioStep10->isChecked()) {
+        return 10.0;
+    }
+    if (ui->radioStep100 && ui->radioStep100->isChecked()) {
+        return 100.0;
+    }
+    if (ui->radioStep1000 && ui->radioStep1000->isChecked()) {
+        return 1000.0;
+    }
+    if (ui->radioStep2000 && ui->radioStep2000->isChecked()) {
+        return 2000.0;
+    }
+    if (ui->radioStep5000 && ui->radioStep5000->isChecked()) {
+        return 5000.0;
     }
 
     return 1.0; // 默认步长
