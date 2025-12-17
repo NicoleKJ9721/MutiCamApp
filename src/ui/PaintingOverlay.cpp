@@ -2036,8 +2036,8 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         if (bisectorLen > 0) bisectorDir /= bisectorLen;
         
         // 绘制角平分线（红色虚线），延伸到图像边界
-        QPointF bisectorStart = twoLines.intersection - bisectorDir * 5000.0;
-        QPointF bisectorEnd = twoLines.intersection + bisectorDir * 5000.0;
+        QPointF bisectorStart = twoLines.intersection - bisectorDir * 500000.0;
+        QPointF bisectorEnd = twoLines.intersection + bisectorDir * 500000.0;
         
         painter.setPen(ctx.redDashedPen); // 红色虚线
         painter.drawLine(bisectorStart, bisectorEnd);
@@ -2056,8 +2056,9 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         QPointF textAnchorPoint = intersection;
         
         if (!widgetSize.isEmpty()) {
-            bool intersectionInView = (intersection.x() >= 0 && intersection.x() <= widgetSize.width() && 
-                                     intersection.y() >= 0 && intersection.y() <= widgetSize.height());
+            QPointF widgetIntersection = imageToWidget(intersection);
+            bool intersectionInView = (widgetIntersection.x() >= 0 && widgetIntersection.x() <= widgetSize.width() && 
+                                     widgetIntersection.y() >= 0 && widgetIntersection.y() <= widgetSize.height());
             
             if (!intersectionInView) {
                 // 计算两条线在视图内的中点作为文字锚点
@@ -2423,8 +2424,8 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
 
                 // 绘制高亮角平分线（延伸到图像边界，更粗的外描边）
                 painter.setPen(thickHighlightPen);
-                QPointF bisectorStart = twoLines.intersection - bisectorDir * 5000.0;
-                QPointF bisectorEnd = twoLines.intersection + bisectorDir * 5000.0;
+                QPointF bisectorStart = twoLines.intersection - bisectorDir * 500000.0;
+                QPointF bisectorEnd = twoLines.intersection + bisectorDir * 500000.0;
                 painter.drawLine(bisectorStart, bisectorEnd);
             }
         }
@@ -4461,8 +4462,8 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     if (bisectorLen > 0) bisectorDir /= bisectorLen;
 
                     // 角平分线上的两个点（用于距离计算）
-                    QPointF bisectorStart = twoLines.intersection - bisectorDir * 5000.0;
-                    QPointF bisectorEnd = twoLines.intersection + bisectorDir * 5000.0;
+                    QPointF bisectorStart = twoLines.intersection - bisectorDir * 500000.0;
+                    QPointF bisectorEnd = twoLines.intersection + bisectorDir * 500000.0;
 
                     // 计算点到角平分线的距离
                     double distance = calculatePointToLineDistance(point.position, bisectorStart, bisectorEnd);
@@ -4564,8 +4565,8 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             
                             // 创建角平分线线段（延伸到图像边界，与TwoLinesObject一致）
                             LineSegmentObject bisector;
-                            bisector.points.append(intersection - bisectorDir * 5000.0);
-                            bisector.points.append(intersection + bisectorDir * 5000.0);
+                            bisector.points.append(intersection - bisectorDir * 500000.0);
+                            bisector.points.append(intersection + bisectorDir * 500000.0);
                             bisector.isCompleted = true;
                             bisector.color = Qt::red;  // 使用红色
                             bisector.thickness = 2.0;
