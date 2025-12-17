@@ -2250,8 +2250,7 @@ void MutiCamApp::onROICreated(const QString& viewName, const QRectF& rect, qreal
     config->setTemplateCreationParams(creationParams);
     config->setTemplateMatchingParams(matchingParams);
 
-    const QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmsszzz");
-    const QString templateName = QString("Auto_%1_%2").arg(viewKey, timestamp);
+    const QString templateName = QString("Auto_%1").arg(viewKey);
     overlay->setCurrentROITemplateName(templateName);
 
     const bool created = overlay->createTemplateFromROI(currentImage, templateName);

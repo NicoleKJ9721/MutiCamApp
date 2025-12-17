@@ -7292,15 +7292,10 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
         QString metaPath = QDir(saveDir).filePath(metaFileName);
         QString halconPath = QDir(saveDir).filePath(halconFileName);
 
-        // 如果文件已存在，添加时间戳
-        if (QFile::exists(imagePath) || QFile::exists(metaPath) || QFile::exists(halconPath)) {
-            QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
-            imageFileName = QString("%1_%2.png").arg(baseName, timestamp);
-            metaFileName = QString("%1_%2.json").arg(baseName, timestamp);
-            halconFileName = QString("%1_%2.shm").arg(baseName, timestamp);
-            imagePath = QDir(saveDir).filePath(imageFileName);
-            metaPath = QDir(saveDir).filePath(metaFileName);
-            halconPath = QDir(saveDir).filePath(halconFileName);
+        // 固定文件名覆盖（由上层控制命名），避免 templates 目录无限增长
+        // 为避免旧的 .shm 残留造成误用，这里先删除再写入
+        if (QFile::exists(halconPath)) {
+            QFile::remove(halconPath);
         }
 
         // 保存图像文件
@@ -7340,6 +7335,9 @@ bool PaintingOverlay::saveTemplateData(const cv::Mat& templateImage, const QStri
         } catch (const HalconCpp::HException& e) {
             qWarning() << "Halcon模板创建/保存失败:" << e.ErrorMessage().TextA();
             // 不中断保存png/json流程
+            if (QFile::exists(halconPath)) {
+                QFile::remove(halconPath);
+            }
         }
 
         // 创建元数据
