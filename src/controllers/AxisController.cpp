@@ -1981,9 +1981,9 @@ int AxisController::axisToMCC6Index(AxisIndex axis) const
 QString AxisController::axisToString(AxisIndex axis) const
 {
     switch (axis) {
-        case AxisIndex::X_AXIS: return "X轴";
+        case AxisIndex::X_AXIS: return "Z轴";
         case AxisIndex::Y_AXIS: return "Y轴";
-        case AxisIndex::Z_AXIS: return "Z轴";
+        case AxisIndex::Z_AXIS: return "X轴";
         default: return "未知轴";
     }
 }

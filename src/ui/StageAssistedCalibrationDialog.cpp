@@ -60,9 +60,9 @@ void StageAssistedCalibrationDialog::initializeUI()
     form->addRow("视图：", m_viewLabel);
 
     m_axisCombo = new QComboBox(this);
-    m_axisCombo->addItem("X轴", static_cast<int>(AxisControl::AxisIndex::X_AXIS));
+    m_axisCombo->addItem("X轴", static_cast<int>(AxisControl::AxisIndex::Z_AXIS));
     m_axisCombo->addItem("Y轴", static_cast<int>(AxisControl::AxisIndex::Y_AXIS));
-    m_axisCombo->addItem("Z轴", static_cast<int>(AxisControl::AxisIndex::Z_AXIS));
+    m_axisCombo->addItem("Z轴", static_cast<int>(AxisControl::AxisIndex::X_AXIS));
     m_axisCombo->setCurrentIndex(1);
     form->addRow("选择轴：", m_axisCombo);
 

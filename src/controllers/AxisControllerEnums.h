@@ -154,13 +154,13 @@ inline const char* motionStateToString(MotionState state) {
 }
 
 /**
- * @brief 轴名称到字符串转换
+ * @brief 轴名称到字符串转换（仅显示：按常用坐标系 X/Z 互换）
  */
 inline const char* axisToString(AxisIndex axis) {
     switch (axis) {
-        case AxisIndex::X_AXIS:     return "X轴";
+        case AxisIndex::X_AXIS:     return "Z轴";
         case AxisIndex::Y_AXIS:     return "Y轴";
-        case AxisIndex::Z_AXIS:     return "Z轴";
+        case AxisIndex::Z_AXIS:     return "X轴";
         default:                   return "无效轴";
     }
 }

@@ -312,7 +312,7 @@
                <item>
                 <widget class="QLabel" name="labelMainZInfoTitle">
                  <property name="text">
-                  <string>Z:</string>
+                  <string>X:</string>
                  </property>
                 </widget>
                </item>
@@ -768,7 +768,7 @@ QPushButton:disabled {
                </widget>
                <widget class="QWidget" name="tabControlStageYZ">
                 <attribute name="title">
-                 <string>载物台(Y/Z)</string>
+                 <string>载物台(Y/X)</string>
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_controlStageYZ">
                  <item>
@@ -877,7 +877,7 @@ QPushButton:disabled {
                    <item row="2" column="0">
                     <widget class="QLabel" name="labelMainZ">
                      <property name="text">
-                      <string>Z:</string>
+                      <string>X:</string>
                      </property>
                     </widget>
                    </item>
@@ -911,7 +911,7 @@ QPushButton:disabled {
                         </size>
                        </property>
                        <property name="text">
-                        <string>Z-</string>
+                        <string>X-</string>
                        </property>
                       </widget>
                      </item>
@@ -924,7 +924,7 @@ QPushButton:disabled {
                         </size>
                        </property>
                        <property name="text">
-                        <string>Z+</string>
+                        <string>X+</string>
                        </property>
                       </widget>
                      </item>
@@ -1366,7 +1366,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_verticalTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingVertical">
                <property name="maximumSize">
@@ -1573,7 +1573,7 @@ QPushButton:disabled {
                 <item>
                  <widget class="QLabel" name="labelStageZVertical">
                   <property name="text">
-                   <string>Z:</string>
+                   <string>X:</string>
                   </property>
                  </widget>
                 </item>
@@ -1620,7 +1620,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z+</string>
+                   <string>X+</string>
                   </property>
                  </widget>
                 </item>
@@ -1639,7 +1639,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z-</string>
+                   <string>X-</string>
                   </property>
                  </widget>
                 </item>
@@ -2067,7 +2067,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_leftTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingLeft">
                <property name="maximumSize">
@@ -2274,7 +2274,7 @@ QPushButton:disabled {
                 <item>
                  <widget class="QLabel" name="labelStageZLeft">
                   <property name="text">
-                   <string>Z:</string>
+                   <string>X:</string>
                   </property>
                  </widget>
                 </item>
@@ -2321,7 +2321,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z+</string>
+                   <string>X+</string>
                   </property>
                  </widget>
                 </item>
@@ -2340,7 +2340,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z-</string>
+                   <string>X-</string>
                   </property>
                  </widget>
                 </item>
@@ -2768,7 +2768,7 @@ QPushButton:disabled {
             </widget>
            </item>
            <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
+            <layout class="QHBoxLayout" name="horizontalLayout_frontTemplate">
              <item>
               <widget class="QPushButton" name="btnStartMatchingFront">
                <property name="maximumSize">
@@ -2975,7 +2975,7 @@ QPushButton:disabled {
                 <item>
                  <widget class="QLabel" name="labelStageZFront">
                   <property name="text">
-                   <string>Z:</string>
+                   <string>X:</string>
                   </property>
                  </widget>
                 </item>
@@ -3022,7 +3022,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z+</string>
+                   <string>X+</string>
                   </property>
                  </widget>
                 </item>
@@ -3041,7 +3041,7 @@ QPushButton:disabled {
                    </size>
                   </property>
                   <property name="text">
-                   <string>Z-</string>
+                   <string>X-</string>
                   </property>
                  </widget>
                 </item>
@@ -4608,8 +4608,8 @@ QScrollArea#scrollAreaStageControl QRadioButton::indicator:checked:hover {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>903</width>
-             <height>694</height>
+             <width>978</width>
+             <height>699</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_stageControlContent">
@@ -5080,7 +5080,7 @@ QPushButton:disabled {
                   <string>font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #fafafa;</string>
                  </property>
                  <property name="text">
-                  <string>X轴</string>
+                  <string>Z轴</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -5246,7 +5246,7 @@ QPushButton:disabled {
                   <string>font-weight: bold; padding: 8px; border: 1px solid #ddd; background-color: #fafafa;</string>
                  </property>
                  <property name="text">
-                  <string>Z轴</string>
+                  <string>X轴</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -5409,19 +5409,6 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="1" column="0">
-                     <widget class="QPushButton" name="btnMoveXLeft">
-                      <property name="minimumSize">
-                       <size>
-                        <width>60</width>
-                        <height>40</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>X-</string>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="1" column="1">
                      <widget class="QLabel" name="labelXYCenter">
                       <property name="minimumSize">
@@ -5438,8 +5425,21 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="1" column="2">
-                     <widget class="QPushButton" name="btnMoveXRight">
+                    <item row="2" column="1">
+                     <widget class="QPushButton" name="btnMoveYDown">
+                      <property name="minimumSize">
+                       <size>
+                        <width>60</width>
+                        <height>40</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>Y-</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QPushButton" name="btnMoveZUp">
                       <property name="minimumSize">
                        <size>
                         <width>60</width>
@@ -5451,8 +5451,8 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="2" column="1">
-                     <widget class="QPushButton" name="btnMoveYDown">
+                    <item row="1" column="2">
+                     <widget class="QPushButton" name="btnMoveZDown">
                       <property name="minimumSize">
                        <size>
                         <width>60</width>
@@ -5460,7 +5460,7 @@ QPushButton:disabled {
                        </size>
                       </property>
                       <property name="text">
-                       <string>Y-</string>
+                       <string>X-</string>
                       </property>
                      </widget>
                     </item>
@@ -5486,7 +5486,7 @@ QPushButton:disabled {
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_zControl">
                     <item>
-                     <widget class="QPushButton" name="btnMoveZUp">
+                     <widget class="QPushButton" name="btnMoveXLeft">
                       <property name="minimumSize">
                        <size>
                         <width>60</width>
@@ -5494,7 +5494,7 @@ QPushButton:disabled {
                        </size>
                       </property>
                       <property name="text">
-                       <string>Z+</string>
+                       <string>Z-</string>
                       </property>
                      </widget>
                     </item>
@@ -5515,7 +5515,7 @@ QPushButton:disabled {
                      </widget>
                     </item>
                     <item>
-                     <widget class="QPushButton" name="btnMoveZDown">
+                     <widget class="QPushButton" name="btnMoveXRight">
                       <property name="minimumSize">
                        <size>
                         <width>60</width>
@@ -5523,7 +5523,7 @@ QPushButton:disabled {
                        </size>
                       </property>
                       <property name="text">
-                       <string>Z-</string>
+                       <string>Z+</string>
                       </property>
                      </widget>
                     </item>
@@ -5548,114 +5548,16 @@ QPushButton:disabled {
                     <string>绝对位置移动</string>
                    </property>
                    <layout class="QGridLayout" name="gridLayout_absoluteMove">
-                    <item row="1" column="2">
-                     <widget class="QPushButton" name="btnMoveToY">
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton {
-    background-color: #FF9800; /* 橙色背景 */
-    color: white;
-    border-radius: 5px;
-    margin: 2px;
-    border: 2px solid transparent;
-}
-QPushButton:hover {
-    background-color: #e68900; /* 悬停时变深橙 */
-    border: 2px solid orange;
-}
-QPushButton:pressed {
-    background-color: #cc7a00; /* 按下时更深橙 */
-    border: 2px solid darkorange;
-}
-QPushButton:disabled {
-    background-color: #808080; /* 灰色背景表示禁用 */
-    color: #C0C0C0; /* 浅灰色文字 */
-    border: 2px solid #606060; /* 深灰色边框 */
-}
-</string>
+                    <item row="2" column="1">
+                     <widget class="QDoubleSpinBox" name="spinBoxTargetZ">
+                      <property name="decimals">
+                       <number>3</number>
                       </property>
-                      <property name="text">
-                       <string>移动到Y</string>
+                      <property name="minimum">
+                       <double>-999999.000000000000000</double>
                       </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="0">
-                     <widget class="QLabel" name="labelMoveXYZ">
-                      <property name="text">
-                       <string>同时移动:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="0" column="2">
-                     <widget class="QPushButton" name="btnMoveToX">
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton {
-    background-color: #4CAF50; /* 绿色背景 */
-    color: white;
-    border-radius: 5px;
-    margin: 2px;
-    border: 2px solid transparent;
-}
-QPushButton:hover {
-    background-color: #45a049; /* 悬停时变深绿 */
-    border: 2px solid lightgreen;
-}
-QPushButton:pressed {
-    background-color: #3d8b40; /* 按下时更深绿 */
-    border: 2px solid darkgreen;
-}
-QPushButton:disabled {
-    background-color: #808080; /* 灰色背景表示禁用 */
-    color: #C0C0C0; /* 浅灰色文字 */
-    border: 2px solid #606060; /* 深灰色边框 */
-}
-</string>
-                      </property>
-                      <property name="text">
-                       <string>移动到X</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="2">
-                     <widget class="QPushButton" name="btnMoveToZ">
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton {
-    background-color: #9C27B0; /* 紫色背景 */
-    color: white;
-    border-radius: 5px;
-    margin: 2px;
-    border: 2px solid transparent;
-}
-QPushButton:hover {
-    background-color: #8e24aa; /* 悬停时变深紫 */
-    border: 2px solid plum;
-}
-QPushButton:pressed {
-    background-color: #7b1fa2; /* 按下时更深紫 */
-    border: 2px solid purple;
-}
-QPushButton:disabled {
-    background-color: #808080; /* 灰色背景表示禁用 */
-    color: #C0C0C0; /* 浅灰色文字 */
-    border: 2px solid #606060; /* 深灰色边框 */
-}
-</string>
-                      </property>
-                      <property name="text">
-                       <string>移动到Z</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="QLabel" name="labelTargetZ">
-                      <property name="text">
-                       <string>目标Z(μm):</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="2">
-                     <widget class="QPushButton" name="btnGetCurrentPos">
-                      <property name="text">
-                       <string>读取当前位置</string>
+                      <property name="maximum">
+                       <double>999999.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -5672,14 +5574,7 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="0" column="0">
-                     <widget class="QLabel" name="labelTargetX">
-                      <property name="text">
-                       <string>目标X(μm):</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="3" column="1">
+                    <item row="4" column="1">
                      <widget class="QPushButton" name="btnMoveToXYZ">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -5715,6 +5610,57 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
+                    <item row="4" column="0">
+                     <widget class="QLabel" name="labelMoveXYZ">
+                      <property name="text">
+                       <string>同时移动:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QLabel" name="labelTargetZ">
+                      <property name="text">
+                       <string>目标X(μm):</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <widget class="QPushButton" name="btnMoveToY">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #FF9800; /* 橙色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #e68900; /* 悬停时变深橙 */
+    border: 2px solid orange;
+}
+QPushButton:pressed {
+    background-color: #cc7a00; /* 按下时更深橙 */
+    border: 2px solid darkorange;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
+                      </property>
+                      <property name="text">
+                       <string>移动到Y</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="4" column="2">
+                     <widget class="QPushButton" name="btnGetCurrentPos">
+                      <property name="text">
+                       <string>读取当前位置</string>
+                      </property>
+                     </widget>
+                    </item>
                     <item row="1" column="0">
                      <widget class="QLabel" name="labelTargetY">
                       <property name="text">
@@ -5722,7 +5668,44 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="0" column="1">
+                    <item row="2" column="2">
+                     <widget class="QPushButton" name="btnMoveToZ">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #9C27B0; /* 紫色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #8e24aa; /* 悬停时变深紫 */
+    border: 2px solid plum;
+}
+QPushButton:pressed {
+    background-color: #7b1fa2; /* 按下时更深紫 */
+    border: 2px solid purple;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
+                      </property>
+                      <property name="text">
+                       <string>移动到X</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="0">
+                     <widget class="QLabel" name="labelTargetX">
+                      <property name="text">
+                       <string>目标Z(μm):</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="1">
                      <widget class="QDoubleSpinBox" name="spinBoxTargetX">
                       <property name="decimals">
                        <number>3</number>
@@ -5735,16 +5718,33 @@ QPushButton:disabled {
                       </property>
                      </widget>
                     </item>
-                    <item row="2" column="1">
-                     <widget class="QDoubleSpinBox" name="spinBoxTargetZ">
-                      <property name="decimals">
-                       <number>3</number>
+                    <item row="3" column="2">
+                     <widget class="QPushButton" name="btnMoveToX">
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton {
+    background-color: #4CAF50; /* 绿色背景 */
+    color: white;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+QPushButton:hover {
+    background-color: #45a049; /* 悬停时变深绿 */
+    border: 2px solid lightgreen;
+}
+QPushButton:pressed {
+    background-color: #3d8b40; /* 按下时更深绿 */
+    border: 2px solid darkgreen;
+}
+QPushButton:disabled {
+    background-color: #808080; /* 灰色背景表示禁用 */
+    color: #C0C0C0; /* 浅灰色文字 */
+    border: 2px solid #606060; /* 深灰色边框 */
+}
+</string>
                       </property>
-                      <property name="minimum">
-                       <double>-999999.000000000000000</double>
-                      </property>
-                      <property name="maximum">
-                       <double>999999.000000000000000</double>
+                      <property name="text">
+                       <string>移动到Z</string>
                       </property>
                      </widget>
                     </item>

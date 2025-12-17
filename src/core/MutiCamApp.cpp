@@ -330,11 +330,11 @@ void MutiCamApp::syncAxisEnableStateFromUI()
 
     // 分别下发，失败仅记录日志不弹窗
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::X_AXIS, x)) {
-        qWarning() << "同步X轴使能失败:" << m_axisController->getLastErrorString();
+        qWarning() << "同步Z轴使能失败:" << m_axisController->getLastErrorString();
     }
     // 同步X轴手柄/摇杆功能使能
     if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::X_AXIS, x)) {
-        qWarning() << "同步X轴手柄使能失败:" << m_axisController->getLastErrorString();
+        qWarning() << "同步Z轴手柄使能失败:" << m_axisController->getLastErrorString();
     }
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Y_AXIS, y)) {
         qWarning() << "同步Y轴使能失败:" << m_axisController->getLastErrorString();
@@ -343,10 +343,10 @@ void MutiCamApp::syncAxisEnableStateFromUI()
         qWarning() << "同步Y轴手柄使能失败:" << m_axisController->getLastErrorString();
     }
     if (!m_axisController->setAxisEnabled(AxisControl::AxisIndex::Z_AXIS, z)) {
-        qWarning() << "同步Z轴使能失败:" << m_axisController->getLastErrorString();
+        qWarning() << "同步X轴使能失败:" << m_axisController->getLastErrorString();
     }
     if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Z_AXIS, z)) {
-        qWarning() << "同步Z轴手柄使能失败:" << m_axisController->getLastErrorString();
+        qWarning() << "同步X轴手柄使能失败:" << m_axisController->getLastErrorString();
     }
 }
 
@@ -4916,18 +4916,18 @@ void MutiCamApp::onMoveXLeftClicked()
 {
     if (m_isEmergencyStopActive) {
         // 急停态下直接忽略，避免弹窗干扰
-        qWarning() << "急停状态下忽略X-移动";
+        qWarning() << "急停状态下忽略Z-移动";
         return;
     }
     
     if (m_currentMotionMode == MotionMode::Jog) {
         // 点动模式：移动固定步长
         if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-            qWarning() << "X轴未使能，忽略X-点动";
+            qWarning() << "Z轴未使能，忽略Z-点动";
             return;
         }
         double stepSize = getCurrentStepSize();
-        qDebug() << "X轴负方向点动，步长：" << stepSize << "μm";
+        qDebug() << "Z轴负方向点动，步长：" << stepSize << "μm";
 
         // 更新当前位置
         updateCurrentPosition(-stepSize, 0, 0);
@@ -4944,7 +4944,7 @@ void MutiCamApp::onMoveXLeftClicked()
             } else {
                 // 错误已通过 errorOccurred 信号处理，避免重复弹窗
                 if (m_logManager) {
-                    QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
                     m_logManager->log(errorMsg, LogLevel::WARNING);
                 }
             }
@@ -4971,18 +4971,18 @@ void MutiCamApp::onMoveXLeftClicked()
 void MutiCamApp::onMoveXRightClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略X+移动";
+        qWarning() << "急停状态下忽略Z+移动";
         return;
     }
     
     if (m_currentMotionMode == MotionMode::Jog) {
         // 点动模式：移动固定步长
         if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-            qWarning() << "X轴未使能，忽略X+点动";
+            qWarning() << "Z轴未使能，忽略Z+点动";
             return;
         }
         double stepSize = getCurrentStepSize();
-        qDebug() << "X轴正方向点动，步长：" << stepSize << "μm";
+        qDebug() << "Z轴正方向点动，步长：" << stepSize << "μm";
 
         // 更新当前位置
         updateCurrentPosition(stepSize, 0, 0);
@@ -4999,7 +4999,7 @@ void MutiCamApp::onMoveXRightClicked()
             } else {
                 // 错误已通过 errorOccurred 信号处理，避免重复弹窗
                 if (m_logManager) {
-                    QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
                     m_logManager->log(errorMsg, LogLevel::WARNING);
                 }
             }
@@ -5133,18 +5133,18 @@ void MutiCamApp::onMoveYDownClicked()
 void MutiCamApp::onMoveZUpClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z+移动";
+        qWarning() << "急停状态下忽略X+移动";
         return;
     }
     
     if (m_currentMotionMode == MotionMode::Jog) {
         // 点动模式：移动固定步长
         if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-            qWarning() << "Z轴未使能，忽略Z+点动";
+            qWarning() << "X轴未使能，忽略X+点动";
             return;
         }
         double stepSize = getCurrentStepSize();
-        qDebug() << "Z轴正方向点动，步长：" << stepSize << "μm";
+        qDebug() << "X轴正方向点动，步长：" << stepSize << "μm";
 
         // 更新当前位置
         updateCurrentPosition(0, 0, stepSize);
@@ -5161,7 +5161,7 @@ void MutiCamApp::onMoveZUpClicked()
             } else {
                 // 错误已通过 errorOccurred 信号处理，避免重复弹窗
                 if (m_logManager) {
-                    QString errorMsg = QString("Z轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    QString errorMsg = QString("X轴正向移动失败：%1").arg(m_axisController->getLastErrorString());
                     m_logManager->log(errorMsg, LogLevel::WARNING);
                 }
             }
@@ -5187,18 +5187,18 @@ void MutiCamApp::onMoveZUpClicked()
 void MutiCamApp::onMoveZDownClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z-移动";
+        qWarning() << "急停状态下忽略X-移动";
         return;
     }
     
     if (m_currentMotionMode == MotionMode::Jog) {
         // 点动模式：移动固定步长
         if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-            qWarning() << "Z轴未使能，忽略Z-点动";
+            qWarning() << "X轴未使能，忽略X-点动";
             return;
         }
         double stepSize = getCurrentStepSize();
-        qDebug() << "Z轴负方向点动，步长：" << stepSize << "μm";
+        qDebug() << "X轴负方向点动，步长：" << stepSize << "μm";
 
         // 更新当前位置
         updateCurrentPosition(0, 0, -stepSize);
@@ -5215,7 +5215,7 @@ void MutiCamApp::onMoveZDownClicked()
             } else {
                 // 错误已通过 errorOccurred 信号处理，避免重复弹窗
                 if (m_logManager) {
-                    QString errorMsg = QString("Z轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
+                    QString errorMsg = QString("X轴负向移动失败：%1").arg(m_axisController->getLastErrorString());
                     m_logManager->log(errorMsg, LogLevel::WARNING);
                 }
             }
@@ -5269,7 +5269,7 @@ void MutiCamApp::onMainZeroYClicked()
 void MutiCamApp::onMainZeroZClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z轴清零";
+        qWarning() << "急停状态下忽略X轴清零";
         return;
     }
 
@@ -5279,17 +5279,17 @@ void MutiCamApp::onMainZeroZClicked()
     }
 
     if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-        statusBar()->showMessage("Z轴未使能，无法清零", 3000);
+        statusBar()->showMessage("X轴未使能，无法清零", 3000);
         return;
     }
 
     if (m_axisController->setPositionZero(AxisIndex::Z_AXIS)) {
-        statusBar()->showMessage("Z轴位置已清零", 2000);
+        statusBar()->showMessage("X轴位置已清零", 2000);
         if (m_logManager) {
-            m_logManager->log("Z轴位置已清零", LogLevel::INFO);
+            m_logManager->log("X轴位置已清零", LogLevel::INFO);
         }
     } else if (m_logManager) {
-        m_logManager->log(QString("Z轴清零失败：%1").arg(m_axisController->getLastErrorString()),
+        m_logManager->log(QString("X轴清零失败：%1").arg(m_axisController->getLastErrorString()),
                           LogLevel::WARNING);
     }
 }
@@ -5316,13 +5316,13 @@ void MutiCamApp::onStageHomeClicked()
         // 首先检查轴使能状态
         QStringList disabledAxes;
         if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-            disabledAxes << "X轴";
+            disabledAxes << "Z轴";
         }
         if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
             disabledAxes << "Y轴";
         }
         if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-            disabledAxes << "Z轴";
+            disabledAxes << "X轴";
         }
         
         // 如果有轴未使能，显示统一警告
@@ -5353,7 +5353,7 @@ void MutiCamApp::onStageHomeClicked()
             // 依次移动各轴到零点位置，收集错误信息
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, 0.0)) {
                 success = false;
-                failedAxes << "X轴";
+                failedAxes << "Z轴";
             }
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Y_AXIS, 0.0)) {
                 success = false;
@@ -5361,7 +5361,7 @@ void MutiCamApp::onStageHomeClicked()
             }
             if (!m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, 0.0)) {
                 success = false;
-                failedAxes << "Z轴";
+                failedAxes << "X轴";
             }
             
             if (!success) {
@@ -6805,14 +6805,14 @@ void MutiCamApp::onStageDisconnectClicked()
 void MutiCamApp::onMoveToXClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略X绝对定位";
+        qWarning() << "急停状态下忽略Z绝对定位";
         return;
     }
     if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
-        qWarning() << "X轴未使能，忽略X绝对定位";
+        qWarning() << "Z轴未使能，忽略Z绝对定位";
         return;
     }
-    qDebug() << "X轴绝对位置移动按钮点击";
+    qDebug() << "Z轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
         QMessageBox::warning(this, "错误", "轴控制系统未初始化");
@@ -6823,19 +6823,19 @@ void MutiCamApp::onMoveToXClicked()
         QMessageBox::warning(this, "提示", "请先连接轴控制设备");
         return;
     }
-    
+
     double targetX = ui->spinBoxTargetX->value();  // 输入为μm
-    statusBar()->showMessage(QString("正在移动X轴到位置 %1 μm...").arg(targetX), 3000);
-    
+    statusBar()->showMessage(QString("正在移动Z轴到位置 %1 μm...").arg(targetX), 3000);
+
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::X_AXIS, targetX)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
-        
+
         if (m_logManager) {
-            m_logManager->log(QString("X轴开始移动到绝对位置：%1 μm").arg(targetX), LogLevel::INFO);
+            m_logManager->log(QString("Z轴开始移动到绝对位置：%1 μm").arg(targetX), LogLevel::INFO);
         }
-        qDebug() << "X轴开始移动到绝对位置：" << targetX;
+        qDebug() << "Z轴开始移动到绝对位置：" << targetX;
     } else {
-        QString errorMsg = QString("X轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
+        QString errorMsg = QString("Z轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
         QMessageBox::warning(this, "移动失败", errorMsg);
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
@@ -6889,14 +6889,14 @@ void MutiCamApp::onMoveToYClicked()
 void MutiCamApp::onMoveToZClicked()
 {
     if (m_isEmergencyStopActive) {
-        qWarning() << "急停状态下忽略Z绝对定位";
+        qWarning() << "急停状态下忽略X绝对定位";
         return;
     }
     if (m_axisController && !m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
-        qWarning() << "Z轴未使能，忽略Z绝对定位";
+        qWarning() << "X轴未使能，忽略X绝对定位";
         return;
     }
-    qDebug() << "Z轴绝对位置移动按钮点击";
+    qDebug() << "X轴绝对位置移动按钮点击";
     
     if (!m_axisController) {
         QMessageBox::warning(this, "错误", "轴控制系统未初始化");
@@ -6907,19 +6907,19 @@ void MutiCamApp::onMoveToZClicked()
         QMessageBox::warning(this, "提示", "请先连接轴控制设备");
         return;
     }
-    
+
     double targetZ = ui->spinBoxTargetZ->value();  // 输入为μm
-    statusBar()->showMessage(QString("正在移动Z轴到位置 %1 μm...").arg(targetZ), 3000);
-    
+    statusBar()->showMessage(QString("正在移动X轴到位置 %1 μm...").arg(targetZ), 3000);
+
     if (m_axisController->moveAbsolute(AxisControl::AxisIndex::Z_AXIS, targetZ)) {
         // 由 onAxisPositionChanged 回调平滑更新UI
-        
+
         if (m_logManager) {
-            m_logManager->log(QString("Z轴开始移动到绝对位置：%1 μm").arg(targetZ), LogLevel::INFO);
+            m_logManager->log(QString("X轴开始移动到绝对位置：%1 μm").arg(targetZ), LogLevel::INFO);
         }
-        qDebug() << "Z轴开始移动到绝对位置：" << targetZ;
+        qDebug() << "X轴开始移动到绝对位置：" << targetZ;
     } else {
-        QString errorMsg = QString("Z轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
+        QString errorMsg = QString("X轴绝对位置移动失败：%1").arg(m_axisController->getLastErrorString());
         QMessageBox::warning(this, "移动失败", errorMsg);
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
@@ -6950,7 +6950,7 @@ void MutiCamApp::onMoveToXYZClicked()
     double targetY = ui->spinBoxTargetY->value();
     double targetZ = ui->spinBoxTargetZ->value();
     
-    statusBar()->showMessage(QString("正在移动XYZ轴到位置 (%1, %2, %3) mm...").arg(targetX).arg(targetY).arg(targetZ), 5000);
+    statusBar()->showMessage(QString("正在移动XYZ轴到位置 (X=%1, Y=%2, Z=%3) mm...").arg(targetZ).arg(targetY).arg(targetX), 5000);
     
     // 仅对已使能轴下发移动命令
     bool xCan = m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS);
@@ -6965,12 +6965,12 @@ void MutiCamApp::onMoveToXYZClicked()
     // 如果移动命令成功，更新命令位置显示 - 需要将mm转换为μm
     // 由 onAxisPositionChanged 回调平滑更新UI
     
-    if (xSuccess && ySuccess && zSuccess) {
-        if (m_logManager) {
-            m_logManager->log(QString("XYZ轴开始同时移动到绝对位置：X=%1, Y=%2, Z=%3 mm").arg(targetX).arg(targetY).arg(targetZ), LogLevel::INFO);
-        }
-        qDebug() << "XYZ轴开始同时移动到绝对位置：" << targetX << targetY << targetZ;
-    } else {
+        if (xSuccess && ySuccess && zSuccess) {
+            if (m_logManager) {
+                m_logManager->log(QString("XYZ轴开始同时移动到绝对位置：X=%1, Y=%2, Z=%3 mm").arg(targetZ).arg(targetY).arg(targetX), LogLevel::INFO);
+            }
+            qDebug() << "XYZ轴开始同时移动到绝对位置：" << targetX << targetY << targetZ;
+        } else {
         QString errorMsg = QString("XYZ轴移动部分失败或未全部使能：%1").arg(m_axisController->getLastErrorString());
         QMessageBox::warning(this, "移动失败", errorMsg);
         if (m_logManager) {
@@ -7006,10 +7006,10 @@ void MutiCamApp::onGetCurrentPosClicked()
     ui->spinBoxTargetY->setValue(yPos);
     ui->spinBoxTargetZ->setValue(zPos);
     
-    statusBar()->showMessage(QString("当前位置：X=%1, Y=%2, Z=%3 mm").arg(xPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(zPos, 0, 'f', 3), 5000);
-    
+    statusBar()->showMessage(QString("当前位置：X=%1, Y=%2, Z=%3 mm").arg(zPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(xPos, 0, 'f', 3), 5000);
+
     if (m_logManager) {
-        m_logManager->log(QString("读取当前位置：X=%1, Y=%2, Z=%3 mm").arg(xPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(zPos, 0, 'f', 3), LogLevel::INFO);
+        m_logManager->log(QString("读取当前位置：X=%1, Y=%2, Z=%3 mm").arg(zPos, 0, 'f', 3).arg(yPos, 0, 'f', 3).arg(xPos, 0, 'f', 3), LogLevel::INFO);
     }
     
     qDebug() << "当前位置：X=" << xPos << "Y=" << yPos << "Z=" << zPos;
@@ -7019,7 +7019,7 @@ void MutiCamApp::onGetCurrentPosClicked()
 
 void MutiCamApp::onEnableXChanged(bool enabled)
 {
-    qDebug() << "X轴使能状态改变：" << enabled;
+    qDebug() << "Z轴使能状态改变：" << enabled;
     
     if (!m_axisController) {
         qWarning() << "轴控制系统未初始化";
@@ -7033,17 +7033,17 @@ void MutiCamApp::onEnableXChanged(bool enabled)
     
     if (m_axisController->setAxisEnabled(AxisControl::AxisIndex::X_AXIS, enabled)) {
         if (m_logManager) {
-            m_logManager->log(QString("X轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
+            m_logManager->log(QString("Z轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
         }
-        qDebug() << "X轴使能状态设置成功：" << enabled;
+        qDebug() << "Z轴使能状态设置成功：" << enabled;
         // 同步手柄/摇杆功能使能
         if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::X_AXIS, enabled)) {
-            qWarning() << "X轴手柄功能同步失败:" << m_axisController->getLastErrorString();
+            qWarning() << "Z轴手柄功能同步失败:" << m_axisController->getLastErrorString();
         } else {
-            qDebug() << "X轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
+            qDebug() << "Z轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
         }
     } else {
-        QString errorMsg = QString("X轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
+        QString errorMsg = QString("Z轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
         }
@@ -7102,7 +7102,7 @@ void MutiCamApp::onEnableYChanged(bool enabled)
 
 void MutiCamApp::onEnableZChanged(bool enabled)
 {
-    qDebug() << "Z轴使能状态改变：" << enabled;
+    qDebug() << "X轴使能状态改变：" << enabled;
     
     if (!m_axisController) {
         qWarning() << "轴控制系统未初始化";
@@ -7116,17 +7116,17 @@ void MutiCamApp::onEnableZChanged(bool enabled)
     
     if (m_axisController->setAxisEnabled(AxisControl::AxisIndex::Z_AXIS, enabled)) {
         if (m_logManager) {
-            m_logManager->log(QString("Z轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
+            m_logManager->log(QString("X轴使能状态设置为：%1").arg(enabled ? "启用" : "禁用"), LogLevel::INFO);
         }
-        qDebug() << "Z轴使能状态设置成功：" << enabled;
+        qDebug() << "X轴使能状态设置成功：" << enabled;
         // 同步手柄/摇杆功能使能
         if (!m_axisController->setJoystickEnabled(AxisControl::AxisIndex::Z_AXIS, enabled)) {
-            qWarning() << "Z轴手柄功能同步失败:" << m_axisController->getLastErrorString();
+            qWarning() << "X轴手柄功能同步失败:" << m_axisController->getLastErrorString();
         } else {
-            qDebug() << "Z轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
+            qDebug() << "X轴手柄功能同步成功：" << (enabled ? "启用" : "禁用");
         }
     } else {
-        QString errorMsg = QString("Z轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
+        QString errorMsg = QString("X轴使能状态设置失败：%1").arg(m_axisController->getLastErrorString());
         if (m_logManager) {
             m_logManager->log(errorMsg, LogLevel::WARNING);
         }
@@ -7493,20 +7493,20 @@ void MutiCamApp::updateMotionButtonTexts()
 {
     if (m_currentMotionMode == MotionMode::Jog) {
         // 点动模式：显示方向
-        ui->btnMoveXLeft->setText("X-");
-        ui->btnMoveXRight->setText("X+");
+        ui->btnMoveXLeft->setText("Z-");
+        ui->btnMoveXRight->setText("Z+");
         ui->btnMoveYUp->setText("Y+");
         ui->btnMoveYDown->setText("Y-");
-        ui->btnMoveZUp->setText("Z+");
-        ui->btnMoveZDown->setText("Z-");
+        ui->btnMoveZUp->setText("X+");
+        ui->btnMoveZDown->setText("X-");
     } else {
         // 连续模式：根据当前状态显示开始/停止
-        ui->btnMoveXLeft->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == -1 ? "停止X-" : "X-");
-        ui->btnMoveXRight->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == 1 ? "停止X+" : "X+");
+        ui->btnMoveXLeft->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == -1 ? "停止Z-" : "Z-");
+        ui->btnMoveXRight->setText(m_continuousMotionStates[0].isMoving && m_continuousMotionStates[0].direction == 1 ? "停止Z+" : "Z+");
         ui->btnMoveYUp->setText(m_continuousMotionStates[1].isMoving && m_continuousMotionStates[1].direction == 1 ? "停止Y+" : "Y+");
         ui->btnMoveYDown->setText(m_continuousMotionStates[1].isMoving && m_continuousMotionStates[1].direction == -1 ? "停止Y-" : "Y-");
-        ui->btnMoveZUp->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == 1 ? "停止Z+" : "Z+");
-        ui->btnMoveZDown->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == -1 ? "停止Z-" : "Z-");
+        ui->btnMoveZUp->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == 1 ? "停止X+" : "X+");
+        ui->btnMoveZDown->setText(m_continuousMotionStates[2].isMoving && m_continuousMotionStates[2].direction == -1 ? "停止X-" : "X-");
     }
 }
 
@@ -7518,8 +7518,8 @@ void MutiCamApp::startContinuousMotion(AxisIndex axis, int direction)
     }
     
     if (!m_axisController->isAxisEnabled(axis)) {
-        QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
-                          (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+        QString axisName = (axis == AxisIndex::X_AXIS) ? "Z" :
+                          (axis == AxisIndex::Y_AXIS) ? "Y" : "X";
         qWarning() << axisName << "轴未使能，忽略连续移动";
         return;
     }
@@ -7550,8 +7550,8 @@ void MutiCamApp::startContinuousMotion(AxisIndex axis, int direction)
         }
         
         if (m_logManager) {
-            QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
-                              (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+            QString axisName = (axis == AxisIndex::X_AXIS) ? "Z" :
+                              (axis == AxisIndex::Y_AXIS) ? "Y" : "X";
             QString directionStr = (direction > 0) ? "正向" : "负向";
             m_logManager->log(QString("%1轴开始%2连续移动，速度：%3 μm/s").arg(axisName).arg(directionStr).arg(speed), LogLevel::INFO);
         }
@@ -7595,8 +7595,8 @@ void MutiCamApp::stopContinuousMotion(AxisIndex axis)
     }
     
     if (m_logManager) {
-        QString axisName = (axis == AxisIndex::X_AXIS) ? "X" : 
-                          (axis == AxisIndex::Y_AXIS) ? "Y" : "Z";
+        QString axisName = (axis == AxisIndex::X_AXIS) ? "Z" :
+                          (axis == AxisIndex::Y_AXIS) ? "Y" : "X";
         m_logManager->log(QString("%1轴停止连续移动").arg(axisName), LogLevel::INFO);
     }
 }
