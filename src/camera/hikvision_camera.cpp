@@ -643,33 +643,29 @@ void HikvisionCamera::processFrame(unsigned char* pData, MV_FRAME_OUT_INFO_EX* p
                    pFrameInfo->enPixelType == PixelType_Gvsp_BayerGR8 ||
                    pFrameInfo->enPixelType == PixelType_Gvsp_BayerRG8 ||
                    pFrameInfo->enPixelType == PixelType_Gvsp_BayerBG8) {
-            // Bayer原始数据需要做去马赛克/颜色转换，否则显示会是灰度
-            unsigned int nConvertSize = pFrameInfo->nWidth * pFrameInfo->nHeight * 3;
-            if (m_nConvertBufferSize < nConvertSize) {
-                if (m_pConvertBuffer) {
-                    delete[] m_pConvertBuffer;
+            // 性能优化：不要在采集回调里对 20MP Bayer 做全分辨率去马赛克/转BGR。
+            // - 保留原始 Bayer(8UC1) 用于测量/匹配/保存（按需再做全分辨率去马赛克）。
+            // - UI 预览在上层以低分辨率生成彩色图，避免 CPU 爆炸。
+            {
+                QMutexLocker locker(&m_mutex);
+                switch (pFrameInfo->enPixelType) {
+                case PixelType_Gvsp_BayerGB8:
+                    m_params.pixelFormat = "BayerGB8";
+                    break;
+                case PixelType_Gvsp_BayerGR8:
+                    m_params.pixelFormat = "BayerGR8";
+                    break;
+                case PixelType_Gvsp_BayerRG8:
+                    m_params.pixelFormat = "BayerRG8";
+                    break;
+                case PixelType_Gvsp_BayerBG8:
+                    m_params.pixelFormat = "BayerBG8";
+                    break;
+                default:
+                    break;
                 }
-                m_pConvertBuffer = new unsigned char[nConvertSize];
-                m_nConvertBufferSize = nConvertSize;
             }
-
-            MV_CC_PIXEL_CONVERT_PARAM stConvertParam = {0};
-            stConvertParam.nWidth = pFrameInfo->nWidth;
-            stConvertParam.nHeight = pFrameInfo->nHeight;
-            stConvertParam.pSrcData = pData;
-            stConvertParam.nSrcDataLen = pFrameInfo->nFrameLen;
-            stConvertParam.enSrcPixelType = pFrameInfo->enPixelType;
-            stConvertParam.enDstPixelType = PixelType_Gvsp_BGR8_Packed;
-            stConvertParam.pDstBuffer = m_pConvertBuffer;
-            stConvertParam.nDstBufferSize = m_nConvertBufferSize;
-
-            int nRet = MV_CC_ConvertPixelType(m_hCamera, &stConvertParam);
-            if (MV_OK == nRet) {
-                frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC3, m_pConvertBuffer).clone();
-            } else {
-                qDebug() << "Failed to convert Bayer to BGR, error code:" << nRet;
-                return;
-            }
+            frame = cv::Mat(pFrameInfo->nHeight, pFrameInfo->nWidth, CV_8UC1, pData).clone();
         } else {
             // 对于其他格式，尝试转换为Mono8
             unsigned int nConvertSize = pFrameInfo->nWidth * pFrameInfo->nHeight;

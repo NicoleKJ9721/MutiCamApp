@@ -90,8 +90,30 @@ void ZoomPanWidget::connectSignals()
 
 void ZoomPanWidget::setVideoFrame(const QPixmap& pixmap)
 {
+    setVideoFrame(pixmap, pixmap.size());
+}
+
+void ZoomPanWidget::setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize)
+{
     if (m_videoWidget) {
-        m_videoWidget->setVideoFrame(pixmap);
+        m_videoWidget->setVideoFrame(pixmap, sourceImageSize);
+
+        // 重新计算最大平移偏移
+        calculateMaxPanOffset();
+
+        // 约束当前平移偏移
+        constrainPanOffset();
+
+        // 更新变换
+        updateVideoWidgetTransform();
+        updatePaintingOverlayTransform();
+    }
+}
+
+void ZoomPanWidget::setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize, const QRect& sourceImageRect)
+{
+    if (m_videoWidget) {
+        m_videoWidget->setVideoFrame(pixmap, sourceImageSize, sourceImageRect);
 
         // 重新计算最大平移偏移
         calculateMaxPanOffset();

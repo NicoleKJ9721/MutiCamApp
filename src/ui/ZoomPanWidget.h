@@ -6,6 +6,7 @@
 #include <QSize>
 #include <QPixmap>
 #include <QTimer>
+#include <QRect>
 
 // 前向声明
 class VideoDisplayWidget;
@@ -33,6 +34,8 @@ public:
 
     // VideoDisplayWidget接口代理
     void setVideoFrame(const QPixmap& pixmap);
+    void setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize);
+    void setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize, const QRect& sourceImageRect);
     VideoDisplayWidget* getVideoDisplayWidget() const { return m_videoWidget; }
 
     // 缩放平移控制

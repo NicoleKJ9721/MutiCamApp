@@ -24,6 +24,11 @@
 #include <stdexcept>
 #include <QFileInfo>
 #include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cctype>
+#include <QHash>
+#include <limits>
 #define _USE_MATH_DEFINES
 #include "../config/TemplateMatchingConfig.h"
 
@@ -42,6 +47,286 @@ QString resolveRuntimePath(const QString& relativePath)
         }
     }
     return candidates.front();
+}
+
+enum class BayerPattern {
+    GB,
+    GR,
+    RG,
+    BG,
+    Unknown
+};
+
+QString normalizePixelFormat(QString value)
+{
+    value = value.toLower();
+    QString out;
+    out.reserve(value.size());
+    for (QChar ch : value) {
+        if (ch == ' ' || ch == '_' || ch == '-') {
+            continue;
+        }
+        out.append(ch);
+    }
+    return out;
+}
+
+BayerPattern parseBayerPattern(const QString& normalizedPixelFormat)
+{
+    if (normalizedPixelFormat == "bayergb8") return BayerPattern::GB;
+    if (normalizedPixelFormat == "bayergr8") return BayerPattern::GR;
+    if (normalizedPixelFormat == "bayerrg8") return BayerPattern::RG;
+    if (normalizedPixelFormat == "bayerbg8") return BayerPattern::BG;
+    return BayerPattern::Unknown;
+}
+
+bool isBayerFormat(const QString& normalizedPixelFormat)
+{
+    return parseBayerPattern(normalizedPixelFormat) != BayerPattern::Unknown;
+}
+
+int choosePreviewDownsampleFactor(int srcW, int srcH, int targetW, int targetH)
+{
+    if (srcW <= 0 || srcH <= 0) return 1;
+    if (targetW <= 0 || targetH <= 0) return 1;
+
+    int factorW = (srcW + targetW - 1) / targetW;
+    int factorH = (srcH + targetH - 1) / targetH;
+    return std::max(1, std::max(factorW, factorH));
+}
+
+cv::Mat makeBgrPreviewFromBayer8(const cv::Mat& bayer8, BayerPattern pattern, int factor)
+{
+    if (bayer8.empty() || bayer8.type() != CV_8UC1) {
+        return cv::Mat();
+    }
+    if (pattern == BayerPattern::Unknown) {
+        return cv::Mat();
+    }
+
+    const int srcW = bayer8.cols;
+    const int srcH = bayer8.rows;
+    if (srcW < 2 || srcH < 2) {
+        return cv::Mat();
+    }
+
+    factor = std::max(1, factor);
+    if ((factor % 2) != 0) {
+        factor += 1;
+    }
+
+    const int w2 = srcW / 2;
+    const int h2 = srcH / 2;
+    if (w2 <= 0 || h2 <= 0) {
+        return cv::Mat();
+    }
+
+    cv::Mat rPlane(h2, w2, CV_8UC1);
+    cv::Mat bPlane(h2, w2, CV_8UC1);
+    cv::Mat g1Plane(h2, w2, CV_8UC1);
+    cv::Mat g2Plane(h2, w2, CV_8UC1);
+
+    for (int y = 0; y < h2; ++y) {
+        const int sy0 = y * 2;
+        const int sy1 = sy0 + 1;
+        const uchar* row0 = bayer8.ptr<uchar>(sy0);
+        const uchar* row1 = bayer8.ptr<uchar>(sy1);
+
+        uchar* rRow = rPlane.ptr<uchar>(y);
+        uchar* bRow = bPlane.ptr<uchar>(y);
+        uchar* g1Row = g1Plane.ptr<uchar>(y);
+        uchar* g2Row = g2Plane.ptr<uchar>(y);
+
+        for (int x = 0; x < w2; ++x) {
+            const int sx0 = x * 2;
+            const int sx1 = sx0 + 1;
+
+            switch (pattern) {
+            case BayerPattern::GB:
+                g1Row[x] = row0[sx0];
+                bRow[x] = row0[sx1];
+                rRow[x] = row1[sx0];
+                g2Row[x] = row1[sx1];
+                break;
+            case BayerPattern::GR:
+                g1Row[x] = row0[sx0];
+                rRow[x] = row0[sx1];
+                bRow[x] = row1[sx0];
+                g2Row[x] = row1[sx1];
+                break;
+            case BayerPattern::RG:
+                rRow[x] = row0[sx0];
+                g1Row[x] = row0[sx1];
+                g2Row[x] = row1[sx0];
+                bRow[x] = row1[sx1];
+                break;
+            case BayerPattern::BG:
+                bRow[x] = row0[sx0];
+                g1Row[x] = row0[sx1];
+                g2Row[x] = row1[sx0];
+                rRow[x] = row1[sx1];
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    const int s = std::max(1, factor / 2);
+    const int outW = std::max(1, (w2 + s - 1) / s);
+    const int outH = std::max(1, (h2 + s - 1) / s);
+
+    cv::Mat rSmall, bSmall, g1Small, g2Small;
+    if (outW == w2 && outH == h2) {
+        rSmall = rPlane;
+        bSmall = bPlane;
+        g1Small = g1Plane;
+        g2Small = g2Plane;
+    } else {
+        cv::resize(rPlane, rSmall, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+        cv::resize(bPlane, bSmall, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+        cv::resize(g1Plane, g1Small, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+        cv::resize(g2Plane, g2Small, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+    }
+
+    cv::Mat gSmall;
+    cv::addWeighted(g1Small, 0.5, g2Small, 0.5, 0.0, gSmall);
+
+    cv::Mat out;
+    std::vector<cv::Mat> bgr = {bSmall, gSmall, rSmall};
+    cv::merge(bgr, out);
+    return out;
+}
+
+bool toOpenCvBayerToBgrCode(BayerPattern pattern, int& code)
+{
+    switch (pattern) {
+    case BayerPattern::GB:
+        code = cv::COLOR_BayerGB2BGR;
+        return true;
+    case BayerPattern::GR:
+        code = cv::COLOR_BayerGR2BGR;
+        return true;
+    case BayerPattern::RG:
+        code = cv::COLOR_BayerRG2BGR;
+        return true;
+    case BayerPattern::BG:
+        code = cv::COLOR_BayerBG2BGR;
+        return true;
+    default:
+        return false;
+    }
+}
+
+int guessOpenCvBayerToBgrCodeByReference(const cv::Mat& bayer8, BayerPattern referencePattern)
+{
+    if (bayer8.empty() || bayer8.type() != CV_8UC1) {
+        return 0;
+    }
+
+    const int srcW = bayer8.cols;
+    const int srcH = bayer8.rows;
+    if (srcW < 8 || srcH < 8) {
+        int cvtCode = 0;
+        if (toOpenCvBayerToBgrCode(referencePattern, cvtCode)) {
+            return cvtCode;
+        }
+        return 0;
+    }
+
+    int patchW = std::min(512, srcW);
+    int patchH = std::min(512, srcH);
+    patchW &= ~1;
+    patchH &= ~1;
+    if (patchW < 8 || patchH < 8) {
+        int cvtCode = 0;
+        if (toOpenCvBayerToBgrCode(referencePattern, cvtCode)) {
+            return cvtCode;
+        }
+        return 0;
+    }
+
+    const int x0 = ((srcW - patchW) / 2) & ~1;
+    const int y0 = ((srcH - patchH) / 2) & ~1;
+    cv::Mat patch = bayer8(cv::Rect(x0, y0, patchW, patchH));
+
+    // 参考：使用我们“稳定显示正确颜色”的2x2平面算法生成半分辨率BGR
+    cv::Mat ref = makeBgrPreviewFromBayer8(patch, referencePattern, 2);
+    if (ref.empty() || ref.type() != CV_8UC3) {
+        int cvtCode = 0;
+        if (toOpenCvBayerToBgrCode(referencePattern, cvtCode)) {
+            return cvtCode;
+        }
+        return 0;
+    }
+
+    struct Candidate {
+        int code;
+        BayerPattern pattern;
+    };
+
+    const Candidate candidates[] = {
+        {cv::COLOR_BayerGB2BGR, BayerPattern::GB},
+        {cv::COLOR_BayerGR2BGR, BayerPattern::GR},
+        {cv::COLOR_BayerRG2BGR, BayerPattern::RG},
+        {cv::COLOR_BayerBG2BGR, BayerPattern::BG},
+    };
+
+    double bestScore = std::numeric_limits<double>::infinity();
+    int bestCode = 0;
+
+    for (const Candidate& c : candidates) {
+        (void)c.pattern;
+        cv::Mat bgr;
+        try {
+            cv::cvtColor(patch, bgr, c.code);
+        } catch (...) {
+            continue;
+        }
+        if (bgr.empty() || bgr.type() != CV_8UC3) {
+            continue;
+        }
+
+        cv::Mat bgrHalf;
+        cv::resize(bgr, bgrHalf, cv::Size(ref.cols, ref.rows), 0, 0, cv::INTER_AREA);
+        cv::Mat diff;
+        cv::absdiff(bgrHalf, ref, diff);
+        const cv::Scalar m = cv::mean(diff);
+        const double score = m[0] + m[1] + m[2];
+
+        if (score < bestScore) {
+            bestScore = score;
+            bestCode = c.code;
+        }
+    }
+
+    // 如果差异不可分辨，回退到参考pattern对应的OpenCV code，避免随机选错。
+    if (bestCode == 0 || !std::isfinite(bestScore)) {
+        int cvtCode = 0;
+        if (toOpenCvBayerToBgrCode(referencePattern, cvtCode)) {
+            return cvtCode;
+        }
+    }
+
+    return bestCode;
+}
+
+int getCachedBayerToBgrCodeForCamera(const QString& cameraId,
+                                     const cv::Mat& bayer8,
+                                     BayerPattern referencePattern)
+{
+    static QHash<QString, int> s_cachedCodeByCameraId;
+
+    const auto it = s_cachedCodeByCameraId.constFind(cameraId);
+    if (it != s_cachedCodeByCameraId.constEnd() && it.value() != 0) {
+        return it.value();
+    }
+
+    const int guessed = guessOpenCvBayerToBgrCodeByReference(bayer8, referencePattern);
+    if (guessed != 0) {
+        s_cachedCodeByCameraId.insert(cameraId, guessed);
+    }
+    return guessed;
 }
 }
 
@@ -1128,6 +1413,176 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     if (frame.empty()) return;
 
+    const QSize sourceImageSize(frame.cols, frame.rows);
+    QString normalizedPixelFormat;
+    if (m_cameraManager) {
+        if (auto camera = m_cameraManager->getCamera(cameraId.toStdString())) {
+            normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
+        }
+    }
+    const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+
+    struct PreviewResult {
+        QPixmap pixmap;
+        QSize previewSize;
+        int downsampleFactor = 1; // 仅在整幅缩小模式有意义
+        QRect sourceRect;         // pixmap对应的源图像区域（整幅或ROI）
+        bool tiled = false;       // true=ROI预览，false=整幅缩小预览
+    };
+
+    auto makePreviewPixmap = [&](ZoomPanWidget* widget,
+                                 int maxPreviewPixels,
+                                 double qualityScale,
+                                 bool allowTiling) -> PreviewResult {
+        PreviewResult result;
+        if (!widget) {
+            return result;
+        }
+
+        const QSize widgetSize = widget->size();
+        if (widgetSize.isEmpty()) {
+            return result;
+        }
+
+        const qreal dpr = qApp ? qApp->devicePixelRatio() : 1.0;
+        const double zoom = widget->getZoomFactor();
+        const QPointF panOffset = widget->getPanOffset();
+        const bool isBayer = (frame.channels() == 1) && isBayerFormat(normalizedPixelFormat);
+
+        qualityScale = std::clamp(qualityScale, 1.0, 3.0);
+
+        const bool enableTiling = allowTiling && (zoom > 1.01);
+        if (enableTiling) {
+            const int srcW = frame.cols;
+            const int srcH = frame.rows;
+            if (srcW <= 0 || srcH <= 0) {
+                return result;
+            }
+
+            const double baseScale = std::min(
+                static_cast<double>(widgetSize.width()) / static_cast<double>(srcW),
+                static_cast<double>(widgetSize.height()) / static_cast<double>(srcH)
+            );
+            const double effectiveScale = baseScale * zoom;
+            if (effectiveScale <= 0.0) {
+                return result;
+            }
+
+            const double scaledW = static_cast<double>(srcW) * effectiveScale;
+            const double scaledH = static_cast<double>(srcH) * effectiveScale;
+            const double offsetX = (static_cast<double>(widgetSize.width()) - scaledW) / 2.0 + panOffset.x();
+            const double offsetY = (static_cast<double>(widgetSize.height()) - scaledH) / 2.0 + panOffset.y();
+
+            double x0 = (0.0 - offsetX) / effectiveScale;
+            double y0 = (0.0 - offsetY) / effectiveScale;
+            double x1 = (static_cast<double>(widgetSize.width()) - offsetX) / effectiveScale;
+            double y1 = (static_cast<double>(widgetSize.height()) - offsetY) / effectiveScale;
+
+            if (x0 > x1) std::swap(x0, x1);
+            if (y0 > y1) std::swap(y0, y1);
+
+            int rx0 = std::max(0, static_cast<int>(std::floor(x0)));
+            int ry0 = std::max(0, static_cast<int>(std::floor(y0)));
+            int rx1 = std::min(srcW, static_cast<int>(std::ceil(x1)));
+            int ry1 = std::min(srcH, static_cast<int>(std::ceil(y1)));
+
+            constexpr int kBorder = 2;
+            rx0 = std::max(0, rx0 - kBorder);
+            ry0 = std::max(0, ry0 - kBorder);
+            rx1 = std::min(srcW, rx1 + kBorder);
+            ry1 = std::min(srcH, ry1 + kBorder);
+
+            if (isBayer) {
+                rx0 &= ~1;
+                ry0 &= ~1;
+                if ((rx1 % 2) != 0) rx1 = std::min(srcW, rx1 + 1);
+                if ((ry1 % 2) != 0) ry1 = std::min(srcH, ry1 + 1);
+            }
+
+            const int rw = rx1 - rx0;
+            const int rh = ry1 - ry0;
+            if (rw < 2 || rh < 2) {
+                return result;
+            }
+
+            result.sourceRect = QRect(rx0, ry0, rw, rh);
+
+            int outW = std::max(64, static_cast<int>(std::lround(widgetSize.width() * dpr * qualityScale)));
+            int outH = std::max(64, static_cast<int>(std::lround(widgetSize.height() * dpr * qualityScale)));
+            const int64_t outPixels = static_cast<int64_t>(outW) * static_cast<int64_t>(outH);
+            if (outPixels > maxPreviewPixels && outPixels > 0) {
+                const double scale = std::sqrt(static_cast<double>(maxPreviewPixels) / static_cast<double>(outPixels));
+                outW = std::max(64, static_cast<int>(std::lround(outW * scale)));
+                outH = std::max(64, static_cast<int>(std::lround(outH * scale)));
+            }
+
+            cv::Mat roi = frame(cv::Rect(rx0, ry0, rw, rh));
+            cv::Mat bgr;
+            if (isBayer) {
+                const int cvtCode = getCachedBayerToBgrCodeForCamera(cameraId, frame, bayerPattern);
+                if (cvtCode != 0) {
+                    cv::cvtColor(roi, bgr, cvtCode);
+                } else {
+                    return result;
+                }
+            } else if (roi.channels() == 3) {
+                bgr = roi;
+            } else if (roi.channels() == 4) {
+                cv::cvtColor(roi, bgr, cv::COLOR_BGRA2BGR);
+            } else if (roi.channels() == 1) {
+                cv::cvtColor(roi, bgr, cv::COLOR_GRAY2BGR);
+            } else {
+                return result;
+            }
+
+            cv::Mat resized;
+            const int interp = (bgr.cols > outW || bgr.rows > outH) ? cv::INTER_AREA : cv::INTER_LINEAR;
+            cv::resize(bgr, resized, cv::Size(outW, outH), 0, 0, interp);
+
+            result.previewSize = QSize(resized.cols, resized.rows);
+            result.pixmap = matToQPixmap(resized, false);
+            result.tiled = true;
+            result.downsampleFactor = 0;
+            return result;
+        }
+
+        int targetW = std::max(64, static_cast<int>(std::lround(widgetSize.width() * dpr * zoom * qualityScale)));
+        int targetH = std::max(64, static_cast<int>(std::lround(widgetSize.height() * dpr * zoom * qualityScale)));
+
+        const int64_t targetPixels = static_cast<int64_t>(targetW) * static_cast<int64_t>(targetH);
+        if (targetPixels > maxPreviewPixels && targetPixels > 0) {
+            const double scale = std::sqrt(static_cast<double>(maxPreviewPixels) / static_cast<double>(targetPixels));
+            targetW = std::max(64, static_cast<int>(std::lround(targetW * scale)));
+            targetH = std::max(64, static_cast<int>(std::lround(targetH * scale)));
+        }
+
+        int factor = choosePreviewDownsampleFactor(frame.cols, frame.rows, targetW, targetH);
+        if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+            if ((factor % 2) != 0) {
+                factor += 1;
+            }
+        }
+        result.downsampleFactor = std::max(1, factor);
+
+        cv::Mat preview;
+        if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+            preview = makeBgrPreviewFromBayer8(frame, bayerPattern, factor);
+        } else {
+            const int outW = std::max(1, (frame.cols + factor - 1) / factor);
+            const int outH = std::max(1, (frame.rows + factor - 1) / factor);
+            cv::resize(frame, preview, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+        }
+
+        if (preview.empty()) {
+            return result;
+        }
+
+        result.sourceRect = QRect(QPoint(0, 0), sourceImageSize);
+        result.previewSize = QSize(preview.cols, preview.rows);
+        result.pixmap = matToQPixmap(preview, false);
+        return result;
+    };
+
     // 存储当前帧供自动检测使用 (性能优化：使用直接赋值代替clone()以减少内存复制)
     quint64 frameSeq = 0;
     if (cameraId == "vertical") {
@@ -1168,17 +1623,51 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     // 只有当主界面Tab可见时才更新主视图，以节省性能
     if (mainWidget && ui->tabWidget->currentIndex() == 0) {
-        // 降低图像质量以提升性能
-        QPixmap pixmap = matToQPixmap(frame, false); // 不设置设备像素比
-        mainWidget->setVideoFrame(pixmap);
+        constexpr int kMaxMainPreviewPixels = 2560 * 1440; // 主界面允许更清晰（仍远小于20MP）
+        const PreviewResult preview = makePreviewPixmap(mainWidget, kMaxMainPreviewPixels, 1.5, false);
+        mainWidget->setVideoFrame(preview.pixmap, sourceImageSize, preview.sourceRect);
+
+        static QHash<QString, qint64> lastLogMs;
+        const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+        if (preview.previewSize.isValid() && nowMs - lastLogMs.value(cameraId, 0) > 1000) {
+            qDebug() << "[Preview]" << cameraId
+                     << "src=" << sourceImageSize
+                     << "preview=" << preview.previewSize
+                     << "factor=" << preview.downsampleFactor
+                     << "tab=main";
+            lastLogMs[cameraId] = nowMs;
+        }
+
         // 同步主界面视图的坐标变换
         syncOverlayTransforms(cameraId);
     }
 
     // 只有当对应的Tab页可见且为当前标签页时才更新
     if (tabWidget && tabWidget->isVisible() && isCurrentTabForCamera(cameraId)) {
-        QPixmap pixmap = matToQPixmap(frame, false); // 降低图像质量以提升性能
-        tabWidget->setVideoFrame(pixmap);
+        constexpr int kMaxTabPreviewPixels = 3840 * 2160; // 单视图放大更清晰
+        const PreviewResult preview = makePreviewPixmap(tabWidget, kMaxTabPreviewPixels, 1.25, true);
+        tabWidget->setVideoFrame(preview.pixmap, sourceImageSize, preview.tiled ? preview.sourceRect : QRect(QPoint(0, 0), sourceImageSize));
+
+        static QHash<QString, qint64> lastLogMs;
+        const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+        const QString key = cameraId + "_tab";
+        if (preview.previewSize.isValid() && nowMs - lastLogMs.value(key, 0) > 1000) {
+            if (preview.tiled) {
+                qDebug() << "[Preview]" << cameraId
+                         << "src=" << sourceImageSize
+                         << "roi=" << preview.sourceRect
+                         << "pix=" << preview.previewSize
+                         << "tab=single(tile)";
+            } else {
+                qDebug() << "[Preview]" << cameraId
+                         << "src=" << sourceImageSize
+                         << "preview=" << preview.previewSize
+                         << "factor=" << preview.downsampleFactor
+                         << "tab=single(full)";
+            }
+            lastLogMs[key] = nowMs;
+        }
+
         // 同步选项卡视图的坐标变换
         syncOverlayTransforms(cameraId + "2");
     }
@@ -1583,21 +2072,6 @@ void MutiCamApp::updateViewDisplay(const QString& viewName)
     
     // 使用ZoomPanWidget更新主界面视图
     updateZoomPanWidget(viewName, *currentFrame);
-    
-    // 强制更新选项卡视图，确保绘画数据持久显示
-    cv::Mat renderedFrame = *currentFrame; // 直接使用原始帧
-    
-    // 将cv::Mat转换为QPixmap并设置到VideoDisplayWidget
-    QImage qimg;
-    if (renderedFrame.channels() == 3) {
-        qimg = QImage(renderedFrame.data, renderedFrame.cols, renderedFrame.rows, renderedFrame.step, QImage::Format_RGB888).rgbSwapped();
-    } else if (renderedFrame.channels() == 1) {
-        qimg = QImage(renderedFrame.data, renderedFrame.cols, renderedFrame.rows, renderedFrame.step, QImage::Format_Grayscale8);
-    }
-    
-    if (!qimg.isNull()) {
-        tabWidget->setVideoFrame(QPixmap::fromImage(qimg));
-    }
 
     // 移除频繁的更新日志，避免控制台输出过多
 }
@@ -1969,9 +2443,54 @@ void MutiCamApp::updateZoomPanWidget(const QString& viewName, const cv::Mat& fra
         return;
     }
 
-    // 将 cv::Mat 转换为 QPixmap
-    QPixmap pixmap = matToQPixmap(frame);
-    widget->setVideoFrame(pixmap);
+    QString cameraId = viewName;
+    if (cameraId.endsWith('2')) {
+        cameraId.chop(1);
+    }
+
+    QString normalizedPixelFormat;
+    if (m_cameraManager) {
+        if (auto camera = m_cameraManager->getCamera(cameraId.toStdString())) {
+            normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
+        }
+    }
+    const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+
+    const QSize widgetSize = widget->size();
+    const qreal dpr = qApp ? qApp->devicePixelRatio() : 1.0;
+    const double zoom = widget->getZoomFactor();
+
+    const bool isTabView = viewName.endsWith('2');
+    const double qualityScale = isTabView ? 1.25 : 1.5;
+    int targetW = std::max(64, static_cast<int>(std::lround(widgetSize.width() * dpr * zoom * qualityScale)));
+    int targetH = std::max(64, static_cast<int>(std::lround(widgetSize.height() * dpr * zoom * qualityScale)));
+
+    const int maxPreviewPixels = isTabView ? (3840 * 2160) : (2560 * 1440);
+    const int64_t targetPixels = static_cast<int64_t>(targetW) * static_cast<int64_t>(targetH);
+    if (targetPixels > maxPreviewPixels && targetPixels > 0) {
+        const double scale = std::sqrt(static_cast<double>(maxPreviewPixels) / static_cast<double>(targetPixels));
+        targetW = std::max(64, static_cast<int>(std::lround(targetW * scale)));
+        targetH = std::max(64, static_cast<int>(std::lround(targetH * scale)));
+    }
+
+    int factor = choosePreviewDownsampleFactor(frame.cols, frame.rows, targetW, targetH);
+    if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+        if ((factor % 2) != 0) {
+            factor += 1;
+        }
+    }
+
+    cv::Mat preview;
+    if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+        preview = makeBgrPreviewFromBayer8(frame, bayerPattern, factor);
+    } else {
+        const int outW = std::max(1, (frame.cols + factor - 1) / factor);
+        const int outH = std::max(1, (frame.rows + factor - 1) / factor);
+        cv::resize(frame, preview, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+    }
+
+    const QPixmap pixmap = matToQPixmap(preview.empty() ? frame : preview);
+    widget->setVideoFrame(pixmap, QSize(frame.cols, frame.rows));
 
     // 注意：几何图形数据的更新已移除，现在只在用户完成绘制操作时才更新
     // 这大幅减少了每帧的数据传输开销，提升了性能
@@ -2521,6 +3040,23 @@ void MutiCamApp::saveImages(const QString& viewType)
         }
 
         qDebug() << QString("%1视图图像帧验证成功，开始保存流程").arg(viewName);
+
+        // Bayer(8UC1) 相机：保存/可视化时按需做全分辨率去马赛克，保证输出为真实颜色的BGR/RGB图像
+        QString normalizedPixelFormat;
+        if (m_cameraManager) {
+            if (auto camera = m_cameraManager->getCamera(viewType.toStdString())) {
+                normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
+            }
+        }
+        const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+        if (currentFrame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+            const int cvtCode = getCachedBayerToBgrCodeForCamera(viewType, currentFrame, bayerPattern);
+            if (cvtCode != 0) {
+                cv::Mat bgr;
+                cv::cvtColor(currentFrame, bgr, cvtCode);
+                currentFrame = bgr;
+            }
+        }
 
         // 创建保存目录
         QString saveDir = createSaveDirectory(viewName);

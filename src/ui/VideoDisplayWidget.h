@@ -4,6 +4,8 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QPointF>
+#include <QSize>
+#include <QRect>
 
 // 前向声明
 class QPaintEvent;
@@ -25,9 +27,11 @@ class VideoDisplayWidget : public QLabel
 
 public:
     explicit VideoDisplayWidget(QWidget *parent = nullptr);
-    
+
     // 设置视频帧
     void setVideoFrame(const QPixmap& pixmap);
+    void setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize);
+    void setVideoFrame(const QPixmap& pixmap, const QSize& sourceImageSize, const QRect& sourceImageRect);
 
     // 设置外部变换参数（由ZoomPanWidget调用）
     void setExternalTransform(const QPointF& offset, double scaleFactor);
@@ -42,6 +46,10 @@ protected:
     
 private:
     QPixmap m_videoFrame;                           ///< 视频帧
+    QSize m_sourceImageSize;                        ///< 源图像尺寸（用于坐标映射/缩放计算）
+    bool m_hasSourceImageSize = false;              ///< 是否提供了源图像尺寸
+    QRect m_sourceImageRect;                        ///< 当前pixmap对应的源图像区域（默认整幅）
+    bool m_hasSourceImageRect = false;              ///< 是否提供了源图像区域
 
     // 外部变换参数（由ZoomPanWidget设置）
     bool m_hasExternalTransform;                    ///< 是否有外部变换
