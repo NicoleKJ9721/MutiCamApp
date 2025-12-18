@@ -7297,18 +7297,17 @@ void PaintingOverlay::drawROIInfo(QPainter& painter, const DrawingContext& ctx) 
 
     // 字体设置
     QFont infoFont = ctx.font;
-    infoFont.setPointSize(qMax(8, qRound(ctx.fontSize * 0.8))); // 稍小的字体
 
     // 计算文本尺寸
     QFontMetrics fm(infoFont);
     QRect textRect = fm.boundingRect(infoText);
 
     // 计算信息框尺寸
-    int padding = 8;
+    const double padding = 8.0;
     QSizeF infoBoxSize(textRect.width() + padding * 2, textRect.height() + padding * 2);
 
     // 信息框位置：ROI左下角下方，避免挡住旋转按钮
-    QPointF infoPos = rect.bottomLeft() + QPointF(0, 10);
+    QPointF infoPos = rect.bottomLeft() + QPointF(0, 10.0);
 
     // 确保信息框不超出视图边界
     // 这里可以根据需要添加边界检查
@@ -7317,7 +7316,7 @@ void PaintingOverlay::drawROIInfo(QPainter& painter, const DrawingContext& ctx) 
 
     // 绘制半透明背景
     painter.save();
-    painter.setPen(QPen(Qt::darkGray, 1));
+    painter.setPen(createPen(Qt::darkGray, 1, ctx.scale));
     painter.setBrush(QBrush(QColor(0, 0, 0, 150))); // 半透明黑色背景
     painter.drawRoundedRect(infoRect, 5, 5);
 
@@ -8170,38 +8169,48 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     painter.drawEllipse(matchCenter, centerSize, centerSize);
 
     // 绘制模板名称、置信度、角度和缩放信息
-    QString infoText = QString("匹配结果：\n置信度: %1%\n 角度: %2°\n 缩放: %3")
+    const QString infoText = QString("匹配结果：置信度:%1% 角度:%2° 缩放:%3")
                        .arg(QString::number(match.confidence * 100, 'f', 1))
                        .arg(QString::number(match.angle * 180.0 / M_PI, 'f', 1))
                        .arg(QString::number(match.scale, 'f', 2));
 
-    // 计算文本位置（在边界框上方，增加更多间距）
-    QPointF textPos = matchRect.topLeft() + QPointF(0, -10);
-
     // 设置文本样式
-    QFont font = ctx.font;
-    font.setPointSize(qMax(8, qRound(ctx.fontSize * 0.8))); // 与ROI信息文字大小一致
-    font.setBold(true);
+    const QFont font = ctx.font;
     painter.setFont(font);
 
     // 绘制文本背景（增加更多边距）
     QFontMetrics fm(font);
-    QRect textBounds = fm.boundingRect(infoText);
-    const int marginX = 16;  // 水平边距
-    const int marginY = 16;  // 垂直边距
-    QRectF textBackground(textPos.x() - marginX, 
-                         textPos.y() - textBounds.height() - marginY,
-                         textBounds.width() + 2 * marginX, 
-                         textBounds.height() + 2 * marginY);
+    const double paddingX = qMax(4.0, ctx.fontSize * 0.5);
+    const double paddingY = qMax(3.0, ctx.fontSize * 0.4);
+    const double gapY = qMax(6.0, ctx.fontSize * 0.6);
+    const double boxWidth = fm.horizontalAdvance(infoText) + paddingX * 2.0;
+    const double boxHeight = fm.height() + paddingY * 2.0;
+    QRectF textBackground(matchRect.left(),
+                          matchRect.top() - gapY - boxHeight,
+                          boxWidth,
+                          boxHeight);
+
+    // 避免超出图像边界（尤其在边缘位置/缩放较小时）
+    if (!m_imageSize.isEmpty()) {
+        const double maxX = qMax(0.0, static_cast<double>(m_imageSize.width()) - boxWidth);
+        textBackground.moveLeft(qBound(0.0, textBackground.left(), maxX));
+
+        if (textBackground.top() < 0.0) {
+            textBackground.moveTop(matchRect.bottom() + gapY);
+            const double maxY = qMax(0.0, static_cast<double>(m_imageSize.height()) - boxHeight);
+            textBackground.moveTop(qBound(0.0, textBackground.top(), maxY));
+        }
+    }
 
     // 绘制圆角背景
     painter.setBrush(QBrush(QColor(0, 0, 0, 180))); // 半透明黑色背景
     painter.setPen(Qt::NoPen);
-    painter.drawRoundedRect(textBackground, 4, 4); // 圆角半径4像素
+    painter.drawRoundedRect(textBackground, 4, 4);
 
-    // 绘制文本（调整位置以适应新的边距）
+    // 绘制文本
     painter.setPen(QPen(Qt::white));
-    painter.drawText(textPos.x(), textPos.y() - marginY/2, infoText);
+    const QRectF textRect = textBackground.adjusted(paddingX, paddingY, -paddingX, -paddingY);
+    painter.drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, infoText);
 
     painter.restore();
 }
