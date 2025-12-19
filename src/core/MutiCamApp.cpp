@@ -619,6 +619,7 @@ void MutiCamApp::setMotionControlsEnabled(bool enabled)
 
     // 回零
     ui->btnStageHome->setEnabled(enabled);
+    ui->btnStageZeroAll->setEnabled(enabled);
     ui->btnStageStop->setEnabled(enabled);
 
     // 目标位置输入框也一起禁用，避免误操作
@@ -771,6 +772,7 @@ void MutiCamApp::updatePerAxisControlEnabled()
 
     // XYZ 联合移动仅在全部轴均可用时启用
     ui->btnMoveToXYZ->setEnabled(xEnabled && yEnabled && zEnabled && !m_isEmergencyStopActive);
+    ui->btnStageZeroAll->setEnabled(xEnabled && yEnabled && zEnabled && !m_isEmergencyStopActive);
 }
 
 MutiCamApp::~MutiCamApp()
@@ -998,6 +1000,8 @@ void MutiCamApp::connectSignalsAndSlots()
             this, &MutiCamApp::onMoveZDownClicked);
     connect(ui->btnStageHome, &QPushButton::clicked,
             this, &MutiCamApp::onStageHomeClicked);
+    connect(ui->btnStageZeroAll, &QPushButton::clicked,
+            this, &MutiCamApp::onStageZeroAllClicked);
     connect(ui->btnStageStop, &QPushButton::clicked,
             this, &MutiCamApp::onStageStopClicked);
 
@@ -5936,6 +5940,77 @@ void MutiCamApp::onMainZeroZClicked()
     } else if (m_logManager) {
         m_logManager->log(QString("X轴清零失败：%1").arg(m_axisController->getLastErrorString()),
                           LogLevel::WARNING);
+    }
+}
+
+void MutiCamApp::onStageZeroAllClicked()
+{
+    if (m_isEmergencyStopActive) {
+        qWarning() << "急停状态下忽略全部轴清零";
+        return;
+    }
+
+    if (!m_axisController || !m_axisController->isConnected()) {
+        QMessageBox::information(this, "提示", "轴控制系统未连接，请先连接载物台。");
+        return;
+    }
+
+    const bool anyMoving = m_axisController->isAxisMoving(AxisControl::AxisIndex::X_AXIS) ||
+                           m_axisController->isAxisMoving(AxisControl::AxisIndex::Y_AXIS) ||
+                           m_axisController->isAxisMoving(AxisControl::AxisIndex::Z_AXIS);
+    if (anyMoving) {
+        statusBar()->showMessage("载物台正在运动中，无法清零", 3000);
+        return;
+    }
+
+    QStringList disabledAxes;
+    if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::X_AXIS)) {
+        disabledAxes << "Z轴";
+    }
+    if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Y_AXIS)) {
+        disabledAxes << "Y轴";
+    }
+    if (!m_axisController->isAxisEnabled(AxisControl::AxisIndex::Z_AXIS)) {
+        disabledAxes << "X轴";
+    }
+
+    if (!disabledAxes.isEmpty()) {
+        const QString message = QString("以下轴未使能，无法清零：%1").arg(disabledAxes.join("、"));
+        QMessageBox::warning(this, "轴未使能", message);
+        if (m_logManager) {
+            m_logManager->log(QString("全部清零被阻止：%1").arg(message), LogLevel::WARNING);
+        }
+        return;
+    }
+
+    bool allSuccess = true;
+    QStringList failedAxes;
+    if (!m_axisController->setPositionZero(AxisControl::AxisIndex::X_AXIS)) {
+        allSuccess = false;
+        failedAxes << "Z轴";
+    }
+    if (!m_axisController->setPositionZero(AxisControl::AxisIndex::Y_AXIS)) {
+        allSuccess = false;
+        failedAxes << "Y轴";
+    }
+    if (!m_axisController->setPositionZero(AxisControl::AxisIndex::Z_AXIS)) {
+        allSuccess = false;
+        failedAxes << "X轴";
+    }
+
+    if (allSuccess) {
+        statusBar()->showMessage("XYZ轴位置已清零", 2000);
+        if (m_logManager) {
+            m_logManager->log("XYZ轴位置已清零", LogLevel::INFO);
+        }
+    } else {
+        const QString errorMsg = QString("清零失败：%1（%2）")
+                                     .arg(failedAxes.join("、"))
+                                     .arg(m_axisController->getLastErrorString());
+        statusBar()->showMessage(errorMsg, 5000);
+        if (m_logManager) {
+            m_logManager->log(errorMsg, LogLevel::WARNING);
+        }
     }
 }
 

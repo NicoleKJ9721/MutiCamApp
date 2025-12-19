@@ -230,6 +230,7 @@ private slots:
     void onMoveZDownClicked();             // Z轴负方向移动
     void onMainZeroYClicked();             // 主界面：Y轴清零
     void onMainZeroZClicked();             // 主界面：Z轴清零
+    void onStageZeroAllClicked();          // 载物台：全部轴清零
     void onStageHomeClicked();             // 回到原点
     void onStageStopClicked();             // 紧急停止
     void onStageConnectClicked();          // 轴控制系统连接

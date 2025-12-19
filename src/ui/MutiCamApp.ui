@@ -5338,21 +5338,21 @@ QPushButton:disabled {
                <string>载物台控制</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_stageControl">
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
-                  <item>
-                   <widget class="QLabel" name="labelStepSize">
-                    <property name="font">
-                     <font>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>移动步长:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_stepSize">
+                 <item>
+                  <widget class="QLabel" name="labelStepSize">
+                   <property name="font">
+                    <font>
+                     <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>移动步长:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QRadioButton" name="radioStep01">
                    <property name="font">
                     <font>
@@ -5451,10 +5451,10 @@ QPushButton:disabled {
                    </property>
                   </widget>
                  </item>
-                  <item>
-                   <spacer name="horizontalSpacer_stepSize">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Horizontal</enum>
+                 <item>
+                  <spacer name="horizontalSpacer_stepSize">
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
@@ -5877,6 +5877,25 @@ QPushButton:disabled {
                      </property>
                      <property name="text">
                       <string>回到原点</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnStageZeroAll">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>100</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>全部清零</string>
                      </property>
                     </widget>
                    </item>
