@@ -2154,6 +2154,26 @@ void MutiCamApp::invalidateCache(const QString& viewName)
     }
 }
 
+void MutiCamApp::updateAxisStatusMonitorForContext()
+{
+    if (!m_axisController) {
+        return;
+    }
+
+    const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
+    const int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
+    const int currentIndex = ui->tabWidget->currentIndex();
+    const bool shouldMonitorByTab = (currentIndex == stageTabIndex) ||
+        (mainTabIndex >= 0 && currentIndex == mainTabIndex);
+    const bool shouldMonitor = shouldMonitorByTab || m_stageCalib.active;
+
+    if (shouldMonitor && m_axisController->isConnected()) {
+        m_axisController->setStatusMonitorEnabled(true, 700);
+    } else {
+        m_axisController->setStatusMonitorEnabled(false);
+    }
+}
+
 void MutiCamApp::onTabChanged(int index)
 {
     // 根据选项卡索引更新对应的视图
@@ -2190,16 +2210,7 @@ void MutiCamApp::onTabChanged(int index)
     qDebug() << "Tab changed to index:" << index;
 
     // 仅在“主界面 / XYZ载物台控制”选项卡激活时启用轴状态监控
-    if (m_axisController) {
-        const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
-        int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
-        const bool shouldMonitor = (index == stageTabIndex) || (mainTabIndex >= 0 && index == mainTabIndex);
-        if (shouldMonitor && m_axisController->isConnected()) {
-            m_axisController->setStatusMonitorEnabled(true, 700);
-        } else {
-            m_axisController->setStatusMonitorEnabled(false);
-        }
-    }
+    updateAxisStatusMonitorForContext();
 }
 
 void MutiCamApp::onTabChangedForMatching(int index)
@@ -4311,6 +4322,7 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
     m_stageCalib.requestedDistanceUm = params.distanceUm;
     m_stageCalib.roiSizePx = params.roiSizePx;
     m_stageCalib.searchRadiusPx = params.searchRadiusPx;
+    updateAxisStatusMonitorForContext();
 
     if (!m_stageCalibProgressDialog) {
         m_stageCalibProgressDialog = new QProgressDialog(this);
@@ -4353,6 +4365,7 @@ void MutiCamApp::cancelStageAssistedCalibration(const QString& reason)
     }
 
     m_stageCalib = StageAssistedCalibrationSession{};
+    updateAxisStatusMonitorForContext();
 }
 
 void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPointF& imagePos)
@@ -7377,13 +7390,7 @@ void MutiCamApp::onStageConnectFinished()
         ui->labelStageConnection->setStyleSheet("color: green; font-weight: bold;");
         statusBar()->showMessage("轴控制设备连接成功", 3000);
         // 仅在“主界面 / XYZ载物台控制”选项卡激活时启动监控
-        if (m_axisController) {
-            const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
-            const int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
-            const int currentIndex = ui->tabWidget->currentIndex();
-            const bool shouldMonitor = (currentIndex == stageTabIndex) || (mainTabIndex >= 0 && currentIndex == mainTabIndex);
-            m_axisController->setStatusMonitorEnabled(shouldMonitor, 700);
-        }
+        updateAxisStatusMonitorForContext();
         if (m_logManager) {
             m_logManager->log(QString("轴控制设备连接成功：%1").arg(m_pendingStagePort), LogLevel::INFO);
         }

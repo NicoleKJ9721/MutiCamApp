@@ -447,6 +447,7 @@ private:
      * @brief 初始化相机状态监控
      */
     void initializeCameraStatusMonitoring();
+    void updateAxisStatusMonitorForContext();
     
     // 测量状态
     bool m_isMeasuring;
