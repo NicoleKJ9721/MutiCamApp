@@ -341,6 +341,9 @@ MutiCamApp::MutiCamApp(QWidget* parent)
     , m_currentX(0.0)
     , m_currentY(0.0)
     , m_currentZ(0.0)
+    , m_commandX(0.0)
+    , m_commandY(0.0)
+    , m_commandZ(0.0)
     , m_statusUpdateTimer(nullptr)
     , m_isMeasuring(false)
     // {{ AURA-X: Delete - 移除残留的绘图模式和活动视图成员变量. Approval: 寸止(ID:cleanup). }}
@@ -1745,9 +1748,9 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         const double pixelDistance = std::sqrt(dx * dx + dy * dy);
 
         // 更新一次末端实际位置（避免运动完成瞬间位置还未刷新）
-        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
-                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
-        const double realDistance = std::abs(m_stageCalib.endActualUm - m_stageCalib.startActualUm);
+        m_stageCalib.endCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                    (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
+        const double realDistance = std::abs(m_stageCalib.endCommandUm - m_stageCalib.startCommandUm);
         const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
 
         const double minScore = 0.60;
@@ -4384,11 +4387,11 @@ void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPoin
     // 二次点选：自动跟踪失败后的兜底
     if (m_stageCalib.awaitingSecondClick) {
         m_stageCalib.pointAfter = imagePos;
-        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
-                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+        m_stageCalib.endCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                    (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
 
         const double pixelDistance = norm2d(m_stageCalib.pointBefore, m_stageCalib.pointAfter);
-        const double realDistance = std::abs(m_stageCalib.endActualUm - m_stageCalib.startActualUm);
+        const double realDistance = std::abs(m_stageCalib.endCommandUm - m_stageCalib.startCommandUm);
         const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
 
         if (pixelDistance <= 0.5 || usedRealDistance <= 0.0) {
@@ -4415,8 +4418,8 @@ void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPoin
 
     // 记录点与起始位置
     m_stageCalib.pointBefore = imagePos;
-    m_stageCalib.startActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
-                                 (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+    m_stageCalib.startCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                  (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
 
     // 抽取模板ROI
     const cv::Mat frameBefore = getCurrentFrame(viewName).clone();
@@ -5946,6 +5949,7 @@ void MutiCamApp::onStageHomeClicked()
 
     // 重置当前位置
     m_currentX = m_currentY = m_currentZ = 0.0;
+    m_commandX = m_commandY = m_commandZ = 0.0;
     updateCurrentPosition(0, 0, 0);  // 更新UI显示
 
     // 记录轨迹
@@ -6273,12 +6277,15 @@ void MutiCamApp::updateCommandPosition(AxisIndex axis, double targetPosition)
 {
     switch (axis) {
         case AxisIndex::X_AXIS:
+            m_commandX = targetPosition;
             ui->labelXPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
             break;
         case AxisIndex::Y_AXIS:
+            m_commandY = targetPosition;
             ui->labelYPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
             break;
         case AxisIndex::Z_AXIS:
+            m_commandZ = targetPosition;
             ui->labelZPositionValue->setText(QString("%1 μm").arg(targetPosition, 0, 'f', 2));
             break;
         default:
@@ -6922,14 +6929,17 @@ void MutiCamApp::onAxisPositionChanged(AxisIndex axis, double position)
     // position是μm单位，直接显示
     switch (axis) {
         case AxisIndex::X_AXIS:
+            m_commandX = position;
             // 更新到命令位置显示（左侧列）
             ui->labelXPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
             break;
         case AxisIndex::Y_AXIS:
+            m_commandY = position;
             // 更新到命令位置显示（左侧列）
             ui->labelYPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
             break;
         case AxisIndex::Z_AXIS:
+            m_commandZ = position;
             // 更新到命令位置显示（左侧列）
             ui->labelZPositionValue->setText(QString("%1 μm").arg(position, 0, 'f', 2));
             break;
@@ -7086,8 +7096,8 @@ void MutiCamApp::onAxisMotionCompleted(AxisIndex axis, double finalPosition)
     // 载物台辅助标定：等待运动完成后抓取“下一帧”
     if (m_stageCalib.active && m_stageCalib.awaitingMotion && axis == m_stageCalib.axis) {
         m_stageCalib.awaitingMotion = false;
-        m_stageCalib.endActualUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_currentX :
-                                   (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_currentY : m_currentZ;
+        m_stageCalib.endCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                    (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
 
         quint64 currentSeq = 0;
         if (m_stageCalib.cameraId == "vertical") currentSeq = m_frameSeqVertical;

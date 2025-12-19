@@ -396,6 +396,7 @@ private:
     double getCurrentStepSize() const;               ///< 获取当前选择的步长
     std::unique_ptr<TrajectoryRecorder> m_trajectoryRecorder;  ///< 轨迹记录器
     double m_currentX, m_currentY, m_currentZ;       ///< 当前载物台位置
+    double m_commandX, m_commandY, m_commandZ;       // Current command position (um).
     void updateCurrentPosition(double deltaX, double deltaY, double deltaZ);  ///< 更新当前位置
     void updateCommandPosition(AxisIndex axis, double targetPosition);  ///< 更新命令位置显示
     void updateTrajectoryDisplay();                  ///< 更新轨迹显示
@@ -487,8 +488,8 @@ private:
 
         QPointF pointBefore;
         QPointF pointAfter;        // 手动二次点选时使用
-        double startActualUm = 0.0;
-        double endActualUm = 0.0;
+        double startCommandUm = 0.0;
+        double endCommandUm = 0.0;
 
         quint64 afterFrameSeqMin = 0;
         cv::Mat templateGray;
