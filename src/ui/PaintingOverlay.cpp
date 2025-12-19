@@ -1499,11 +1499,13 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(circle.thickness));
+    double innerScreenRadius = markerBase;
+    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
     
     // 统一计算所有动态尺寸参数
-    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
-    double pointOuterRadius = qMax(markerBase + 2.0, markerBase * 4.0 * ctx.scale);
-    int pointPenWidth = qMax(1, static_cast<int>(markerBase * ctx.scale));
+    double pointInnerRadius = innerScreenRadius / ctx.scale;
+    double pointOuterRadius = outerScreenRadius / ctx.scale;
+    int pointPenWidth = qMax(1, static_cast<int>(markerBase));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1629,8 +1631,10 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
     
     // 计算动态尺寸参数
     double markerBase = qMax(1.0, static_cast<double>(fineCircle.thickness));
-    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
-    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
+    double innerScreenRadius = markerBase;
+    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
+    double pointInnerRadius = innerScreenRadius / ctx.scale;
+    double pointOuterRadius = outerScreenRadius / ctx.scale;
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1718,9 +1722,11 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(parallel.thickness));
-    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
-    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
-    int pointPenWidth = qMax(1, static_cast<int>(markerBase * ctx.scale));
+    double innerScreenRadius = markerBase;
+    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
+    double pointInnerRadius = innerScreenRadius / ctx.scale;
+    double pointOuterRadius = outerScreenRadius / ctx.scale;
+    int pointPenWidth = qMax(1, static_cast<int>(markerBase));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1922,8 +1928,10 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(twoLines.thickness));
-    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
-    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
+    double innerScreenRadius = markerBase;
+    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
+    double pointInnerRadius = innerScreenRadius / ctx.scale;
+    double pointOuterRadius = outerScreenRadius / ctx.scale;
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
