@@ -41,6 +41,7 @@ public:
 
         // 绘制参数
         int lineCircleThickness;
+        int overlayTextSize;
 
         // 模板匹配参数（Halcon 形状模板）
         struct TemplateCreationParams {
@@ -143,6 +144,7 @@ public:
 
             // 绘制参数默认值
             lineCircleThickness(2),
+            overlayTextSize(12),
             
             // UI尺寸参数默认值
             uiWidth(1100),

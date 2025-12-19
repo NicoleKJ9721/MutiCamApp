@@ -4644,6 +4644,7 @@ void MutiCamApp::initializeSettingsManager()
     // 根据加载的UI尺寸参数调整窗口大小
     applyUISizeFromSettings();
     applyLineCircleThicknessFromUI();
+    applyOverlayTextSizeFromUI();
 
     qDebug() << "设置管理器初始化完成（实时保存模式）";
 }
@@ -4673,6 +4674,12 @@ void MutiCamApp::onSettingsTextChanged()
 void MutiCamApp::onLineCircleThicknessChanged()
 {
     applyLineCircleThicknessFromUI();
+    onSettingsTextChanged();
+}
+
+void MutiCamApp::onOverlayTextSizeChanged()
+{
+    applyOverlayTextSizeFromUI();
     onSettingsTextChanged();
 }
 
@@ -4736,6 +4743,7 @@ void MutiCamApp::connectSettingsSignals()
     connect(ui->ledCannyCircleHigh, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
     connect(ui->ledCircleDetParam2, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
     connect(ui->ledLineCircleThickness, &QLineEdit::textChanged, this, &MutiCamApp::onLineCircleThicknessChanged);
+    connect(ui->ledOverlayTextSize, &QLineEdit::textChanged, this, &MutiCamApp::onOverlayTextSizeChanged);
 
     // UI尺寸参数（双向绑定）
     connect(ui->ledUIWidth, &QLineEdit::textChanged, this, &MutiCamApp::onUISizeChanged);
@@ -4973,6 +4981,36 @@ void MutiCamApp::applyLineCircleThicknessFromUI()
     if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->setLineCircleThickness(clamped);
     if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->setLineCircleThickness(clamped);
     if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->setLineCircleThickness(clamped);
+}
+
+void MutiCamApp::applyOverlayTextSizeFromUI()
+{
+    if (!ui->ledOverlayTextSize) {
+        return;
+    }
+
+    bool ok = false;
+    int textSize = ui->ledOverlayTextSize->text().toInt(&ok);
+    if (!ok) {
+        if (m_settingsManager) {
+            textSize = m_settingsManager->getCurrentSettings().overlayTextSize;
+        } else {
+            textSize = 12;
+        }
+    }
+
+    int clamped = qBound(6, textSize, 48);
+    if (clamped != textSize || !ok) {
+        const QSignalBlocker blocker(ui->ledOverlayTextSize);
+        ui->ledOverlayTextSize->setText(QString::number(clamped));
+    }
+
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->setOverlayTextSize(clamped);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->setOverlayTextSize(clamped);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->setOverlayTextSize(clamped);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->setOverlayTextSize(clamped);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->setOverlayTextSize(clamped);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->setOverlayTextSize(clamped);
 }
 
 // ==================== 通用按钮处理方法实现 ====================

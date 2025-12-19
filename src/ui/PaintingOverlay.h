@@ -397,6 +397,8 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     int getGridWidth() const;
     void setLineCircleThickness(int thickness);
     int getLineCircleThickness() const;
+    void setOverlayTextSize(int size);
+    int getOverlayTextSize() const;
 
     // 参数设置接口
     void setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params);
@@ -676,6 +678,7 @@ private:
     Qt::PenStyle m_gridStyle;   // 网格线样式
     int m_gridWidth;            // 网格线宽度
     int m_lineCircleThickness; // 直线/圆线宽（屏幕像素）
+    int m_overlayTextSize;     // 文字显示大小（屏幕像素）
 
     // 网格缓存相关
     mutable bool m_gridCacheValid;      // 网格缓存是否有效

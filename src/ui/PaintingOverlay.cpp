@@ -149,6 +149,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridStyle(Qt::DashLine)     // 虚线样式
     , m_gridWidth(1)                // 线宽1像素
     , m_lineCircleThickness(2)
+    , m_overlayTextSize(12)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
@@ -2657,6 +2658,10 @@ QFont PaintingOverlay::createFont(int targetScreenSize, double scale) const
 
 double PaintingOverlay::calculateFontSize() const
 {
+    if (m_overlayTextSize > 0) {
+        return static_cast<double>(qBound(6, m_overlayTextSize, 48));
+    }
+
     // 按当前显示区域（控件高度）来适配字体大小，而不是按原始图像分辨率。
     int widgetHeight = height();
     if (widgetHeight <= 0) {
@@ -5312,6 +5317,23 @@ void PaintingOverlay::setLineCircleThickness(int thickness)
 int PaintingOverlay::getLineCircleThickness() const
 {
     return m_lineCircleThickness;
+}
+
+void PaintingOverlay::setOverlayTextSize(int size)
+{
+    int clamped = qBound(6, size, 48);
+    if (m_overlayTextSize == clamped) {
+        return;
+    }
+
+    m_overlayTextSize = clamped;
+    m_drawingContextValid = false;
+    update();
+}
+
+int PaintingOverlay::getOverlayTextSize() const
+{
+    return m_overlayTextSize;
 }
 
 void PaintingOverlay::drawGrid(QPainter& painter, const DrawingContext& ctx) const

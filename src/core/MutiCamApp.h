@@ -308,6 +308,7 @@ private slots:
      */
     void onSettingsTextChanged();
     void onLineCircleThicknessChanged();
+    void onOverlayTextSizeChanged();
 
     /**
      * @brief UI尺寸参数改变槽函数（调整窗口大小）
@@ -705,6 +706,7 @@ private:
      */
     void applyUISizeFromSettings();
     void applyLineCircleThicknessFromUI();
+    void applyOverlayTextSizeFromUI();
 
      /**
       * @brief 重新初始化相机系统（当序列号参数改变时）
