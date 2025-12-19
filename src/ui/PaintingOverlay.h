@@ -395,6 +395,8 @@ explicit PaintingOverlay(QWidget *parent = nullptr);
     QColor getGridColor() const;
     Qt::PenStyle getGridStyle() const;
     int getGridWidth() const;
+    void setLineCircleThickness(int thickness);
+    int getLineCircleThickness() const;
 
     // 参数设置接口
     void setEdgeDetectionParams(const EdgeDetector::EdgeDetectionParams& params);
@@ -673,6 +675,7 @@ private:
     QColor m_gridColor;         // 网格颜色
     Qt::PenStyle m_gridStyle;   // 网格线样式
     int m_gridWidth;            // 网格线宽度
+    int m_lineCircleThickness; // 直线/圆线宽（屏幕像素）
 
     // 网格缓存相关
     mutable bool m_gridCacheValid;      // 网格缓存是否有效

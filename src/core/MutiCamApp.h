@@ -307,6 +307,7 @@ private slots:
      * @brief 参数输入框文本改变槽函数（实时保存）
      */
     void onSettingsTextChanged();
+    void onLineCircleThicknessChanged();
 
     /**
      * @brief UI尺寸参数改变槽函数（调整窗口大小）
@@ -699,10 +700,11 @@ private:
       */
      void connectCameraManagerSignals();
 
-     /**
-      * @brief 根据设置参数应用UI尺寸
-      */
-     void applyUISizeFromSettings();
+    /**
+     * @brief 根据设置参数应用UI尺寸
+     */
+    void applyUISizeFromSettings();
+    void applyLineCircleThicknessFromUI();
 
      /**
       * @brief 重新初始化相机系统（当序列号参数改变时）

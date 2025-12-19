@@ -148,6 +148,7 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_gridColor(Qt::red)          // 红色网格
     , m_gridStyle(Qt::DashLine)     // 虚线样式
     , m_gridWidth(1)                // 线宽1像素
+    , m_lineCircleThickness(2)
     , m_gridCacheValid(false)       // 网格缓存初始无效
     , m_lastGridImageSize(QSize())  // 初始图像尺寸
     , m_lastGridSpacing(0)          // 初始网格间距
@@ -1095,6 +1096,7 @@ void PaintingOverlay::handleLineDrawingClick(const QPointF& pos)
     if (!m_hasCurrentLine) {
         // 开始新线段 - 完全重新初始化对象
         m_currentLine = LineObject(); // 重置为默认值
+        m_currentLine.thickness = m_lineCircleThickness;
         m_currentLine.points.append(pos);
         m_currentLine.start = pos;
         m_hasCurrentLine = true;
@@ -1129,6 +1131,7 @@ void PaintingOverlay::handleCircleDrawingClick(const QPointF& imagePos)
     if (!m_hasCurrentCircle) {
         // 开始新的圆形
         m_currentCircle = CircleObject();
+        m_currentCircle.thickness = m_lineCircleThickness;
         m_currentCircle.points.append(imagePos);
         m_hasCurrentCircle = true;
     } else if (m_currentCircle.points.size() == 2) {
@@ -1174,6 +1177,7 @@ void PaintingOverlay::handleFineCircleDrawingClick(const QPointF& pos)
     if (!m_hasCurrentFineCircle) {
         // 开始新的精细圆
         m_currentFineCircle = FineCircleObject();
+        m_currentFineCircle.thickness = m_lineCircleThickness;
         m_currentFineCircle.points.append(pos);
         m_hasCurrentFineCircle = true;
     } else if (m_currentFineCircle.points.size() < 5) {
@@ -1213,6 +1217,7 @@ void PaintingOverlay::handleParallelDrawingClick(const QPointF& imagePos)
     if (!m_hasCurrentParallel) {
         // 开始新的平行线
         m_currentParallel = ParallelObject();
+        m_currentParallel.thickness = m_lineCircleThickness;
         m_currentParallel.points.append(imagePos);
         m_hasCurrentParallel = true;
     } else {
@@ -1286,6 +1291,7 @@ void PaintingOverlay::handleTwoLinesDrawingClick(const QPointF& imagePos)
     if (!m_hasCurrentTwoLines) {
         // 开始新的两线
         m_currentTwoLines = TwoLinesObject();
+        m_currentTwoLines.thickness = m_lineCircleThickness;
         m_currentTwoLines.points.append(imagePos);
         m_hasCurrentTwoLines = true;
     } else {
@@ -1351,7 +1357,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
     
 
     // 预计算常量（匹配Python版本）
-    const double innerRadius = 2.0 / m_scaleFactor;
+    const double innerRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     
     for (int i = 0; i < m_points.size(); ++i) {
@@ -1380,7 +1386,7 @@ void PaintingOverlay::drawPoints(QPainter& painter, const DrawingContext& ctx) c
 void PaintingOverlay::drawSinglePoint(QPainter& painter, const QPointF& point, int index, const DrawingContext& ctx) const
 {
     // 预计算常量（匹配Python版本）
-    const double innerRadius = 2.0 / m_scaleFactor;
+    const double innerRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
     const double textpadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
 
     // 绘制点（绿色实心圆）- 使用预创建的画刷
@@ -1451,7 +1457,7 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     
     // Draw user-clicked original endpoints (match Python style)
     // 绘制起始点标记（固定屏幕像素的小圆点）
-    double pointRadius = 2.0 / m_scaleFactor;
+    double pointRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(line.color));
     painter.drawEllipse(start, pointRadius, pointRadius);
@@ -1492,11 +1498,12 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
+    double markerBase = qMax(1.0, static_cast<double>(circle.thickness));
     
     // 统一计算所有动态尺寸参数
-    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
-    double pointOuterRadius = qMax(4.0, 8.0 * ctx.scale);
-    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
+    double pointOuterRadius = qMax(markerBase + 2.0, markerBase * 4.0 * ctx.scale);
+    int pointPenWidth = qMax(1, static_cast<int>(markerBase * ctx.scale));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1529,8 +1536,12 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     }
     
     // 绘制正在绘制的连接线 - 使用绿色
+    int previewThickness = qMax(1, circle.thickness);
+    QPen previewLinePen = createPen(Qt::green, previewThickness, ctx.scale);
+    QPen previewDashedPen = createPen(Qt::green, previewThickness, ctx.scale, true);
+
     if (!circle.isCompleted && circle.points.size() > 1) {
-        painter.setPen(ctx.greenPen);
+        painter.setPen(previewLinePen);
         for (int i = 0; i < circle.points.size() - 1; ++i) {
             const QPointF& start = circle.points[i];
             const QPointF& end = circle.points[i + 1];
@@ -1562,13 +1573,13 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
             QPen circlePen = createPen(circle.color, circle.thickness, ctx.scale);
             painter.setPen(circlePen);
         } else {
-            painter.setPen(ctx.greenDashedPen); // 预览时使用虚线
+            painter.setPen(previewDashedPen); // 预览时使用虚线
         }
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
         
-        // 圆心标记半径固定为2个屏幕像素
-        const double centerMarkRadius = 2.0 / m_scaleFactor;
+        // 圆心标记半径由线宽参数决定
+        const double centerMarkRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
 
         // 绘制圆心 - 红色实心圆
         painter.setPen(Qt::NoPen);
@@ -1617,8 +1628,9 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
     painter.setFont(ctx.font);
     
     // 计算动态尺寸参数
-    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
-    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
+    double markerBase = qMax(1.0, static_cast<double>(fineCircle.thickness));
+    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
+    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1667,8 +1679,8 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
         painter.setBrush(Qt::NoBrush);
         painter.drawEllipse(centerImage, radiusImage, radiusImage);
 
-        // 绘制圆心标记（使用红色，与简单圆保持一致），半径固定为2个屏幕像素
-        const double centerMarkRadius = 2.0 / m_scaleFactor;
+        // 绘制圆心标记（使用红色，与简单圆保持一致），半径由线宽参数决定
+        const double centerMarkRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
         painter.setPen(Qt::NoPen);
         painter.setBrush(ctx.redBrush);
         painter.drawEllipse(centerImage, centerMarkRadius, centerMarkRadius);
@@ -1705,14 +1717,19 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
     
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
-    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
-    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
-    int pointPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    double markerBase = qMax(1.0, static_cast<double>(parallel.thickness));
+    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
+    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
+    int pointPenWidth = qMax(1, static_cast<int>(markerBase * ctx.scale));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     double desiredThickness = parallel.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
+    int lineThickness = qMax(1, parallel.thickness);
+    QPen solidLinePen = createPen(parallel.color, lineThickness, ctx.scale);
+    QPen dashedLinePen = createPen(parallel.color, lineThickness, ctx.scale, true);
+    QPen midlinePen = createPen(Qt::red, lineThickness, ctx.scale, true);
     
     // 只在绘制过程中显示辅助点，平行线完成后不显示
     if (!parallel.isCompleted) {
@@ -1796,11 +1813,11 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
             if (parallel.points.size() < 2) {
                 // 预览状态：虚线
                 // 使用绿色虚线画笔
-                painter.setPen(ctx.greenDashedPen);
+                painter.setPen(dashedLinePen);
             } else {
                 // 正常状态：实线
                 // 使用绿色画笔
-                painter.setPen(ctx.greenPen);
+                painter.setPen(solidLinePen);
             }
             painter.drawLine(extStart1, extEnd1);
         }
@@ -1817,7 +1834,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         
         // 使用虚线绘制预览
         // 使用绿色虚线画笔
-        painter.setPen(ctx.greenDashedPen);
+        painter.setPen(dashedLinePen);
         painter.drawLine(extStart, extEnd);
     }
 
@@ -1835,10 +1852,10 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         // 绘制第二条平行线（根据完成状态决定样式）
         if (parallel.isCompleted) {
             // 完成状态：实线
-            painter.setPen(ctx.greenPen);
+            painter.setPen(solidLinePen);
         } else {
             // 预览状态：虚线
-            painter.setPen(ctx.greenDashedPen);
+            painter.setPen(dashedLinePen);
         }
         painter.drawLine(extStart2, extEnd2);
     }
@@ -1849,7 +1866,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         QPointF extMidStart, extMidEnd;
         calculateExtendedLine(parallel.midStart, parallel.midEnd, extMidStart, extMidEnd);
         
-        painter.setPen(ctx.redDashedPen); // 红色虚线
+        painter.setPen(midlinePen); // 红色虚线
         painter.drawLine(extMidStart, extMidEnd);
         
         // 显示距离和角度信息
@@ -1904,17 +1921,22 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     
     // 计算动态尺寸参数
     double fontSize = ctx.fontSize;
-    double pointInnerRadius = qMax(3.0, 5.0 * ctx.scale);
-    double pointOuterRadius = qMax(5.0, 8.0 * ctx.scale);
+    double markerBase = qMax(1.0, static_cast<double>(twoLines.thickness));
+    double pointInnerRadius = qMax(markerBase + 1.0, markerBase * 2.5 * ctx.scale);
+    double pointOuterRadius = qMax(markerBase + 3.0, markerBase * 4.0 * ctx.scale);
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
     double desiredThickness = twoLines.thickness * 2.0 * ctx.scale;
     int thickLine = qMax(2, static_cast<int>(desiredThickness));
-    double intersectionRadius = 2.0 / m_scaleFactor;
+    double intersectionRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
     int intersectionPenWidth = qMax(2, static_cast<int>(3.0 * ctx.scale));
     double bisectorLength = qMax(30.0, 50.0 * ctx.scale);
     int bisectorPenWidth = qMax(1, static_cast<int>(2.0 * ctx.scale));
+    int lineThickness = qMax(1, twoLines.thickness);
+    QPen solidLinePen = createPen(twoLines.color, lineThickness, ctx.scale);
+    QPen dashedLinePen = createPen(twoLines.color, lineThickness, ctx.scale, true);
+    QPen bisectorPen = createPen(Qt::red, lineThickness, ctx.scale, true);
     
     // 只在绘制过程中显示辅助点，两线完成后不显示
     if (!twoLines.isCompleted) {
@@ -1969,10 +1991,10 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
             // 根据第一条线的完成状态决定样式
             if (twoLines.points.size() >= 2) {
                 // 第一条线已确定：实线
-                painter.setPen(ctx.greenPen);
+                painter.setPen(solidLinePen);
             } else {
                 // 第一条线预览状态：虚线
-                painter.setPen(ctx.greenDashedPen);
+                painter.setPen(dashedLinePen);
             }
             painter.drawLine(extStart1, extEnd1);
         }
@@ -2002,10 +2024,10 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
             // 根据第二条线的完成状态决定样式
             if (twoLines.points.size() >= 4) {
                 // 第二条线已确定：实线
-                painter.setPen(ctx.greenPen);
+                painter.setPen(solidLinePen);
             } else {
                 // 第二条线预览状态：虚线
-                painter.setPen(ctx.greenDashedPen);
+                painter.setPen(dashedLinePen);
             }
             painter.drawLine(extStart2, extEnd2);
         }
@@ -2039,7 +2061,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         QPointF bisectorStart = twoLines.intersection - bisectorDir * 500000.0;
         QPointF bisectorEnd = twoLines.intersection + bisectorDir * 500000.0;
         
-        painter.setPen(ctx.redDashedPen); // 红色虚线
+        painter.setPen(bisectorPen); // 红色虚线
         painter.drawLine(bisectorStart, bisectorEnd);
         
         // 显示角度和坐标信息 - 使用drawTextWithBackground辅助函数
@@ -2095,7 +2117,7 @@ void PaintingOverlay::drawSingleLineSegmentAngle(QPainter& painter, const LineSe
     painter.setFont(ctx.font);
 
     // 计算动态尺寸参数
-    double intersectionRadius = 2.0 / m_scaleFactor;  // 交点圆点半径（固定为2个屏幕像素）
+    double intersectionRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;  // 交点圆点半径由线宽参数决定
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);
     int bgBorderWidth = 1;
@@ -2184,12 +2206,12 @@ void PaintingOverlay::drawCurrentPreview(QPainter& painter, const DrawingContext
                     // 绘制起点
                     painter.setPen(Qt::NoPen);
                     painter.setBrush(QBrush(Qt::red));
-                    double pointRadius = 2.0 / m_scaleFactor;
+                    double pointRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
                     painter.drawEllipse(m_currentPoints[0], pointRadius, pointRadius);
 
                     // 如果有有效的鼠标位置，绘制预览线
                     if (m_hasValidMousePos) {
-                        QPen previewPen = createPen(Qt::red, 2, ctx.scale, false);
+                        QPen previewPen = createPen(Qt::red, m_lineCircleThickness, ctx.scale, false);
                         painter.setPen(previewPen);
                         painter.drawLine(m_currentPoints[0], m_currentMousePos);
 
@@ -2230,10 +2252,15 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
     const DrawingContext& ctx = m_cachedDrawingContext;
 
     // 创建高亮画笔（蓝色，适中粗细）- 使用正确的缩放补偿
+    double highlightWidth = qMax(1.0, static_cast<double>(m_lineCircleThickness));
     QPen highlightPen(Qt::blue);
-    highlightPen.setWidthF(qMax(1.0, 4.0 / ctx.scale)); // 确保在屏幕上看起来是4像素宽
+    highlightPen.setWidthF(qMax(1.0, highlightWidth / ctx.scale));
     highlightPen.setCapStyle(Qt::RoundCap);
     highlightPen.setJoinStyle(Qt::RoundJoin);
+    QPen thickHighlightPen(Qt::blue);
+    thickHighlightPen.setWidthF(qMax(1.0, (highlightWidth * 2.0) / ctx.scale)); // 更粗的外描边
+    thickHighlightPen.setCapStyle(Qt::RoundCap);
+    thickHighlightPen.setJoinStyle(Qt::RoundJoin);
     painter.setPen(highlightPen);
     painter.setBrush(Qt::NoBrush);
 
@@ -2244,17 +2271,13 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             if (!point.isVisible) continue;
 
             // 绘制高亮圆环
-            double radius = 25.0 * (std::max)(1.0, (std::min)(ctx.scale, 4.0));
+            double radius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
+            painter.setPen(thickHighlightPen);
             painter.drawEllipse(point.position, radius, radius);
         }
     }
 
     // 高亮选中的线 - 使用更粗的画笔绘制外描边
-    QPen thickHighlightPen(Qt::blue);
-    thickHighlightPen.setWidthF(qMax(1.0, 8.0 / ctx.scale)); // 更粗的外描边
-    thickHighlightPen.setCapStyle(Qt::RoundCap);
-    thickHighlightPen.setJoinStyle(Qt::RoundJoin);
-
     for (int index : m_selectedLines) {
         if (index >= 0 && index < m_lines.size()) {
             const LineObject& line = m_lines[index];
@@ -2310,9 +2333,9 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             }
 
             if (hasCircle) {
-                // 绘制稍大的圆环作为外描边
-                double highlightRadius = radius + qMax(2.0, 3.0 / ctx.scale);
-                painter.drawEllipse(center, highlightRadius, highlightRadius);
+                // 绘制选中圆的高亮描边
+                painter.setPen(thickHighlightPen);
+                painter.drawEllipse(center, radius, radius);
             }
         }
     }
@@ -2323,9 +2346,9 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             const FineCircleObject& fineCircle = m_fineCircles[index];
             if (!fineCircle.isVisible || !fineCircle.isCompleted) continue;
 
-            // 绘制稍大的圆环作为外描边
-            double highlightRadius = fineCircle.radius + qMax(2.0, 3.0 / ctx.scale);
-            painter.drawEllipse(fineCircle.center, highlightRadius, highlightRadius);
+            // 绘制选中精细圆的高亮描边
+            painter.setPen(thickHighlightPen);
+            painter.drawEllipse(fineCircle.center, fineCircle.radius, fineCircle.radius);
         }
     }
 
@@ -2446,7 +2469,7 @@ void PaintingOverlay::drawSelectionHighlights(QPainter& painter) const
             if (angleObj.hasIntersection) {
                 painter.setPen(Qt::NoPen);
                 painter.setBrush(QBrush(Qt::yellow));  // 黄色高亮交点
-                double highlightRadius = 2.0 / m_scaleFactor;
+                double highlightRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
                 painter.drawEllipse(angleObj.intersection, highlightRadius, highlightRadius);
             }
         }
@@ -3183,6 +3206,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     lineSegment.points.append(m_points[index1].position);
     lineSegment.points.append(m_points[index2].position);
     lineSegment.isCompleted = true;
+    lineSegment.thickness = static_cast<double>(m_lineCircleThickness);
 
     // 计算长度和角度
     QPointF p1 = lineSegment.points[0];
@@ -3234,7 +3258,7 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         LineSegmentObject newLineSegment;
         newLineSegment.points = m_currentPoints;
         newLineSegment.color = Qt::red;
-        newLineSegment.thickness = 2.0;
+        newLineSegment.thickness = static_cast<double>(m_lineCircleThickness);
         newLineSegment.isDashed = false;
         newLineSegment.isCompleted = true;
         newLineSegment.showLength = true;
@@ -3317,7 +3341,7 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     painter.drawLine(start, end);
     
     // 绘制端点标记（固定屏幕像素的小圆点）
-    double pointRadius = 2.0 / m_scaleFactor;
+    double pointRadius = static_cast<double>(m_lineCircleThickness) / m_scaleFactor;
     painter.setPen(Qt::NoPen);
     painter.setBrush(QBrush(lineSegment.color));
     painter.drawEllipse(start, pointRadius, pointRadius);
@@ -3535,24 +3559,26 @@ void PaintingOverlay::updateDrawingContext() const
     m_cachedDrawingContext.scale = scale;
     m_cachedDrawingContext.fontSize = fontSize;
     m_cachedDrawingContext.font = font;
+
+    int baseWidth = qMax(1, m_lineCircleThickness);
     
     // 创建所有画笔
-    m_cachedDrawingContext.greenPen = createPen(Qt::green, 2, scale);
-    m_cachedDrawingContext.blackPen = createPen(Qt::black, 2, scale);
-    m_cachedDrawingContext.whitePen = createPen(Qt::white, 2, scale);
-    m_cachedDrawingContext.redPen = createPen(Qt::red, 2, scale);
-    m_cachedDrawingContext.bluePen = createPen(Qt::blue, 2, scale);
-    m_cachedDrawingContext.yellowPen = createPen(Qt::yellow, 2, scale);
-    m_cachedDrawingContext.cyanPen = createPen(Qt::cyan, 2, scale);
-    m_cachedDrawingContext.magentaPen = createPen(Qt::magenta, 2, scale);
-    m_cachedDrawingContext.grayPen = createPen(Qt::gray, 1, scale);
-    m_cachedDrawingContext.redDashedPen = createPen(Qt::red, 2, scale, true); // 红色虚线画笔
-    m_cachedDrawingContext.greenDashedPen = createPen(Qt::green, 2, scale, true); // 绿色虚线画笔
-    m_cachedDrawingContext.blueDashedPen = createPen(Qt::blue, 2, scale, true); // 蓝色虚线画笔
-    m_cachedDrawingContext.blackDashedPen = createPen(Qt::black, 2, scale, true); // 黑色虚线画笔
-    m_cachedDrawingContext.cyanDashedPen = createPen(Qt::cyan, 2, scale, true); // 青色虚线画笔
-    m_cachedDrawingContext.magentaDashedPen = createPen(Qt::magenta, 2, scale, true); // 紫色虚线画笔
-    m_cachedDrawingContext.yellowDashedPen = createPen(Qt::yellow, 2, scale, true); // 黄色虚线画笔
+    m_cachedDrawingContext.greenPen = createPen(Qt::green, baseWidth, scale);
+    m_cachedDrawingContext.blackPen = createPen(Qt::black, baseWidth, scale);
+    m_cachedDrawingContext.whitePen = createPen(Qt::white, baseWidth, scale);
+    m_cachedDrawingContext.redPen = createPen(Qt::red, baseWidth, scale);
+    m_cachedDrawingContext.bluePen = createPen(Qt::blue, baseWidth, scale);
+    m_cachedDrawingContext.yellowPen = createPen(Qt::yellow, baseWidth, scale);
+    m_cachedDrawingContext.cyanPen = createPen(Qt::cyan, baseWidth, scale);
+    m_cachedDrawingContext.magentaPen = createPen(Qt::magenta, baseWidth, scale);
+    m_cachedDrawingContext.grayPen = createPen(Qt::gray, baseWidth, scale);
+    m_cachedDrawingContext.redDashedPen = createPen(Qt::red, baseWidth, scale, true); // 红色虚线画笔
+    m_cachedDrawingContext.greenDashedPen = createPen(Qt::green, baseWidth, scale, true); // 绿色虚线画笔
+    m_cachedDrawingContext.blueDashedPen = createPen(Qt::blue, baseWidth, scale, true); // 蓝色虚线画笔
+    m_cachedDrawingContext.blackDashedPen = createPen(Qt::black, baseWidth, scale, true); // 黑色虚线画笔
+    m_cachedDrawingContext.cyanDashedPen = createPen(Qt::cyan, baseWidth, scale, true); // 青色虚线画笔
+    m_cachedDrawingContext.magentaDashedPen = createPen(Qt::magenta, baseWidth, scale, true); // 紫色虚线画笔
+    m_cachedDrawingContext.yellowDashedPen = createPen(Qt::yellow, baseWidth, scale, true); // 黄色虚线画笔
     
     // 创建所有画刷
     m_cachedDrawingContext.greenBrush = QBrush(Qt::green);
@@ -4055,7 +4081,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 perpendicular.points.append(footPoint);
                 perpendicular.isCompleted = true;
                 perpendicular.color = Qt::red;
-                perpendicular.thickness = 2.0;
+                perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                 perpendicular.isDashed = true;
                 perpendicular.isVisible = true;
                 perpendicular.length = distance;
@@ -4111,7 +4137,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         toCircumference.points.append(closestPointOnCircle);
                         toCircumference.isCompleted = true;
                         toCircumference.color = Qt::red;
-                        toCircumference.thickness = 2.0;
+                        toCircumference.thickness = static_cast<double>(m_lineCircleThickness);
                         toCircumference.isDashed = true;
                         toCircumference.isVisible = true;
                         toCircumference.length = distanceToCircumference;
@@ -4180,7 +4206,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     segment.points.append(center2);
                     segment.isCompleted = true;
                     segment.color = Qt::red;
-                    segment.thickness = 2.0;
+                    segment.thickness = static_cast<double>(m_lineCircleThickness);
                     segment.isDashed = true;
                     segment.isVisible = true;
                     segment.length = centerDistance;
@@ -4233,7 +4259,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         toCircumference.points.append(closestPointOnCircle);
                         toCircumference.isCompleted = true;
                         toCircumference.color = Qt::red;
-                        toCircumference.thickness = 2.0;
+                        toCircumference.thickness = static_cast<double>(m_lineCircleThickness);
                         toCircumference.isDashed = true;
                         toCircumference.isVisible = true;
                         toCircumference.length = distanceToCircumference;
@@ -4307,7 +4333,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.points.append(circleFootPoint);  // 到圆周垂足结束
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
-                        perpendicular.thickness = 2.0;
+                        perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
@@ -4384,7 +4410,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.points.append(circleFootPoint);  // 到圆周垂足结束
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
-                        perpendicular.thickness = 2.0;
+                        perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
@@ -4446,7 +4472,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     angleObj.points.append(line2.points[1]);  // line2_end
                     angleObj.isCompleted = true;
                     angleObj.color = Qt::red;
-                    angleObj.thickness = 2;
+                    angleObj.thickness = m_lineCircleThickness;
                     angleObj.angle = angle;
                     angleObj.intersection = intersection;
                     angleObj.hasIntersection = hasIntersection;
@@ -4524,7 +4550,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.points.append(footPoint);
                     perpendicular.isCompleted = true;
                     perpendicular.color = Qt::red;
-                    perpendicular.thickness = 2.0;
+                    perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
@@ -4616,7 +4642,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             bisector.points.append(intersection + bisectorDir * 500000.0);
                             bisector.isCompleted = true;
                             bisector.color = Qt::red;  // 使用红色
-                            bisector.thickness = 2.0;
+                            bisector.thickness = static_cast<double>(m_lineCircleThickness);
                             bisector.isDashed = true;
                             bisector.isVisible = true;
                             bisector.label = QString("BISECTOR:%1°:%2").arg(angle, 0, 'f', 1).arg(formatCoordinate(intersection));
@@ -4698,7 +4724,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 perpendicular.points.append(footPoint);
                 perpendicular.isCompleted = true;
                 perpendicular.color = Qt::red;
-                perpendicular.thickness = 2.0;
+                perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                 perpendicular.isDashed = true;
                 perpendicular.isVisible = true;
                 perpendicular.length = distance;
@@ -4754,7 +4780,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.points.append(footPoint);
                     perpendicular.isCompleted = true;
                     perpendicular.color = Qt::red;
-                    perpendicular.thickness = 2.0;
+                    perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
@@ -4808,7 +4834,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     perpendicular.points.append(footPoint);
                     perpendicular.isCompleted = true;
                     perpendicular.color = Qt::red;
-                    perpendicular.thickness = 2.0;
+                    perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                     perpendicular.isDashed = true;
                     perpendicular.isVisible = true;
                     perpendicular.length = distance;
@@ -4871,7 +4897,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.points.append(circlePoint);
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
-                        perpendicular.thickness = 2.0;
+                        perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
@@ -4938,7 +4964,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                         perpendicular.points.append(circlePoint);
                         perpendicular.isCompleted = true;
                         perpendicular.color = Qt::magenta;
-                        perpendicular.thickness = 2.0;
+                        perpendicular.thickness = static_cast<double>(m_lineCircleThickness);
                         perpendicular.isDashed = true;
                         perpendicular.isVisible = true;
 
@@ -5211,6 +5237,75 @@ int PaintingOverlay::getGridWidth() const
     return m_gridWidth;
 }
 
+void PaintingOverlay::setLineCircleThickness(int thickness)
+{
+    int clamped = qBound(1, thickness, 20);
+    if (m_lineCircleThickness == clamped) {
+        return;
+    }
+
+    m_lineCircleThickness = clamped;
+    double lineSegmentThickness = static_cast<double>(clamped);
+
+    for (auto& line : m_lines) {
+        line.thickness = clamped;
+    }
+    for (auto& segment : m_lineSegments) {
+        segment.thickness = lineSegmentThickness;
+    }
+    for (auto& circle : m_circles) {
+        circle.thickness = clamped;
+    }
+    for (auto& fineCircle : m_fineCircles) {
+        fineCircle.thickness = clamped;
+    }
+    for (auto& parallel : m_parallels) {
+        parallel.thickness = clamped;
+        for (auto& line : parallel.lines) {
+            line.thickness = clamped;
+        }
+    }
+    for (auto& twoLines : m_twoLines) {
+        twoLines.thickness = clamped;
+        for (auto& line : twoLines.lines) {
+            line.thickness = clamped;
+        }
+    }
+    for (auto& angleObj : m_lineSegmentAngles) {
+        angleObj.thickness = clamped;
+    }
+    for (auto& roi : m_rois) {
+        roi.thickness = clamped;
+    }
+    for (auto& roi : m_roiCreations) {
+        roi.thickness = clamped;
+    }
+
+    m_currentLine.thickness = clamped;
+    m_currentCircle.thickness = clamped;
+    m_currentFineCircle.thickness = clamped;
+    m_currentLineSegment.thickness = lineSegmentThickness;
+    m_currentParallel.thickness = clamped;
+    for (auto& line : m_currentParallel.lines) {
+        line.thickness = clamped;
+    }
+    m_currentTwoLines.thickness = clamped;
+    for (auto& line : m_currentTwoLines.lines) {
+        line.thickness = clamped;
+    }
+    m_currentROI.thickness = clamped;
+    m_currentROIDetection.thickness = clamped;
+
+    m_drawingContextValid = false;
+
+    update();
+}
+
+int PaintingOverlay::getLineCircleThickness() const
+{
+    return m_lineCircleThickness;
+}
+
 void PaintingOverlay::drawGrid(QPainter& painter, const DrawingContext& ctx) const
 {
     // 如果网格间距为0或负数，则不绘制网格
@@ -5400,7 +5495,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
         m_currentROIDetection.detectionType = m_currentDrawingTool;
         m_currentROIDetection.label = QString("ROI_%1").arg(m_rois.size() + 1);
         m_currentROIDetection.color = Qt::red;        // 使用红色更明显
-        m_currentROIDetection.thickness = 2;          // 统一线宽为2像素
+        m_currentROIDetection.thickness = m_lineCircleThickness;          // 统一线宽
         m_hasCurrentROIDetection = true;
 
         qDebug() << "开始绘制ROI，起点：" << pos;
@@ -5798,7 +5893,7 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     detectedLineObj.points.append(QPointF(bestLine.end.x(), bestLine.end.y()));
     detectedLineObj.isCompleted = true;
     detectedLineObj.color = Qt::magenta; // 紫色表示自动检测结果
-    detectedLineObj.thickness = 2;
+    detectedLineObj.thickness = m_lineCircleThickness;
     QString lengthStr = formatDistance(bestLine.length);
     QString startCoordStr = formatCoordinate(QPointF(bestLine.start.x(), bestLine.start.y()));
     QString endCoordStr = formatCoordinate(QPointF(bestLine.end.x(), bestLine.end.y()));
@@ -5916,7 +6011,7 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
     detectedCircleObj.points.append(QPointF(bestCircle.center.x() + bestCircle.radius, bestCircle.center.y()));
     detectedCircleObj.isCompleted = true;
     detectedCircleObj.color = Qt::magenta; // 紫色表示自动检测结果
-    detectedCircleObj.thickness = 2;
+    detectedCircleObj.thickness = m_lineCircleThickness;
     detectedCircleObj.center = QPointF(bestCircle.center.x(), bestCircle.center.y());
     detectedCircleObj.radius = bestCircle.radius;
 
@@ -6683,6 +6778,7 @@ void PaintingOverlay::startROICreation()
 
     // 创建ROI对象
     m_currentROI = ROIObject();
+    m_currentROI.thickness = m_lineCircleThickness;
     QRectF proposedRect(center.x() - defaultSize/2,
                        center.y() - defaultSize/2,
                        defaultSize, defaultSize);
@@ -8127,7 +8223,7 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     }
 
     // 设置画笔 - 使用与ROI框相同的线条粗细
-    QPen pen = createPen(matchColor, 2, ctx.scale, false);  // 使用createPen函数进行缩放调整
+    QPen pen = createPen(matchColor, m_lineCircleThickness, ctx.scale, false);  // 使用createPen函数进行缩放调整
     painter.setPen(pen);
 
     // 绘制匹配边界框（按角度旋转并以中心为原点绘制）

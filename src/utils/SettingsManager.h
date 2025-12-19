@@ -39,6 +39,9 @@ public:
         int cannyCircleHigh;
         int circleDetParam2;
 
+        // 绘制参数
+        int lineCircleThickness;
+
         // 模板匹配参数（Halcon 形状模板）
         struct TemplateCreationParams {
             int numLevels = 5;
@@ -137,6 +140,9 @@ public:
             cannyCircleLow(100),
             cannyCircleHigh(200),
             circleDetParam2(50),
+
+            // 绘制参数默认值
+            lineCircleThickness(2),
             
             // UI尺寸参数默认值
             uiWidth(1100),

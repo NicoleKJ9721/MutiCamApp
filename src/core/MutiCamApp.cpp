@@ -4643,6 +4643,7 @@ void MutiCamApp::initializeSettingsManager()
 
     // 根据加载的UI尺寸参数调整窗口大小
     applyUISizeFromSettings();
+    applyLineCircleThicknessFromUI();
 
     qDebug() << "设置管理器初始化完成（实时保存模式）";
 }
@@ -4667,6 +4668,12 @@ void MutiCamApp::onSettingsTextChanged()
     if (m_logManager) {
         m_logManager->logSettingsOperation("参数设置已修改", "实时保存到配置文件");
     }
+}
+
+void MutiCamApp::onLineCircleThicknessChanged()
+{
+    applyLineCircleThicknessFromUI();
+    onSettingsTextChanged();
 }
 
 void MutiCamApp::onCameraSerialChanged()
@@ -4728,6 +4735,7 @@ void MutiCamApp::connectSettingsSignals()
     connect(ui->ledCannyCircleLow, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
     connect(ui->ledCannyCircleHigh, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
     connect(ui->ledCircleDetParam2, &QLineEdit::textChanged, this, &MutiCamApp::onSettingsTextChanged);
+    connect(ui->ledLineCircleThickness, &QLineEdit::textChanged, this, &MutiCamApp::onLineCircleThicknessChanged);
 
     // UI尺寸参数（双向绑定）
     connect(ui->ledUIWidth, &QLineEdit::textChanged, this, &MutiCamApp::onUISizeChanged);
@@ -4935,6 +4943,36 @@ void MutiCamApp::applyUISizeFromSettings()
     } else {
         qDebug() << "UI尺寸参数无效，使用默认窗口大小";
     }
+}
+
+void MutiCamApp::applyLineCircleThicknessFromUI()
+{
+    if (!ui->ledLineCircleThickness) {
+        return;
+    }
+
+    bool ok = false;
+    int thickness = ui->ledLineCircleThickness->text().toInt(&ok);
+    if (!ok) {
+        if (m_settingsManager) {
+            thickness = m_settingsManager->getCurrentSettings().lineCircleThickness;
+        } else {
+            thickness = 2;
+        }
+    }
+
+    int clamped = qBound(1, thickness, 20);
+    if (clamped != thickness || !ok) {
+        const QSignalBlocker blocker(ui->ledLineCircleThickness);
+        ui->ledLineCircleThickness->setText(QString::number(clamped));
+    }
+
+    if (m_verticalPaintingOverlay) m_verticalPaintingOverlay->setLineCircleThickness(clamped);
+    if (m_leftPaintingOverlay) m_leftPaintingOverlay->setLineCircleThickness(clamped);
+    if (m_frontPaintingOverlay) m_frontPaintingOverlay->setLineCircleThickness(clamped);
+    if (m_verticalPaintingOverlay2) m_verticalPaintingOverlay2->setLineCircleThickness(clamped);
+    if (m_leftPaintingOverlay2) m_leftPaintingOverlay2->setLineCircleThickness(clamped);
+    if (m_frontPaintingOverlay2) m_frontPaintingOverlay2->setLineCircleThickness(clamped);
 }
 
 // ==================== 通用按钮处理方法实现 ====================

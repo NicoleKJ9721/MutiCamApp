@@ -164,6 +164,7 @@ QJsonObject SettingsManager::settingsToJson(const Settings& settings) const
     json["CannyCircleLow"] = settings.cannyCircleLow;
     json["CannyCircleHigh"] = settings.cannyCircleHigh;
     json["CircleDetParam2"] = settings.circleDetParam2;
+    json["LineCircleThickness"] = settings.lineCircleThickness;
 
     // 模板匹配参数（Halcon 形状模板）
     QJsonObject templateCreation;
@@ -264,6 +265,7 @@ SettingsManager::Settings SettingsManager::jsonToSettings(const QJsonObject& jso
     settings.cannyCircleLow = json.value("CannyCircleLow").toInt(m_defaultSettings.cannyCircleLow);
     settings.cannyCircleHigh = json.value("CannyCircleHigh").toInt(m_defaultSettings.cannyCircleHigh);
     settings.circleDetParam2 = json.value("CircleDetParam2").toInt(m_defaultSettings.circleDetParam2);
+    settings.lineCircleThickness = json.value("LineCircleThickness").toInt(m_defaultSettings.lineCircleThickness);
 
     // 模板匹配参数（Halcon 形状模板）
     if (json.contains("TemplateCreation") && json.value("TemplateCreation").isObject()) {
@@ -372,6 +374,7 @@ SettingsManager::Settings SettingsManager::validateSettings(const Settings& sett
     validatedSettings.lineDetMinLength = qBound(1, settings.lineDetMinLength, 1000);
     validatedSettings.lineDetMaxGap = qBound(0, settings.lineDetMaxGap, 100);
     validatedSettings.circleDetParam2 = qBound(1, settings.circleDetParam2, 200);
+    validatedSettings.lineCircleThickness = qBound(1, settings.lineCircleThickness, 20);
     
     // 验证UI尺寸
     validatedSettings.uiWidth = qBound(1100, settings.uiWidth, 4000);
@@ -509,10 +512,12 @@ bool SettingsManager::loadSettingsToUI(QObject* ui)
         QLineEdit* ledCannyCircleLow = ui->findChild<QLineEdit*>("ledCannyCircleLow");
         QLineEdit* ledCannyCircleHigh = ui->findChild<QLineEdit*>("ledCannyCircleHigh");
         QLineEdit* ledCircleDetParam2 = ui->findChild<QLineEdit*>("ledCircleDetParam2");
+        QLineEdit* ledLineCircleThickness = ui->findChild<QLineEdit*>("ledLineCircleThickness");
 
         if (ledCannyCircleLow) ledCannyCircleLow->setText(QString::number(m_currentSettings.cannyCircleLow));
         if (ledCannyCircleHigh) ledCannyCircleHigh->setText(QString::number(m_currentSettings.cannyCircleHigh));
         if (ledCircleDetParam2) ledCircleDetParam2->setText(QString::number(m_currentSettings.circleDetParam2));
+        if (ledLineCircleThickness) ledLineCircleThickness->setText(QString::number(m_currentSettings.lineCircleThickness));
 
         // 加载UI尺寸参数
         QLineEdit* ledUIWidth = ui->findChild<QLineEdit*>("ledUIWidth");
@@ -591,10 +596,12 @@ bool SettingsManager::saveSettingsFromUI(QObject* ui)
         QLineEdit* ledCannyCircleLow = ui->findChild<QLineEdit*>("ledCannyCircleLow");
         QLineEdit* ledCannyCircleHigh = ui->findChild<QLineEdit*>("ledCannyCircleHigh");
         QLineEdit* ledCircleDetParam2 = ui->findChild<QLineEdit*>("ledCircleDetParam2");
+        QLineEdit* ledLineCircleThickness = ui->findChild<QLineEdit*>("ledLineCircleThickness");
 
         if (ledCannyCircleLow) newSettings.cannyCircleLow = ledCannyCircleLow->text().toInt();
         if (ledCannyCircleHigh) newSettings.cannyCircleHigh = ledCannyCircleHigh->text().toInt();
         if (ledCircleDetParam2) newSettings.circleDetParam2 = ledCircleDetParam2->text().toInt();
+        if (ledLineCircleThickness) newSettings.lineCircleThickness = ledLineCircleThickness->text().toInt();
 
         // 获取UI尺寸参数
         QLineEdit* ledUIWidth = ui->findChild<QLineEdit*>("ledUIWidth");
