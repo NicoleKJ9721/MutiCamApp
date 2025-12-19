@@ -1290,19 +1290,13 @@ bool AxisController::setPositionZero(AxisIndex axis)
     int axisIndex = axisToMCC6Index(axis);
     
     try {
-        // 使用MDI命令设置当前位置为零点
-        QString axisChar;
-        switch (axis) {
-            case AxisIndex::X_AXIS: axisChar = "X"; break;
-            case AxisIndex::Y_AXIS: axisChar = "Y"; break;
-            case AxisIndex::Z_AXIS: axisChar = "Z"; break;
-            default: axisChar = "X"; break;
+        int result = m_controller->MoCtrCard_ResetCoordinate(static_cast<uint8_t>(axisIndex), 0.0f);
+        if (!handleMCC6Error(result, QString("%1清零命令位置").arg(axisToString(axis)))) {
+            return false;
         }
-        QString mdiCommand = QString("G92 %1%2").arg(axisChar).arg(0.0);
-        QByteArray mdiBytes = mdiCommand.toLocal8Bit();
-        
-        int result = m_controller->MoCtrCard_SendMDICommand(mdiBytes.data());
-        if (!handleMCC6Error(result, QString("%1设置零点").arg(axisToString(axis)))) {
+
+        result = m_controller->MoCtrCard_SetEncoderPos(static_cast<uint8_t>(axisIndex), 0);
+        if (!handleMCC6Error(result, QString("%1清零光栅尺位置").arg(axisToString(axis)))) {
             return false;
         }
         
