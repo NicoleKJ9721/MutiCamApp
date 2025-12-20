@@ -40,6 +40,8 @@ using namespace HalconCpp;
 #endif
 
 namespace {
+static const QString kCalibrationLabelPrefix = QStringLiteral("标定结果：");
+
 QString resolveRuntimePath(const QString& relativePath)
 {
     const QString appDir = QCoreApplication::applicationDirPath();
@@ -1026,7 +1028,7 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
     } else if (selectedAction == pointToPointAction) {
         createLineFromSelectedPoints();
     } else if (selectedAction == pointToLineAction) {
-        performComplexMeasurement("点到线距离");
+        performComplexMeasurement("点与线距离");
     } else if (selectedAction == pointToCircleAction) {
         performComplexMeasurement("点与圆距离");
     } else if (selectedAction == pointToFineCircleAction) {
@@ -1594,6 +1596,9 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
             // 显示圆心坐标和半径 - 使用与点相同的布局方式
             QString centerText = formatCoordinate(circle.center);
             QString radiusText = formatRadius(circle.radius);
+            if (circle.label.startsWith(kCalibrationLabelPrefix)) {
+                radiusText = kCalibrationLabelPrefix + radiusText;
+            }
 
             // 计算将文本框定位到圆心右上角所需的偏移量（与点的布局一致）
             QFontMetrics fm(ctx.font);
@@ -3283,7 +3288,11 @@ void PaintingOverlay::handleLineSegmentDrawingClick(const QPointF& pos)
         newLineSegment.length = pixelLength;
 
         // 根据标定状态设置标签
-        newLineSegment.label = QString("长度: %1").arg(formatDistance(pixelLength));
+        QString lineLabel = QString("长度: %1").arg(formatDistance(pixelLength));
+        if (m_isCalibrationMode || m_isMultiPointCalibrationMode) {
+            lineLabel = kCalibrationLabelPrefix + lineLabel;
+        }
+        newLineSegment.label = lineLabel;
         
         // 添加到线段列表
         m_lineSegments.append(newLineSegment);
@@ -3446,15 +3455,21 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     QString lengthText;
     QString angleText;
 
+    QString labelToParse = lineSegment.label;
+    const bool hasCalibrationPrefix = labelToParse.startsWith(kCalibrationLabelPrefix);
+    if (hasCalibrationPrefix) {
+        labelToParse = labelToParse.mid(kCalibrationLabelPrefix.size());
+    }
+
     if (!lineSegment.label.isEmpty()) {
         // 解析标签中的长度和角度信息
         // 标签格式: "长度: xxx, 角度: xxx°"
-        QStringList parts = lineSegment.label.split(", ");
+        QStringList parts = labelToParse.split(", ");
         if (parts.size() >= 2) {
             // 提取长度部分
             QString lengthPart = parts[0];
             if (lengthPart.startsWith("长度: ")) {
-                lengthText = lengthPart;
+                lengthText = hasCalibrationPrefix ? kCalibrationLabelPrefix + lengthPart : lengthPart;
             }
 
             // 提取角度部分
@@ -3478,6 +3493,9 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
             if (angle < 0) angle += 360.0;
 
             lengthText = QString("长度: %1").arg(formatDistance(length));
+            if (hasCalibrationPrefix) {
+                lengthText = kCalibrationLabelPrefix + lengthText;
+            }
             angleText = QString("角度: %1°").arg(angle, 0, 'f', 1);
         }
     } else if (lengthText.isEmpty()) {
@@ -6047,8 +6065,12 @@ void PaintingOverlay::performCircleDetection(const cv::Mat& frame, const cv::Rec
 
     QString radiusStr = formatRadius(bestCircle.radius);
     QString centerCoordStr = formatCoordinate(QPointF(bestCircle.center.x(), bestCircle.center.y()));
-    detectedCircleObj.label = QString("自动检测圆形 (%1, 中心: %2, 置信度: %3)")
-                             .arg(radiusStr).arg(centerCoordStr).arg(bestCircle.confidence, 0, 'f', 1);
+    QString circleLabel = QString("自动检测圆形 (%1, 中心: %2, 置信度: %3)")
+                         .arg(radiusStr).arg(centerCoordStr).arg(bestCircle.confidence, 0, 'f', 1);
+    if (m_isCircleCalibrationMode) {
+        circleLabel = kCalibrationLabelPrefix + circleLabel;
+    }
+    detectedCircleObj.label = circleLabel;
 
     // 添加到圆形列表
     m_circles.append(detectedCircleObj);
@@ -6308,10 +6330,14 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& lineSegment : m_lineSegments) {
         if (lineSegment.isCompleted && lineSegment.points.size() >= 2) {
             double pixelLength = lineSegment.length;
+            const bool hasCalibrationPrefix = lineSegment.label.startsWith(kCalibrationLabelPrefix);
+            QString labelContent = hasCalibrationPrefix
+                                   ? lineSegment.label.mid(kCalibrationLabelPrefix.size())
+                                   : lineSegment.label;
             // 特殊处理角平分线标签，更新其坐标部分
-            if (lineSegment.label.contains("BISECTOR:")) {
+            if (labelContent.contains("BISECTOR:")) {
                 // 解析角平分线标签格式：BISECTOR:角度°:坐标
-                QStringList parts = lineSegment.label.split(":");
+                QStringList parts = labelContent.split(":");
                 if (parts.size() >= 3) {
                     QString anglePart = parts[1]; // 角度部分
                     // 角平分线是从交点向两个方向延伸5000像素创建的
@@ -6322,10 +6348,12 @@ void PaintingOverlay::updateAllMeasurementLabels()
                 continue;
             }
             // 根据原标签判断是距离还是长度
-            if (lineSegment.label.contains("距离:")) {
-                lineSegment.label = QString("距离: %1").arg(formatDistance(pixelLength));
+            if (labelContent.contains("距离:")) {
+                QString updatedLabel = QString("距离: %1").arg(formatDistance(pixelLength));
+                lineSegment.label = hasCalibrationPrefix ? kCalibrationLabelPrefix + updatedLabel : updatedLabel;
             } else {
-                lineSegment.label = QString("长度: %1").arg(formatDistance(pixelLength));
+                QString updatedLabel = QString("长度: %1").arg(formatDistance(pixelLength));
+                lineSegment.label = hasCalibrationPrefix ? kCalibrationLabelPrefix + updatedLabel : updatedLabel;
             }
         }
     }
@@ -6334,7 +6362,10 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& line : m_lines) {
         if (line.isCompleted && line.showLength) {
             double pixelLength = line.length;
-            line.label = QString("长度: %1").arg(formatDistance(pixelLength));
+            QString updatedLabel = QString("长度: %1").arg(formatDistance(pixelLength));
+            line.label = line.label.startsWith(kCalibrationLabelPrefix)
+                             ? kCalibrationLabelPrefix + updatedLabel
+                             : updatedLabel;
         }
     }
 
@@ -6342,7 +6373,10 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& circle : m_circles) {
         if (circle.isCompleted) {
             double pixelRadius = circle.radius;
-            circle.label = QString("R=%1").arg(formatRadius(pixelRadius));
+            QString updatedLabel = QString("R=%1").arg(formatRadius(pixelRadius));
+            circle.label = circle.label.startsWith(kCalibrationLabelPrefix)
+                               ? kCalibrationLabelPrefix + updatedLabel
+                               : updatedLabel;
         }
     }
 
@@ -6350,7 +6384,10 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& fineCircle : m_fineCircles) {
         if (fineCircle.isCompleted) {
             double pixelRadius = fineCircle.radius;
-            fineCircle.label = QString("R=%1").arg(formatRadius(pixelRadius));
+            QString updatedLabel = QString("R=%1").arg(formatRadius(pixelRadius));
+            fineCircle.label = fineCircle.label.startsWith(kCalibrationLabelPrefix)
+                                   ? kCalibrationLabelPrefix + updatedLabel
+                                   : updatedLabel;
         }
     }
 
@@ -6358,7 +6395,10 @@ void PaintingOverlay::updateAllMeasurementLabels()
     for (auto& parallel : m_parallels) {
         if (parallel.isCompleted) {
             double pixelDistance = parallel.distance;
-            parallel.label = QString("距离: %1").arg(formatDistance(pixelDistance));
+            QString updatedLabel = QString("距离: %1").arg(formatDistance(pixelDistance));
+            parallel.label = parallel.label.startsWith(kCalibrationLabelPrefix)
+                                 ? kCalibrationLabelPrefix + updatedLabel
+                                 : updatedLabel;
         }
     }
 }
