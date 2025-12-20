@@ -10,7 +10,7 @@ CalibrationDialog::CalibrationDialog(QWidget *parent)
     , m_methodButtonGroup(nullptr)
     , m_okButton(nullptr)
     , m_cancelButton(nullptr)
-    , m_selectedMethod(Circle)
+    , m_selectedMethod(None)
 {
     initializeUI();
 }
@@ -54,11 +54,12 @@ void CalibrationDialog::initializeUI()
     // 连接信号
     connect(m_okButton, &QPushButton::clicked, this, &CalibrationDialog::onOkClicked);
     connect(m_cancelButton, &QPushButton::clicked, this, &CalibrationDialog::onCancelClicked);
-    
-    // 默认选择圆标定
-    if (m_circleRadio) {
-        m_circleRadio->setChecked(true);
-    }
+
+    connect(m_singlePointRadio, &QRadioButton::toggled, this, &CalibrationDialog::updateOkButtonState);
+    connect(m_multiPointRadio, &QRadioButton::toggled, this, &CalibrationDialog::updateOkButtonState);
+    connect(m_circleRadio, &QRadioButton::toggled, this, &CalibrationDialog::updateOkButtonState);
+    connect(m_stageAssistedRadio, &QRadioButton::toggled, this, &CalibrationDialog::updateOkButtonState);
+    updateOkButtonState();
 }
 
 QGroupBox* CalibrationDialog::createMethodGroup()
@@ -133,9 +134,18 @@ QWidget* CalibrationDialog::createButtonGroup()
     m_okButton = new QPushButton("确定", this);
     m_okButton->setMinimumSize(80, 30);
     m_okButton->setDefault(true);
+    m_okButton->setEnabled(false);
     layout->addWidget(m_okButton);
     
     return buttonWidget;
+}
+
+void CalibrationDialog::updateOkButtonState()
+{
+    if (!m_okButton || !m_methodButtonGroup) {
+        return;
+    }
+    m_okButton->setEnabled(m_methodButtonGroup->checkedId() >= 0);
 }
 
 void CalibrationDialog::onOkClicked()

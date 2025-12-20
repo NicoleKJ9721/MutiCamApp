@@ -27,10 +27,11 @@ public:
      * @brief 标定方式枚举
      */
     enum CalibrationMethod {
-        SinglePoint,    // 单点标定
-        MultiPoint,     // 多点标定
-        Circle,         // 圆标定（基于检测圆）
-        StageAssisted   // 载物台辅助标定（点选特征点 + 自动计算）
+        None = -1,
+        SinglePoint = 0,    // 单点标定
+        MultiPoint,         // 多点标定
+        Circle,             // 圆标定（基于检测圆）
+        StageAssisted       // 载物台辅助标定（点选特征点 + 自动计算）
     };
 
     /**
@@ -55,6 +56,8 @@ private slots:
      * @brief 取消按钮点击事件
      */
     void onCancelClicked();
+
+    void updateOkButtonState();
 
 private:
     /**

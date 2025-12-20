@@ -4097,6 +4097,8 @@ void MutiCamApp::startPixelCalibration()
 
         // 根据选择的方式启动对应的标定
         switch (method) {
+            case CalibrationDialog::None:
+                break;
             case CalibrationDialog::SinglePoint:
                 startSinglePointCalibration(activeOverlay);
                 break;
@@ -4138,6 +4140,8 @@ void MutiCamApp::startPixelCalibrationForView(const QString& viewName)
 
         // 根据选择的方式启动对应的标定
         switch (method) {
+            case CalibrationDialog::None:
+                break;
             case CalibrationDialog::SinglePoint:
                 startSinglePointCalibration(targetOverlay);
                 break;
