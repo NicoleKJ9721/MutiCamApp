@@ -2637,12 +2637,16 @@ void PaintingOverlay::drawSingleObjectByAction(QPainter& painter, const DrawingA
 
 QPen PaintingOverlay::createPen(const QColor& color, int width, double scale, bool dashed) const
 {
-    Q_UNUSED(scale);
-
     QPen pen(color);
-    // 使用 cosmetic 模式，使线宽始终以屏幕像素为单位，不随缩放变化
-    pen.setWidth(qMax(1, width));
-    pen.setCosmetic(true);
+    // 不再使用 cosmetic 模式，而是根据缩放比例计算实际的图像线宽
+    // 这样在保存图像（scale=1.0）时，线宽会很大；在屏幕显示（scale=0.2）时，线宽会很小
+    // 配合 Transform 的缩放，最终在视觉上保持恒定的屏幕宽度
+    double effectiveScale = (scale > 0.001) ? scale : 1.0;
+    double scaledWidth = static_cast<double>(qMax(1, width)) / effectiveScale;
+    
+    pen.setWidthF(scaledWidth);
+    pen.setCosmetic(false);
+    
     if (dashed) {
         pen.setStyle(Qt::DashLine);
     }
@@ -5381,9 +5385,10 @@ void PaintingOverlay::drawGrid(QPainter& painter, const DrawingContext& ctx) con
 
     // 设置网格线的画笔
     QPen gridPen(m_gridColor);
-    gridPen.setWidth(m_gridWidth);
+    double scale = ctx.scale > 0.001 ? ctx.scale : 1.0;
+    gridPen.setWidthF(m_gridWidth / scale);
     gridPen.setStyle(m_gridStyle);
-    gridPen.setCosmetic(true); // 确保像素对齐，不受坐标变换影响
+    gridPen.setCosmetic(false); // 不使用Cosmetic，手动处理缩放
     painter.setPen(gridPen);
 
     // 获取图像尺寸（在图像坐标系中）
@@ -6157,26 +6162,38 @@ void PaintingOverlay::renderToImage(QPainter& painter, const QSize& imageSize)
     // 为渲染设置1:1映射
     m_imageSize = imageSize;
     m_imageOffset = QPointF(0, 0);
-    m_scaleFactor = 1.0;
+    
+    // 【修正】使用基于标准显示高度（如1080p）的参考缩放比例
+    // 之前使用 originalScale (屏幕当前缩放) 会导致：
+    // 1. 缩小看图时保存，文字/线条巨大
+    // 2. 放大看图时保存，文字/线条微小
+    // 使用固定的参考高度可以保证保存出的图像上标注大小始终适中且一致
+    // 用户反馈1080p基准偏小，调整为540.0（相当于放大2倍）
+    double referenceHeight = 540.0;
+    double referenceScale = referenceHeight / static_cast<double>(qMax(100, imageSize.height()));
+    // 限制缩放比例，避免在极小或极大图像上出现异常
+    referenceScale = std::clamp(referenceScale, 0.1, 2.0);
+    
+    m_scaleFactor = referenceScale;
 
     try {
         // 使用与paintEvent相同的绘制逻辑
         if (!m_imageSize.isEmpty()) {
             painter.save();
 
-            // 设置坐标变换（1:1映射，无偏移）
+            // 设置坐标变换（1:1映射，无偏移，scale恒为1.0）
+            // 我们通过 adjust pen/font size 来适配分辨率，而不是通过 transform
             QTransform transform;
             transform.translate(m_imageOffset.x(), m_imageOffset.y());
-            transform.scale(m_scaleFactor, m_scaleFactor);
+            transform.scale(1.0, 1.0);
             painter.setTransform(transform);
 
             // 设置裁剪区域
             painter.setClipRect(QRect(0, 0, m_imageSize.width(), m_imageSize.height()));
 
-            // 检查是否需要更新DrawingContext缓存
-            if (needsDrawingContextUpdate()) {
-                updateDrawingContext();
-            }
+            // 强制更新DrawingContext缓存以应用新的 referenceScale
+            m_drawingContextValid = false;
+            updateDrawingContext();
 
             // 使用缓存的DrawingContext
             const DrawingContext& ctx = m_cachedDrawingContext;
@@ -6206,6 +6223,9 @@ void PaintingOverlay::renderToImage(QPainter& painter, const QSize& imageSize)
     m_imageSize = originalImageSize;
     m_imageOffset = originalOffset;
     m_scaleFactor = originalScale;
+    
+    // 强制下一帧重绘时更新上下文
+    m_drawingContextValid = false;
 }
 
 // 像素标定相关函数实现
