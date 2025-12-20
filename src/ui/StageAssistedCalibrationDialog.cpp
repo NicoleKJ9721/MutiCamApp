@@ -26,6 +26,8 @@ void StageAssistedCalibrationDialog::setViewName(const QString& viewName)
 StageAssistedCalibrationDialog::Params StageAssistedCalibrationDialog::params() const
 {
     Params p;
+    p.mode = static_cast<CalibrationMode>(m_modeCombo ? m_modeCombo->currentData().toInt()
+                                                      : static_cast<int>(CalibrationMode::Point));
     p.axis = static_cast<AxisControl::AxisIndex>(m_axisCombo ? m_axisCombo->currentData().toInt()
                                                              : static_cast<int>(AxisControl::AxisIndex::Y_AXIS));
     p.direction = (m_directionCombo && m_directionCombo->currentData().toInt() < 0) ? -1 : 1;
@@ -39,7 +41,7 @@ void StageAssistedCalibrationDialog::initializeUI()
 {
     setWindowTitle("载物台辅助标定");
     setModal(true);
-    setFixedSize(460, 300);
+    setFixedSize(460, 340);
 
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(16, 16, 16, 16);
@@ -58,6 +60,12 @@ void StageAssistedCalibrationDialog::initializeUI()
 
     m_viewLabel = new QLabel("-", this);
     form->addRow("视图：", m_viewLabel);
+
+    m_modeCombo = new QComboBox(this);
+    m_modeCombo->addItem("特征点", static_cast<int>(CalibrationMode::Point));
+    m_modeCombo->addItem("圆标定", static_cast<int>(CalibrationMode::Circle));
+    m_modeCombo->addItem("平行线标定", static_cast<int>(CalibrationMode::ParallelLine));
+    form->addRow("标定方式：", m_modeCombo);
 
     m_axisCombo = new QComboBox(this);
     m_axisCombo->addItem("X轴", static_cast<int>(AxisControl::AxisIndex::Z_AXIS));
@@ -92,8 +100,8 @@ void StageAssistedCalibrationDialog::initializeUI()
 
     mainLayout->addLayout(form);
 
-    auto* hint = new QLabel("提示：先在图像上点击一个清晰特征点，软件会移动载物台并自动计算比例。\n"
-                            "若自动跟踪失败，会提示你在移动后画面再点一次同一特征点。", this);
+    auto* hint = new QLabel("提示：特征点模式先点选特征点，软件会移动载物台并自动计算比例。\n"
+                            "圆/平行线模式需在移动前后分别绘制圆或直线。", this);
     hint->setStyleSheet("color: #666; font-size: 10px;");
     hint->setWordWrap(true);
     mainLayout->addWidget(hint);

@@ -14,7 +14,14 @@ class StageAssistedCalibrationDialog : public QDialog
     Q_OBJECT
 
 public:
+    enum class CalibrationMode {
+        Point = 0,
+        Circle,
+        ParallelLine
+    };
+
     struct Params {
+        CalibrationMode mode = CalibrationMode::Point;
         AxisControl::AxisIndex axis = AxisControl::AxisIndex::Y_AXIS;
         int direction = 1;          // +1 / -1
         double distanceUm = 1000.0; // 载物台移动距离（μm）
@@ -32,6 +39,7 @@ private:
 
     QLabel* m_titleLabel = nullptr;
     QLabel* m_viewLabel = nullptr;
+    QComboBox* m_modeCombo = nullptr;
     QComboBox* m_axisCombo = nullptr;
     QComboBox* m_directionCombo = nullptr;
     QDoubleSpinBox* m_distanceSpin = nullptr;

@@ -1156,6 +1156,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay, &PaintingOverlay::overlayActivated,
@@ -1172,6 +1174,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_leftPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay, &PaintingOverlay::overlayActivated,
@@ -1188,6 +1192,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_frontPaintingOverlay, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay, &PaintingOverlay::overlayActivated,
@@ -1204,6 +1210,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_verticalPaintingOverlay2, &PaintingOverlay::overlayActivated,
@@ -1225,6 +1233,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_leftPaintingOverlay2, &PaintingOverlay::overlayActivated,
@@ -1246,6 +1256,8 @@ void MutiCamApp::connectSignalsAndSlots()
                 this, &MutiCamApp::onStageAssistedPointPicked);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
                 this, &MutiCamApp::onDrawingSync);
+        connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingCompleted,
+                this, &MutiCamApp::onStageAssistedDrawingCompleted);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::drawingDataChanged,
                 this, &MutiCamApp::onDrawingSync);
         connect(m_frontPaintingOverlay2, &PaintingOverlay::overlayActivated,
@@ -1697,6 +1709,28 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
         if (!m_stageCalib.overlay) {
             cancelStageAssistedCalibration("标定失败：视图未就绪");
+            return;
+        }
+
+        if (m_stageCalib.mode != StageAssistedMode::Point) {
+            m_stageCalib.awaitingSecondShape = true;
+            QString promptText;
+            QString statusText;
+            if (m_stageCalib.mode == StageAssistedMode::Circle) {
+                promptText = QString("载物台已运动完成，请在视图 %1 绘制移动后的圆…").arg(m_stageCalib.viewName);
+                statusText = QString("载物台辅助标定：请在视图 %1 绘制移动后的圆").arg(m_stageCalib.viewName);
+                m_stageCalib.overlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+            } else {
+                promptText = QString("载物台已运动完成，请在视图 %1 绘制移动后的平行线…").arg(m_stageCalib.viewName);
+                statusText = QString("载物台辅助标定：请在视图 %1 绘制移动后的平行线").arg(m_stageCalib.viewName);
+                m_stageCalib.overlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+            }
+
+            if (m_stageCalibProgressDialog) {
+                m_stageCalibProgressDialog->setLabelText(promptText);
+                m_stageCalibProgressDialog->show();
+            }
+            statusBar()->showMessage(statusText, 8000);
             return;
         }
 
@@ -4291,6 +4325,36 @@ double norm2d(const QPointF& a, const QPointF& b)
     return std::sqrt(dx * dx + dy * dy);
 }
 
+double lineLength(const QPointF& start, const QPointF& end)
+{
+    const double dx = end.x() - start.x();
+    const double dy = end.y() - start.y();
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+double lineAngleDegrees(const QPointF& start, const QPointF& end)
+{
+    const double dx = end.x() - start.x();
+    const double dy = end.y() - start.y();
+    double angle = std::atan2(dy, dx) * 180.0 / M_PI;
+    if (angle < 0.0) {
+        angle += 180.0;
+    }
+    return angle;
+}
+
+double distancePointToLine(const QPointF& point, const QPointF& lineStart, const QPointF& lineEnd)
+{
+    const double A = lineEnd.y() - lineStart.y();
+    const double B = lineStart.x() - lineEnd.x();
+    const double C = lineEnd.x() * lineStart.y() - lineStart.x() * lineEnd.y();
+    const double denom = std::sqrt(A * A + B * B);
+    if (denom <= 1e-6) {
+        return 0.0;
+    }
+    return std::abs(A * point.x() + B * point.y() + C) / denom;
+}
+
 cv::Mat toGray(const cv::Mat& frame)
 {
     if (frame.empty()) {
@@ -4327,6 +4391,18 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
         return;
     }
     const auto params = dialog.params();
+    StageAssistedMode mode = StageAssistedMode::Point;
+    switch (params.mode) {
+        case StageAssistedCalibrationDialog::CalibrationMode::Circle:
+            mode = StageAssistedMode::Circle;
+            break;
+        case StageAssistedCalibrationDialog::CalibrationMode::ParallelLine:
+            mode = StageAssistedMode::ParallelLine;
+            break;
+        default:
+            mode = StageAssistedMode::Point;
+            break;
+    }
 
     if (!m_axisController->isAxisEnabled(params.axis)) {
         QMessageBox::information(this, "载物台辅助标定", "所选轴未使能，无法标定。");
@@ -4337,13 +4413,16 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
     cancelStageAssistedCalibration();
 
     m_stageCalib.active = true;
-    m_stageCalib.awaitingFirstClick = true;
+    m_stageCalib.awaitingFirstClick = (mode == StageAssistedMode::Point);
     m_stageCalib.awaitingSecondClick = false;
     m_stageCalib.awaitingMotion = false;
     m_stageCalib.awaitingAfterFrame = false;
+    m_stageCalib.awaitingFirstShape = (mode != StageAssistedMode::Point);
+    m_stageCalib.awaitingSecondShape = false;
     m_stageCalib.overlay = overlay;
     m_stageCalib.viewName = overlay->getViewName();
     m_stageCalib.cameraId = stageCalibCameraIdFromViewName(m_stageCalib.viewName);
+    m_stageCalib.mode = mode;
     m_stageCalib.axis = params.axis;
     m_stageCalib.direction = params.direction;
     m_stageCalib.requestedDistanceUm = params.distanceUm;
@@ -4365,11 +4444,31 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
         });
     }
 
-    m_stageCalibProgressDialog->setLabelText(QString("请在视图 %1 的画面中点击一个清晰特征点…").arg(m_stageCalib.viewName));
+    QString promptText;
+    QString statusText;
+    if (m_stageCalib.mode == StageAssistedMode::Circle) {
+        promptText = QString("请在视图 %1 的画面中绘制一个圆…").arg(m_stageCalib.viewName);
+        statusText = QString("载物台辅助标定：请在视图 %1 绘制一个圆").arg(m_stageCalib.viewName);
+    } else if (m_stageCalib.mode == StageAssistedMode::ParallelLine) {
+        promptText = QString("请在视图 %1 的画面中绘制一条直线…").arg(m_stageCalib.viewName);
+        statusText = QString("载物台辅助标定：请在视图 %1 绘制一条直线").arg(m_stageCalib.viewName);
+    } else {
+        promptText = QString("请在视图 %1 的画面中点击一个清晰特征点…").arg(m_stageCalib.viewName);
+        statusText = QString("载物台辅助标定：请在视图 %1 点击一个清晰特征点").arg(m_stageCalib.viewName);
+    }
+
+    m_stageCalibProgressDialog->setLabelText(promptText);
     m_stageCalibProgressDialog->show();
 
-    statusBar()->showMessage(QString("载物台辅助标定：请在视图 %1 点击一个清晰特征点").arg(m_stageCalib.viewName), 8000);
-    overlay->startPointPick("stage_assisted_calibration_before");
+    statusBar()->showMessage(statusText, 8000);
+
+    if (m_stageCalib.mode == StageAssistedMode::Point) {
+        overlay->startPointPick("stage_assisted_calibration_before");
+    } else if (m_stageCalib.mode == StageAssistedMode::Circle) {
+        overlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+    } else if (m_stageCalib.mode == StageAssistedMode::ParallelLine) {
+        overlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+    }
 }
 
 void MutiCamApp::cancelStageAssistedCalibration(const QString& reason)
@@ -4380,6 +4479,9 @@ void MutiCamApp::cancelStageAssistedCalibration(const QString& reason)
 
     if (m_stageCalib.overlay) {
         m_stageCalib.overlay->cancelPointPick();
+        if (m_stageCalib.mode != StageAssistedMode::Point) {
+            m_stageCalib.overlay->stopDrawing();
+        }
     }
 
     if (m_stageCalibProgressDialog) {
@@ -4401,6 +4503,9 @@ void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPoin
         return;
     }
     if (viewName != m_stageCalib.viewName) {
+        return;
+    }
+    if (m_stageCalib.mode != StageAssistedMode::Point) {
         return;
     }
     if (!m_stageCalib.overlay) {
@@ -4486,6 +4591,190 @@ void MutiCamApp::onStageAssistedPointPicked(const QString& viewName, const QPoin
         return;
     }
     m_stageCalib.awaitingMotion = true;
+}
+
+void MutiCamApp::onStageAssistedDrawingCompleted(const QString& viewName)
+{
+    if (!m_stageCalib.active) {
+        return;
+    }
+    if (viewName != m_stageCalib.viewName) {
+        return;
+    }
+    if (m_stageCalib.mode == StageAssistedMode::Point) {
+        return;
+    }
+    if (!m_stageCalib.overlay) {
+        cancelStageAssistedCalibration("标定失败：视图未就绪");
+        return;
+    }
+
+    const PaintingOverlay::DrawingState state = m_stageCalib.overlay->getDrawingState();
+    if (state.history.isEmpty()) {
+        return;
+    }
+
+    PaintingOverlay::DrawingAction action;
+    bool found = false;
+    for (int i = state.history.size() - 1; i >= 0; --i) {
+        if (state.history[i].source == PaintingOverlay::DrawingAction::ManualDrawing) {
+            action = state.history[i];
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return;
+    }
+
+    auto startStageMove = [this]() -> bool {
+        if (m_stageCalibProgressDialog) {
+            m_stageCalibProgressDialog->setLabelText(QString("已绘制，正在移动载物台（%1，%2%3 μm）...")
+                                                         .arg(axisToString(m_stageCalib.axis))
+                                                         .arg(m_stageCalib.direction > 0 ? "+" : "-")
+                                                         .arg(m_stageCalib.requestedDistanceUm, 0, 'f', 2));
+            m_stageCalibProgressDialog->show();
+        }
+
+        const double moveUm = m_stageCalib.direction * m_stageCalib.requestedDistanceUm;
+        if (!m_axisController->moveRelative(m_stageCalib.axis, moveUm)) {
+            cancelStageAssistedCalibration(QString("标定失败：载物台移动失败：%1").arg(m_axisController->getLastErrorString()));
+            return false;
+        }
+        m_stageCalib.awaitingMotion = true;
+        return true;
+    };
+
+    if (m_stageCalib.mode == StageAssistedMode::Circle) {
+        if (action.type != PaintingOverlay::DrawingAction::AddCircle) {
+            return;
+        }
+        if (action.index < 0 || action.index >= state.circles.size()) {
+            return;
+        }
+        const auto& circle = state.circles[action.index];
+        if (!circle.isCompleted || circle.radius <= 0.5) {
+            statusBar()->showMessage("圆形过小，请重新绘制", 5000);
+            return;
+        }
+
+        if (m_stageCalib.awaitingFirstShape) {
+            m_stageCalib.awaitingFirstShape = false;
+            m_stageCalib.circleCenterBefore = circle.center;
+            m_stageCalib.startCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                          (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
+            m_stageCalib.overlay->stopDrawing();
+            startStageMove();
+            return;
+        }
+
+        if (!m_stageCalib.awaitingSecondShape) {
+            return;
+        }
+
+        m_stageCalib.awaitingSecondShape = false;
+        m_stageCalib.circleCenterAfter = circle.center;
+        m_stageCalib.overlay->stopDrawing();
+
+        m_stageCalib.endCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                    (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
+        const double pixelDistance = norm2d(m_stageCalib.circleCenterBefore, m_stageCalib.circleCenterAfter);
+        const double realDistance = std::abs(m_stageCalib.endCommandUm - m_stageCalib.startCommandUm);
+        const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
+
+        if (pixelDistance <= 0.5 || usedRealDistance <= 0.0) {
+            cancelStageAssistedCalibration("标定失败：圆心位移过小");
+            return;
+        }
+
+        const double scale = usedRealDistance / pixelDistance;
+        m_stageCalib.overlay->setPixelScale(scale, "μm");
+
+        const QString result = QString("像素标定完成（载物台辅助-圆）: %1 μm/像素\n像素位移: %2 像素, 载物台位移: %3 μm")
+                                   .arg(scale, 0, 'f', 6)
+                                   .arg(pixelDistance, 0, 'f', 2)
+                                   .arg(usedRealDistance, 0, 'f', 2);
+        onMeasurementResult(viewName, result);
+        cancelStageAssistedCalibration();
+        return;
+    }
+
+    if (m_stageCalib.mode == StageAssistedMode::ParallelLine) {
+        if (action.type != PaintingOverlay::DrawingAction::AddLine) {
+            return;
+        }
+        if (action.index < 0 || action.index >= state.lines.size()) {
+            return;
+        }
+        const auto& line = state.lines[action.index];
+        const double length = lineLength(line.start, line.end);
+        if (length <= 1.0) {
+            statusBar()->showMessage("直线过短，请重新绘制", 5000);
+            return;
+        }
+
+        if (m_stageCalib.awaitingFirstShape) {
+            m_stageCalib.awaitingFirstShape = false;
+            m_stageCalib.lineBeforeStart = line.start;
+            m_stageCalib.lineBeforeEnd = line.end;
+            m_stageCalib.startCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                          (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
+            m_stageCalib.overlay->stopDrawing();
+            startStageMove();
+            return;
+        }
+
+        if (!m_stageCalib.awaitingSecondShape) {
+            return;
+        }
+
+        m_stageCalib.awaitingSecondShape = false;
+        m_stageCalib.lineAfterStart = line.start;
+        m_stageCalib.lineAfterEnd = line.end;
+        m_stageCalib.overlay->stopDrawing();
+
+        const double angle1 = lineAngleDegrees(m_stageCalib.lineBeforeStart, m_stageCalib.lineBeforeEnd);
+        const double angle2 = lineAngleDegrees(m_stageCalib.lineAfterStart, m_stageCalib.lineAfterEnd);
+        double angleDiff = std::abs(angle1 - angle2);
+        if (angleDiff > 90.0) {
+            angleDiff = 180.0 - angleDiff;
+        }
+        if (angleDiff > 5.0) {
+            m_stageCalib.awaitingSecondShape = true;
+            statusBar()->showMessage("平行线角度差过大，请重新绘制平行线", 5000);
+            if (m_stageCalibProgressDialog) {
+                m_stageCalibProgressDialog->setLabelText("平行线角度差过大，请重新绘制平行线...");
+                m_stageCalibProgressDialog->show();
+            }
+            m_stageCalib.overlay->startDrawing(PaintingOverlay::DrawingTool::Line);
+            return;
+        }
+
+        const double d1 = distancePointToLine(m_stageCalib.lineAfterStart, m_stageCalib.lineBeforeStart, m_stageCalib.lineBeforeEnd);
+        const double d2 = distancePointToLine(m_stageCalib.lineAfterEnd, m_stageCalib.lineBeforeStart, m_stageCalib.lineBeforeEnd);
+        const double pixelDistance = (d1 + d2) * 0.5;
+
+        m_stageCalib.endCommandUm = (m_stageCalib.axis == AxisIndex::X_AXIS) ? m_commandX :
+                                    (m_stageCalib.axis == AxisIndex::Y_AXIS) ? m_commandY : m_commandZ;
+        const double realDistance = std::abs(m_stageCalib.endCommandUm - m_stageCalib.startCommandUm);
+        const double usedRealDistance = (realDistance > 0.01) ? realDistance : std::abs(m_stageCalib.requestedDistanceUm);
+
+        if (pixelDistance <= 0.5 || usedRealDistance <= 0.0) {
+            cancelStageAssistedCalibration("标定失败：平行线间距过小");
+            return;
+        }
+
+        const double scale = usedRealDistance / pixelDistance;
+        m_stageCalib.overlay->setPixelScale(scale, "μm");
+
+        const QString result = QString("像素标定完成（载物台辅助-平行线）: %1 μm/像素\n线间距: %2 像素, 载物台位移: %3 μm\n角度差: %4°")
+                                   .arg(scale, 0, 'f', 6)
+                                   .arg(pixelDistance, 0, 'f', 2)
+                                   .arg(usedRealDistance, 0, 'f', 2)
+                                   .arg(angleDiff, 0, 'f', 2);
+        onMeasurementResult(viewName, result);
+        cancelStageAssistedCalibration();
+    }
 }
 
 

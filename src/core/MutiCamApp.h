@@ -188,12 +188,13 @@ private slots:
     void startSinglePointCalibration(PaintingOverlay* overlay); // 启动单点标定
     void startMultiPointCalibration(PaintingOverlay* overlay);  // 启动多点标定
     void startCircleCalibration(PaintingOverlay* overlay);      // 启动圆标定
-    void startStageAssistedCalibration(PaintingOverlay* overlay); // 启动载物台辅助标定（点选特征点）
+    void startStageAssistedCalibration(PaintingOverlay* overlay); // 启动载物台辅助标定（特征点/圆/平行线）
     void cancelStageAssistedCalibration(const QString& reason = QString()); // 取消载物台辅助标定
     void loadCalibrationSettings(); // 加载标定设置
     void saveCalibrationSettings(); // 保存标定设置
     void syncCalibrationParameters(const QString& viewName); // 同步标定参数
     void onStageAssistedPointPicked(const QString& viewName, const QPointF& imagePos); // 载物台辅助标定：点选回调
+    void onStageAssistedDrawingCompleted(const QString& viewName); // 载物台辅助标定：形状绘制回调
 
     /**
      * @brief 自动检测按钮点击事件处理
@@ -472,16 +473,25 @@ private:
     quint64 m_frameSeqFront = 0;
 
     // 载物台辅助标定状态
+    enum class StageAssistedMode {
+        Point = 0,
+        Circle,
+        ParallelLine
+    };
+
     struct StageAssistedCalibrationSession {
         bool active = false;
         bool awaitingFirstClick = false;
         bool awaitingSecondClick = false;
         bool awaitingMotion = false;
         bool awaitingAfterFrame = false;
+        bool awaitingFirstShape = false;
+        bool awaitingSecondShape = false;
 
         QString viewName;          // overlay视图名（可能带2）
         QString cameraId;          // vertical/left/front
         PaintingOverlay* overlay = nullptr;
+        StageAssistedMode mode = StageAssistedMode::Point;
 
         AxisIndex axis = AxisIndex::INVALID_AXIS;
         int direction = 1;         // +1 / -1
@@ -491,6 +501,12 @@ private:
 
         QPointF pointBefore;
         QPointF pointAfter;        // 手动二次点选时使用
+        QPointF circleCenterBefore;
+        QPointF circleCenterAfter;
+        QPointF lineBeforeStart;
+        QPointF lineBeforeEnd;
+        QPointF lineAfterStart;
+        QPointF lineAfterEnd;
         double startCommandUm = 0.0;
         double endCommandUm = 0.0;
 
