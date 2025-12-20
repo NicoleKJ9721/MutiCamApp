@@ -113,7 +113,7 @@ void TemplateSelectionDialog::createParameterPanel()
     m_rotationRangeSpinBox->setRange(0.0, 360.0);
     m_rotationRangeSpinBox->setSingleStep(5.0);  // 设置单步调整幅度为5度
     m_rotationRangeSpinBox->setValue(360.0);
-    m_rotationRangeSpinBox->setDecimals(1);
+    m_rotationRangeSpinBox->setDecimals(2);
     rotationLayout->addWidget(m_rotationRangeSpinBox);
     paramLayout->addLayout(rotationLayout);
     

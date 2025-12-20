@@ -1268,7 +1268,7 @@ void PaintingOverlay::handleParallelDrawingClick(const QPointF& imagePos)
 
                 // 使用通用提交逻辑
                 QString result = QString("平行线: 距离 %1, 角度 %2°")
-                                .arg(formatDistance(m_currentParallel.distance)).arg(m_currentParallel.angle, 0, 'f', 1);
+                                .arg(formatDistance(m_currentParallel.distance)).arg(m_currentParallel.angle, 0, 'f', 2);
 
                 m_parallels.append(m_currentParallel);
 
@@ -1333,7 +1333,7 @@ void PaintingOverlay::handleTwoLinesDrawingClick(const QPointF& imagePos)
 
                 // 使用通用提交逻辑
                 QString result = QString("两线夹角: %1°\n交点坐标: %2")
-                                .arg(m_currentTwoLines.angle, 0, 'f', 1).arg(formatCoordinate(m_currentTwoLines.intersection));
+                                .arg(m_currentTwoLines.angle, 0, 'f', 2).arg(formatCoordinate(m_currentTwoLines.intersection));
 
                 m_twoLines.append(m_currentTwoLines);
 
@@ -1469,7 +1469,7 @@ void PaintingOverlay::drawSingleLine(QPainter& painter, const LineObject& line, 
     double angle = calculateLineAngle(start, end);
     
     // 格式化角度文本（包含度数符号）
-    QString angleText = QString::asprintf("%.1f°", angle);
+    QString angleText = QString::asprintf("%.2f°", angle);
     
     // 动态计算文本布局参数（与缩放无关，只与基础字号相关）
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
@@ -1883,7 +1883,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         
         // 显示距离和角度信息
         QString distanceText = formatDistance(parallel.distance);
-        QString angleText = QString::asprintf("%.1f°", parallel.angle);
+        QString angleText = QString::asprintf("%.2f°", parallel.angle);
         // 【标注位置修正】标注的锚点应该是中线的中点
         QPointF textAnchorPoint = (extMidStart + extMidEnd) / 2.0;
         
@@ -2079,7 +2079,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         painter.drawLine(bisectorStart, bisectorEnd);
         
         // 显示角度和坐标信息 - 使用drawTextWithBackground辅助函数
-        QString angleText = QString::asprintf("%.1f°", twoLines.angle);
+        QString angleText = QString::asprintf("%.2f°", twoLines.angle);
         QString coordText = formatCoordinate(twoLines.intersection);
         
         // 动态计算文本布局参数（与缩放无关，只与基础字号相关）
@@ -3244,7 +3244,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     }
 
     // 更新标签包含长度和角度信息
-    lineSegment.label = QString("长度: %1, 角度: %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 1);
+    lineSegment.label = QString("长度: %1, 角度: %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 2);
 
     m_lineSegments.append(lineSegment);
 
@@ -3259,7 +3259,7 @@ void PaintingOverlay::createLineFromSelectedPoints()
     clearSelection();
 
     // 发出信号
-    QString result = QString("线段: 长度 %1, 角度 %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 1);
+    QString result = QString("线段: 长度 %1, 角度 %2°").arg(formatDistance(lineSegment.length)).arg(angleDegrees, 0, 'f', 2);
     emit measurementCompleted(m_viewName, result);
     emit drawingDataChanged(m_viewName);
 
@@ -3496,7 +3496,7 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
             if (hasCalibrationPrefix) {
                 lengthText = kCalibrationLabelPrefix + lengthText;
             }
-            angleText = QString("角度: %1°").arg(angle, 0, 'f', 1);
+            angleText = QString("角度: %1°").arg(angle, 0, 'f', 2);
         }
     } else if (lengthText.isEmpty()) {
         // 只缺少长度信息，使用标签内容
@@ -4507,7 +4507,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     angleObj.angle = angle;
                     angleObj.intersection = intersection;
                     angleObj.hasIntersection = hasIntersection;
-                    angleObj.label = QString("%1°").arg(angle, 0, 'f', 1);
+                    angleObj.label = QString("%1°").arg(angle, 0, 'f', 2);
                     angleObj.isVisible = true;
 
                     m_lineSegmentAngles.append(angleObj);
@@ -4676,7 +4676,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                             bisector.thickness = static_cast<double>(m_lineCircleThickness);
                             bisector.isDashed = true;
                             bisector.isVisible = true;
-                            bisector.label = QString("BISECTOR:%1°:%2").arg(angle, 0, 'f', 1).arg(formatCoordinate(intersection));
+                            bisector.label = QString("BISECTOR:%1°:%2").arg(angle, 0, 'f', 2).arg(formatCoordinate(intersection));
                             
                             // 添加到线段列表
                             m_lineSegments.append(bisector);
@@ -4691,7 +4691,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
 
                     // 发送测量完成信号
                     QString result = QString("两线夹角: %1°\n交点坐标: %2")
-                                    .arg(angle, 0, 'f', 1).arg(formatCoordinate(intersection));
+                                    .arg(angle, 0, 'f', 2).arg(formatCoordinate(intersection));
                     emit measurementCompleted(m_viewName, result);
                 } else {
                     // 两线平行
@@ -4775,7 +4775,7 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                 double angle = calculateLineSegmentAngle(line1Start, line1End, line2Start, line2End);
                 
                 // 发送测量完成信号
-                QString result = QString("两线距离: %1 (夹角: %2°)").arg(formatDistance(distance)).arg(angle, 0, 'f', 1);
+                QString result = QString("两线距离: %1 (夹角: %2°)").arg(formatDistance(distance)).arg(angle, 0, 'f', 2);
                 emit measurementCompleted(m_viewName, result);
 
                 // 清除选择并更新显示
@@ -5946,7 +5946,7 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
     QString startCoordStr = formatCoordinate(QPointF(bestLine.start.x(), bestLine.start.y()));
     QString endCoordStr = formatCoordinate(QPointF(bestLine.end.x(), bestLine.end.y()));
     detectedLineObj.label = QString("自动检测直线 (长度: %1, 角度: %2°, 起点: %3, 终点: %4, 置信度: %5)")
-                           .arg(lengthStr).arg(bestLine.angle, 0, 'f', 1).arg(startCoordStr).arg(endCoordStr).arg(bestLine.confidence, 0, 'f', 1);
+                           .arg(lengthStr).arg(bestLine.angle, 0, 'f', 2).arg(startCoordStr).arg(endCoordStr).arg(bestLine.confidence, 0, 'f', 1);
     detectedLineObj.showLength = true;
     detectedLineObj.length = bestLine.length;
 
@@ -5965,7 +5965,7 @@ void PaintingOverlay::performLineDetection(const cv::Mat& frame, const cv::Rect&
 
     // 发出信号
     QString result = QString("自动直线检测成功：长度 %1 像素，角度 %2° (共检测到%3条直线)")
-                    .arg(bestLine.length, 0, 'f', 1).arg(bestLine.angle, 0, 'f', 1).arg(detectedLines.size());
+                    .arg(bestLine.length, 0, 'f', 1).arg(bestLine.angle, 0, 'f', 2).arg(detectedLines.size());
     emit measurementCompleted(m_viewName, result);
     emit drawingDataChanged(m_viewName);
 
@@ -7450,7 +7450,7 @@ void PaintingOverlay::drawROIInfo(QPainter& painter, const DrawingContext& ctx) 
         // 只有当ROI发生变化时才重新计算文本
         int width = qRound(rect.width());
         int height = qRound(rect.height());
-        infoText = QString("尺寸: %1×%2  角度: %3°").arg(width).arg(height).arg(angle, 0, 'f', 1);
+        infoText = QString("尺寸: %1×%2  角度: %3°").arg(width).arg(height).arg(angle, 0, 'f', 2);
 
         // 更新缓存
         m_cachedROIInfoText = infoText;
@@ -8337,7 +8337,7 @@ void PaintingOverlay::drawSingleMatchResult(QPainter& painter, const TemplateMat
     // 绘制模板名称、置信度、角度和缩放信息
     const QString infoText = QString("匹配结果：置信度:%1% 角度:%2° 缩放:%3")
                        .arg(QString::number(match.confidence * 100, 'f', 1))
-                       .arg(QString::number(match.angle * 180.0 / M_PI, 'f', 1))
+                       .arg(QString::number(match.angle * 180.0 / M_PI, 'f', 2))
                        .arg(QString::number(match.scale, 'f', 2));
 
     // 设置文本样式
