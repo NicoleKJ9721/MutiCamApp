@@ -1420,7 +1420,16 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
 
     if (frame.empty()) return;
 
-    const QSize sourceImageSize(frame.cols, frame.rows);
+    // 处理镜像逻辑：对向视图（front）需要水平翻转，以符合操作者直观视角
+    cv::Mat processedFrame = frame;
+    if (cameraId == "front") {
+        cv::flip(frame, processedFrame, 1); // 1 = 水平翻转
+    }
+
+    // 后续统一使用 processedFrame 替代 frame
+    const cv::Mat& actualFrame = processedFrame;
+
+    const QSize sourceImageSize(actualFrame.cols, actualFrame.rows);
     QString normalizedPixelFormat;
     if (m_cameraManager) {
         if (auto camera = m_cameraManager->getCamera(cameraId.toStdString())) {
@@ -1454,14 +1463,14 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         const qreal dpr = qApp ? qApp->devicePixelRatio() : 1.0;
         const double zoom = widget->getZoomFactor();
         const QPointF panOffset = widget->getPanOffset();
-        const bool isBayer = (frame.channels() == 1) && isBayerFormat(normalizedPixelFormat);
+        const bool isBayer = (actualFrame.channels() == 1) && isBayerFormat(normalizedPixelFormat);
 
         qualityScale = std::clamp(qualityScale, 1.0, 3.0);
 
         const bool enableTiling = allowTiling && (zoom > 1.01);
         if (enableTiling) {
-            const int srcW = frame.cols;
-            const int srcH = frame.rows;
+            const int srcW = actualFrame.cols;
+            const int srcH = actualFrame.rows;
             if (srcW <= 0 || srcH <= 0) {
                 return result;
             }
@@ -1523,10 +1532,10 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
                 outH = std::max(64, static_cast<int>(std::lround(outH * scale)));
             }
 
-            cv::Mat roi = frame(cv::Rect(rx0, ry0, rw, rh));
+            cv::Mat roi = actualFrame(cv::Rect(rx0, ry0, rw, rh));
             cv::Mat bgr;
             if (isBayer) {
-                const int cvtCode = getCachedBayerToBgrCodeForCamera(cameraId, frame, bayerPattern);
+                const int cvtCode = getCachedBayerToBgrCodeForCamera(cameraId, actualFrame, bayerPattern);
                 if (cvtCode != 0) {
                     cv::cvtColor(roi, bgr, cvtCode);
                 } else {
@@ -1563,8 +1572,8 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
             targetH = std::max(64, static_cast<int>(std::lround(targetH * scale)));
         }
 
-        int factor = choosePreviewDownsampleFactor(frame.cols, frame.rows, targetW, targetH);
-        if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+        int factor = choosePreviewDownsampleFactor(actualFrame.cols, actualFrame.rows, targetW, targetH);
+        if (actualFrame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
             if ((factor % 2) != 0) {
                 factor += 1;
             }
@@ -1572,12 +1581,12 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         result.downsampleFactor = std::max(1, factor);
 
         cv::Mat preview;
-        if (frame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
-            preview = makeBgrPreviewFromBayer8(frame, bayerPattern, factor);
+        if (actualFrame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
+            preview = makeBgrPreviewFromBayer8(actualFrame, bayerPattern, factor);
         } else {
-            const int outW = std::max(1, (frame.cols + factor - 1) / factor);
-            const int outH = std::max(1, (frame.rows + factor - 1) / factor);
-            cv::resize(frame, preview, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
+            const int outW = std::max(1, (actualFrame.cols + factor - 1) / factor);
+            const int outH = std::max(1, (actualFrame.rows + factor - 1) / factor);
+            cv::resize(actualFrame, preview, cv::Size(outW, outH), 0, 0, cv::INTER_AREA);
         }
 
         if (preview.empty()) {
@@ -1593,31 +1602,31 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
     // 存储当前帧供自动检测使用 (性能优化：使用直接赋值代替clone()以减少内存复制)
     quint64 frameSeq = 0;
     if (cameraId == "vertical") {
-        m_currentFrameVertical = frame;        // 优化：避免60MB内存复制
-        m_lastVerticalFrame = frame;           // 优化：避免60MB内存复制
+        m_currentFrameVertical = actualFrame;        // 优化：避免60MB内存复制
+        m_lastVerticalFrame = actualFrame;           // 优化：避免60MB内存复制
         frameSeq = ++m_frameSeqVertical;
 
         // 处理垂直视图的模板匹配
         if (m_verticalPaintingOverlay2) {
-            m_verticalPaintingOverlay2->processFrameForMatching(frame);
+            m_verticalPaintingOverlay2->processFrameForMatching(actualFrame);
         }
     } else if (cameraId == "left") {
-        m_currentFrameLeft = frame;            // 优化：避免60MB内存复制
-        m_lastLeftFrame = frame;               // 优化：避免60MB内存复制
+        m_currentFrameLeft = actualFrame;            // 优化：避免60MB内存复制
+        m_lastLeftFrame = actualFrame;               // 优化：避免60MB内存复制
         frameSeq = ++m_frameSeqLeft;
 
         // 处理左侧视图的模板匹配
         if (m_leftPaintingOverlay2) {
-            m_leftPaintingOverlay2->processFrameForMatching(frame);
+            m_leftPaintingOverlay2->processFrameForMatching(actualFrame);
         }
     } else if (cameraId == "front") {
-        m_currentFrameFront = frame;           // 优化：避免60MB内存复制
-        m_lastFrontFrame = frame;              // 优化：避免60MB内存复制
+        m_currentFrameFront = actualFrame;           // 优化：避免60MB内存复制
+        m_lastFrontFrame = actualFrame;              // 优化：避免60MB内存复制
         frameSeq = ++m_frameSeqFront;
 
         // 处理对向视图的模板匹配
         if (m_frontPaintingOverlay2) {
-            m_frontPaintingOverlay2->processFrameForMatching(frame);
+            m_frontPaintingOverlay2->processFrameForMatching(actualFrame);
         }
     }
 
@@ -1697,10 +1706,10 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         }
 
         cv::Mat grayAfter;
-        if (frame.channels() == 1) {
-            grayAfter = frame;
+        if (actualFrame.channels() == 1) {
+            grayAfter = actualFrame;
         } else {
-            cv::cvtColor(frame, grayAfter, cv::COLOR_BGR2GRAY);
+            cv::cvtColor(actualFrame, grayAfter, cv::COLOR_BGR2GRAY);
         }
 
         const int tplW = m_stageCalib.templateGray.cols;
