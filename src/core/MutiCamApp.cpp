@@ -2178,9 +2178,16 @@ void MutiCamApp::updateAxisStatusMonitorForContext()
 
     const int mainTabIndex = ui->tabWidget->indexOf(ui->tabMain);
     const int stageTabIndex = ui->tabWidget->indexOf(ui->tabStageControl);
+    const int verticalTabIndex = ui->tabWidget->indexOf(ui->tabVertical);
+    const int leftTabIndex = ui->tabWidget->indexOf(ui->tabLeft);
+    const int frontTabIndex = ui->tabWidget->indexOf(ui->tabFront);
     const int currentIndex = ui->tabWidget->currentIndex();
-    const bool shouldMonitorByTab = (currentIndex == stageTabIndex) ||
-        (mainTabIndex >= 0 && currentIndex == mainTabIndex);
+    const bool shouldMonitorByTab =
+        (stageTabIndex >= 0 && currentIndex == stageTabIndex) ||
+        (mainTabIndex >= 0 && currentIndex == mainTabIndex) ||
+        (verticalTabIndex >= 0 && currentIndex == verticalTabIndex) ||
+        (leftTabIndex >= 0 && currentIndex == leftTabIndex) ||
+        (frontTabIndex >= 0 && currentIndex == frontTabIndex);
     const bool shouldMonitor = shouldMonitorByTab || m_stageCalib.active;
 
     if (shouldMonitor && m_axisController->isConnected()) {
