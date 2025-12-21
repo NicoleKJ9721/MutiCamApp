@@ -826,6 +826,8 @@ private:
 
     // 平行线中线辅助函数
     bool getParallelMiddleLinePoints(int parallelIndex, QPointF& lineStart, QPointF& lineEnd) const;
+    // Bisector line helper (TwoLinesObject)
+    bool getBisectorLinePoints(int twoLinesIndex, QPointF& lineStart, QPointF& lineEnd) const;
 
     // 像素标定辅助函数
     void updateAllMeasurementLabels();
