@@ -97,10 +97,19 @@ public:
     };
 
     // 绘图对象结构体
+    enum DerivedPointSource {
+        DerivedNone = 0,
+        DerivedCircle = 1,
+        DerivedFineCircle = 2
+    };
+
     struct PointObject {
         QPointF position;
         QString label;
         bool isVisible = true;
+        bool isDerived = false;
+        int derivedSource = DerivedNone;
+        int derivedIndex = -1;
     };
 
     struct LineObject {
@@ -758,6 +767,9 @@ private:
 
     // 命中测试方法
     int hitTestPoint(const QPointF& pos, double tolerance = 5.0) const;
+    int hitTestCircleCenter(const QPointF& testPos, QPointF& centerOut, double tolerance, bool fineCircle) const;
+    int findDerivedPoint(int sourceType, int sourceIndex) const;
+    void removeDerivedPointsForSourceIndices(const QList<int>& removedIndices, int sourceType);
     int hitTestLine(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestLineSegment(const QPointF& pos, double tolerance = 5.0) const;
     int hitTestCircle(const QPointF& pos, double tolerance = 5.0) const;
@@ -823,6 +835,7 @@ private:
 
     // 标定转换辅助函数
     QString formatDistance(double pixelDistance) const;
+    QString formatSignedDistance(double pixelDelta) const;
     QString formatCoordinate(const QPointF& pixelCoord) const;
     QString formatRadius(double pixelRadius) const;
 

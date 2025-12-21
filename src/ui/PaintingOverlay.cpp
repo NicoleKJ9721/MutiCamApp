@@ -1002,9 +1002,9 @@ void PaintingOverlay::contextMenuEvent(QContextMenuEvent *event)
 
     // 圆心与圆心距离（圆与圆测量）
     QAction *circleToCircleAction = nullptr;
-    if (m_selectedCircles.size() == 2 &&
+    if (m_selectedCircles.size() + m_selectedFineCircles.size() == 2 &&
         m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
-        m_selectedFineCircles.isEmpty() && m_selectedLineSegments.isEmpty()) {
+        m_selectedLineSegments.isEmpty()) {
         circleToCircleAction = contextMenu.addAction("圆与圆距离");
     }
 
@@ -2767,12 +2767,16 @@ void PaintingOverlay::undoAction(const DrawingAction& action)
             break;
         case DrawingAction::AddCircle:
             if (!m_circles.isEmpty()) {
+                int removedIndex = m_circles.size() - 1;
                 m_circles.removeLast(); // 移除最后添加的圆
+                removeDerivedPointsForSourceIndices({removedIndex}, DerivedCircle);
             }
             break;
         case DrawingAction::AddFineCircle:
             if (!m_fineCircles.isEmpty()) {
+                int removedIndex = m_fineCircles.size() - 1;
                 m_fineCircles.removeLast(); // 移除最后添加的精细圆
+                removeDerivedPointsForSourceIndices({removedIndex}, DerivedFineCircle);
             }
             break;
         case DrawingAction::AddParallel:
@@ -3145,6 +3149,7 @@ void PaintingOverlay::deleteSelectedObjects()
             m_circles.removeAt(index);
         }
     }
+    removeDerivedPointsForSourceIndices(circleIndices, DerivedCircle);
 
     // 删除选中的精细圆
     QList<int> fineCircleIndices = m_selectedFineCircles.values();
@@ -3154,6 +3159,7 @@ void PaintingOverlay::deleteSelectedObjects()
             m_fineCircles.removeAt(index);
         }
     }
+    removeDerivedPointsForSourceIndices(fineCircleIndices, DerivedFineCircle);
 
     // 删除选中的平行线
     QList<int> parallelIndices = m_selectedParallels.values();
@@ -3466,20 +3472,31 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
     }
 
     if (!lineSegment.label.isEmpty()) {
+        if (lineSegment.isDashed && labelToParse.contains('\n')) {
+            QStringList lines = labelToParse.split('\n');
+            if (!lines.isEmpty()) {
+                lengthText = hasCalibrationPrefix ? kCalibrationLabelPrefix + lines[0] : lines[0];
+                if (lines.size() > 1) {
+                    angleText = lines[1];
+                }
+            }
+        }
         // 解析标签中的长度和角度信息
         // 标签格式: "长度: xxx, 角度: xxx°"
-        QStringList parts = labelToParse.split(", ");
-        if (parts.size() >= 2) {
-            // 提取长度部分
-            QString lengthPart = parts[0];
-            if (lengthPart.startsWith("长度: ")) {
-                lengthText = hasCalibrationPrefix ? kCalibrationLabelPrefix + lengthPart : lengthPart;
-            }
+        if (lengthText.isEmpty() && angleText.isEmpty()) {
+            QStringList parts = labelToParse.split(", ");
+            if (parts.size() >= 2) {
+                // 提取长度部分
+                QString lengthPart = parts[0];
+                if (lengthPart.startsWith("长度: ")) {
+                    lengthText = hasCalibrationPrefix ? kCalibrationLabelPrefix + lengthPart : lengthPart;
+                }
 
-            // 提取角度部分
-            QString anglePart = parts[1];
-            if (anglePart.startsWith("角度: ")) {
-                angleText = anglePart;
+                // 提取角度部分
+                QString anglePart = parts[1];
+                if (anglePart.startsWith("角度: ")) {
+                    angleText = anglePart;
+                }
             }
         }
     }
@@ -3507,13 +3524,29 @@ void PaintingOverlay::drawSingleLineSegment(QPainter& painter, const LineSegment
         lengthText = lineSegment.label;
     }
 
-    // 计算线段中点作为文本位置
-    QPointF midPoint = (start + end) / 2.0;
+    const bool isCircleToCircleLabel = lineSegment.isDashed && labelToParse.startsWith("圆心距:");
 
     // 动态计算文本布局参数
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
+
+    if (isCircleToCircleLabel) {
+        double margin = qMax(6.0, ctx.fontSize * 0.4);
+        QPointF anchorPoint(margin, margin);
+        QRectF lengthTextRect = calculateTextWithBackgroundRect(anchorPoint, lengthText, ctx.font, textPadding, QPointF(0, 0));
+        drawTextInRect(painter, lengthTextRect, lengthText, ctx.font, lineSegment.color, Qt::black, bgBorderWidth);
+
+        if (!angleText.isEmpty()) {
+            QPointF angleTextAnchor(lengthTextRect.left(), lengthTextRect.bottom());
+            QRectF angleTextRect = calculateTextWithBackgroundRect(angleTextAnchor, angleText, ctx.font, textPadding, QPointF(0, 0));
+            drawTextInRect(painter, angleTextRect, angleText, ctx.font, lineSegment.color, Qt::black, bgBorderWidth);
+        }
+        return;
+    }
+
+    // 计算线段中点作为文本位置
+    QPointF midPoint = (start + end) / 2.0;
 
     // 计算第一个文本框（长度）定位到中点右上方所需的精确偏移量
     QFontMetrics fm(ctx.font);
@@ -3674,6 +3707,45 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
             m_selectedPoints.insert(pointIndex);
         }
         foundSelection = true;
+    } else {
+        QPointF center;
+        int circleCenterIndex = hitTestCircleCenter(pos, center, 30.0, false);
+        int fineCircleCenterIndex = -1;
+        if (circleCenterIndex < 0) {
+            fineCircleCenterIndex = hitTestCircleCenter(pos, center, 30.0, true);
+        }
+
+        if (circleCenterIndex >= 0 || fineCircleCenterIndex >= 0) {
+            int sourceType = (circleCenterIndex >= 0) ? DerivedCircle : DerivedFineCircle;
+            int sourceIndex = (circleCenterIndex >= 0) ? circleCenterIndex : fineCircleCenterIndex;
+            int existingIndex = findDerivedPoint(sourceType, sourceIndex);
+
+            if (existingIndex < 0) {
+                PointObject derivedPoint;
+                derivedPoint.position = center;
+                derivedPoint.label = QString();
+                derivedPoint.isVisible = true;
+                derivedPoint.isDerived = true;
+                derivedPoint.derivedSource = sourceType;
+                derivedPoint.derivedIndex = sourceIndex;
+                m_points.append(derivedPoint);
+                existingIndex = m_points.size() - 1;
+            } else {
+                m_points[existingIndex].position = center;
+            }
+
+            if (ctrlPressed) {
+                if (m_selectedPoints.contains(existingIndex)) {
+                    m_selectedPoints.remove(existingIndex);
+                } else {
+                    m_selectedPoints.insert(existingIndex);
+                }
+            } else {
+                clearSelection();
+                m_selectedPoints.insert(existingIndex);
+            }
+            foundSelection = true;
+        }
     }
 
     int lineIndex = hitTestLine(pos, 20.0); // 增加线的命中容差
@@ -3856,6 +3928,109 @@ int PaintingOverlay::hitTestPoint(const QPointF& testPos, double tolerance) cons
         }
     }
     return -1;
+}
+
+int PaintingOverlay::hitTestCircleCenter(const QPointF& testPos, QPointF& centerOut, double tolerance, bool fineCircle) const
+{
+    if (fineCircle) {
+        for (int i = 0; i < m_fineCircles.size(); ++i) {
+            const FineCircleObject& circle = m_fineCircles[i];
+            if (!circle.isVisible) continue;
+
+            QPointF center;
+            double radius = 0.0;
+            bool hasCircle = false;
+            if (circle.isCompleted && circle.radius > 0.0) {
+                center = circle.center;
+                radius = circle.radius;
+                hasCircle = true;
+            } else if (circle.points.size() >= 5 &&
+                       calculateCircleFromFivePoints(circle.points, center, radius)) {
+                hasCircle = true;
+            }
+
+            if (!hasCircle) continue;
+
+            double distance = std::sqrt(std::pow(testPos.x() - center.x(), 2) + std::pow(testPos.y() - center.y(), 2));
+            if (distance <= tolerance) {
+                centerOut = center;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    for (int i = 0; i < m_circles.size(); ++i) {
+        const CircleObject& circle = m_circles[i];
+        if (!circle.isVisible) continue;
+
+        QPointF center;
+        double radius = 0.0;
+        bool hasCircle = false;
+
+        if (circle.isCompleted && circle.radius > 0) {
+            center = circle.center;
+            radius = circle.radius;
+            hasCircle = true;
+        } else if (circle.points.size() >= 3 &&
+                   calculateCircleFromThreePoints(circle.points, center, radius)) {
+            hasCircle = true;
+        }
+
+        if (!hasCircle) {
+            continue;
+        }
+
+        double distance = std::sqrt(std::pow(testPos.x() - center.x(), 2) + std::pow(testPos.y() - center.y(), 2));
+        if (distance <= tolerance) {
+            centerOut = center;
+            return i;
+        }
+    }
+    return -1;
+}
+
+int PaintingOverlay::findDerivedPoint(int sourceType, int sourceIndex) const
+{
+    for (int i = 0; i < m_points.size(); ++i) {
+        const PointObject& point = m_points[i];
+        if (!point.isDerived) continue;
+        if (point.derivedSource == sourceType && point.derivedIndex == sourceIndex) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void PaintingOverlay::removeDerivedPointsForSourceIndices(const QList<int>& removedIndices, int sourceType)
+{
+    if (removedIndices.isEmpty()) {
+        return;
+    }
+
+    QList<int> sortedIndices = removedIndices;
+    std::sort(sortedIndices.begin(), sortedIndices.end());
+
+    for (int i = m_points.size() - 1; i >= 0; --i) {
+        const PointObject& point = m_points[i];
+        if (!point.isDerived || point.derivedSource != sourceType) {
+            continue;
+        }
+        if (std::binary_search(sortedIndices.begin(), sortedIndices.end(), point.derivedIndex)) {
+            m_points.removeAt(i);
+        }
+    }
+
+    for (auto& point : m_points) {
+        if (!point.isDerived || point.derivedSource != sourceType) {
+            continue;
+        }
+        for (int removedIndex : sortedIndices) {
+            if (point.derivedIndex > removedIndex) {
+                point.derivedIndex -= 1;
+            }
+        }
+    }
 }
 
 int PaintingOverlay::hitTestLine(const QPointF& testPos, double tolerance) const
@@ -4200,40 +4375,84 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
             }
         }
     } else if (measurementType == "圆与圆距离") {
-        if (m_selectedCircles.size() == 2 &&
+        if (m_selectedCircles.size() + m_selectedFineCircles.size() == 2 &&
             m_selectedPoints.isEmpty() && m_selectedLines.isEmpty() &&
-            m_selectedFineCircles.isEmpty() && m_selectedLineSegments.isEmpty()) {
+            m_selectedLineSegments.isEmpty()) {
 
-            auto resolveCircle = [&](const CircleObject& circle, QPointF& center, double& radius) -> bool {
-                if (circle.isCompleted && circle.radius > 0) {
-                    center = circle.center;
-                    radius = circle.radius;
-                    return true;
-                }
-                if (circle.points.size() >= 3) {
-                    return calculateCircleFromThreePoints(circle.points, center, radius);
-                }
-                return false;
+            enum class CircleSelectionType { Simple, Fine };
+            struct CircleSelection {
+                CircleSelectionType type;
+                int index;
             };
 
-            auto it = m_selectedCircles.begin();
-            int firstIndex = *it;
-            ++it;
-            int secondIndex = *it;
+            QVector<CircleSelection> selections;
+            selections.reserve(2);
+            for (int idx : m_selectedCircles) {
+                selections.append({CircleSelectionType::Simple, idx});
+            }
+            for (int idx : m_selectedFineCircles) {
+                selections.append({CircleSelectionType::Fine, idx});
+            }
 
-            if (firstIndex >= 0 && firstIndex < m_circles.size() &&
-                secondIndex >= 0 && secondIndex < m_circles.size()) {
+            if (selections.size() == 2) {
+                auto resolveCircle = [&](const CircleObject& circle, QPointF& center, double& radius) -> bool {
+                    if (circle.isCompleted && circle.radius > 0) {
+                        center = circle.center;
+                        radius = circle.radius;
+                        return true;
+                    }
+                    if (circle.points.size() >= 3) {
+                        return calculateCircleFromThreePoints(circle.points, center, radius);
+                    }
+                    return false;
+                };
 
-                const CircleObject& c1 = m_circles[firstIndex];
-                const CircleObject& c2 = m_circles[secondIndex];
+                auto resolveFineCircle = [&](const FineCircleObject& circle, QPointF& center, double& radius) -> bool {
+                    if (circle.isCompleted && circle.radius > 0) {
+                        center = circle.center;
+                        radius = circle.radius;
+                        return true;
+                    }
+                    if (circle.points.size() >= 5) {
+                        return calculateCircleFromFivePoints(circle.points, center, radius);
+                    }
+                    return false;
+                };
 
                 QPointF center1, center2;
                 double radius1 = 0.0, radius2 = 0.0;
+                bool ok1 = false;
+                bool ok2 = false;
 
-                if (resolveCircle(c1, center1, radius1) && resolveCircle(c2, center2, radius2)) {
+                const CircleSelection& firstSel = selections[0];
+                const CircleSelection& secondSel = selections[1];
+
+                if (firstSel.type == CircleSelectionType::Simple) {
+                    if (firstSel.index >= 0 && firstSel.index < m_circles.size()) {
+                        ok1 = resolveCircle(m_circles[firstSel.index], center1, radius1);
+                    }
+                } else {
+                    if (firstSel.index >= 0 && firstSel.index < m_fineCircles.size()) {
+                        ok1 = resolveFineCircle(m_fineCircles[firstSel.index], center1, radius1);
+                    }
+                }
+
+                if (secondSel.type == CircleSelectionType::Simple) {
+                    if (secondSel.index >= 0 && secondSel.index < m_circles.size()) {
+                        ok2 = resolveCircle(m_circles[secondSel.index], center2, radius2);
+                    }
+                } else {
+                    if (secondSel.index >= 0 && secondSel.index < m_fineCircles.size()) {
+                        ok2 = resolveFineCircle(m_fineCircles[secondSel.index], center2, radius2);
+                    }
+                }
+
+                if (ok1 && ok2) {
                     double dx = center2.x() - center1.x();
                     double dy = center2.y() - center1.y();
                     double centerDistance = std::sqrt(dx * dx + dy * dy);
+                    QString deltaXText = formatSignedDistance(dx);
+                    QString deltaYText = formatSignedDistance(dy);
 
                     // 绘制连线并标注
                     LineSegmentObject segment;
@@ -4245,7 +4464,10 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     segment.isDashed = true;
                     segment.isVisible = true;
                     segment.length = centerDistance;
-                    segment.label = QString("圆心距: %1").arg(formatDistance(centerDistance));
+                    segment.label = QString("圆心距: %1\nΔx: %2, Δy: %3")
+                                        .arg(formatDistance(centerDistance))
+                                        .arg(deltaXText)
+                                        .arg(deltaYText);
 
                     m_lineSegments.append(segment);
 
@@ -4255,7 +4477,10 @@ void PaintingOverlay::performComplexMeasurement(const QString& measurementType)
                     action.index = m_lineSegments.size() - 1;
                     commitDrawingAction(action);
 
-                    QString result = QString("圆与圆圆心距离: %1").arg(formatDistance(centerDistance));
+                    QString result = QString("圆与圆圆心距离: %1\nΔx: %2, Δy: %3")
+                                         .arg(formatDistance(centerDistance))
+                                         .arg(deltaXText)
+                                         .arg(deltaYText);
                     emit measurementCompleted(m_viewName, result);
 
                     clearSelection();
@@ -6367,6 +6592,18 @@ void PaintingOverlay::updateAllMeasurementLabels()
                 }
                 continue;
             }
+            if (labelContent.contains("圆心距:")) {
+                QPointF delta = lineSegment.points[1] - lineSegment.points[0];
+                double dx = delta.x();
+                double dy = delta.y();
+                double distance = std::sqrt(dx * dx + dy * dy);
+                QString updatedLabel = QString("圆心距: %1\nΔx: %2, Δy: %3")
+                                           .arg(formatDistance(distance))
+                                           .arg(formatSignedDistance(dx))
+                                           .arg(formatSignedDistance(dy));
+                lineSegment.label = hasCalibrationPrefix ? kCalibrationLabelPrefix + updatedLabel : updatedLabel;
+                continue;
+            }
             // 根据原标签判断是距离还是长度
             if (labelContent.contains("距离:")) {
                 QString updatedLabel = QString("距离: %1").arg(formatDistance(pixelLength));
@@ -6805,6 +7042,19 @@ QString PaintingOverlay::formatDistance(double pixelDistance) const
         double displayPixels = pixelDistance * ratio;
         return QString("%1 像素").arg(displayPixels, 0, 'f', 1);
     }
+}
+
+QString PaintingOverlay::formatSignedDistance(double pixelDelta) const
+{
+    if (std::abs(pixelDelta) < 1e-9) {
+        return formatDistance(0.0);
+    }
+
+    const QString formatted = formatDistance(std::abs(pixelDelta));
+    if (pixelDelta < 0.0) {
+        return "-" + formatted;
+    }
+    return formatted;
 }
 
 QString PaintingOverlay::formatCoordinate(const QPointF& pixelCoord) const
