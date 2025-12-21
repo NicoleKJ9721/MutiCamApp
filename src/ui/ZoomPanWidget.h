@@ -21,7 +21,7 @@ class QMouseEvent;
  * 包装VideoDisplayWidget，提供缩放和平移功能：
  * - 鼠标滚轮缩放
  * - 键盘方向键平移
- * - 空格+鼠标左键平移
+ * - 鼠标左键拖拽平移（空格可选）
  * - 坐标转换接口
  */
 class ZoomPanWidget : public QWidget

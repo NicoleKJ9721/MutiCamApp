@@ -601,6 +601,8 @@ private:
     bool m_isHoveringConfirmButton;   // 是否悬浮在确认按钮上
     bool m_isHoveringCancelButton;    // 是否悬浮在取消按钮上
     bool m_isHoveringRotationHandle;  // 是否悬浮在旋转按钮上
+    bool m_panDragPending;            // 是否等待触发平移拖拽
+    QPoint m_panDragStartPos;         // 平移拖拽起点（控件坐标）
 
     // 鼠标预览位置
     QPointF m_currentMousePos;

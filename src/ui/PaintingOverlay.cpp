@@ -133,6 +133,8 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     , m_isHoveringConfirmButton(false)
     , m_isHoveringCancelButton(false)
     , m_isHoveringRotationHandle(false)
+    , m_panDragPending(false)
+    , m_panDragStartPos(0, 0)
     , m_hasValidMousePos(false)
     , m_selectionEnabled(true)
     , m_drawingContextValid(false)
@@ -503,6 +505,8 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         return;
     }
 
+    m_panDragPending = false;
+
     // 设置焦点到当前overlay，以便getActivePaintingOverlay能正确识别
     setFocus();
 
@@ -567,6 +571,12 @@ void PaintingOverlay::mousePressEvent(QMouseEvent *event)
         }
         emit pointPicked(m_viewName, imagePos);
         return;
+    }
+
+    if (zoomPanWidget && zoomPanWidget->isPanEnabled() &&
+        !m_isDrawingMode && !m_roiCreationMode) {
+        m_panDragPending = true;
+        m_panDragStartPos = event->pos();
     }
 
     if (m_selectionEnabled && !m_roiCreationMode) {
@@ -663,6 +673,24 @@ void PaintingOverlay::mouseMoveEvent(QMouseEvent *event)
         // 平移模式时，将鼠标事件传递给ZoomPanWidget
         QApplication::sendEvent(zoomPanWidget, event);
         return;
+    }
+
+    if (zoomPanWidget && m_panDragPending &&
+        (event->buttons() & Qt::LeftButton) &&
+        zoomPanWidget->isPanEnabled() &&
+        !m_isDrawingMode && !m_roiCreationMode) {
+        const int threshold = QApplication::startDragDistance();
+        if ((event->pos() - m_panDragStartPos).manhattanLength() >= threshold) {
+            m_panDragPending = false;
+            QMouseEvent pressEvent(QEvent::MouseButtonPress,
+                                   m_panDragStartPos,
+                                   Qt::LeftButton,
+                                   Qt::LeftButton,
+                                   event->modifiers());
+            QApplication::sendEvent(zoomPanWidget, &pressEvent);
+            QApplication::sendEvent(zoomPanWidget, event);
+            return;
+        }
     }
 
     // 事件节流：限制更新频率以提升性能
@@ -829,6 +857,8 @@ void PaintingOverlay::mouseReleaseEvent(QMouseEvent *event)
         QApplication::sendEvent(zoomPanWidget, event);
         return;
     }
+
+    m_panDragPending = false;
 
     // 只处理左键释放
     if (event->button() != Qt::LeftButton) {

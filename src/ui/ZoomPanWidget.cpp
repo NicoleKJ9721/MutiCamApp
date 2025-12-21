@@ -46,7 +46,7 @@ ZoomPanWidget::ZoomPanWidget(QWidget *parent)
     setToolTip("缩放平移操作说明：\n"
                "• 鼠标滚轮：缩放视图\n"
                "• 方向键：平移视图（需要先缩放）\n"
-               "• 空格+鼠标左键：拖拽平移\n"
+               "• 鼠标左键拖拽：平移（空格可选）\n"
                "• 点击'重置缩放'按钮恢复默认视图");
 }
 
@@ -407,7 +407,7 @@ void ZoomPanWidget::mousePressEvent(QMouseEvent* event)
     // 确保获得焦点以接收键盘事件
     setFocus();
 
-    if (event->button() == Qt::LeftButton && m_spacePressed && m_panEnabled) {
+    if (event->button() == Qt::LeftButton && m_panEnabled) {
         // 开始平移
         m_isPanning = true;
         m_lastPanPoint = event->pos();
@@ -427,7 +427,7 @@ void ZoomPanWidget::mousePressEvent(QMouseEvent* event)
 
 void ZoomPanWidget::mouseMoveEvent(QMouseEvent* event)
 {
-    if (m_isPanning && m_spacePressed && m_panEnabled) {
+    if (m_isPanning && m_panEnabled) {
         // 执行平移
         QPoint delta = event->pos() - m_lastPanPoint;
         performPan(delta.x(), delta.y());
