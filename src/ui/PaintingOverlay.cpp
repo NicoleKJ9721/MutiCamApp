@@ -1864,6 +1864,17 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
                 painter.setPen(solidLinePen);
             }
             painter.drawLine(extStart1, extEnd1);
+
+            if (!parallel.isCompleted && parallel.points.size() <= 2) {
+                double angle = calculateLineAngle(p1, p2);
+                QString angleText = QString::asprintf("%.2f°", angle);
+                double angleTextOffsetValue = qMax(8.0, ctx.fontSize * 0.4);
+                QFontMetrics fm(ctx.font);
+                QRect textBoundingRect = fm.boundingRect(angleText);
+                double bgHeight = textBoundingRect.height() + 2 * textPadding;
+                QPointF angleTextOffset(angleTextOffsetValue, -angleTextOffsetValue - bgHeight);
+                drawTextWithBackground(painter, p1, angleText, ctx.font, parallel.color, Qt::black, textPadding, bgBorderWidth, angleTextOffset);
+            }
         }
     }
     
@@ -2043,6 +2054,17 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
                 painter.setPen(dashedLinePen);
             }
             painter.drawLine(extStart1, extEnd1);
+
+            if (!twoLines.isCompleted && twoLines.points.size() == 1 && m_hasValidMousePos) {
+                double angle = calculateLineAngle(p1, p2);
+                QString angleText = QString::asprintf("%.2f°", angle);
+                double angleTextOffsetValue = qMax(8.0, ctx.fontSize * 0.4);
+                QFontMetrics fm(ctx.font);
+                QRect textBoundingRect = fm.boundingRect(angleText);
+                double bgHeight = textBoundingRect.height() + 2 * textPadding;
+                QPointF angleTextOffset(angleTextOffsetValue, -angleTextOffsetValue - bgHeight);
+                drawTextWithBackground(painter, p1, angleText, ctx.font, twoLines.color, Qt::black, textPadding, bgBorderWidth, angleTextOffset);
+            }
         }
     }
     
@@ -2076,6 +2098,45 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
                 painter.setPen(dashedLinePen);
             }
             painter.drawLine(extStart2, extEnd2);
+
+            if (!twoLines.isCompleted && twoLines.points.size() == 3 && m_hasValidMousePos) {
+                QPointF intersection;
+                if (calculateLineIntersection(twoLines.points[0], twoLines.points[1], start2, end2, intersection)) {
+                    double angle1 = calculateLineAngle(twoLines.points[0], twoLines.points[1]);
+                    double angle2 = calculateLineAngle(start2, end2);
+                    double angleDiff = abs(angle1 - angle2);
+                    if (angleDiff > 180) {
+                        angleDiff = 360 - angleDiff;
+                    }
+
+                    painter.setPen(Qt::NoPen);
+                    painter.setBrush(QBrush(Qt::red));
+                    painter.drawEllipse(intersection, intersectionRadius, intersectionRadius);
+
+                    QString angleText = QString::asprintf("%.2f°", angleDiff);
+                    double angleTextOffsetValue = qMax(8.0, ctx.fontSize * 0.4);
+                    double angleTextPadding = qMax(4.0, ctx.fontSize * 0.5);
+                    int angleBgBorderWidth = 1;
+                    QPointF textAnchorPoint = intersection;
+                    QSize widgetSize = size();
+
+                    if (!widgetSize.isEmpty()) {
+                        QPointF widgetIntersection = imageToWidget(intersection);
+                        bool intersectionInView = (widgetIntersection.x() >= 0 && widgetIntersection.x() <= widgetSize.width() &&
+                                                   widgetIntersection.y() >= 0 && widgetIntersection.y() <= widgetSize.height());
+
+                        if (!intersectionInView) {
+                            QPointF line1Center = (twoLines.points[0] + twoLines.points[1]) / 2.0;
+                            QPointF line2Center = (start2 + end2) / 2.0;
+                            textAnchorPoint = (line1Center + line2Center) / 2.0;
+                        }
+                    }
+
+                    QPointF angleTextOffset(angleTextOffsetValue, -angleTextOffsetValue);
+                    QRectF angleTextRect = calculateTextWithBackgroundRect(textAnchorPoint, angleText, ctx.font, angleTextPadding, angleTextOffset);
+                    drawTextInRect(painter, angleTextRect, angleText, ctx.font, twoLines.color, Qt::black, angleBgBorderWidth);
+                }
+            }
         }
     }
     
