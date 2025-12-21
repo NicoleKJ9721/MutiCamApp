@@ -221,6 +221,7 @@ void PaintingOverlay::startDrawing(DrawingTool tool)
     m_hasCurrentTwoLines = false;
     m_hasCurrentROI = false;
     m_currentPoints.clear();
+    clearCurrentFineCircleData();
 
     setCursor(Qt::CrossCursor);
     update();
@@ -236,6 +237,7 @@ void PaintingOverlay::stopDrawing()
     m_hasCurrentCircle = false;
     m_hasCurrentParallel = false;
     m_hasCurrentTwoLines = false;
+    clearCurrentFineCircleData();
     // 注意：不清除m_hasCurrentROI，因为它用于ROI创建模式
     m_hasCurrentROIDetection = false; // 只清除ROI检测相关的状态
     m_currentPoints.clear();
