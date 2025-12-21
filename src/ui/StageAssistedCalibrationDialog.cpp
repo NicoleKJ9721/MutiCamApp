@@ -62,9 +62,10 @@ void StageAssistedCalibrationDialog::initializeUI()
     form->addRow("视图：", m_viewLabel);
 
     m_modeCombo = new QComboBox(this);
-    m_modeCombo->addItem("特征点", static_cast<int>(CalibrationMode::Point));
     m_modeCombo->addItem("圆标定", static_cast<int>(CalibrationMode::Circle));
     m_modeCombo->addItem("平行线标定", static_cast<int>(CalibrationMode::ParallelLine));
+    m_modeCombo->addItem("特征点（自动识别，可能有误差）", static_cast<int>(CalibrationMode::Point));
+    m_modeCombo->setCurrentIndex(0);
     form->addRow("标定方式：", m_modeCombo);
 
     m_axisCombo = new QComboBox(this);

@@ -101,6 +101,7 @@ QGroupBox* CalibrationDialog::createMethodGroup()
     stageAssistedDesc->setStyleSheet("color: #666;");
     stageAssistedDesc->setWordWrap(true);
     m_methodButtonGroup->addButton(m_stageAssistedRadio, static_cast<int>(StageAssisted));
+    m_stageAssistedRadio->setChecked(true);
     
     // 添加到布局
     layout->addWidget(m_stageAssistedRadio);
