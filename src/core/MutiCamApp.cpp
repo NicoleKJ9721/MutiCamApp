@@ -1728,9 +1728,9 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
             QString promptText;
             QString statusText;
             if (m_stageCalib.mode == StageAssistedMode::Circle) {
-                promptText = QString("载物台已运动完成，请在视图 %1 绘制移动后的圆…").arg(m_stageCalib.viewName);
-                statusText = QString("载物台辅助标定：请在视图 %1 绘制移动后的圆").arg(m_stageCalib.viewName);
-                m_stageCalib.overlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+                promptText = QString("载物台已运动完成，请在视图 %1 绘制移动后的精细圆…").arg(m_stageCalib.viewName);
+                statusText = QString("载物台辅助标定：请在视图 %1 绘制移动后的精细圆").arg(m_stageCalib.viewName);
+                m_stageCalib.overlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
             } else {
                 promptText = QString("载物台已运动完成，请在视图 %1 绘制移动后的平行线…").arg(m_stageCalib.viewName);
                 statusText = QString("载物台辅助标定：请在视图 %1 绘制移动后的平行线").arg(m_stageCalib.viewName);
@@ -4458,8 +4458,8 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
     QString promptText;
     QString statusText;
     if (m_stageCalib.mode == StageAssistedMode::Circle) {
-        promptText = QString("请在视图 %1 的画面中绘制一个圆…").arg(m_stageCalib.viewName);
-        statusText = QString("载物台辅助标定：请在视图 %1 绘制一个圆").arg(m_stageCalib.viewName);
+        promptText = QString("请在视图 %1 的画面中绘制一个精细圆…").arg(m_stageCalib.viewName);
+        statusText = QString("载物台辅助标定：请在视图 %1 绘制一个精细圆").arg(m_stageCalib.viewName);
     } else if (m_stageCalib.mode == StageAssistedMode::ParallelLine) {
         promptText = QString("请在视图 %1 的画面中绘制一条直线…").arg(m_stageCalib.viewName);
         statusText = QString("载物台辅助标定：请在视图 %1 绘制一条直线").arg(m_stageCalib.viewName);
@@ -4476,7 +4476,7 @@ void MutiCamApp::startStageAssistedCalibration(PaintingOverlay* overlay)
     if (m_stageCalib.mode == StageAssistedMode::Point) {
         overlay->startPointPick("stage_assisted_calibration_before");
     } else if (m_stageCalib.mode == StageAssistedMode::Circle) {
-        overlay->startDrawing(PaintingOverlay::DrawingTool::Circle);
+        overlay->startDrawing(PaintingOverlay::DrawingTool::FineCircle);
     } else if (m_stageCalib.mode == StageAssistedMode::ParallelLine) {
         overlay->startDrawing(PaintingOverlay::DrawingTool::Line);
     }
@@ -4657,13 +4657,13 @@ void MutiCamApp::onStageAssistedDrawingCompleted(const QString& viewName)
     };
 
     if (m_stageCalib.mode == StageAssistedMode::Circle) {
-        if (action.type != PaintingOverlay::DrawingAction::AddCircle) {
+        if (action.type != PaintingOverlay::DrawingAction::AddFineCircle) {
             return;
         }
-        if (action.index < 0 || action.index >= state.circles.size()) {
+        if (action.index < 0 || action.index >= state.fineCircles.size()) {
             return;
         }
-        const auto& circle = state.circles[action.index];
+        const auto& circle = state.fineCircles[action.index];
         if (!circle.isCompleted || circle.radius <= 0.5) {
             statusBar()->showMessage("圆形过小，请重新绘制", 5000);
             return;
