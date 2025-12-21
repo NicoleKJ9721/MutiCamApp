@@ -1448,7 +1448,18 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
             normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
         }
     }
-    const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+    BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+
+    // 如果进行了水平翻转，Bayer格式也会发生改变，需要调整BayerPattern以保证颜色正确
+    if (cameraId == "front") {
+        switch (bayerPattern) {
+        case BayerPattern::GB: bayerPattern = BayerPattern::BG; break;
+        case BayerPattern::GR: bayerPattern = BayerPattern::RG; break;
+        case BayerPattern::RG: bayerPattern = BayerPattern::GR; break;
+        case BayerPattern::BG: bayerPattern = BayerPattern::GB; break;
+        default: break;
+        }
+    }
 
     struct PreviewResult {
         QPixmap pixmap;
