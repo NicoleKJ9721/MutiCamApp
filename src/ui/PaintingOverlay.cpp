@@ -1535,11 +1535,9 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(circle.thickness));
     double innerScreenRadius = markerBase;
-    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
     
     // 统一计算所有动态尺寸参数
     double pointInnerRadius = innerScreenRadius / ctx.scale;
-    double pointOuterRadius = outerScreenRadius / ctx.scale;
     int pointPenWidth = qMax(1, static_cast<int>(markerBase));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
@@ -1551,15 +1549,9 @@ void PaintingOverlay::drawSingleCircle(QPainter& painter, const CircleObject& ci
         for (int i = 0; i < circle.points.size(); ++i) {
             const QPointF& imagePos = circle.points[i];
             
-            // 绘制点 - 实心圆 + 空心圆环 - 使用绿色
             painter.setPen(Qt::NoPen);
             painter.setBrush(ctx.greenBrush);
             painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
-            
-            // 绘制空心圆环
-            painter.setPen(ctx.greenPen);
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
             
             // 显示序号
             QString pointText = QString::number(i + 1);
@@ -1670,9 +1662,7 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
     // 计算动态尺寸参数
     double markerBase = qMax(1.0, static_cast<double>(fineCircle.thickness));
     double innerScreenRadius = markerBase;
-    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
     double pointInnerRadius = innerScreenRadius / ctx.scale;
-    double pointOuterRadius = outerScreenRadius / ctx.scale;
     double textOffset = qMax(8.0, ctx.fontSize * 0.4);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -1683,15 +1673,9 @@ void PaintingOverlay::drawSingleFineCircle(QPainter& painter, const FineCircleOb
         for (int i = 0; i < fineCircle.points.size(); ++i) {
             const QPointF& imagePos = fineCircle.points[i];
             
-            // 绘制点 - 实心圆 + 空心圆环
             painter.setPen(Qt::NoPen);
             painter.setBrush(ctx.redBrush);
             painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
-            
-            // 绘制空心圆环
-            painter.setPen(ctx.redPen);
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
             
             // 显示序号
             QString pointText = QString::number(i + 1);
@@ -1761,9 +1745,7 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(parallel.thickness));
     double innerScreenRadius = markerBase;
-    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
     double pointInnerRadius = innerScreenRadius / ctx.scale;
-    double pointOuterRadius = outerScreenRadius / ctx.scale;
     int pointPenWidth = qMax(1, static_cast<int>(markerBase));
     double textOffset = qMax(10.0, ctx.fontSize * 0.5);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
@@ -1785,31 +1767,14 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
             bool isPreviewPoint = (i == 2 && parallel.isPreview);
 
             if (isPreviewPoint) {
-                // 预览点使用虚线样式的圆环，不显示序号
-                // 使用绿色画笔（虚线版本）
-                painter.setPen(ctx.greenPen);
-                painter.setBrush(Qt::NoBrush);
-                painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(ctx.greenBrush);
+                painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
             } else {
-                // 正常点：绘制实心圆 + 空心圆环 + 序号
                 painter.setPen(Qt::NoPen);
                 // 使用绿色画刷
                 painter.setBrush(ctx.greenBrush);
                 painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
-                
-                // 绘制空心圆环
-                // 根据颜色选择合适的画笔
-                if (parallel.color == Qt::red) {
-                    painter.setPen(ctx.redPen);
-                } else if (parallel.color == Qt::green) {
-                    painter.setPen(ctx.greenPen);
-                } else if (parallel.color == Qt::blue) {
-                    painter.setPen(ctx.bluePen);
-                } else {
-                    painter.setPen(ctx.blackPen);
-                }
-                painter.setBrush(Qt::NoBrush);
-                painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
                 
                 // 绘制点的序号（不带背景）
                 QString pointText = QString::number(i + 1);
@@ -1824,13 +1789,9 @@ void PaintingOverlay::drawSingleParallel(QPainter& painter, const ParallelObject
         // 当有2个点时，显示第三个点的预览
         if (parallel.points.size() == 2 && m_hasValidMousePos) {
             const QPointF& previewPos = m_currentMousePos;
-            
-            // 绘制预览点 - 使用虚线样式的圆环，不显示序号
-            // 根据颜色选择合适的画笔（虚线版本）
-            // 使用绿色画笔
-            painter.setPen(ctx.greenPen);
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(previewPos, pointOuterRadius, pointOuterRadius);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(ctx.greenBrush);
+            painter.drawEllipse(previewPos, pointInnerRadius, pointInnerRadius);
         }
     }
     
@@ -1978,9 +1939,7 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
     double fontSize = ctx.fontSize;
     double markerBase = qMax(1.0, static_cast<double>(twoLines.thickness));
     double innerScreenRadius = markerBase;
-    double outerScreenRadius = qMax(innerScreenRadius + 1.0, markerBase * 2.0);
     double pointInnerRadius = innerScreenRadius / ctx.scale;
-    double pointOuterRadius = outerScreenRadius / ctx.scale;
     double textOffset = qMax(10.0, 15.0 * ctx.scale);
     double textPadding = qMax(4.0, ctx.fontSize * 0.5);  // 动态padding，字体大小的一半
     int bgBorderWidth = 1;
@@ -2001,17 +1960,12 @@ void PaintingOverlay::drawSingleTwoLines(QPainter& painter, const TwoLinesObject
         for (int i = 0; i < twoLines.points.size(); ++i) {
             const QPointF& imagePos = twoLines.points[i];
             
-            // 绘制点 - 实心圆 + 空心圆环 - 直接使用期望的屏幕像素值
             painter.setPen(Qt::NoPen);
             // 使用绿色画刷
             painter.setBrush(ctx.greenBrush);
             painter.drawEllipse(imagePos, pointInnerRadius, pointInnerRadius);
             
-            // 绘制空心圆环
             // 使用绿色画笔
-            painter.setPen(ctx.greenPen);
-            painter.setBrush(Qt::NoBrush);
-            painter.drawEllipse(imagePos, pointOuterRadius, pointOuterRadius);
             
             // 绘制点的序号（与drawSingleParallel保持一致，不带背景）
             QString pointText = QString::number(i + 1);
