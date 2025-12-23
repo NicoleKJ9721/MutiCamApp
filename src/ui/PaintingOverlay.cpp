@@ -22,6 +22,7 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QPair>
+#include <QPixmap>
 #include <algorithm>
 #include <cmath>
 #include <opencv2/opencv.hpp>
@@ -41,6 +42,26 @@ using namespace HalconCpp;
 #endif
 
 namespace {
+QCursor createThinCrossCursor()
+{
+    const int size = 17;
+    QPixmap pixmap(size, size);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+
+    const int center = size / 2;
+    painter.drawLine(center, 0, center, size - 1);
+    painter.drawLine(0, center, size - 1, center);
+    painter.end();
+
+    return QCursor(pixmap, center, center);
+}
+
 static const QString kCalibrationLabelPrefix = QStringLiteral("标定结果：");
 
 QString resolveRuntimePath(const QString& relativePath)
@@ -170,6 +191,8 @@ PaintingOverlay::PaintingOverlay(QWidget *parent)
     // 设置焦点策略，使PaintingOverlay能够接收焦点
     setFocusPolicy(Qt::ClickFocus);
 
+    m_thinCrossCursor = createThinCrossCursor();
+
     // 初始化图像处理对象
     m_edgeDetector = new EdgeDetector();
     m_shapeDetector = new ShapeDetector();
@@ -226,7 +249,7 @@ void PaintingOverlay::startDrawing(DrawingTool tool)
     m_currentPoints.clear();
     clearCurrentFineCircleData();
 
-    setCursor(Qt::CrossCursor);
+    setCursor(m_thinCrossCursor);
     update();
 }
 
@@ -642,7 +665,7 @@ void PaintingOverlay::startPointPick(const QString& purpose)
 
     m_pointPickPrevCursor = cursor();
     m_hasPointPickPrevCursor = true;
-    setCursor(Qt::CrossCursor);
+    setCursor(m_thinCrossCursor);
 }
 
 void PaintingOverlay::cancelPointPick()

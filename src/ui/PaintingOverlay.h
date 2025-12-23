@@ -659,6 +659,7 @@ private:
     // 单次点选模式（不影响绘制/选择模式，只拦截一次左键点击）
     bool m_isPointPickMode = false;
     QString m_pointPickPurpose;
+    QCursor m_thinCrossCursor;
     QCursor m_pointPickPrevCursor;
     bool m_hasPointPickPrevCursor = false;
 
