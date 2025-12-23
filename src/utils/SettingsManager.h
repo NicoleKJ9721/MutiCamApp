@@ -151,7 +151,7 @@ public:
             uiHeight(700),
 
             // 拍照参数预设默认值
-            captureFormat("PNG"),
+            captureFormat("BMP"),
             imageQuality("无损最高质量"),
 
             // 载物台运动参数默认值

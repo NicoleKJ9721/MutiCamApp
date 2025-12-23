@@ -7305,7 +7305,10 @@ void MutiCamApp::resetCapturePreset()
     qDebug() << "重置拍照参数预设";
 
     // 重置为默认值
-    ui->comboBoxCaptureFormat->setCurrentIndex(0); // PNG
+    const int bmpIndex = ui->comboBoxCaptureFormat->findText("BMP");
+    if (bmpIndex >= 0) {
+        ui->comboBoxCaptureFormat->setCurrentIndex(bmpIndex);
+    }
     ui->comboBoxImageQuality->setCurrentIndex(0);  // 无损最高质量
 
     // 保存重置后的设置
