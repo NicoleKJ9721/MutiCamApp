@@ -3198,16 +3198,6 @@ void MutiCamApp::saveImages(const QString& viewType)
         qDebug() << "  - 图像为空：" << (frameToSave.empty() ? "是" : "否");
         qDebug() << "  - 数据指针：" << (frameToSave.data ? "有效" : "无效");
 
-        // 尝试使用英文路径测试OpenCV
-        QString testPath = QString("D:/test_%1.jpg").arg(QDateTime::currentDateTime().toString("hhmmss"));
-        qDebug() << "  - 测试英文路径：" << testPath;
-        bool testResult = cv::imwrite(testPath.toLocal8Bit().toStdString(), frameToSave);
-        qDebug() << "  - 英文路径保存结果：" << (testResult ? "成功" : "失败");
-        if (testResult && QFile::exists(testPath)) {
-            QFile::remove(testPath); // 清理测试文件
-            qDebug() << "  - 确认：OpenCV功能正常，问题可能是中文路径";
-        }
-
         // 测试不同的路径编码方式
         qDebug() << "  - 测试路径编码方式：";
         qDebug() << "    * toStdString():" << QString::fromStdString(originPath.toStdString());
@@ -3977,24 +3967,20 @@ cv::Mat MutiCamApp::renderVisualizedImage(const cv::Mat& originalFrame, Painting
 
         // 创建一个QImage用于绘制
         qDebug() << "开始创建QImage，通道数：" << visualFrame.channels();
-        QImage qimg;
         if (visualFrame.channels() == 1) {
             qDebug() << "原始图像为灰度，将灰度扩展为三通道以保留彩色叠加";
             cv::cvtColor(visualFrame, visualFrame, cv::COLOR_GRAY2BGR);
         }
 
+        QImage qimg;
         if (visualFrame.channels() == 3) {
-            qDebug() << "处理3通道图像（BGR转RGB）";
-            // BGR转RGB
-            cv::cvtColor(visualFrame, visualFrame, cv::COLOR_BGR2RGB);
-            // 使用copy构造，确保数据安全
+            qDebug() << "处理3通道图像（BGR）";
             qimg = QImage(visualFrame.data, visualFrame.cols, visualFrame.rows,
-                         visualFrame.step, QImage::Format_RGB888).copy();
+                          visualFrame.step, QImage::Format_BGR888);
         } else if (visualFrame.channels() == 1) {
             qDebug() << "处理1通道图像（灰度）";
-            // 使用copy构造，确保数据安全
             qimg = QImage(visualFrame.data, visualFrame.cols, visualFrame.rows,
-                         visualFrame.step, QImage::Format_Grayscale8).copy();
+                          visualFrame.step, QImage::Format_Grayscale8);
         } else {
             qDebug() << "错误：不支持的图像格式，通道数：" << visualFrame.channels();
             return cv::Mat();
@@ -4017,17 +4003,16 @@ cv::Mat MutiCamApp::renderVisualizedImage(const cv::Mat& originalFrame, Painting
         qDebug() << "开始将QImage转换回cv::Mat";
         cv::Mat result;
         try {
-            if (qimg.format() == QImage::Format_RGB888) {
-                qDebug() << "转换RGB888格式";
-                // 确保使用clone()创建独立的数据副本
+            if (qimg.format() == QImage::Format_BGR888) {
+                qDebug() << "转换BGR888格式";
+                // Ensure clone() so the result owns its buffer.
                 result = cv::Mat(qimg.height(), qimg.width(), CV_8UC3,
-                               (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
-                cv::cvtColor(result, result, cv::COLOR_RGB2BGR);
+                                 (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
             } else if (qimg.format() == QImage::Format_Grayscale8) {
                 qDebug() << "转换灰度格式";
-                // 确保使用clone()创建独立的数据副本
+                // Ensure clone() so the result owns its buffer.
                 result = cv::Mat(qimg.height(), qimg.width(), CV_8UC1,
-                               (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
+                                 (void*)qimg.constBits(), qimg.bytesPerLine()).clone();
             } else {
                 qDebug() << "错误：不支持的QImage格式：" << qimg.format();
                 return cv::Mat();
