@@ -1591,14 +1591,20 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
                 outH = std::max(64, static_cast<int>(std::lround(outH * scale)));
             }
 
+
             cv::Mat roi = actualFrame(cv::Rect(rx0, ry0, rw, rh));
             cv::Mat bgr;
             if (isBayer) {
-                const int cvtCode = getCachedBayerToBgrCodeForCamera(cameraId, actualFrame, bayerPattern);
-                if (cvtCode != 0) {
-                    cv::cvtColor(roi, bgr, cvtCode);
+                // 对于 front 相机，使用与不缩放路径相同的 makeBgrPreviewFromBayer8 以确保颜色一致
+                if (cameraId == "front") {
+                    bgr = makeBgrPreviewFromBayer8(roi, bayerPattern, 1);
                 } else {
-                    return result;
+                    const int cvtCode = getCachedBayerToBgrCodeForCamera(cameraId, actualFrame, bayerPattern);
+                    if (cvtCode != 0) {
+                        cv::cvtColor(roi, bgr, cvtCode);
+                    } else {
+                        return result;
+                    }
                 }
             } else if (roi.channels() == 3) {
                 bgr = roi;
