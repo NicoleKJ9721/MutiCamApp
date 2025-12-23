@@ -80,6 +80,51 @@ BayerPattern parseBayerPattern(const QString& normalizedPixelFormat)
     return BayerPattern::Unknown;
 }
 
+QString bayerPatternKey(BayerPattern pattern)
+{
+    switch (pattern) {
+    case BayerPattern::GB:
+        return "gb";
+    case BayerPattern::GR:
+        return "gr";
+    case BayerPattern::RG:
+        return "rg";
+    case BayerPattern::BG:
+        return "bg";
+    default:
+        return "unknown";
+    }
+}
+
+QString makeBayerCacheKey(const QString& cameraId, BayerPattern pattern)
+{
+    return cameraId + ":" + bayerPatternKey(pattern);
+}
+
+BayerPattern adjustBayerPatternForHorizontalFlip(BayerPattern pattern)
+{
+    switch (pattern) {
+    case BayerPattern::GB:
+        return BayerPattern::BG;
+    case BayerPattern::GR:
+        return BayerPattern::RG;
+    case BayerPattern::RG:
+        return BayerPattern::GR;
+    case BayerPattern::BG:
+        return BayerPattern::GB;
+    default:
+        return pattern;
+    }
+}
+
+BayerPattern adjustBayerPatternForCamera(const QString& cameraId, BayerPattern pattern)
+{
+    if (cameraId == "front") {
+        return adjustBayerPatternForHorizontalFlip(pattern);
+    }
+    return pattern;
+}
+
 bool isBayerFormat(const QString& normalizedPixelFormat)
 {
     return parseBayerPattern(normalizedPixelFormat) != BayerPattern::Unknown;
@@ -315,16 +360,17 @@ int getCachedBayerToBgrCodeForCamera(const QString& cameraId,
                                      const cv::Mat& bayer8,
                                      BayerPattern referencePattern)
 {
-    static QHash<QString, int> s_cachedCodeByCameraId;
+    static QHash<QString, int> s_cachedCodeByKey;
+    const QString key = makeBayerCacheKey(cameraId, referencePattern);
 
-    const auto it = s_cachedCodeByCameraId.constFind(cameraId);
-    if (it != s_cachedCodeByCameraId.constEnd() && it.value() != 0) {
+    const auto it = s_cachedCodeByKey.constFind(key);
+    if (it != s_cachedCodeByKey.constEnd() && it.value() != 0) {
         return it.value();
     }
 
     const int guessed = guessOpenCvBayerToBgrCodeByReference(bayer8, referencePattern);
     if (guessed != 0) {
-        s_cachedCodeByCameraId.insert(cameraId, guessed);
+        s_cachedCodeByKey.insert(key, guessed);
     }
     return guessed;
 }
@@ -1449,17 +1495,7 @@ void MutiCamApp::onCameraFrameReady(const QString& cameraId, const cv::Mat& fram
         }
     }
     BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
-
-    // 如果进行了水平翻转，Bayer格式也会发生改变，需要调整BayerPattern以保证颜色正确
-    if (cameraId == "front") {
-        switch (bayerPattern) {
-        case BayerPattern::GB: bayerPattern = BayerPattern::BG; break;
-        case BayerPattern::GR: bayerPattern = BayerPattern::RG; break;
-        case BayerPattern::RG: bayerPattern = BayerPattern::GR; break;
-        case BayerPattern::BG: bayerPattern = BayerPattern::GB; break;
-        default: break;
-        }
-    }
+    bayerPattern = adjustBayerPatternForCamera(cameraId, bayerPattern);
 
     struct PreviewResult {
         QPixmap pixmap;
@@ -2354,16 +2390,16 @@ void MutiCamApp::initializeZoomPanWidgets()
 
     // 启用水平视图的变倍比作弊功能 (12:1)
     // 当测量对象像素尺寸较大（高倍率）时，自动放大测量结果
-    m_leftPaintingOverlay->setZoomCheatEnabled(true);
-    m_frontPaintingOverlay->setZoomCheatEnabled(true);
+    // m_leftPaintingOverlay->setZoomCheatEnabled(true);
+    // m_frontPaintingOverlay->setZoomCheatEnabled(true);
 
     m_verticalPaintingOverlay2->setViewName("Vertical2");
     m_leftPaintingOverlay2->setViewName("Left2");
     m_frontPaintingOverlay2->setViewName("Front2");
 
     // 选项卡视图也同样启用
-    m_leftPaintingOverlay2->setZoomCheatEnabled(true);
-    m_frontPaintingOverlay2->setZoomCheatEnabled(true);
+    // m_leftPaintingOverlay2->setZoomCheatEnabled(true);
+    // m_frontPaintingOverlay2->setZoomCheatEnabled(true);
 
     // 加载标定参数
     loadCalibrationSettings();
@@ -2533,7 +2569,8 @@ void MutiCamApp::updateZoomPanWidget(const QString& viewName, const cv::Mat& fra
             normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
         }
     }
-    const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+    BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+    bayerPattern = adjustBayerPatternForCamera(cameraId, bayerPattern);
 
     const QSize widgetSize = widget->size();
     const qreal dpr = qApp ? qApp->devicePixelRatio() : 1.0;
@@ -3127,7 +3164,8 @@ void MutiCamApp::saveImages(const QString& viewType)
                 normalizedPixelFormat = normalizePixelFormat(QString::fromStdString(camera->getParams().pixelFormat));
             }
         }
-        const BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+        BayerPattern bayerPattern = parseBayerPattern(normalizedPixelFormat);
+        bayerPattern = adjustBayerPatternForCamera(viewType, bayerPattern);
         if (currentFrame.channels() == 1 && isBayerFormat(normalizedPixelFormat)) {
             const int cvtCode = getCachedBayerToBgrCodeForCamera(viewType, currentFrame, bayerPattern);
             if (cvtCode != 0) {
