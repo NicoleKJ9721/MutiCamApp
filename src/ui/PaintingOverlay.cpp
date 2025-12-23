@@ -2524,6 +2524,12 @@ QPointF PaintingOverlay::imageToWidget(const QPointF& imagePos) const
     return widgetPos;
 }
 
+double PaintingOverlay::screenPixelsToImageTolerance(double screenPixels) const
+{
+    const double safeScale = (m_scaleFactor > 0.0) ? m_scaleFactor : 1.0;
+    return screenPixels / safeScale;
+}
+
 bool PaintingOverlay::isPointInImageBounds(const QPointF& imagePos) const
 {
     // 检查坐标是否在图像范围内
@@ -3712,7 +3718,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
 
 
     // 检查点击是否命中任何对象
-    int pointIndex = hitTestPoint(pos, 30.0); // 增加点的命中容差
+    int pointIndex = hitTestPoint(pos, 8.0); // 固定屏幕像素命中半径
 
     if (pointIndex >= 0) {
 
@@ -3729,10 +3735,10 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         foundSelection = true;
     } else {
         QPointF center;
-        int circleCenterIndex = hitTestCircleCenter(pos, center, 30.0, false);
+        int circleCenterIndex = hitTestCircleCenter(pos, center, 8.0, false); // 固定屏幕像素命中半径
         int fineCircleCenterIndex = -1;
         if (circleCenterIndex < 0) {
-            fineCircleCenterIndex = hitTestCircleCenter(pos, center, 30.0, true);
+            fineCircleCenterIndex = hitTestCircleCenter(pos, center, 8.0, true); // 固定屏幕像素命中半径
         }
 
         if (circleCenterIndex >= 0 || fineCircleCenterIndex >= 0) {
@@ -3768,7 +3774,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         }
     }
 
-    int lineIndex = hitTestLine(pos, 20.0); // 增加线的命中容差
+    int lineIndex = hitTestLine(pos, 8.0); // 固定屏幕像素命中半径
     if (lineIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedLines.contains(lineIndex)) {
@@ -3783,7 +3789,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
         foundSelection = true;
     }
     
-    int circleIndex = hitTestCircle(pos, 20.0); // 增加圆的命中容差
+    int circleIndex = hitTestCircle(pos, 8.0); // 固定屏幕像素命中半径
     if (circleIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedCircles.contains(circleIndex)) {
@@ -3799,7 +3805,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试线段
-    int lineSegmentIndex = hitTestLineSegment(pos, 20.0); // 增加线段的命中容差
+    int lineSegmentIndex = hitTestLineSegment(pos, 8.0); // 固定屏幕像素命中半径
     if (lineSegmentIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedLineSegments.contains(lineSegmentIndex)) {
@@ -3815,7 +3821,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试精细圆
-    int fineCircleIndex = hitTestFineCircle(pos, 20.0); // 增加精细圆的命中容差
+    int fineCircleIndex = hitTestFineCircle(pos, 8.0); // 固定屏幕像素命中半径
     if (fineCircleIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedFineCircles.contains(fineCircleIndex)) {
@@ -3831,7 +3837,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试平行线
-    int parallelIndex = hitTestParallel(pos, 20.0); // 增加平行线的命中容差
+    int parallelIndex = hitTestParallel(pos, 8.0); // 固定屏幕像素命中半径
     if (parallelIndex != -1 && !foundSelection) {
         if (parallelIndex < -999) {
             // 这是中线命中，提取实际索引
@@ -3863,7 +3869,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试两线
-    int twoLinesIndex = hitTestTwoLines(pos, 20.0); // 增加两线的命中容差
+    int twoLinesIndex = hitTestTwoLines(pos, 8.0); // 固定屏幕像素命中半径
     if (twoLinesIndex != -1 && !foundSelection) {
         if (twoLinesIndex < -1999) {
             // 这是角平分线命中，提取实际索引
@@ -3895,7 +3901,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试线段夹角
-    int lineSegmentAngleIndex = hitTestLineSegmentAngle(pos, 10.0);
+    int lineSegmentAngleIndex = hitTestLineSegmentAngle(pos, 8.0);
     if (lineSegmentAngleIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedLineSegmentAngles.contains(lineSegmentAngleIndex)) {
@@ -3911,7 +3917,7 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
     }
 
     // 测试ROI
-    int roiIndex = hitTestROI(pos, 20.0); // 增加ROI的命中容差
+    int roiIndex = hitTestROI(pos, 8.0); // 固定屏幕像素命中半径
     if (roiIndex >= 0 && !foundSelection) {
         if (ctrlPressed) {
             if (m_selectedROIs.contains(roiIndex)) {
@@ -3938,12 +3944,13 @@ void PaintingOverlay::handleSelectionClick(const QPointF& pos, bool ctrlPressed)
 
 int PaintingOverlay::hitTestPoint(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_points.size(); ++i) {
         const PointObject& point = m_points[i];
         if (!point.isVisible) continue;
 
         double distance = sqrt(pow(testPos.x() - point.position.x(), 2) + pow(testPos.y() - point.position.y(), 2));
-        if (distance <= tolerance) {
+        if (distance <= imageTolerance) {
             return i;
         }
     }
@@ -3952,6 +3959,7 @@ int PaintingOverlay::hitTestPoint(const QPointF& testPos, double tolerance) cons
 
 int PaintingOverlay::hitTestCircleCenter(const QPointF& testPos, QPointF& centerOut, double tolerance, bool fineCircle) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     if (fineCircle) {
         for (int i = 0; i < m_fineCircles.size(); ++i) {
             const FineCircleObject& circle = m_fineCircles[i];
@@ -3972,7 +3980,7 @@ int PaintingOverlay::hitTestCircleCenter(const QPointF& testPos, QPointF& center
             if (!hasCircle) continue;
 
             double distance = std::sqrt(std::pow(testPos.x() - center.x(), 2) + std::pow(testPos.y() - center.y(), 2));
-            if (distance <= tolerance) {
+            if (distance <= imageTolerance) {
                 centerOut = center;
                 return i;
             }
@@ -4002,7 +4010,7 @@ int PaintingOverlay::hitTestCircleCenter(const QPointF& testPos, QPointF& center
         }
 
         double distance = std::sqrt(std::pow(testPos.x() - center.x(), 2) + std::pow(testPos.y() - center.y(), 2));
-        if (distance <= tolerance) {
+        if (distance <= imageTolerance) {
             centerOut = center;
             return i;
         }
@@ -4055,12 +4063,13 @@ void PaintingOverlay::removeDerivedPointsForSourceIndices(const QList<int>& remo
 
 int PaintingOverlay::hitTestLine(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_lines.size(); ++i) {
         const LineObject& line = m_lines[i];
         if (!line.isVisible || line.points.size() < 2) continue;
         
         double distance = calculateDistancePointToLine(testPos, line.points[0], line.points[1]);
-        if (distance <= tolerance) {
+        if (distance <= imageTolerance) {
             return i;
         }
     }
@@ -4069,6 +4078,7 @@ int PaintingOverlay::hitTestLine(const QPointF& testPos, double tolerance) const
 
 int PaintingOverlay::hitTestCircle(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_circles.size(); ++i) {
         const CircleObject& circle = m_circles[i];
         if (!circle.isVisible) continue;
@@ -4095,7 +4105,7 @@ int PaintingOverlay::hitTestCircle(const QPointF& testPos, double tolerance) con
 
         double distance = sqrt(pow(testPos.x() - center.x(), 2) + pow(testPos.y() - center.y(), 2));
         // 只有在圆周附近才能选中
-        if (abs(distance - radius) <= tolerance) {
+        if (abs(distance - radius) <= imageTolerance) {
             return i;
         }
     }
@@ -4104,12 +4114,13 @@ int PaintingOverlay::hitTestCircle(const QPointF& testPos, double tolerance) con
 
 int PaintingOverlay::hitTestLineSegment(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_lineSegments.size(); ++i) {
         const LineSegmentObject& lineSegment = m_lineSegments[i];
         if (!lineSegment.isVisible || lineSegment.points.size() < 2) continue;
 
         // 使用新的方法检查点是否在线段范围内（不包括延长线）
-        if (isPointOnLineSegment(testPos, lineSegment.points[0], lineSegment.points[1], tolerance)) {
+        if (isPointOnLineSegment(testPos, lineSegment.points[0], lineSegment.points[1], imageTolerance)) {
             return i;
         }
     }
@@ -4118,13 +4129,14 @@ int PaintingOverlay::hitTestLineSegment(const QPointF& testPos, double tolerance
 
 int PaintingOverlay::hitTestFineCircle(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_fineCircles.size(); ++i) {
         const FineCircleObject& fineCircle = m_fineCircles[i];
         if (!fineCircle.isVisible || !fineCircle.isCompleted) continue;
 
         double distance = sqrt(pow(testPos.x() - fineCircle.center.x(), 2) + pow(testPos.y() - fineCircle.center.y(), 2));
         // 只有在圆周附近才能选中
-        if (abs(distance - fineCircle.radius) <= tolerance) {
+        if (abs(distance - fineCircle.radius) <= imageTolerance) {
             return i;
         }
     }
@@ -4133,6 +4145,7 @@ int PaintingOverlay::hitTestFineCircle(const QPointF& testPos, double tolerance)
 
 int PaintingOverlay::hitTestParallel(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_parallels.size(); ++i) {
         const ParallelObject& parallel = m_parallels[i];
         if (!parallel.isVisible || !parallel.isCompleted) continue;
@@ -4140,7 +4153,7 @@ int PaintingOverlay::hitTestParallel(const QPointF& testPos, double tolerance) c
         // 优先测试中线（如果存在）
         if (parallel.isCompleted && parallel.points.size() >= 3) {
             double distMid = calculateDistancePointToLine(testPos, parallel.midStart, parallel.midEnd);
-            if (distMid <= tolerance) {
+            if (distMid <= imageTolerance) {
                 // 返回一个特殊值表示中线命中：负数表示中线，绝对值-1是索引
                 return -(i + 1000); // 使用1000作为偏移来区分中线
             }
@@ -4149,7 +4162,7 @@ int PaintingOverlay::hitTestParallel(const QPointF& testPos, double tolerance) c
         // 测试第一条线
         if (parallel.points.size() >= 2) {
             double distance1 = calculateDistancePointToLine(testPos, parallel.points[0], parallel.points[1]);
-            if (distance1 <= tolerance) {
+            if (distance1 <= imageTolerance) {
                 return i;
             }
         }
@@ -4160,7 +4173,7 @@ int PaintingOverlay::hitTestParallel(const QPointF& testPos, double tolerance) c
             QPointF parallelStart = parallel.points[2];
             QPointF parallelEnd = parallelStart + direction;
             double distance2 = calculateDistancePointToLine(testPos, parallelStart, parallelEnd);
-            if (distance2 <= tolerance) {
+            if (distance2 <= imageTolerance) {
                 return i;
             }
         }
@@ -4170,6 +4183,7 @@ int PaintingOverlay::hitTestParallel(const QPointF& testPos, double tolerance) c
 
 int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_twoLines.size(); ++i) {
         const TwoLinesObject& twoLines = m_twoLines[i];
         if (!twoLines.isVisible || !twoLines.isCompleted) continue;
@@ -4198,7 +4212,7 @@ int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) c
 
                 // 测试角平分线
                 double distBisector = calculateDistancePointToLine(testPos, bisectorStart, bisectorEnd);
-                if (distBisector <= tolerance) {
+                if (distBisector <= imageTolerance) {
                     // 返回一个特殊值表示角平分线命中：负数表示角平分线，绝对值-1是索引
                     return -(i + 2000); // 使用2000作为偏移来区分角平分线
                 }
@@ -4208,7 +4222,7 @@ int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) c
         // 测试第一条线
         if (twoLines.points.size() >= 2) {
             double distance1 = calculateDistancePointToLine(testPos, twoLines.points[0], twoLines.points[1]);
-            if (distance1 <= tolerance) {
+            if (distance1 <= imageTolerance) {
                 return i;
             }
         }
@@ -4216,7 +4230,7 @@ int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) c
         // 测试第二条线
         if (twoLines.points.size() >= 4) {
             double distance2 = calculateDistancePointToLine(testPos, twoLines.points[2], twoLines.points[3]);
-            if (distance2 <= tolerance) {
+            if (distance2 <= imageTolerance) {
                 return i;
             }
         }
@@ -4226,6 +4240,7 @@ int PaintingOverlay::hitTestTwoLines(const QPointF& testPos, double tolerance) c
 
 int PaintingOverlay::hitTestLineSegmentAngle(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_lineSegmentAngles.size(); ++i) {
         const LineSegmentAngleObject& angleObj = m_lineSegmentAngles[i];
         if (!angleObj.isVisible || !angleObj.isCompleted || angleObj.points.size() < 4) continue;
@@ -4238,13 +4253,13 @@ int PaintingOverlay::hitTestLineSegmentAngle(const QPointF& testPos, double tole
 
         // 测试第一条线段
         double dist1 = calculateDistancePointToLine(testPos, line1Start, line1End);
-        if (dist1 <= tolerance) {
+        if (dist1 <= imageTolerance) {
             return i;
         }
 
         // 测试第二条线段
         double dist2 = calculateDistancePointToLine(testPos, line2Start, line2End);
-        if (dist2 <= tolerance) {
+        if (dist2 <= imageTolerance) {
             return i;
         }
 
@@ -4252,7 +4267,7 @@ int PaintingOverlay::hitTestLineSegmentAngle(const QPointF& testPos, double tole
         if (angleObj.hasIntersection) {
             double distToIntersection = sqrt(pow(testPos.x() - angleObj.intersection.x(), 2) +
                                            pow(testPos.y() - angleObj.intersection.y(), 2));
-            if (distToIntersection <= tolerance * 2) {  // 交点区域容差更大
+            if (distToIntersection <= imageTolerance * 2) {  // 交点区域容差更大
                 return i;
             }
         }
@@ -5763,6 +5778,7 @@ void PaintingOverlay::handleROIDrawingClick(const QPointF& pos)
 
 int PaintingOverlay::hitTestROI(const QPointF& testPos, double tolerance) const
 {
+    const double imageTolerance = screenPixelsToImageTolerance(tolerance);
     for (int i = 0; i < m_rois.size(); ++i) {
         const ROIDetectionObject& roi = m_rois[i];
         if (!roi.isVisible || !roi.isCompleted) continue;
@@ -5770,10 +5786,10 @@ int PaintingOverlay::hitTestROI(const QPointF& testPos, double tolerance) const
         QRectF rect = roi.getRect();
 
         // 检查是否在矩形边界附近
-        if (qAbs(testPos.x() - rect.left()) <= tolerance ||
-            qAbs(testPos.x() - rect.right()) <= tolerance ||
-            qAbs(testPos.y() - rect.top()) <= tolerance ||
-            qAbs(testPos.y() - rect.bottom()) <= tolerance) {
+        if (qAbs(testPos.x() - rect.left()) <= imageTolerance ||
+            qAbs(testPos.x() - rect.right()) <= imageTolerance ||
+            qAbs(testPos.y() - rect.top()) <= imageTolerance ||
+            qAbs(testPos.y() - rect.bottom()) <= imageTolerance) {
 
             // 进一步检查是否在矩形范围内
             if (rect.contains(testPos)) {
